@@ -1,0 +1,101 @@
+import apiClient, { unwrap } from "./api-client";
+import type {
+  AdminDashboardStats,
+  FlaggedLink,
+  StyleRule,
+  OccasionRule,
+} from "@/types/analytics";
+import type { Brand } from "@/types/brand";
+import type { Product } from "@/types/product";
+
+export const adminApi = {
+  getDashboard: async (): Promise<AdminDashboardStats> => {
+    const res = await apiClient.get("/admin/dashboard");
+    return unwrap(res);
+  },
+  getBrands: async (): Promise<Brand[]> => {
+    const res = await apiClient.get("/admin/brands");
+    return unwrap(res);
+  },
+  approveBrand: async (id: string): Promise<void> => {
+    await apiClient.post(`/admin/brands/${id}/approve`);
+  },
+  rejectBrand: async (id: string, reason?: string): Promise<void> => {
+    await apiClient.post(`/admin/brands/${id}/reject`, { reason });
+  },
+  suspendBrand: async (id: string): Promise<void> => {
+    await apiClient.post(`/admin/brands/${id}/suspend`);
+  },
+  getPendingProducts: async (): Promise<Product[]> => {
+    const res = await apiClient.get("/admin/products/pending");
+    return unwrap(res);
+  },
+  approveProduct: async (id: string): Promise<void> => {
+    await apiClient.post(`/admin/products/${id}/approve`);
+  },
+  rejectProduct: async (id: string, reason?: string): Promise<void> => {
+    await apiClient.post(`/admin/products/${id}/reject`, { reason });
+  },
+  flagProduct: async (id: string, reason: string): Promise<void> => {
+    await apiClient.post(`/admin/products/${id}/flag`, { reason });
+  },
+  getFlaggedLinks: async (): Promise<FlaggedLink[]> => {
+    const res = await apiClient.get("/admin/flagged-links");
+    return unwrap(res);
+  },
+  resolveFlaggedLink: async (id: string): Promise<void> => {
+    await apiClient.post(`/admin/flagged-links/${id}/resolve`);
+  },
+  rejectFlaggedLink: async (id: string): Promise<void> => {
+    await apiClient.post(`/admin/flagged-links/${id}/reject`);
+  },
+  getStyleRules: async (): Promise<StyleRule[]> => {
+    const res = await apiClient.get("/admin/rules/styles");
+    return unwrap(res);
+  },
+  createStyleRule: async (data: Omit<StyleRule, "id">): Promise<StyleRule> => {
+    const res = await apiClient.post("/admin/rules/styles", data);
+    return unwrap(res);
+  },
+  updateStyleRule: async (id: string, data: Partial<StyleRule>): Promise<StyleRule> => {
+    const res = await apiClient.put(`/admin/rules/styles/${id}`, data);
+    return unwrap(res);
+  },
+  deleteStyleRule: async (id: string): Promise<void> => {
+    await apiClient.delete(`/admin/rules/styles/${id}`);
+  },
+  getOccasionRules: async (): Promise<OccasionRule[]> => {
+    const res = await apiClient.get("/admin/rules/occasions");
+    return unwrap(res);
+  },
+  createOccasionRule: async (data: Omit<OccasionRule, "id">): Promise<OccasionRule> => {
+    const res = await apiClient.post("/admin/rules/occasions", data);
+    return unwrap(res);
+  },
+  updateOccasionRule: async (id: string, data: Partial<OccasionRule>): Promise<OccasionRule> => {
+    const res = await apiClient.put(`/admin/rules/occasions/${id}`, data);
+    return unwrap(res);
+  },
+  deleteOccasionRule: async (id: string): Promise<void> => {
+    await apiClient.delete(`/admin/rules/occasions/${id}`);
+  },
+  getConsents: async (): Promise<unknown[]> => {
+    const res = await apiClient.get("/admin/privacy/consents");
+    return unwrap(res);
+  },
+  getDeletionRequests: async (): Promise<unknown[]> => {
+    const res = await apiClient.get("/admin/privacy/deletion-requests");
+    return unwrap(res);
+  },
+  processDeletionRequest: async (id: string): Promise<void> => {
+    await apiClient.post(`/admin/privacy/deletion-requests/${id}/process`);
+  },
+  getTryOnMonitoring: async (): Promise<unknown> => {
+    const res = await apiClient.get("/admin/try-on/monitoring");
+    return unwrap(res);
+  },
+  getFailedPreviews: async (): Promise<unknown[]> => {
+    const res = await apiClient.get("/admin/try-on/failed-previews");
+    return unwrap(res);
+  },
+};

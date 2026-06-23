@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="400" height="533" viewBox="0 0 400 533" fill="none">
+  <rect width="400" height="533" fill="#f5f5f4"/>
+  <path d="M200 180c-30 0-55 25-55 55v80h110v-80c0-30-25-55-55-55z" fill="#d6d3d1"/>
+  <rect x="120" y="315" width="160" height="120" rx="8" fill="#d6d3d1"/>
+  <text x="200" y="470" text-anchor="middle" fill="#a8a29e" font-family="sans-serif" font-size="14">FitMe AI</text>
+</svg>

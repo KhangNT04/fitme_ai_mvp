@@ -1,0 +1,36 @@
+# Dependencies
+node_modules/
+frontend/node_modules/
+frontend/.next/
+frontend/out/
+
+# Backend build
+backend/target/
+backend/uploads/
+*.jar
+*.war
+*.class
+
+# IDE
+.idea/
+.vscode/
+*.iml
+*.swp
+.DS_Store
+
+# Env
+.env
+.env.local
+.env.*.local
+
+# Logs
+*.log
+logs/
+
+# OS
+Thumbs.db
+
+# Playwright E2E
+frontend/test-results/
+frontend/playwright-report/
+frontend/blob-report/

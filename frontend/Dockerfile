@@ -8,8 +8,11 @@ WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
-ARG NEXT_PUBLIC_API_URL=http://localhost:8080/api/v1
+ARG NEXT_PUBLIC_API_URL=/api/v1
 ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
+
+ARG BACKEND_INTERNAL_URL=http://backend:8080
+ENV BACKEND_INTERNAL_URL=$BACKEND_INTERNAL_URL
 
 RUN npm run build
 

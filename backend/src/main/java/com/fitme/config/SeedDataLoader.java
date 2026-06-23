@@ -54,9 +54,16 @@ public class SeedDataLoader implements CommandLineRunner {
     @Value("${fitme.seed.password:fitme123}")
     private String seedPassword;
 
+    @Value("${fitme.seed.enabled:true}")
+    private boolean seedEnabled;
+
     @Override
     @Transactional
     public void run(String... args) {
+        if (!seedEnabled) {
+            log.info("FitMe seed disabled (fitme.seed.enabled=false)");
+            return;
+        }
         if (userRepository.count() > 0) {
             return;
         }

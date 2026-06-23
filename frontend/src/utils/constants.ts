@@ -1,4 +1,4 @@
-export const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080/api/v1";
+export const API_URL = process.env.NEXT_PUBLIC_API_URL || "/api/v1";
 
 export const AI_DISCLAIMER =
   "Ảnh minh họa bằng AI, dùng để tham khảo. Form thực tế có thể khác tùy chất liệu, bảng size và cách mặc.";

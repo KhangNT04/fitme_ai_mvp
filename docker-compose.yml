@@ -26,7 +26,7 @@ services:
       DB_USERNAME: ${POSTGRES_USER:-fitme}
       DB_PASSWORD: ${POSTGRES_PASSWORD:-fitme123}
       JWT_SECRET: ${JWT_SECRET:-fitme-dev-secret-change-in-production-min-256-bits-long-key-here}
-      CORS_ORIGINS: http://localhost:3000
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:3000}
       UPLOAD_DIR: /app/uploads
     volumes:
       - backend_uploads:/app/uploads
@@ -39,11 +39,12 @@ services:
       context: ./frontend
       dockerfile: Dockerfile
       args:
-        NEXT_PUBLIC_API_URL: http://localhost:8080/api/v1
+        NEXT_PUBLIC_API_URL: /api/v1
+        BACKEND_INTERNAL_URL: http://backend:8080
     ports:
       - "3000:3000"
     environment:
-      NEXT_PUBLIC_API_URL: http://localhost:8080/api/v1
+      NODE_ENV: production
     depends_on:
       - backend
 

@@ -25,8 +25,40 @@ docker compose up --build
 ```
 
 - Frontend: http://localhost:3000
-- Backend API: http://localhost:8080/api/v1
+- API (qua proxy FE): http://localhost:3000/api/v1
+- Backend trực tiếp (dev compose): http://localhost:8080/api/v1
 - Swagger UI: http://localhost:8080/swagger-ui.html
+
+## Deploy môi trường test (staging)
+
+Dùng stack Docker riêng với secrets bắt buộc, Postgres nội bộ, API proxy qua frontend (truy cập được qua IP server):
+
+```powershell
+# Windows
+.\scripts\deploy-test.ps1
+```
+
+```bash
+# Linux / macOS
+cp .env.test.example .env.test   # chỉnh PUBLIC_APP_URL + secrets
+./scripts/deploy-test.sh
+```
+
+Chi tiết: [`docs/DEPLOY_TEST.md`](docs/DEPLOY_TEST.md)
+
+## Deploy free cloud (Vercel + Render + Neon)
+
+Stack **0 đồng**, link public `https://*.vercel.app`:
+
+| Dịch vụ | Vai trò |
+|---------|---------|
+| [Vercel](https://vercel.com) | Frontend Next.js |
+| [Render](https://render.com) free | Backend Spring Boot (Docker) |
+| [Neon](https://neon.tech) free | PostgreSQL |
+
+Hướng dẫn từng bước: [`docs/DEPLOY_VERCEL_RENDER_NEON.md`](docs/DEPLOY_VERCEL_RENDER_NEON.md)
+
+Template biến môi trường: [`.env.cloud.example`](.env.cloud.example)
 
 ## Chạy local (development)
 

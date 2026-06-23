@@ -22,7 +22,7 @@ spring:
       max-request-size: 5MB
 
 server:
-  port: ${SERVER_PORT:8080}
+  port: ${PORT:${SERVER_PORT:8080}}
 
 fitme:
   jwt:
@@ -33,6 +33,9 @@ fitme:
     origins: ${CORS_ORIGINS:http://localhost:3000}
   upload:
     dir: ${UPLOAD_DIR:./uploads}
+  seed:
+    enabled: ${FITME_SEED_ENABLED:true}
+    password: ${FITME_SEED_PASSWORD:fitme123}
   privacy:
     version: "2026-01"
   exception:

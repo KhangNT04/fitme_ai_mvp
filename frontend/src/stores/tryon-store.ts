@@ -35,6 +35,6 @@ export const useTryOnStore = create<TryOnState>()(
       setRequestId: (id) => set({ requestId: id }),
       reset: () => set({ selectedItems: [], input: {}, requestId: null }),
     }),
-    { name: "fitme-tryon" }
+    { name: "fitme-tryon", skipHydration: true }
   )
 );

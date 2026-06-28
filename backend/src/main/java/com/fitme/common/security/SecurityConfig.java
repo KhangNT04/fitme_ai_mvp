@@ -31,6 +31,7 @@ public class SecurityConfig {
 
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
     private final AnonymousSessionFilter anonymousSessionFilter;
+    private final SessionOrAuthFilter sessionOrAuthFilter;
     private final FitMeProperties fitMeProperties;
 
     @Bean
@@ -42,8 +43,11 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/v1/sessions/**").permitAll()
                         .requestMatchers("/api/v1/auth/**").permitAll()
+                        .requestMatchers("/api/v1/test/**").permitAll()
+                        .requestMatchers("/api/v1/brand/applications/**").authenticated()
                         .requestMatchers(HttpMethod.GET, "/api/v1/products/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/v1/brands/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/v1/recommendations/**").permitAll()
                         .requestMatchers("/api/v1/recommendations/**").permitAll()
                         .requestMatchers("/api/v1/redirects/**").permitAll()
                         .requestMatchers("/api/v1/me/**").permitAll()
@@ -59,7 +63,8 @@ public class SecurityConfig {
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(anonymousSessionFilter, UsernamePasswordAuthenticationFilter.class)
-                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
+                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
+                .addFilterAfter(sessionOrAuthFilter, JwtAuthenticationFilter.class);
         return http.build();
     }
 

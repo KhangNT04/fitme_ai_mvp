@@ -105,7 +105,7 @@ Nếu chưa có quyết định stack, dùng:
 ```txt
 src/
   app/ hoặc routes/
-    (public)/
+    public/
       page-home/
       discover/
       product-detail/

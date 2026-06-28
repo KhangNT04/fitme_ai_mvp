@@ -8,6 +8,8 @@ import { EmptyState } from "@/components/common/EmptyState";
 import { ErrorState } from "@/components/common/ErrorState";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { PageShell } from "@/components/layout/PageShell";
+import { PageHeader } from "@/components/layout/PageHeader";
 
 export default function SavedOutfitsPage() {
   const { data, isLoading, error, refetch } = useQuery({
@@ -16,11 +18,10 @@ export default function SavedOutfitsPage() {
   });
 
   return (
-    <div className="mx-auto max-w-4xl px-4 py-8 sm:px-6">
-      <h1 className="text-2xl font-bold text-stone-900">Gợi ý đã lưu</h1>
-      <p className="mt-2 text-stone-500">Các outfit bạn đã lưu từ tư vấn AI</p>
+    <PageShell width="wide">
+      <PageHeader title="Gợi ý đã lưu" subtitle="Các outfit bạn đã lưu từ tư vấn AI" backHref="/" backLabel="Trang chủ" />
 
-      <div className="mt-8">
+      <div>
         {isLoading && <LoadingSkeleton type="list" />}
         {error && <ErrorState onRetry={() => refetch()} />}
         {data && data.length === 0 && (
@@ -38,7 +39,7 @@ export default function SavedOutfitsPage() {
                 <CardContent className="flex items-center justify-between p-6">
                   <div>
                     <h3 className="font-semibold">{item.title}</h3>
-                    <p className="text-sm text-stone-500">{item.outfitItems.length} items</p>
+                    <p className="text-sm text-muted-foreground">{item.outfitItems.length} items</p>
                   </div>
                   <Button asChild>
                     <Link href={`/ai/result/${item.id}`}>Xem</Link>
@@ -49,6 +50,6 @@ export default function SavedOutfitsPage() {
           </div>
         )}
       </div>
-    </div>
+    </PageShell>
   );
 }

@@ -3,31 +3,39 @@ export type BrandStatus = "PENDING" | "APPROVED" | "REJECTED" | "SUSPENDED";
 export interface Brand {
   id: string;
   name: string;
-  ownerName: string;
-  email: string;
-  phone?: string;
-  website?: string;
+  description?: string;
+  logoUrl?: string;
+  websiteUrl?: string;
   shopeeUrl?: string;
   tiktokShopUrl?: string;
-  instagram?: string;
-  productCategory: string;
-  description?: string;
+  instagramUrl?: string;
+  facebookUrl?: string;
+  contactEmail?: string;
+  contactPhone?: string;
   status: BrandStatus;
   createdAt: string;
 }
 
 export interface BrandOnboardingRequest {
   name: string;
-  ownerName: string;
-  email: string;
-  phone?: string;
-  website?: string;
+  description?: string;
+  logoUrl?: string;
+  websiteUrl?: string;
   shopeeUrl?: string;
   tiktokShopUrl?: string;
-  instagram?: string;
-  productCategory: string;
-  description?: string;
+  instagramUrl?: string;
+  facebookUrl?: string;
+  contactEmail: string;
+  contactPhone?: string;
 }
+
+export interface BrandApplicationResponse {
+  brand?: Brand;
+  hasApplication: boolean;
+  message: string;
+}
+
+import type { SizeChartRow } from "@/types/product";
 
 export interface CreateProductRequest {
   name: string;
@@ -42,4 +50,5 @@ export interface CreateProductRequest {
   purchaseUrl: string;
   description?: string;
   images?: string[];
+  sizeCharts?: SizeChartRow[];
 }

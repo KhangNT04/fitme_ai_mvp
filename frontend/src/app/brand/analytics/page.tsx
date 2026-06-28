@@ -16,7 +16,7 @@ export default function BrandAnalyticsPage() {
 
   return (
     <PortalLayout title="Brand" nav={brandNav}>
-      <h1 className="text-2xl font-bold">Phân tích</h1>
+      <h1 className="font-display text-2xl font-bold tracking-tight text-foreground">Phân tích</h1>
       <div className="mt-6 grid gap-4 sm:grid-cols-2">
         {[
           { href: "/brand/analytics/redirect", label: "Chuyển hướng mua" },

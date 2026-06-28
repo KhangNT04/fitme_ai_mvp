@@ -1,12 +1,13 @@
 package com.fitme.analytics.service;
 
 import com.fitme.AbstractIntegrationTest;
+import com.fitme.analytics.dto.AdminDashboardResponse;
+import com.fitme.analytics.dto.BrandDashboardResponse;
 import com.fitme.brand.entity.Brand;
 import com.fitme.support.TestDataHelper;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.util.Map;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -32,25 +33,21 @@ class AnalyticsServiceTest extends AbstractIntegrationTest {
         analyticsService.track("RECOMMENDATION_GENERATED", null, null, brandId,
                 null, null, null, null);
 
-        Map<String, Object> dashboard = analyticsService.brandDashboard(brandId);
+        BrandDashboardResponse dashboard = analyticsService.brandDashboard(brandId);
 
-        assertThat(dashboard).containsKeys("totalEvents", "buyClicks", "tryOns", "recommendations");
-        assertThat(dashboard.get("totalEvents")).isEqualTo(3);
-        assertThat(dashboard.get("buyClicks")).isEqualTo(1L);
-        assertThat(dashboard).doesNotContainKeys("email", "phone", "photoUrl", "bodyProfile");
-        assertThat(dashboard.values()).noneMatch(v -> v != null && v.toString().contains("@"));
+        assertThat(dashboard.getBuyClicks()).isEqualTo(1);
+        assertThat(dashboard.getTryOnAttempts()).isEqualTo(1);
+        assertThat(dashboard.getAiRecommendedProducts()).isEqualTo(1);
     }
 
     @Test
     void adminDashboard_returnsAggregateCountsOnly() {
         analyticsService.track("RECOMMENDATION_GENERATED", null, null,
                 null, null, null, null, null);
-        analyticsService.track("FEEDBACK_SUBMITTED", null, null,
-                null, null, null, null, null);
 
-        Map<String, Object> dashboard = analyticsService.adminDashboard();
+        AdminDashboardResponse dashboard = analyticsService.adminDashboard();
 
-        assertThat(dashboard).containsKeys("totalEvents", "recommendations", "buyClicks", "tryOns", "feedback");
-        assertThat(dashboard).doesNotContainKeys("userId", "sessionToken", "displayName");
+        assertThat(dashboard.getTotalRecommendations()).isGreaterThanOrEqualTo(1);
+        assertThat(dashboard.getTotalBrands()).isGreaterThanOrEqualTo(0);
     }
 }

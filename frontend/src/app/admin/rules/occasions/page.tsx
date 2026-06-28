@@ -19,7 +19,7 @@ export default function AdminOccasionRulesPage() {
   });
 
   const create = useMutation({
-    mutationFn: () => adminApi.createOccasionRule({ name, description: "", tags: [], active: true }),
+    mutationFn: () => adminApi.createOccasionRule({ name, description: "", keywords: [], active: true }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["admin-occasion-rules"] });
       setName("");
@@ -33,7 +33,7 @@ export default function AdminOccasionRulesPage() {
 
   return (
     <PortalLayout title="Admin" nav={adminNav}>
-      <h1 className="text-2xl font-bold">Rule hoàn cảnh</h1>
+      <h1 className="font-display text-2xl font-bold tracking-tight text-foreground">Rule hoàn cảnh</h1>
       <div className="mt-6 flex gap-3">
         <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="Tên rule mới" className="max-w-xs" />
         <Button onClick={() => create.mutate()} disabled={!name}>Thêm</Button>
@@ -41,7 +41,7 @@ export default function AdminOccasionRulesPage() {
       {isLoading ? <LoadingSkeleton type="list" /> : (
         <div className="mt-8 space-y-3">
           {data?.map((rule) => (
-            <div key={rule.id} className="flex items-center justify-between rounded-lg border p-4">
+            <div key={rule.id} className="flex items-center justify-between rounded-2xl border border-border/60 p-4">
               <div>
                 <p className="font-medium">{rule.name}</p>
                 <Badge variant="outline" className="mt-1">{rule.active ? "Hoạt động" : "Tắt"}</Badge>

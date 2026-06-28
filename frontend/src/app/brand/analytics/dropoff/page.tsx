@@ -13,7 +13,7 @@ export default function BrandAnalyticsDropoffPage() {
 
   return (
     <PortalLayout title="Brand" nav={brandNav}>
-      <h1 className="text-2xl font-bold">Phân tích điểm rời bỏ</h1>
+      <h1 className="font-display text-2xl font-bold tracking-tight text-foreground">Phân tích điểm rời bỏ</h1>
       <div className="mt-8">
         <AnalyticsChart title="Điểm rời bỏ trong luồng" data={data?.dropoffPoints || []} />
       </div>

@@ -17,7 +17,7 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import type { ChartDataPoint } from "@/types/analytics";
 
-const COLORS = ["#1c1917", "#78716c", "#a8a29e", "#d6d3d1", "#e7e5e4"];
+const COLORS = ["#8b5cf6", "#a78bfa", "#f472b6", "#c4b5fd", "#e8e8f0"];
 
 interface AnalyticsChartProps {
   title: string;
@@ -36,11 +36,11 @@ export function AnalyticsChart({ title, data, type = "bar" }: AnalyticsChartProp
           <ResponsiveContainer width="100%" height="100%">
             {type === "line" ? (
               <LineChart data={data}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#e7e5e4" />
+                <CartesianGrid strokeDasharray="3 3" stroke="#e8e8f0" />
                 <XAxis dataKey="name" tick={{ fontSize: 12 }} />
                 <YAxis tick={{ fontSize: 12 }} />
                 <Tooltip />
-                <Line type="monotone" dataKey="value" stroke="#1c1917" strokeWidth={2} />
+                <Line type="monotone" dataKey="value" stroke="#8b5cf6" strokeWidth={2} />
               </LineChart>
             ) : type === "pie" ? (
               <PieChart>
@@ -53,11 +53,11 @@ export function AnalyticsChart({ title, data, type = "bar" }: AnalyticsChartProp
               </PieChart>
             ) : (
               <BarChart data={data}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#e7e5e4" />
+                <CartesianGrid strokeDasharray="3 3" stroke="#e8e8f0" />
                 <XAxis dataKey="name" tick={{ fontSize: 12 }} />
                 <YAxis tick={{ fontSize: 12 }} />
                 <Tooltip />
-                <Bar dataKey="value" fill="#1c1917" radius={[4, 4, 0, 0]} />
+                <Bar dataKey="value" fill="#8b5cf6" radius={[6, 6, 0, 0]} />
               </BarChart>
             )}
           </ResponsiveContainer>
@@ -77,9 +77,9 @@ export function StatCard({ label, value, sub }: StatCardProps) {
   return (
     <Card>
       <CardContent className="p-6">
-        <p className="text-sm text-stone-500">{label}</p>
-        <p className="mt-1 text-2xl font-bold text-stone-900">{value}</p>
-        {sub && <p className="mt-1 text-xs text-stone-400">{sub}</p>}
+        <p className="text-sm text-muted-foreground">{label}</p>
+        <p className="mt-1 font-display text-2xl font-bold text-foreground">{value}</p>
+        {sub && <p className="mt-1 text-xs text-muted-foreground/70">{sub}</p>}
       </CardContent>
     </Card>
   );

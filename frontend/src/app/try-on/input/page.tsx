@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -13,7 +14,10 @@ import { FIT_PREFERENCES, SKIN_TONES, OCCASION_OPTIONS, VIBE_OPTIONS } from "@/u
 import { useTryOnStore } from "@/stores/tryon-store";
 import { useEnsureSession } from "@/hooks/use-ensure-session";
 import { tryonApi } from "@/services/tryon-api";
-import { cn } from "@/lib/utils";
+import { PageShell } from "@/components/layout/PageShell";
+import { PageHeader } from "@/components/layout/PageHeader";
+import { TRYON_FLOW_STEPS } from "@/components/layout/FlowStepper";
+import { Chip } from "@/components/ui/chip";
 
 const INPUT_MODES = [
   { value: "USER_PHOTO", label: "Dùng ảnh cá nhân" },
@@ -57,27 +61,30 @@ export default function TryOnInputPage() {
   };
 
   return (
-    <div className="mx-auto max-w-xl px-4 py-8 sm:px-6">
-      <h1 className="text-2xl font-bold text-stone-900">Thông tin thử mặc</h1>
-      <p className="mt-2 text-stone-500">Nhập thông tin để AI gợi ý size, form và màu</p>
+    <PageShell>
+      <PageHeader
+        steps={TRYON_FLOW_STEPS}
+        currentStep={2}
+        title="Thông tin thử mặc"
+        subtitle="Nhập thông tin để AI gợi ý size, form và màu"
+        showAiBadge
+        backHref="/try-on/selected"
+        backLabel="Outfit đang chọn"
+      />
 
-      <form onSubmit={handleSubmit(onSubmit)} className="mt-8 space-y-6">
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
         <Card>
           <CardContent className="p-6 space-y-4">
             <Label>Chế độ preview</Label>
             <div className="flex flex-wrap gap-2">
               {INPUT_MODES.map((m) => (
-                <button
+                <Chip
                   key={m.value}
-                  type="button"
+                  selected={inputMode === m.value}
                   onClick={() => setValue("inputMode", m.value)}
-                  className={cn(
-                    "rounded-full border px-4 py-2 text-sm",
-                    inputMode === m.value ? "border-stone-900 bg-stone-900 text-white" : "border-stone-300"
-                  )}
                 >
                   {m.label}
-                </button>
+                </Chip>
               ))}
             </div>
           </CardContent>
@@ -133,10 +140,12 @@ export default function TryOnInputPage() {
         </Card>
 
         <div className="flex gap-3">
-          <Button type="button" variant="outline" onClick={() => router.back()}>Quay lại</Button>
-          <Button type="submit" className="flex-1">Tạo preview thử mặc</Button>
+          <Button type="button" variant="outline" asChild>
+            <Link href="/try-on/selected">Quay lại</Link>
+          </Button>
+          <Button type="submit" className="flex-1" variant="ai">Tạo preview thử mặc</Button>
         </div>
       </form>
-    </div>
+    </PageShell>
   );
 }

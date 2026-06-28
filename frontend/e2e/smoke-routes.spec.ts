@@ -4,7 +4,7 @@ import { expectPageHeading } from "./helpers/portal";
 
 test.describe("Public route smoke", () => {
   const publicPages: { path: string; heading: string | RegExp }[] = [
-    { path: "/", heading: "Biết nên mặc gì — phù hợp dáng người, gu và hoàn cảnh" },
+    { path: "/", heading: "Đúng size, hợp dáng, chuẩn màu — thử trước khi mua." },
     { path: "/discover", heading: "Khám phá sản phẩm" },
     { path: "/try-on", heading: "Thử mặc bằng AI" },
     { path: "/wardrobe", heading: "Tủ đồ cá nhân" },

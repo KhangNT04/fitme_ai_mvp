@@ -1,53 +1,28 @@
 "use client";
 
-import { use, useState } from "react";
-import { useRouter } from "next/navigation";
+import { use, useCallback } from "react";
 import { tryonApi } from "@/services/tryon-api";
-import { Button } from "@/components/ui/button";
-import { Disclaimer } from "@/components/layout/Disclaimer";
-import { cn } from "@/lib/utils";
+import { TryOnVariantShell } from "@/components/tryon/TryOnVariantShell";
+import { useTryOnVariant } from "@/hooks/use-tryon-variant";
 
 const FORMS = ["Slim", "Regular", "Relaxed", "Oversize"];
 
 export default function TryOnFormPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
-  const router = useRouter();
-  const [selected, setSelected] = useState("");
-  const [loading, setLoading] = useState(false);
-
-  const handleApply = async () => {
-    if (!selected) return;
-    setLoading(true);
-    try {
-      await tryonApi.variantForm(id, selected);
-      router.push(`/try-on/result/${id}`);
-    } finally {
-      setLoading(false);
-    }
-  };
+  const onApply = useCallback((requestId: string, value: string) => tryonApi.variantForm(requestId, value), []);
+  const { selected, setSelected, loading, handleApply } = useTryOnVariant({ requestId: id, onApply });
 
   return (
-    <div className="mx-auto max-w-xl px-4 py-8 sm:px-6">
-      <h1 className="text-2xl font-bold">So sánh form</h1>
-      <p className="mt-2 text-stone-500">Thử form khác cho outfit</p>
-      <div className="mt-8 flex flex-wrap gap-3">
-        {FORMS.map((f) => (
-          <button
-            key={f}
-            onClick={() => setSelected(f)}
-            className={cn(
-              "rounded-lg border px-6 py-3 text-sm font-medium",
-              selected === f ? "border-stone-900 bg-stone-900 text-white" : "border-stone-300"
-            )}
-          >
-            {f}
-          </button>
-        ))}
-      </div>
-      <Disclaimer className="mt-6" />
-      <Button className="mt-6 w-full" disabled={!selected || loading} onClick={handleApply}>
-        {loading ? "Đang xử lý..." : "Áp dụng form"}
-      </Button>
-    </div>
+    <TryOnVariantShell
+      title="So sánh form"
+      subtitle="Thử form khác cho outfit"
+      options={FORMS}
+      selected={selected}
+      onSelect={setSelected}
+      applyLabel="Áp dụng form"
+      onApply={handleApply}
+      loading={loading}
+      backHref={`/try-on/result/${id}`}
+    />
   );
 }

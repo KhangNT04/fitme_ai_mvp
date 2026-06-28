@@ -26,7 +26,11 @@ export const useConsultationStore = create<ConsultationState>()(
     (set) => ({
       draft: initialDraft,
       setSessionId: (sessionId) =>
-        set((s) => ({ draft: { ...s.draft, sessionId } })),
+        set((s) =>
+          s.draft.sessionId === sessionId
+            ? s
+            : { draft: { ...s.draft, sessionId } }
+        ),
       setSelectedProductId: (productId) =>
         set((s) => ({ draft: { ...s.draft, selectedProductId: productId } })),
       setBodyProfile: (profile) =>
@@ -43,6 +47,6 @@ export const useConsultationStore = create<ConsultationState>()(
         set((s) => ({ draft: { ...s.draft, recommendationId: id } })),
       reset: () => set({ draft: initialDraft }),
     }),
-    { name: "fitme-consultation" }
+    { name: "fitme-consultation", skipHydration: true }
   )
 );

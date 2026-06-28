@@ -1,4 +1,5 @@
 import apiClient, { unwrap } from "./api-client";
+import { mapProduct, type BackendProduct } from "./product-mapper";
 import type {
   AdminDashboardStats,
   FlaggedLink,
@@ -7,6 +8,10 @@ import type {
 } from "@/types/analytics";
 import type { Brand } from "@/types/brand";
 import type { Product } from "@/types/product";
+
+function mapProducts(data: BackendProduct[]): Product[] {
+  return (Array.isArray(data) ? data : []).map(mapProduct);
+}
 
 export const adminApi = {
   getDashboard: async (): Promise<AdminDashboardStats> => {
@@ -28,7 +33,7 @@ export const adminApi = {
   },
   getPendingProducts: async (): Promise<Product[]> => {
     const res = await apiClient.get("/admin/products/pending");
-    return unwrap(res);
+    return mapProducts(unwrap(res) as BackendProduct[]);
   },
   approveProduct: async (id: string): Promise<void> => {
     await apiClient.post(`/admin/products/${id}/approve`);
@@ -53,12 +58,20 @@ export const adminApi = {
     const res = await apiClient.get("/admin/rules/styles");
     return unwrap(res);
   },
-  createStyleRule: async (data: Omit<StyleRule, "id">): Promise<StyleRule> => {
-    const res = await apiClient.post("/admin/rules/styles", data);
+  createStyleRule: async (data: { name: string; description?: string; keywords?: string[]; tags?: string[]; active: boolean }): Promise<StyleRule> => {
+    const res = await apiClient.post("/admin/rules/styles", {
+      name: data.name,
+      description: data.description ?? "",
+      keywords: data.keywords ?? data.tags ?? [],
+      active: data.active,
+    });
     return unwrap(res);
   },
   updateStyleRule: async (id: string, data: Partial<StyleRule>): Promise<StyleRule> => {
-    const res = await apiClient.put(`/admin/rules/styles/${id}`, data);
+    const res = await apiClient.put(`/admin/rules/styles/${id}`, {
+      ...data,
+      keywords: data.keywords ?? data.tags,
+    });
     return unwrap(res);
   },
   deleteStyleRule: async (id: string): Promise<void> => {
@@ -68,12 +81,20 @@ export const adminApi = {
     const res = await apiClient.get("/admin/rules/occasions");
     return unwrap(res);
   },
-  createOccasionRule: async (data: Omit<OccasionRule, "id">): Promise<OccasionRule> => {
-    const res = await apiClient.post("/admin/rules/occasions", data);
+  createOccasionRule: async (data: { name: string; description?: string; keywords?: string[]; tags?: string[]; active: boolean }): Promise<OccasionRule> => {
+    const res = await apiClient.post("/admin/rules/occasions", {
+      name: data.name,
+      description: data.description ?? "",
+      keywords: data.keywords ?? data.tags ?? [],
+      active: data.active,
+    });
     return unwrap(res);
   },
   updateOccasionRule: async (id: string, data: Partial<OccasionRule>): Promise<OccasionRule> => {
-    const res = await apiClient.put(`/admin/rules/occasions/${id}`, data);
+    const res = await apiClient.put(`/admin/rules/occasions/${id}`, {
+      ...data,
+      keywords: data.keywords ?? data.tags,
+    });
     return unwrap(res);
   },
   deleteOccasionRule: async (id: string): Promise<void> => {
@@ -99,3 +120,11 @@ export const adminApi = {
     return unwrap(res);
   },
 };
+
+export function getProductModerationWarnings(product: Product): string[] {
+  const warnings: string[] = [];
+  if (!product.images.length) warnings.push("Thiếu ảnh sản phẩm");
+  if (!product.colors.length || !product.sizes.length) warnings.push("Thiếu biến thể màu/size");
+  if (!product.sizeCharts?.length) warnings.push("Thiếu bảng size");
+  return warnings;
+}

@@ -6,6 +6,9 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { useTryOnStore } from "@/stores/tryon-store";
 import { EmptyState } from "@/components/common/EmptyState";
+import { PageShell } from "@/components/layout/PageShell";
+import { PageHeader } from "@/components/layout/PageHeader";
+import { TRYON_FLOW_STEPS } from "@/components/layout/FlowStepper";
 
 export default function TryOnSelectedPage() {
   const router = useRouter();
@@ -13,14 +16,15 @@ export default function TryOnSelectedPage() {
 
   if (selectedItems.length === 0) {
     return (
-      <div className="mx-auto max-w-xl px-4 py-8">
+      <PageShell>
+        <PageHeader steps={TRYON_FLOW_STEPS} currentStep={1} title="Outfit đang chọn" backHref="/try-on" backLabel="Chọn sản phẩm" />
         <EmptyState
           title="Chưa chọn item nào"
           description="Quay lại chọn sản phẩm để thử mặc."
           actionLabel="Chọn sản phẩm"
           actionHref="/try-on"
         />
-      </div>
+      </PageShell>
     );
   }
 
@@ -30,19 +34,25 @@ export default function TryOnSelectedPage() {
   );
 
   return (
-    <div className="mx-auto max-w-2xl px-4 py-8 sm:px-6">
-      <h1 className="text-2xl font-bold text-stone-900">Outfit đang chọn</h1>
-      <p className="mt-2 text-stone-500">{selectedItems.length} item đã chọn</p>
+    <PageShell>
+      <PageHeader
+        steps={TRYON_FLOW_STEPS}
+        currentStep={1}
+        title="Outfit đang chọn"
+        subtitle={`${selectedItems.length} item đã chọn`}
+        backHref="/try-on"
+        backLabel="Chọn sản phẩm"
+      />
 
-      <div className="mt-8 space-y-4">
+      <div className="space-y-4">
         {selectedItems.map((item) => (
           <Card key={item.productId}>
             <CardContent className="flex items-center gap-4 p-4">
-              <div className="relative h-16 w-16 overflow-hidden rounded-lg bg-stone-100">
+              <div className="relative h-16 w-16 overflow-hidden rounded-lg bg-muted">
                 <Image src={item.imageUrl || "/placeholder-product.svg"} alt={item.name} fill className="object-cover" unoptimized />
               </div>
               <div>
-                <p className="text-xs text-stone-500">{item.category}</p>
+                <p className="text-xs text-muted-foreground">{item.category}</p>
                 <p className="font-medium">{item.name}</p>
               </div>
             </CardContent>
@@ -59,6 +69,6 @@ export default function TryOnSelectedPage() {
       <Button className="mt-8 w-full" size="lg" onClick={() => router.push("/try-on/input")}>
         Tiếp tục nhập thông tin
       </Button>
-    </div>
+    </PageShell>
   );
 }

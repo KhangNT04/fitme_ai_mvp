@@ -16,7 +16,7 @@ export default function BrandDashboardPage() {
 
   return (
     <PortalLayout title="Brand" nav={brandNav}>
-      <h1 className="text-2xl font-bold">Tổng quan</h1>
+      <h1 className="font-display text-2xl font-bold tracking-tight text-foreground">Tổng quan</h1>
       {isLoading && <div className="mt-8"><LoadingSkeleton count={4} /></div>}
       {error && <div className="mt-8"><ErrorState onRetry={() => refetch()} /></div>}
       {data && (

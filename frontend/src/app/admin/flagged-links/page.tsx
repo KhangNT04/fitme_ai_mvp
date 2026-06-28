@@ -7,6 +7,11 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { LoadingSkeleton } from "@/components/common/LoadingSkeleton";
 
+function statusLabel(status: string) {
+  if (status === "OPEN") return "Chờ xử lý";
+  return status;
+}
+
 export default function AdminFlaggedLinksPage() {
   const queryClient = useQueryClient();
   const { data, isLoading } = useQuery({
@@ -19,13 +24,18 @@ export default function AdminFlaggedLinksPage() {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["admin-flagged-links"] }),
   });
 
+  const reject = useMutation({
+    mutationFn: (id: string) => adminApi.rejectFlaggedLink(id),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["admin-flagged-links"] }),
+  });
+
   return (
     <PortalLayout title="Admin" nav={adminNav}>
-      <h1 className="text-2xl font-bold">Link bị báo lỗi</h1>
+      <h1 className="font-display text-2xl font-bold tracking-tight text-foreground">Link bị báo lỗi</h1>
       {isLoading ? <LoadingSkeleton type="list" /> : (
-        <div className="mt-8 overflow-x-auto rounded-lg border">
+        <div className="mt-8 overflow-x-auto rounded-2xl border border-border/60">
           <table className="w-full text-sm">
-            <thead className="bg-stone-50">
+            <thead className="bg-muted">
               <tr>
                 <th className="px-4 py-3 text-left">Sản phẩm</th>
                 <th className="px-4 py-3 text-left">URL</th>
@@ -40,10 +50,13 @@ export default function AdminFlaggedLinksPage() {
                   <td className="px-4 py-3">{link.productName}</td>
                   <td className="px-4 py-3 max-w-xs truncate">{link.url}</td>
                   <td className="px-4 py-3">{link.reason}</td>
-                  <td className="px-4 py-3"><Badge variant="outline">{link.status}</Badge></td>
-                  <td className="px-4 py-3">
-                    {link.status === "PENDING" && (
-                      <Button size="sm" onClick={() => resolve.mutate(link.id)}>Xử lý</Button>
+                  <td className="px-4 py-3"><Badge variant="outline">{statusLabel(link.status)}</Badge></td>
+                  <td className="px-4 py-3 space-x-2">
+                    {(link.status === "OPEN" || link.status === "PENDING") && (
+                      <>
+                        <Button size="sm" onClick={() => resolve.mutate(link.id)}>Xử lý</Button>
+                        <Button size="sm" variant="outline" onClick={() => reject.mutate(link.id)}>Từ chối</Button>
+                      </>
                     )}
                   </td>
                 </tr>

@@ -32,7 +32,22 @@ public class TestDataHelper {
 
     public record BrandOwnerContext(UserAccount user, Brand brand) {}
 
+    public record UserContext(UserAccount user) {}
+
     public record AdminContext(UserAccount user) {}
+
+    @Transactional
+    public UserContext createUser() {
+        UserAccount user = userAccountRepository.save(UserAccount.builder()
+                .email("user-" + UUID.randomUUID() + "@test.fitme.ai")
+                .passwordHash(passwordEncoder.encode("test123"))
+                .displayName("Test User")
+                .role(UserRole.USER)
+                .emailVerified(true)
+                .status(UserStatus.ACTIVE)
+                .build());
+        return new UserContext(user);
+    }
 
     @Transactional
     public BrandOwnerContext createBrandOwner() {
@@ -109,7 +124,7 @@ public class TestDataHelper {
 
     @Transactional
     public Product createDraftProductForBrand(Brand brand, String name) {
-        return productRepository.save(Product.builder()
+        Product product = productRepository.save(Product.builder()
                 .brandId(brand.getId())
                 .name(name)
                 .category("Áo")
@@ -119,6 +134,22 @@ public class TestDataHelper {
                 .stockStatus(StockStatus.IN_STOCK)
                 .status(ProductStatus.DRAFT)
                 .build());
+
+        imageRepository.save(ProductImage.builder()
+                .productId(product.getId())
+                .imageUrl("https://picsum.photos/400/500")
+                .imageType("MAIN")
+                .sortOrder(0)
+                .build());
+
+        variantRepository.save(ProductVariant.builder()
+                .productId(product.getId())
+                .colorName("Đen")
+                .sizeLabel("M")
+                .stockStatus(StockStatus.IN_STOCK)
+                .build());
+
+        return product;
     }
 
     @Transactional

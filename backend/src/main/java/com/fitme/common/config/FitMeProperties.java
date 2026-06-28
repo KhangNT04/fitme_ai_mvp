@@ -10,6 +10,12 @@ public class FitMeProperties {
     private Cors cors = new Cors();
     private Upload upload = new Upload();
     private Privacy privacy = new Privacy();
+    private Test test = new Test();
+
+    @Data
+    public static class Test {
+        private boolean exposeResetTokens = false;
+    }
 
     @Data
     public static class Jwt {

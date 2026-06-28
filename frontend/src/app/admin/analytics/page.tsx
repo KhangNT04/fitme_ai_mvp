@@ -14,7 +14,7 @@ export default function AdminAnalyticsPage() {
 
   return (
     <PortalLayout title="Admin" nav={adminNav}>
-      <h1 className="text-2xl font-bold">Phân tích toàn hệ thống</h1>
+      <h1 className="font-display text-2xl font-bold tracking-tight text-foreground">Phân tích toàn hệ thống</h1>
       {isLoading ? <LoadingSkeleton count={4} /> : data && (
         <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           <StatCard label="Tổng tư vấn AI" value={data.totalRecommendations} />

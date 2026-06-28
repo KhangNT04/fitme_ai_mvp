@@ -2,9 +2,22 @@ export type FitType = "SLIM" | "REGULAR" | "RELAXED" | "OVERSIZE";
 export type StockStatus = "IN_STOCK" | "OUT_OF_STOCK" | "LIMITED";
 export type ProductStatus = "DRAFT" | "PENDING_REVIEW" | "ACTIVE" | "REJECTED" | "INACTIVE";
 
-export interface SizeChart {
-  sizes: string[];
-  measurements: Record<string, Record<string, number>>;
+export interface SizeChartRow {
+  sizeLabel: string;
+  chestCm?: number;
+  waistCm?: number;
+  hipCm?: number;
+  shoulderCm?: number;
+  heightMinCm?: number;
+  heightMaxCm?: number;
+  weightMinKg?: number;
+  weightMaxKg?: number;
+}
+
+export interface ProductImageDetail {
+  url: string;
+  type: string;
+  sortOrder: number;
 }
 
 export interface Product {
@@ -15,9 +28,10 @@ export interface Product {
   category: string;
   price: number;
   images: string[];
+  imageDetails?: ProductImageDetail[];
   colors: string[];
   sizes: string[];
-  sizeChart?: SizeChart;
+  sizeCharts?: SizeChartRow[];
   material?: string;
   fitType: FitType;
   styleTags: string[];

@@ -2,6 +2,7 @@ package com.fitme.feedback.service;
 
 import com.fitme.analytics.service.AnalyticsService;
 import com.fitme.common.exception.NotFoundException;
+import com.fitme.common.security.OwnershipChecker;
 import com.fitme.common.security.RequestContext;
 import com.fitme.feedback.dto.FeedbackRequest;
 import com.fitme.feedback.entity.Feedback;
@@ -29,6 +30,7 @@ public class FeedbackService {
     public void submitForRecommendation(UUID recommendationId, FeedbackRequest request) {
         Recommendation rec = recommendationRepository.findById(recommendationId)
                 .orElseThrow(() -> new NotFoundException("Recommendation không tồn tại"));
+        OwnershipChecker.verify(rec.getUserId(), rec.getSessionId());
         save(rec.getUserId(), rec.getSessionId(), recommendationId, null, request);
     }
 
@@ -36,6 +38,7 @@ public class FeedbackService {
     public void submitForTryOn(UUID tryOnRequestId, FeedbackRequest request) {
         TryOnRequest tryOn = tryOnRequestRepository.findById(tryOnRequestId)
                 .orElseThrow(() -> new NotFoundException("Try-on không tồn tại"));
+        OwnershipChecker.verify(tryOn.getUserId(), tryOn.getSessionId());
         save(tryOn.getUserId(), tryOn.getSessionId(), null, tryOnRequestId, request);
     }
 

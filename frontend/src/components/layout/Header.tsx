@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Shirt, Menu, X } from "lucide-react";
+import { Sparkles, Menu, X, Search } from "lucide-react";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { useAuthStore } from "@/stores/auth-store";
@@ -15,40 +15,66 @@ const navLinks = [
   { href: "/saved-outfits", label: "Đã lưu" },
 ];
 
+function NavQuickSearch({ className }: { className?: string }) {
+  return (
+    <Link
+      href="/discover#discover-search"
+      className={cn(
+        "inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-muted hover:text-foreground",
+        className
+      )}
+      aria-label="Tìm kiếm nhanh"
+      title="Tìm kiếm nhanh"
+    >
+      <Search className="h-[18px] w-[18px]" aria-hidden="true" />
+    </Link>
+  );
+}
+
 export function Header() {
   const pathname = usePathname();
   const [mobileOpen, setMobileOpen] = useState(false);
-  const { user, isAuthenticated } = useAuthStore();
+  const user = useAuthStore((s) => s.user);
+  const accessToken = useAuthStore((s) => s.accessToken);
+  const isAuthed = !!accessToken;
 
   const isPortal = pathname.startsWith("/brand") || pathname.startsWith("/admin");
 
   if (isPortal) return null;
 
   return (
-    <header className="sticky top-0 z-40 border-b border-stone-200 bg-white/95 backdrop-blur">
+    <header className="glass-nav sticky top-0 z-40">
       <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6">
-        <Link href="/" className="flex items-center gap-2 font-semibold text-stone-900">
-          <Shirt className="h-6 w-6" />
-          <span>FitMe AI</span>
+        <Link href="/" className="group flex items-center gap-2.5 font-display font-bold text-foreground">
+          <span className="flex h-9 w-9 items-center justify-center rounded-xl gradient-ai text-white shadow-md transition-transform duration-300 group-hover:scale-105">
+            <Sparkles className="h-4 w-4" />
+          </span>
+          <span className="tracking-tight">FitMe AI</span>
         </Link>
 
-        <nav className="hidden items-center gap-6 md:flex">
-          {navLinks.map((link) => (
-            <Link
-              key={link.href}
-              href={link.href}
-              className={cn(
-                "text-sm font-medium transition-colors hover:text-stone-900",
-                pathname === link.href ? "text-stone-900" : "text-stone-500"
-              )}
-            >
-              {link.label}
-            </Link>
-          ))}
+        <nav className="hidden items-center gap-1 md:flex">
+          {navLinks.map((link) => {
+            const active = pathname === link.href || pathname.startsWith(link.href + "/");
+            return (
+              <Link
+                key={link.href}
+                href={link.href}
+                className={cn(
+                  "rounded-full px-4 py-2 text-sm font-medium transition-all duration-300",
+                  active
+                    ? "bg-primary/10 text-primary shadow-sm ring-1 ring-primary/20"
+                    : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                )}
+              >
+                {link.label}
+              </Link>
+            );
+          })}
         </nav>
 
-        <div className="hidden items-center gap-3 md:flex">
-          {isAuthenticated() ? (
+        <div className="hidden items-center gap-2 md:flex">
+          <NavQuickSearch />
+          {isAuthed ? (
             <Button variant="outline" size="sm" asChild>
               <Link href="/profile">{user?.fullName || "Hồ sơ"}</Link>
             </Button>
@@ -57,7 +83,7 @@ export function Header() {
               <Button variant="ghost" size="sm" asChild>
                 <Link href="/auth/login">Đăng nhập</Link>
               </Button>
-              <Button size="sm" asChild>
+              <Button variant="ai" size="sm" asChild>
                 <Link href="/ai/start">Tư vấn AI</Link>
               </Button>
             </>
@@ -65,7 +91,7 @@ export function Header() {
         </div>
 
         <button
-          className="md:hidden"
+          className="rounded-lg p-2 text-foreground md:hidden"
           onClick={() => setMobileOpen(!mobileOpen)}
           aria-label="Menu"
         >
@@ -74,19 +100,27 @@ export function Header() {
       </div>
 
       {mobileOpen && (
-        <div className="border-t border-stone-200 bg-white px-4 py-4 md:hidden">
-          <nav className="flex flex-col gap-3">
+        <div className="border-t border-border bg-background px-4 py-4 md:hidden">
+          <nav className="flex flex-col gap-1">
+            <Link
+              href="/discover#discover-search"
+              className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-foreground hover:bg-muted"
+              onClick={() => setMobileOpen(false)}
+            >
+              <Search className="h-4 w-4" aria-hidden="true" />
+              Tìm kiếm nhanh
+            </Link>
             {navLinks.map((link) => (
               <Link
                 key={link.href}
                 href={link.href}
-                className="text-sm font-medium text-stone-700"
+                className="rounded-lg px-3 py-2 text-sm font-medium text-foreground hover:bg-muted"
                 onClick={() => setMobileOpen(false)}
               >
                 {link.label}
               </Link>
             ))}
-            <Link href="/auth/login" className="text-sm font-medium text-stone-700">
+            <Link href="/auth/login" className="rounded-lg px-3 py-2 text-sm font-medium text-foreground hover:bg-muted">
               Đăng nhập
             </Link>
           </nav>

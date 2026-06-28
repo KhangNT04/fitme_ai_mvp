@@ -7,7 +7,7 @@ test.describe("Anonymous consultation flow", () => {
 
     await expect(
       page.getByRole("heading", {
-        name: "Biết nên mặc gì — phù hợp dáng người, gu và hoàn cảnh",
+        name: "Đúng size, hợp dáng, chuẩn màu — thử trước khi mua.",
       }),
     ).toBeVisible();
 

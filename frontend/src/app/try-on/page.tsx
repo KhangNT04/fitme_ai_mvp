@@ -10,6 +10,9 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useTryOnStore } from "@/stores/tryon-store";
 import { TRY_ON_CATEGORIES } from "@/utils/constants";
+import { PageShell } from "@/components/layout/PageShell";
+import { PageHeader } from "@/components/layout/PageHeader";
+import { TRYON_FLOW_STEPS } from "@/components/layout/FlowStepper";
 import { PageSuspense } from "@/components/common/PageSuspense";
 
 export default function TryOnPage() {
@@ -46,12 +49,19 @@ function TryOnContent() {
   }, [productId, data, addItem]);
 
   return (
-    <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6">
-      <h1 className="text-2xl font-bold text-stone-900">Thử mặc bằng AI</h1>
-      <p className="mt-2 text-stone-500">Chọn item để tạo preview thử mặc minh họa 2D</p>
+    <PageShell width="full">
+      <PageHeader
+        steps={TRYON_FLOW_STEPS}
+        currentStep={1}
+        title="Thử mặc bằng AI"
+        subtitle="Chọn item để tạo preview thử mặc minh họa 2D"
+        showAiBadge
+        backHref="/discover"
+        backLabel="Khám phá sản phẩm"
+      />
 
       {selectedItems.length > 0 && (
-        <div className="mt-6 rounded-lg border border-stone-200 bg-stone-50 p-4">
+        <div className="mb-6 rounded-2xl border border-border/60 bg-muted/80 p-4 shadow-sm">
           <p className="text-sm font-medium">Đã chọn ({selectedItems.length})</p>
           <div className="mt-2 flex flex-wrap gap-2">
             {selectedItems.map((item) => (
@@ -74,7 +84,7 @@ function TryOnContent() {
 
       <div className="mt-8">
         {isLoading ? <LoadingSkeleton /> : (
-          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {data?.items.map((p) => (
               <div key={p.id} onClick={() => addItem({
                 productId: p.id,
@@ -82,12 +92,12 @@ function TryOnContent() {
                 name: p.name,
                 imageUrl: p.images[0],
               })}>
-                <ProductCard product={p} showTryOn={false} />
+                <ProductCard product={p} showTryOn={false} compact />
               </div>
             ))}
           </div>
         )}
       </div>
-    </div>
+    </PageShell>
   );
 }

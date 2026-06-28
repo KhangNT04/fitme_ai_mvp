@@ -12,6 +12,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { LoadingSkeleton } from "@/components/common/LoadingSkeleton";
 import { ErrorState } from "@/components/common/ErrorState";
 import { Disclaimer } from "@/components/layout/Disclaimer";
+import { PageShell } from "@/components/layout/PageShell";
+import { PageHeader } from "@/components/layout/PageHeader";
+import { TRYON_FLOW_STEPS } from "@/components/layout/FlowStepper";
 
 export default function TryOnResultPage({
   params,
@@ -25,18 +28,30 @@ export default function TryOnResultPage({
     queryFn: () => tryonApi.getResult(id),
   });
 
-  if (isLoading) return <div className="mx-auto max-w-2xl px-4 py-8"><LoadingSkeleton type="detail" /></div>;
-  if (error || !data) return <div className="mx-auto max-w-2xl px-4 py-8"><ErrorState onRetry={() => refetch()} /></div>;
+  if (isLoading) {
+    return (
+      <PageShell width="medium">
+        <LoadingSkeleton type="detail" />
+      </PageShell>
+    );
+  }
+  if (error || !data) {
+    return (
+      <PageShell width="medium">
+        <ErrorState onRetry={() => refetch()} />
+      </PageShell>
+    );
+  }
 
   return (
-    <div className="mx-auto max-w-2xl px-4 py-8 sm:px-6">
-      <h1 className="text-2xl font-bold text-stone-900">Kết quả thử mặc AI</h1>
+    <PageShell width="medium">
+      <PageHeader steps={TRYON_FLOW_STEPS} currentStep={3} title="Kết quả thử mặc AI" showAiBadge backHref="/try-on" backLabel="Thử mặc AI" />
 
-      <div className="mt-6 relative aspect-[3/4] overflow-hidden rounded-xl bg-stone-100">
+      <div className="relative aspect-[3/4] overflow-hidden rounded-xl bg-muted">
         {data.previewImageUrl ? (
           <Image src={data.previewImageUrl} alt="Try-on preview" fill className="object-cover" unoptimized />
         ) : (
-          <div className="flex h-full items-center justify-center text-stone-400">Preview outfit board</div>
+          <div className="flex h-full items-center justify-center text-muted-foreground/70">Preview outfit board</div>
         )}
       </div>
 
@@ -51,7 +66,7 @@ export default function TryOnResultPage({
       {data.improvementSuggestions && data.improvementSuggestions.length > 0 && (
         <Card className="mt-6">
           <CardHeader><CardTitle className="text-base">Gợi ý cải thiện</CardTitle></CardHeader>
-          <CardContent className="space-y-2 text-sm text-stone-600">
+          <CardContent className="space-y-2 text-sm text-muted-foreground">
             {data.improvementSuggestions.map((s, i) => <p key={i}>• {s}</p>)}
           </CardContent>
         </Card>
@@ -67,6 +82,6 @@ export default function TryOnResultPage({
       <Button className="mt-4 w-full" asChild>
         <Link href={`/try-on/decision/${id}`}>Quyết định tiếp theo</Link>
       </Button>
-    </div>
+    </PageShell>
   );
 }

@@ -1,29 +1,28 @@
 package com.fitme.admin.controller;
 
+import com.fitme.admin.dto.ConsentRecordDto;
+import com.fitme.admin.dto.DataDeletionRequestDto;
+import com.fitme.admin.dto.OccasionRuleDto;
 import com.fitme.admin.dto.OccasionRuleRequest;
+import com.fitme.admin.dto.PreviewGenerationDto;
+import com.fitme.admin.dto.StyleRuleDto;
 import com.fitme.admin.dto.StyleRuleRequest;
-import com.fitme.admin.entity.OccasionRule;
-import com.fitme.admin.entity.StyleRule;
+import com.fitme.admin.service.AdminDtoMapper;
+import com.fitme.admin.service.AdminFlaggedLinkService;
+import com.fitme.admin.service.AdminPreviewMonitoringService;
 import com.fitme.admin.service.AdminRuleService;
+import com.fitme.analytics.dto.AdminDashboardResponse;
 import com.fitme.analytics.service.AnalyticsService;
 import com.fitme.brand.dto.BrandResponse;
 import com.fitme.brand.service.BrandService;
 import com.fitme.common.dto.ApiResponse;
-import com.fitme.common.enums.FlaggedLinkStatus;
-import com.fitme.common.exception.NotFoundException;
-import com.fitme.preview.entity.PreviewGeneration;
-import com.fitme.preview.repository.PreviewGenerationRepository;
-import com.fitme.privacy.entity.ConsentRecord;
-import com.fitme.privacy.entity.DataDeletionRequest;
 import com.fitme.privacy.service.PrivacyService;
-import com.fitme.redirect.entity.FlaggedLink;
-import com.fitme.redirect.repository.FlaggedLinkRepository;
-import com.fitme.common.enums.PreviewStatus;
+import com.fitme.redirect.dto.FlaggedLinkResponse;
+import com.fitme.redirect.service.RedirectService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
-import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -36,13 +35,15 @@ public class AdminController {
 
     private final AnalyticsService analyticsService;
     private final BrandService brandService;
-    private final FlaggedLinkRepository flaggedLinkRepository;
+    private final RedirectService redirectService;
+    private final AdminFlaggedLinkService adminFlaggedLinkService;
     private final AdminRuleService adminRuleService;
     private final PrivacyService privacyService;
-    private final PreviewGenerationRepository previewRepository;
+    private final AdminPreviewMonitoringService adminPreviewMonitoringService;
+    private final AdminDtoMapper adminDtoMapper;
 
     @GetMapping("/dashboard")
-    public ApiResponse<Map<String, Object>> dashboard() {
+    public ApiResponse<AdminDashboardResponse> dashboard() {
         return ApiResponse.ok(analyticsService.adminDashboard());
     }
 
@@ -67,39 +68,33 @@ public class AdminController {
     }
 
     @GetMapping("/flagged-links")
-    public ApiResponse<List<FlaggedLink>> flaggedLinks() {
-        return ApiResponse.ok(flaggedLinkRepository.findByStatus(FlaggedLinkStatus.OPEN));
+    public ApiResponse<List<FlaggedLinkResponse>> flaggedLinks() {
+        return ApiResponse.ok(redirectService.listOpenFlaggedLinks());
     }
 
     @PostMapping("/flagged-links/{id}/resolve")
-    public ApiResponse<FlaggedLink> resolveLink(@PathVariable UUID id) {
-        FlaggedLink link = flaggedLinkRepository.findById(id).orElseThrow(() -> new NotFoundException("Link không tồn tại"));
-        link.setStatus(FlaggedLinkStatus.RESOLVED);
-        link.setResolvedAt(Instant.now());
-        return ApiResponse.ok(flaggedLinkRepository.save(link));
+    public ApiResponse<FlaggedLinkResponse> resolveLink(@PathVariable UUID id) {
+        return ApiResponse.ok(adminFlaggedLinkService.resolveLink(id));
     }
 
     @PostMapping("/flagged-links/{id}/reject")
-    public ApiResponse<FlaggedLink> rejectLink(@PathVariable UUID id) {
-        FlaggedLink link = flaggedLinkRepository.findById(id).orElseThrow(() -> new NotFoundException("Link không tồn tại"));
-        link.setStatus(FlaggedLinkStatus.REJECTED);
-        link.setResolvedAt(Instant.now());
-        return ApiResponse.ok(flaggedLinkRepository.save(link));
+    public ApiResponse<FlaggedLinkResponse> rejectLink(@PathVariable UUID id) {
+        return ApiResponse.ok(adminFlaggedLinkService.rejectLink(id));
     }
 
     @GetMapping("/rules/styles")
-    public ApiResponse<List<StyleRule>> styleRules() {
-        return ApiResponse.ok(adminRuleService.listStyleRules());
+    public ApiResponse<List<StyleRuleDto>> styleRules() {
+        return ApiResponse.ok(adminRuleService.listStyleRules().stream().map(adminDtoMapper::toDto).toList());
     }
 
     @PostMapping("/rules/styles")
-    public ApiResponse<StyleRule> createStyleRule(@RequestBody StyleRuleRequest request) {
-        return ApiResponse.ok(adminRuleService.createStyleRule(request));
+    public ApiResponse<StyleRuleDto> createStyleRule(@RequestBody StyleRuleRequest request) {
+        return ApiResponse.ok(adminDtoMapper.toDto(adminRuleService.createStyleRule(request)));
     }
 
     @PutMapping("/rules/styles/{id}")
-    public ApiResponse<StyleRule> updateStyleRule(@PathVariable UUID id, @RequestBody StyleRuleRequest request) {
-        return ApiResponse.ok(adminRuleService.updateStyleRule(id, request));
+    public ApiResponse<StyleRuleDto> updateStyleRule(@PathVariable UUID id, @RequestBody StyleRuleRequest request) {
+        return ApiResponse.ok(adminDtoMapper.toDto(adminRuleService.updateStyleRule(id, request)));
     }
 
     @DeleteMapping("/rules/styles/{id}")
@@ -109,18 +104,18 @@ public class AdminController {
     }
 
     @GetMapping("/rules/occasions")
-    public ApiResponse<List<OccasionRule>> occasionRules() {
-        return ApiResponse.ok(adminRuleService.listOccasionRules());
+    public ApiResponse<List<OccasionRuleDto>> occasionRules() {
+        return ApiResponse.ok(adminRuleService.listOccasionRules().stream().map(adminDtoMapper::toDto).toList());
     }
 
     @PostMapping("/rules/occasions")
-    public ApiResponse<OccasionRule> createOccasionRule(@RequestBody OccasionRuleRequest request) {
-        return ApiResponse.ok(adminRuleService.createOccasionRule(request));
+    public ApiResponse<OccasionRuleDto> createOccasionRule(@RequestBody OccasionRuleRequest request) {
+        return ApiResponse.ok(adminDtoMapper.toDto(adminRuleService.createOccasionRule(request)));
     }
 
     @PutMapping("/rules/occasions/{id}")
-    public ApiResponse<OccasionRule> updateOccasionRule(@PathVariable UUID id, @RequestBody OccasionRuleRequest request) {
-        return ApiResponse.ok(adminRuleService.updateOccasionRule(id, request));
+    public ApiResponse<OccasionRuleDto> updateOccasionRule(@PathVariable UUID id, @RequestBody OccasionRuleRequest request) {
+        return ApiResponse.ok(adminDtoMapper.toDto(adminRuleService.updateOccasionRule(id, request)));
     }
 
     @DeleteMapping("/rules/occasions/{id}")
@@ -130,18 +125,18 @@ public class AdminController {
     }
 
     @GetMapping("/privacy/consents")
-    public ApiResponse<List<ConsentRecord>> consents() {
-        return ApiResponse.ok(privacyService.listConsents());
+    public ApiResponse<List<ConsentRecordDto>> consents() {
+        return ApiResponse.ok(privacyService.listConsents().stream().map(adminDtoMapper::toDto).toList());
     }
 
     @GetMapping("/privacy/deletion-requests")
-    public ApiResponse<List<DataDeletionRequest>> deletionRequests() {
-        return ApiResponse.ok(privacyService.listDeletionRequests());
+    public ApiResponse<List<DataDeletionRequestDto>> deletionRequests() {
+        return ApiResponse.ok(privacyService.listDeletionRequests().stream().map(adminDtoMapper::toDto).toList());
     }
 
     @PostMapping("/privacy/deletion-requests/{id}/process")
-    public ApiResponse<DataDeletionRequest> processDeletion(@PathVariable UUID id) {
-        return ApiResponse.ok(privacyService.processDeletion(id));
+    public ApiResponse<DataDeletionRequestDto> processDeletion(@PathVariable UUID id) {
+        return ApiResponse.ok(adminDtoMapper.toDto(privacyService.processDeletion(id)));
     }
 
     @GetMapping("/try-on/monitoring")
@@ -150,7 +145,7 @@ public class AdminController {
     }
 
     @GetMapping("/try-on/failed-previews")
-    public ApiResponse<List<PreviewGeneration>> failedPreviews() {
-        return ApiResponse.ok(previewRepository.findByStatus(PreviewStatus.FAILED));
+    public ApiResponse<List<PreviewGenerationDto>> failedPreviews() {
+        return ApiResponse.ok(adminPreviewMonitoringService.listFailedPreviews());
     }
 }

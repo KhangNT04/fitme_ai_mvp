@@ -23,6 +23,7 @@ test.describe("Product advice flow", () => {
     await fillStyleProfile(page);
     await fillOccasion(page);
 
+    await page.waitForURL("**/ai/processing**", { timeout: 30_000 }).catch(() => {});
     await page.waitForURL("**/ai/result/**", { timeout: 90_000 });
     await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
     await expect(page.getByText(/Giải thích AI/)).toBeVisible();

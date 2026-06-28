@@ -29,6 +29,7 @@ public class ProductController {
             @RequestParam(required = false) String color,
             @RequestParam(required = false) FitPreference fitType,
             @RequestParam(required = false) String size,
+            @RequestParam(required = false) String search,
             @RequestParam(required = false, defaultValue = "false") boolean aiTryOnEligible) {
         ProductService.ProductFilter filter = new ProductService.ProductFilter();
         filter.setBrandId(brandId);
@@ -40,6 +41,7 @@ public class ProductController {
         filter.setColor(color);
         filter.setFitType(fitType);
         filter.setSize(size);
+        filter.setSearch(search);
         filter.setAiTryOnEligible(aiTryOnEligible);
         return ApiResponse.ok(productService.listPublicProducts(filter));
     }

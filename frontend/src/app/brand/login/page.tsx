@@ -10,7 +10,7 @@ import { useAuthStore } from "@/stores/auth-store";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { PortalLoginShell } from "@/components/layout/PortalLoginShell";
 import { loginSchema, type LoginForm } from "@/utils/validators";
 
 export default function BrandLoginPage() {
@@ -36,29 +36,26 @@ export default function BrandLoginPage() {
   };
 
   return (
-    <div className="flex min-h-[80vh] items-center justify-center px-4">
-      <Card className="w-full max-w-md">
-        <CardHeader>
-          <CardTitle>Brand Portal — Đăng nhập</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-            <div>
-              <Label>Email</Label>
-              <Input type="email" {...register("email")} className="mt-1" />
-            </div>
-            <div>
-              <Label>Mật khẩu</Label>
-              <Input type="password" {...register("password")} className="mt-1" />
-            </div>
-            {error && <p className="text-sm text-red-600">{error}</p>}
-            <Button type="submit" className="w-full" disabled={isSubmitting}>Đăng nhập</Button>
-          </form>
-          <p className="mt-4 text-center text-sm text-stone-500">
-            Chưa có tài khoản? <Link href="/brand/onboarding" className="underline">Đăng ký brand</Link>
-          </p>
-        </CardContent>
-      </Card>
-    </div>
+    <PortalLoginShell
+      title="Brand Portal — Đăng nhập"
+      footer={
+        <p className="mt-4 text-center text-sm text-muted-foreground">
+          Chưa có tài khoản? <Link href="/brand/onboarding" className="underline">Đăng ký brand</Link>
+        </p>
+      }
+    >
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+        <div>
+          <Label>Email</Label>
+          <Input type="email" {...register("email")} className="mt-1" />
+        </div>
+        <div>
+          <Label>Mật khẩu</Label>
+          <Input type="password" {...register("password")} className="mt-1" />
+        </div>
+        {error && <p className="text-sm text-red-600">{error}</p>}
+        <Button type="submit" className="w-full" disabled={isSubmitting}>Đăng nhập</Button>
+      </form>
+    </PortalLoginShell>
   );
 }

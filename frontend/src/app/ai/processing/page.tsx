@@ -9,6 +9,9 @@ import { useConsultationStore } from "@/stores/consultation-store";
 import { Disclaimer } from "@/components/layout/Disclaimer";
 import { ErrorState } from "@/components/common/ErrorState";
 import { Button } from "@/components/ui/button";
+import { PageHeader } from "@/components/layout/PageHeader";
+import { AI_FLOW_STEPS } from "@/components/layout/FlowStepper";
+import { PageShell } from "@/components/layout/PageShell";
 
 export default function AiProcessingPage() {
   const router = useRouter();
@@ -50,7 +53,15 @@ export default function AiProcessingPage() {
 
   if (error) {
     return (
-      <div className="mx-auto max-w-md px-4 py-16 sm:px-6">
+      <PageShell width="narrow">
+        <PageHeader
+          steps={AI_FLOW_STEPS}
+          currentStep={4}
+          title="Tư vấn outfit"
+          backHref="/ai/occasion"
+          backLabel="Hoàn cảnh & vibe"
+          showAiBadge
+        />
         <ErrorState
           title="Tạo gợi ý thất bại"
           message={error}
@@ -59,16 +70,25 @@ export default function AiProcessingPage() {
         <Button variant="outline" className="mt-4 w-full" onClick={() => router.push("/ai/start")}>
           Bắt đầu lại
         </Button>
-      </div>
+      </PageShell>
     );
   }
 
   return (
-    <div className="mx-auto flex max-w-md flex-col items-center px-4 py-24 text-center sm:px-6">
-      <Loader2 className="h-12 w-12 animate-spin text-stone-400" />
-      <h1 className="mt-6 text-xl font-semibold text-stone-900">AI đang tạo gợi ý outfit...</h1>
-      <p className="mt-2 text-stone-500">Phân tích dáng người, gu và hoàn cảnh của bạn</p>
-      <Disclaimer className="mt-8" compact />
-    </div>
+    <PageShell width="narrow">
+      <PageHeader
+        steps={AI_FLOW_STEPS}
+        currentStep={4}
+        title="AI đang tạo gợi ý outfit..."
+        subtitle="Phân tích dáng người, gu và hoàn cảnh của bạn"
+        showAiBadge
+        backHref="/ai/occasion"
+        backLabel="Hoàn cảnh & vibe"
+      />
+      <div className="flex flex-col items-center py-16 text-center">
+        <Loader2 className="h-12 w-12 animate-spin text-primary" />
+        <Disclaimer className="mt-8" compact />
+      </div>
+    </PageShell>
   );
 }

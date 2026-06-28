@@ -60,4 +60,20 @@ public class ProductEligibilityService {
                 .anyMatch(v -> v.getColorName() != null && !v.getColorName().isBlank());
         return hasImage && hasSize && hasColor && product.isAiTryOnEligible();
     }
+
+    public java.util.List<String> getModerationIssues(UUID productId) {
+        java.util.List<String> issues = new java.util.ArrayList<>();
+        if (imageRepository.findByProductIdOrderBySortOrderAsc(productId).isEmpty()) {
+            issues.add("Thiếu ảnh sản phẩm");
+        }
+        boolean hasVariants = !variantRepository.findByProductId(productId).isEmpty();
+        boolean hasCharts = !sizeChartRepository.findByProductId(productId).isEmpty();
+        if (!hasVariants) {
+            issues.add("Thiếu biến thể màu/size");
+        }
+        if (!hasCharts) {
+            issues.add("Thiếu bảng size");
+        }
+        return issues;
+    }
 }

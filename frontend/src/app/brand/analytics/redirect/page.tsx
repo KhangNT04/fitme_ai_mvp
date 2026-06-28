@@ -13,7 +13,7 @@ export default function BrandAnalyticsRedirectPage() {
 
   return (
     <PortalLayout title="Brand" nav={brandNav}>
-      <h1 className="text-2xl font-bold">Phân tích chuyển hướng mua</h1>
+      <h1 className="font-display text-2xl font-bold tracking-tight text-foreground">Phân tích chuyển hướng mua</h1>
       <div className="mt-8 grid gap-6 lg:grid-cols-2">
         <AnalyticsChart title="Click theo kênh" data={data?.redirectClicks || []} />
         <AnalyticsChart title="Theo thời gian" data={data?.redirectClicks || []} type="line" />

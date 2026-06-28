@@ -40,6 +40,8 @@ fitme:
     version: "2026-01"
   exception:
     expose-details: false
+  test:
+    expose-reset-tokens: ${FITME_TEST_EXPOSE_RESET_TOKENS:false}
 
 springdoc:
   api-docs:

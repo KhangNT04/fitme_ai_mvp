@@ -1,4 +1,4 @@
-package com.fitme.config;
+package com.fitme.common.config;
 
 import com.fitme.admin.entity.OccasionRule;
 import com.fitme.admin.entity.StyleRule;
@@ -140,9 +140,21 @@ public class SeedDataLoader implements CommandLineRunner {
 
             imageRepository.save(ProductImage.builder()
                     .productId(product.getId())
-                    .imageUrl("https://picsum.photos/seed/" + product.getId() + "/400/500")
+                    .imageUrl("https://picsum.photos/seed/" + product.getId() + "-main/400/500")
                     .imageType("MAIN")
                     .sortOrder(0)
+                    .build());
+            imageRepository.save(ProductImage.builder()
+                    .productId(product.getId())
+                    .imageUrl("https://picsum.photos/seed/" + product.getId() + "-detail1/400/500")
+                    .imageType("DETAIL")
+                    .sortOrder(1)
+                    .build());
+            imageRepository.save(ProductImage.builder()
+                    .productId(product.getId())
+                    .imageUrl("https://picsum.photos/seed/" + product.getId() + "-detail2/400/500")
+                    .imageType("DETAIL")
+                    .sortOrder(2)
                     .build());
 
             for (String size : sizes) {

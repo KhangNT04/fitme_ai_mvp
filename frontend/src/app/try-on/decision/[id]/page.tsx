@@ -8,6 +8,9 @@ import { tryonApi } from "@/services/tryon-api";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Disclaimer } from "@/components/layout/Disclaimer";
+import { PageShell } from "@/components/layout/PageShell";
+import { PageHeader } from "@/components/layout/PageHeader";
+import { TRYON_FLOW_STEPS } from "@/components/layout/FlowStepper";
 
 export default function TryOnDecisionPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
@@ -18,11 +21,17 @@ export default function TryOnDecisionPage({ params }: { params: Promise<{ id: st
   });
 
   return (
-    <div className="mx-auto max-w-xl px-4 py-8 sm:px-6">
-      <h1 className="text-2xl font-bold">Quyết định tiếp theo</h1>
-      <p className="mt-2 text-stone-500">Bạn muốn làm gì với kết quả thử mặc?</p>
+    <PageShell width="narrow">
+      <PageHeader
+        steps={TRYON_FLOW_STEPS}
+        currentStep={3}
+        title="Quyết định tiếp theo"
+        subtitle="Bạn muốn làm gì với kết quả thử mặc?"
+        backHref={`/try-on/result/${id}`}
+        backLabel="Kết quả thử mặc"
+      />
 
-      <Disclaimer className="mt-6" />
+      <Disclaimer />
 
       <div className="mt-8 space-y-4">
         {data?.items.map((item) => (
@@ -30,7 +39,7 @@ export default function TryOnDecisionPage({ params }: { params: Promise<{ id: st
             <CardContent className="flex items-center justify-between p-4">
               <div>
                 <p className="font-medium">{item.name}</p>
-                <p className="text-sm text-stone-500">Size gợi ý: {data.recommendedSize}</p>
+                <p className="text-sm text-muted-foreground">Size gợi ý: {data.recommendedSize}</p>
               </div>
               <Button size="sm" asChild>
                 <Link href={`/redirect/confirm/${item.productId}`}>
@@ -53,6 +62,6 @@ export default function TryOnDecisionPage({ params }: { params: Promise<{ id: st
           <Link href={`/try-on/result/${id}`}>Xem lại kết quả</Link>
         </Button>
       </div>
-    </div>
+    </PageShell>
   );
 }

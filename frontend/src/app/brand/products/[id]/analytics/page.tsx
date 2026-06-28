@@ -17,7 +17,7 @@ export default function BrandProductAnalyticsPage({ params }: { params: Promise<
 
   return (
     <PortalLayout title="Brand" nav={brandNav}>
-      <h1 className="text-2xl font-bold">Phân tích sản phẩm</h1>
+      <h1 className="font-display text-2xl font-bold tracking-tight text-foreground">Phân tích sản phẩm</h1>
       {isLoading ? <LoadingSkeleton /> : (
         <div className="mt-8 grid gap-6 lg:grid-cols-2">
           <AnalyticsChart title="Lượt click mua" data={data?.redirectClicks || []} />

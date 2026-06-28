@@ -11,6 +11,9 @@ import { Card, CardContent } from "@/components/ui/card";
 import { LoadingSkeleton } from "@/components/common/LoadingSkeleton";
 import { ErrorState } from "@/components/common/ErrorState";
 import { formatPrice } from "@/utils/format-price";
+import { useEnsureSession } from "@/hooks/use-ensure-session";
+import { PageShell } from "@/components/layout/PageShell";
+import { PageHeader } from "@/components/layout/PageHeader";
 
 export default function RedirectConfirmPage({
   params,
@@ -19,6 +22,7 @@ export default function RedirectConfirmPage({
 }) {
   const { id } = use(params);
   const router = useRouter();
+  const { ensureSession } = useEnsureSession();
   const [loading, setLoading] = useState(false);
 
   const { data: product, isLoading, error, refetch } = useQuery({
@@ -29,6 +33,11 @@ export default function RedirectConfirmPage({
   const handleRedirect = async () => {
     setLoading(true);
     try {
+      const session = await ensureSession();
+      if (!session) {
+        setLoading(false);
+        return;
+      }
       const result = await redirectApi.trackBuyClick({
         productId: id,
         sourcePage: "PRODUCT_DETAIL",
@@ -39,23 +48,34 @@ export default function RedirectConfirmPage({
     }
   };
 
-  if (isLoading) return <div className="mx-auto max-w-md px-4 py-8"><LoadingSkeleton count={1} /></div>;
-  if (error || !product) return <div className="mx-auto max-w-md px-4 py-8"><ErrorState onRetry={() => refetch()} /></div>;
+  if (isLoading) {
+    return (
+      <PageShell width="narrow">
+        <LoadingSkeleton count={1} />
+      </PageShell>
+    );
+  }
+  if (error || !product) {
+    return (
+      <PageShell width="narrow">
+        <ErrorState onRetry={() => refetch()} />
+      </PageShell>
+    );
+  }
 
   return (
-    <div className="mx-auto max-w-md px-4 py-8 sm:px-6">
-      <h1 className="text-2xl font-bold text-stone-900">Xác nhận chuyển hướng</h1>
-      <p className="mt-2 text-stone-500">Bạn sắp được chuyển đến nơi bán sản phẩm</p>
+    <PageShell width="narrow">
+      <PageHeader title="Xác nhận chuyển hướng" subtitle="Bạn sắp được chuyển đến nơi bán sản phẩm" backHref={`/products/${id}`} backLabel="Chi tiết sản phẩm" />
 
-      <Card className="mt-8">
+      <Card>
         <CardContent className="p-6">
-          <p className="text-sm text-stone-500">{product.brandName}</p>
-          <h2 className="mt-1 font-semibold text-stone-900">{product.name}</h2>
+          <p className="text-sm text-muted-foreground">{product.brandName}</p>
+          <h2 className="mt-1 font-semibold text-foreground">{product.name}</h2>
           <p className="mt-2 text-lg font-bold">{formatPrice(product.price)}</p>
         </CardContent>
       </Card>
 
-      <div className="mt-6 rounded-lg bg-stone-100 p-4 text-sm text-stone-600">
+      <div className="mt-6 rounded-lg bg-muted p-4 text-sm text-muted-foreground">
         Thanh toán và đơn hàng được xử lý bởi shop/sàn bán hàng.
         FitMe AI không xử lý thanh toán.
       </div>
@@ -64,6 +84,6 @@ export default function RedirectConfirmPage({
         <ExternalLink className="mr-2 h-4 w-4" />
         {loading ? "Đang xử lý..." : "Tiếp tục đến nơi bán"}
       </Button>
-    </div>
+    </PageShell>
   );
 }

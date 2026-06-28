@@ -33,8 +33,17 @@ test.describe("Header navigation", () => {
   });
 
   test("logo returns to home", async ({ page }) => {
-    await page.goto("/discover");
-    await page.locator("header").getByRole("link", { name: "FitMe AI" }).click();
-    await expect(page).toHaveURL("/");
+    await page.goto("/discover", { waitUntil: "domcontentloaded" });
+    await expect(page.getByRole("heading", { name: "Khám phá sản phẩm" })).toBeVisible();
+    const logo = page.locator('header a[href="/"]');
+    await logo.click();
+    await expect(page).toHaveURL("/", { timeout: 10_000 });
+  });
+
+  test("quick search icon opens discover search", async ({ page }) => {
+    await page.goto("/");
+    await page.locator("header").getByRole("link", { name: "Tìm kiếm nhanh" }).click();
+    await expect(page).toHaveURL(/\/discover#discover-search/);
+    await expect(page.locator("#discover-search")).toBeFocused();
   });
 });

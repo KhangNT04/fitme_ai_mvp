@@ -35,5 +35,6 @@ public class ProductResponse {
     private List<ProductImageDto> images;
     private List<ProductVariantDto> variants;
     private List<ProductTagDto> tags;
+    private List<SizeChartDto> sizeCharts;
     private Instant createdAt;
 }

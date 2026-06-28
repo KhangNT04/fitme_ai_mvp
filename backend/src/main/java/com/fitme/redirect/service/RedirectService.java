@@ -11,16 +11,19 @@ import com.fitme.product.service.ProductEligibilityService;
 import com.fitme.product.service.ProductService;
 import com.fitme.redirect.dto.BuyClickRequest;
 import com.fitme.redirect.dto.BuyClickResponse;
+import com.fitme.redirect.dto.FlaggedLinkResponse;
 import com.fitme.redirect.entity.BuyClickEvent;
 import com.fitme.redirect.entity.FlaggedLink;
 import com.fitme.redirect.repository.BuyClickEventRepository;
 import com.fitme.redirect.repository.FlaggedLinkRepository;
+import com.fitme.product.repository.ProductRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.fitme.common.util.UrlValidator;
 
+import java.util.List;
 import java.util.UUID;
 
 @Service
@@ -31,6 +34,7 @@ public class RedirectService {
     private final ProductEligibilityService eligibilityService;
     private final BuyClickEventRepository buyClickEventRepository;
     private final FlaggedLinkRepository flaggedLinkRepository;
+    private final ProductRepository productRepository;
     private final AnalyticsService analyticsService;
 
     @Transactional
@@ -92,5 +96,26 @@ public class RedirectService {
                 .reason(reason)
                 .status(FlaggedLinkStatus.OPEN)
                 .build());
+    }
+
+    public List<FlaggedLinkResponse> listOpenFlaggedLinks() {
+        return flaggedLinkRepository.findByStatus(FlaggedLinkStatus.OPEN).stream()
+                .map(this::toFlaggedLinkResponse)
+                .toList();
+    }
+
+    public FlaggedLinkResponse toFlaggedLinkResponse(FlaggedLink link) {
+        String productName = productRepository.findById(link.getProductId())
+                .map(Product::getName)
+                .orElse("—");
+        return FlaggedLinkResponse.builder()
+                .id(link.getId())
+                .productId(link.getProductId())
+                .productName(productName)
+                .url(link.getPurchaseUrl())
+                .reason(link.getReason().name())
+                .status(link.getStatus().name())
+                .createdAt(link.getCreatedAt())
+                .build();
     }
 }

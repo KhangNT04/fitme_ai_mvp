@@ -1,8 +1,7 @@
 "use client";
 
-import { use } from "react";
 import Link from "next/link";
-import Image from "next/image";
+import { use } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Sparkles } from "lucide-react";
 import { productApi } from "@/services/product-api";
@@ -10,10 +9,14 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { LoadingSkeleton } from "@/components/common/LoadingSkeleton";
 import { ErrorState } from "@/components/common/ErrorState";
+import { ProductImageGallery } from "@/components/product/ProductImageGallery";
 import { formatPrice } from "@/utils/format-price";
 import { useConsultationStore } from "@/stores/consultation-store";
 import { useEnsureSession } from "@/hooks/use-ensure-session";
 import { useRouter } from "next/navigation";
+import { PageShell } from "@/components/layout/PageShell";
+import { BackLink } from "@/components/layout/BackLink";
+import { pageTitle } from "@/lib/design-tokens";
 
 export default function ProductDetailPage({
   params,
@@ -38,31 +41,32 @@ export default function ProductDetailPage({
 
   if (isLoading) {
     return (
-      <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6">
+      <PageShell width="full">
         <LoadingSkeleton type="detail" />
-      </div>
+      </PageShell>
     );
   }
 
   if (error || !product) {
     return (
-      <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6">
+      <PageShell width="full">
         <ErrorState onRetry={() => refetch()} />
-      </div>
+      </PageShell>
     );
   }
 
-  const imageUrl = product.images[0] || "/placeholder-product.svg";
-
   return (
-    <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6">
+    <PageShell width="full">
+      <BackLink href="/discover" label="Khám phá sản phẩm" className="mb-6" />
       <div className="grid gap-8 lg:grid-cols-2">
-        <div className="relative aspect-[3/4] overflow-hidden rounded-xl bg-stone-100">
-          <Image src={imageUrl} alt={product.name} fill className="object-cover" unoptimized />
-        </div>
+        <ProductImageGallery
+          images={product.images}
+          imageDetails={product.imageDetails}
+          alt={product.name}
+        />
         <div>
-          <p className="text-sm text-stone-500">{product.brandName}</p>
-          <h1 className="mt-1 text-2xl font-bold text-stone-900">{product.name}</h1>
+          <p className="text-sm text-muted-foreground">{product.brandName}</p>
+          <h1 className={pageTitle}>{product.name}</h1>
           <p className="mt-4 text-2xl font-semibold">{formatPrice(product.price)}</p>
 
           <div className="mt-4 flex flex-wrap gap-2">
@@ -76,12 +80,56 @@ export default function ProductDetailPage({
             ))}
           </div>
 
+          {product.material && (
+            <p className="mt-4 text-sm text-muted-foreground"><strong>Chất liệu:</strong> {product.material}</p>
+          )}
+
           {product.description && (
-            <p className="mt-6 text-stone-600">{product.description}</p>
+            <p className="mt-6 text-muted-foreground">{product.description}</p>
+          )}
+
+          {product.sizeCharts && product.sizeCharts.length > 0 && (
+            <div className="mt-6">
+              <h2 className="font-semibold text-foreground">Bảng size</h2>
+              <div className="mt-2 overflow-x-auto rounded-2xl border border-border/60">
+                <table className="w-full text-sm">
+                  <thead className="bg-muted">
+                    <tr>
+                      <th className="px-3 py-2 text-left">Size</th>
+                      <th className="px-3 py-2 text-left">Ngực (cm)</th>
+                      <th className="px-3 py-2 text-left">Eo (cm)</th>
+                      <th className="px-3 py-2 text-left">Hông (cm)</th>
+                      <th className="px-3 py-2 text-left">Cao (cm)</th>
+                      <th className="px-3 py-2 text-left">Cân (kg)</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {product.sizeCharts.map((row) => (
+                      <tr key={row.sizeLabel} className="border-t">
+                        <td className="px-3 py-2 font-medium">{row.sizeLabel}</td>
+                        <td className="px-3 py-2">{row.chestCm ?? "—"}</td>
+                        <td className="px-3 py-2">{row.waistCm ?? "—"}</td>
+                        <td className="px-3 py-2">{row.hipCm ?? "—"}</td>
+                        <td className="px-3 py-2">
+                          {row.heightMinCm != null && row.heightMaxCm != null
+                            ? `${row.heightMinCm}–${row.heightMaxCm}`
+                            : "—"}
+                        </td>
+                        <td className="px-3 py-2">
+                          {row.weightMinKg != null && row.weightMaxKg != null
+                            ? `${row.weightMinKg}–${row.weightMaxKg}`
+                            : "—"}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
           )}
 
           <div className="mt-8 flex flex-wrap gap-3">
-            <Button onClick={handleConsult}>
+            <Button variant="ai" onClick={handleConsult}>
               <Sparkles className="mr-2 h-4 w-4" />
               Tư vấn size & phối đồ bằng AI
             </Button>
@@ -96,6 +144,6 @@ export default function ProductDetailPage({
           </div>
         </div>
       </div>
-    </div>
+    </PageShell>
   );
 }

@@ -8,6 +8,8 @@ import { LoadingSkeleton } from "@/components/common/LoadingSkeleton";
 import { EmptyState } from "@/components/common/EmptyState";
 import { ErrorState } from "@/components/common/ErrorState";
 import { PageSuspense } from "@/components/common/PageSuspense";
+import { PageShell } from "@/components/layout/PageShell";
+import { PageHeader } from "@/components/layout/PageHeader";
 
 export default function SimilarProductsPage() {
   return (
@@ -28,11 +30,15 @@ function SimilarProductsContent() {
   });
 
   return (
-    <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6">
-      <h1 className="text-2xl font-bold text-stone-900">Sản phẩm tương tự</h1>
-      <p className="mt-2 text-stone-500">Gợi ý sản phẩm phù hợp với outfit của bạn</p>
+    <PageShell width="full">
+      <PageHeader
+        title="Sản phẩm tương tự"
+        subtitle="Gợi ý sản phẩm phù hợp với outfit của bạn"
+        backHref={recommendationId ? `/ai/result/${recommendationId}` : "/discover"}
+        backLabel={recommendationId ? "Kết quả tư vấn" : "Khám phá sản phẩm"}
+      />
 
-      <div className="mt-8">
+      <div>
         {!recommendationId && (
           <EmptyState title="Không có dữ liệu" description="Vui lòng truy cập từ trang kết quả AI." />
         )}
@@ -47,6 +53,6 @@ function SimilarProductsContent() {
           </div>
         )}
       </div>
-    </div>
+    </PageShell>
   );
 }

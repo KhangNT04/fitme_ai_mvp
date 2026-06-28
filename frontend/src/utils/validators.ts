@@ -6,6 +6,14 @@ export const bodyProfileSchema = z.object({
   fitPreference: z.enum(["SLIM", "REGULAR", "RELAXED", "OVERSIZE", "UNSURE"]),
   skinTone: z.enum(["FAIR", "MEDIUM", "TAN", "DEEP", "UNSURE"]),
   goals: z.array(z.string()).min(1, "Chọn ít nhất 1 mục tiêu"),
+  shoulderWidthCm: z.number().min(20).max(80).optional(),
+  chestCm: z.number().min(50).max(200).optional(),
+  waistCm: z.number().min(40).max(180).optional(),
+  abdomenCm: z.number().min(40).max(180).optional(),
+  hipCm: z.number().min(50).max(200).optional(),
+  thighCm: z.number().min(30).max(100).optional(),
+  inseamCm: z.number().min(50).max(120).optional(),
+  armLengthCm: z.number().min(40).max(90).optional(),
 });
 
 export const styleProfileSchema = z.object({
@@ -40,6 +48,15 @@ export const registerSchema = z.object({
   path: ["confirmPassword"],
 });
 
+export const resetPasswordSchema = z.object({
+  token: z.string().min(1, "Nhập token"),
+  newPassword: z.string().min(6, "Mật khẩu tối thiểu 6 ký tự"),
+  confirmPassword: z.string(),
+}).refine((data) => data.newPassword === data.confirmPassword, {
+  message: "Mật khẩu không khớp",
+  path: ["confirmPassword"],
+});
+
 export const tryOnInputSchema = z.object({
   heightCm: z.number().min(100).max(250),
   weightKg: z.number().min(30).max(200),
@@ -53,14 +70,13 @@ export const tryOnInputSchema = z.object({
 
 export const brandOnboardingSchema = z.object({
   name: z.string().min(2, "Tên thương hiệu tối thiểu 2 ký tự"),
-  ownerName: z.string().min(2),
-  email: z.string().email(),
-  phone: z.string().optional(),
-  website: z.string().url().optional().or(z.literal("")),
+  contactEmail: z.string().email("Email không hợp lệ"),
+  contactPhone: z.string().optional(),
+  websiteUrl: z.string().url().optional().or(z.literal("")),
   shopeeUrl: z.string().optional(),
   tiktokShopUrl: z.string().optional(),
-  instagram: z.string().optional(),
-  productCategory: z.string().min(1),
+  instagramUrl: z.string().optional(),
+  facebookUrl: z.string().optional(),
   description: z.string().optional(),
 });
 
@@ -69,5 +85,6 @@ export type StyleProfileForm = z.infer<typeof styleProfileSchema>;
 export type OccasionForm = z.infer<typeof occasionSchema>;
 export type LoginForm = z.infer<typeof loginSchema>;
 export type RegisterForm = z.infer<typeof registerSchema>;
+export type ResetPasswordForm = z.infer<typeof resetPasswordSchema>;
 export type TryOnInputForm = z.infer<typeof tryOnInputSchema>;
 export type BrandOnboardingForm = z.infer<typeof brandOnboardingSchema>;

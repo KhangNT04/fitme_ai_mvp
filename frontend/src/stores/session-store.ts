@@ -28,6 +28,6 @@ export const useSessionStore = create<SessionState>()(
       },
       getSessionToken: () => get().session?.sessionToken ?? null,
     }),
-    { name: "fitme-session" }
+    { name: "fitme-session", skipHydration: true }
   )
 );

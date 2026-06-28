@@ -20,6 +20,8 @@ fitme:
     version: "2026-01"
   exception:
     expose-details: true
+  test:
+    expose-reset-tokens: true
 
 logging:
   level:

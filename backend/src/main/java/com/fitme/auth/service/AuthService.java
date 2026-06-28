@@ -15,6 +15,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Instant;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
@@ -24,13 +25,16 @@ import java.util.concurrent.ConcurrentHashMap;
 public class AuthService {
 
     private static final Logger log = LoggerFactory.getLogger(AuthService.class);
+    private static final long PASSWORD_RESET_TTL_SECONDS = 3600;
 
     private final UserAccountRepository userAccountRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
     private final AuthenticationManager authenticationManager;
+    private final ConcurrentHashMap<String, PasswordResetEntry> passwordResetTokens = new ConcurrentHashMap<>();
     private final ConcurrentHashMap<String, UUID> emailVerificationTokens = new ConcurrentHashMap<>();
-    private final ConcurrentHashMap<String, String> passwordResetTokens = new ConcurrentHashMap<>();
+
+    private record PasswordResetEntry(String email, Instant expiresAt) {}
 
     @Transactional
     public AuthResponse register(RegisterRequest request) {
@@ -42,7 +46,7 @@ public class AuthService {
                 .passwordHash(passwordEncoder.encode(request.getPassword()))
                 .displayName(request.getDisplayName() != null ? request.getDisplayName() : request.getEmail())
                 .role(UserRole.USER)
-                .emailVerified(false)
+                .emailVerified(true)
                 .build();
         user = userAccountRepository.save(user);
         String verifyToken = UUID.randomUUID().toString();
@@ -74,10 +78,35 @@ public class AuthService {
     public Map<String, String> forgotPassword(ForgotPasswordRequest request) {
         userAccountRepository.findByEmail(request.getEmail().toLowerCase().trim()).ifPresent(user -> {
             String token = UUID.randomUUID().toString();
-            passwordResetTokens.put(token, user.getEmail());
+            passwordResetTokens.put(token, new PasswordResetEntry(
+                    user.getEmail(), Instant.now().plusSeconds(PASSWORD_RESET_TTL_SECONDS)));
             log.info("[MOCK] Password reset token for {}: {}", user.getEmail(), token);
         });
         return Map.of("message", "Nếu email tồn tại, hướng dẫn đặt lại mật khẩu đã được gửi");
+    }
+
+    public java.util.Optional<String> findResetTokenForEmail(String email) {
+        String normalized = email.toLowerCase().trim();
+        return passwordResetTokens.entrySet().stream()
+                .filter(e -> e.getValue().email().equalsIgnoreCase(normalized))
+                .filter(e -> Instant.now().isBefore(e.getValue().expiresAt()))
+                .map(java.util.Map.Entry::getKey)
+                .findFirst();
+    }
+
+    @Transactional
+    public void resetPassword(ResetPasswordRequest request) {
+        PasswordResetEntry entry = passwordResetTokens.remove(request.getToken());
+        if (entry == null) {
+            throw new BusinessException("Token đặt lại mật khẩu không hợp lệ hoặc đã hết hạn");
+        }
+        if (Instant.now().isAfter(entry.expiresAt())) {
+            throw new BusinessException("Token đặt lại mật khẩu đã hết hạn");
+        }
+        UserAccount user = userAccountRepository.findByEmail(entry.email())
+                .orElseThrow(() -> new BusinessException("Tài khoản không tồn tại"));
+        user.setPasswordHash(passwordEncoder.encode(request.getNewPassword()));
+        userAccountRepository.save(user);
     }
 
     public AuthResponse refreshToken(RefreshTokenRequest request) {

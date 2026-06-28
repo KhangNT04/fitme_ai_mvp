@@ -20,6 +20,8 @@ Frontend gọi **`/api/v1`** (same-origin trên Vercel), Next.js proxy sang Rend
 
 **Lưu ý free tier Render:** service **ngủ** sau ~15 phút không truy cập; lần mở đầu **chậm 30–60 giây**. Upload file trên Render **không lưu lâu dài** (disk tạm) — MVP test vẫn ổn.
 
+**Ảnh sản phẩm (MVP):** Brand nhập **URL ảnh** (gallery nhiều URL), không upload file SP lên cloud. Ảnh user/wardrobe upload trên Render là **ephemeral** (`UPLOAD_DIR=/tmp/uploads`) — phù hợp preview thử nghiệm, không dùng làm CDN lâu dài.
+
 ---
 
 ## Bước 1 — Neon (PostgreSQL)

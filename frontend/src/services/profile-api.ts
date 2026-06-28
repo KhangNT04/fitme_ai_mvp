@@ -1,11 +1,56 @@
 import apiClient, { unwrap } from "./api-client";
 import type { BodyProfile, StyleProfile } from "@/types/user";
-import type { WardrobeItem } from "@/types/user";
+
+interface BackendBodyProfile {
+  heightCm: number;
+  weightKg: number;
+  fitPreference: BodyProfile["fitPreference"];
+  skinTone: BodyProfile["skinTone"];
+  goals?: { items?: string[] } | string[];
+  shoulderWidthCm?: number;
+  chestCm?: number;
+  waistCm?: number;
+  abdomenCm?: number;
+  hipCm?: number;
+  thighCm?: number;
+  inseamCm?: number;
+  armLengthCm?: number;
+}
+
+function mapBodyProfile(raw: BackendBodyProfile): BodyProfile {
+  const goalsRaw = raw.goals;
+  const goals = Array.isArray(goalsRaw)
+    ? goalsRaw
+    : goalsRaw?.items || [];
+
+  const measurements = {
+    shoulderWidthCm: raw.shoulderWidthCm != null ? Number(raw.shoulderWidthCm) : undefined,
+    chestCm: raw.chestCm != null ? Number(raw.chestCm) : undefined,
+    waistCm: raw.waistCm != null ? Number(raw.waistCm) : undefined,
+    abdomenCm: raw.abdomenCm != null ? Number(raw.abdomenCm) : undefined,
+    hipCm: raw.hipCm != null ? Number(raw.hipCm) : undefined,
+    thighCm: raw.thighCm != null ? Number(raw.thighCm) : undefined,
+    inseamCm: raw.inseamCm != null ? Number(raw.inseamCm) : undefined,
+    armLengthCm: raw.armLengthCm != null ? Number(raw.armLengthCm) : undefined,
+  };
+
+  const hasMeasurements = Object.values(measurements).some((v) => v != null);
+
+  return {
+    heightCm: raw.heightCm,
+    weightKg: Number(raw.weightKg),
+    fitPreference: raw.fitPreference,
+    skinTone: raw.skinTone,
+    goals,
+    measurements: hasMeasurements ? measurements : undefined,
+  };
+}
 
 export const profileApi = {
   getBodyProfile: async (): Promise<BodyProfile | null> => {
     const res = await apiClient.get("/me/body-profile");
-    return unwrap(res);
+    const data = unwrap(res) as BackendBodyProfile | null;
+    return data ? mapBodyProfile(data) : null;
   },
   saveBodyProfile: async (data: BodyProfile): Promise<BodyProfile> => {
     const payload = {
@@ -24,7 +69,7 @@ export const profileApi = {
       armLengthCm: data.measurements?.armLengthCm,
     };
     const res = await apiClient.post("/me/body-profile", payload);
-    return unwrap(res);
+    return mapBodyProfile(unwrap(res) as BackendBodyProfile);
   },
   getStyleProfile: async (): Promise<StyleProfile | null> => {
     const res = await apiClient.get("/me/style-profile");
@@ -36,36 +81,5 @@ export const profileApi = {
   },
 };
 
-export const wardrobeApi = {
-  list: async (): Promise<WardrobeItem[]> => {
-    const res = await apiClient.get("/wardrobe/items");
-    return unwrap(res);
-  },
-  create: async (data: Omit<WardrobeItem, "id" | "createdAt">): Promise<WardrobeItem> => {
-    const res = await apiClient.post("/wardrobe/items", {
-      name: data.itemType,
-      itemType: data.itemType,
-      category: data.category,
-      color: data.color,
-      material: data.material,
-      fitType: data.fit,
-      styleTags: data.styleTags,
-    });
-    return unwrap(res);
-  },
-  update: async (id: string, data: Partial<WardrobeItem>): Promise<WardrobeItem> => {
-    const res = await apiClient.put(`/wardrobe/items/${id}`, data);
-    return unwrap(res);
-  },
-  delete: async (id: string): Promise<void> => {
-    await apiClient.delete(`/wardrobe/items/${id}`);
-  },
-  uploadImage: async (id: string, file: File): Promise<WardrobeItem> => {
-    const formData = new FormData();
-    formData.append("file", file);
-    const res = await apiClient.post(`/wardrobe/items/${id}/image`, formData, {
-      headers: { "Content-Type": "multipart/form-data" },
-    });
-    return unwrap(res);
-  },
-};
+/** @deprecated Import from `@/services/wardrobe-api` instead */
+export { wardrobeApi } from "./wardrobe-api";

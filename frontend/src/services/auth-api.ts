@@ -6,8 +6,9 @@ import type {
   RegisterRequest,
   VerifyEmailRequest,
   ForgotPasswordRequest,
+  ResetPasswordRequest,
 } from "@/types/auth";
-import { SESSION_STORAGE_KEY } from "@/utils/constants";
+import { AUTH_TOKEN_KEY, AUTH_REFRESH_KEY, SESSION_STORAGE_KEY } from "@/utils/constants";
 
 interface BackendAuthResponse {
   userId: string;
@@ -39,10 +40,31 @@ function mapAuthResponse(data: BackendAuthResponse): AuthResponse {
   };
 }
 
+function storeTokens(accessToken: string, refreshToken: string) {
+  if (typeof window !== "undefined") {
+    localStorage.setItem(AUTH_TOKEN_KEY, accessToken);
+    localStorage.setItem(AUTH_REFRESH_KEY, refreshToken);
+  }
+}
+
+async function linkAnonymousSession() {
+  const sessionToken =
+    typeof window !== "undefined" ? localStorage.getItem(SESSION_STORAGE_KEY) : null;
+  if (!sessionToken) return;
+  try {
+    await apiClient.post("/sessions/link-to-user", { sessionToken });
+  } catch {
+    // Session link optional if token expired
+  }
+}
+
 export const authApi = {
   login: async (data: LoginRequest): Promise<AuthResponse> => {
     const res = await apiClient.post("/auth/login", data);
-    return mapAuthResponse(unwrap(res));
+    const auth = mapAuthResponse(unwrap(res));
+    storeTokens(auth.accessToken, auth.refreshToken);
+    await linkAnonymousSession();
+    return auth;
   },
   register: async (data: RegisterRequest): Promise<AuthResponse> => {
     const res = await apiClient.post("/auth/register", {
@@ -51,15 +73,8 @@ export const authApi = {
       displayName: data.fullName,
     });
     const auth = mapAuthResponse(unwrap(res));
-    const sessionToken =
-      typeof window !== "undefined" ? localStorage.getItem(SESSION_STORAGE_KEY) : null;
-    if (sessionToken) {
-      try {
-        await apiClient.post("/sessions/link-to-user", { sessionToken });
-      } catch {
-        // Session link optional if token expired
-      }
-    }
+    storeTokens(auth.accessToken, auth.refreshToken);
+    await linkAnonymousSession();
     return auth;
   },
   verifyEmail: async (data: VerifyEmailRequest): Promise<void> => {
@@ -68,8 +83,19 @@ export const authApi = {
   forgotPassword: async (data: ForgotPasswordRequest): Promise<void> => {
     await apiClient.post("/auth/forgot-password", data);
   },
+  resetPassword: async (data: ResetPasswordRequest): Promise<void> => {
+    await apiClient.post("/auth/reset-password", data);
+  },
   logout: async (): Promise<void> => {
-    await apiClient.post("/auth/logout");
+    const refreshToken =
+      typeof window !== "undefined" ? localStorage.getItem(AUTH_REFRESH_KEY) : null;
+    if (refreshToken) {
+      try {
+        await apiClient.post("/auth/logout", { refreshToken });
+      } catch {
+        // Ignore logout errors
+      }
+    }
   },
   refreshToken: async (refreshToken: string): Promise<AuthResponse> => {
     const res = await apiClient.post("/auth/refresh-token", { refreshToken });

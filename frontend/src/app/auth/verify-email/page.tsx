@@ -7,7 +7,7 @@ import { useAuthStore } from "@/stores/auth-store";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { AuthCardShell } from "@/components/layout/AuthCardShell";
 
 export default function VerifyEmailPage() {
   const router = useRouter();
@@ -31,23 +31,18 @@ export default function VerifyEmailPage() {
   };
 
   return (
-    <div className="mx-auto max-w-md px-4 py-12">
-      <Card>
-        <CardHeader><CardTitle>Xác minh email</CardTitle></CardHeader>
-        <CardContent className="space-y-4">
-          <p className="text-sm text-stone-500">
-            Nhập mã xác minh đã gửi đến {user?.email || "email của bạn"}
-          </p>
-          <div>
-            <Label>Mã xác minh</Label>
-            <Input value={code} onChange={(e) => setCode(e.target.value)} className="mt-1" placeholder="123456" />
-          </div>
-          {error && <p className="text-sm text-red-600">{error}</p>}
-          <Button className="w-full" onClick={handleVerify} disabled={loading || !code}>
-            {loading ? "Đang xác minh..." : "Xác minh"}
-          </Button>
-        </CardContent>
-      </Card>
-    </div>
+    <AuthCardShell title="Xác minh email" backHref="/profile" backLabel="Hồ sơ của tôi">
+      <p className="text-sm text-muted-foreground">
+        Nhập mã xác minh đã gửi đến {user?.email || "email của bạn"}
+      </p>
+      <div className="mt-4">
+        <Label>Mã xác minh</Label>
+        <Input value={code} onChange={(e) => setCode(e.target.value)} className="mt-1" placeholder="123456" />
+      </div>
+      {error && <p className="mt-4 text-sm text-red-600">{error}</p>}
+      <Button className="mt-4 w-full" onClick={handleVerify} disabled={loading || !code}>
+        {loading ? "Đang xác minh..." : "Xác minh"}
+      </Button>
+    </AuthCardShell>
   );
 }

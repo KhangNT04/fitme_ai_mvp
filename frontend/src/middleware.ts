@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
-const PUBLIC_BRAND_PATHS = ["/brand/login", "/brand/onboarding"];
+const PUBLIC_BRAND_PATHS = ["/brand/login", "/brand/onboarding", "/brand/pending"];
 const PUBLIC_ADMIN_PATHS = ["/admin/login"];
 
 export function middleware(request: NextRequest) {

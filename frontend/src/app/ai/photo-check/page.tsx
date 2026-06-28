@@ -9,6 +9,9 @@ import { Card, CardContent } from "@/components/ui/card";
 import { LoadingSkeleton } from "@/components/common/LoadingSkeleton";
 import { Disclaimer } from "@/components/layout/Disclaimer";
 import { PageSuspense } from "@/components/common/PageSuspense";
+import { PageShell } from "@/components/layout/PageShell";
+import { PageHeader } from "@/components/layout/PageHeader";
+import { AI_FLOW_STEPS } from "@/components/layout/FlowStepper";
 
 const qualityConfig = {
   GOOD: { icon: CheckCircle, color: "text-emerald-600", label: "Ảnh tốt" },
@@ -42,20 +45,33 @@ function PhotoCheckContent() {
     return null;
   }
 
-  if (isLoading) return <div className="mx-auto max-w-xl px-4 py-8"><LoadingSkeleton count={1} /></div>;
+  if (isLoading) {
+    return (
+      <PageShell>
+        <LoadingSkeleton count={1} />
+      </PageShell>
+    );
+  }
 
   const config = data ? qualityConfig[data.quality] : qualityConfig.INVALID;
   const Icon = config.icon;
 
   return (
-    <div className="mx-auto max-w-xl px-4 py-8 sm:px-6">
-      <h1 className="text-2xl font-bold text-stone-900">Kiểm tra ảnh</h1>
+    <PageShell>
+      <PageHeader
+        steps={AI_FLOW_STEPS}
+        currentStep={4}
+        title="Kiểm tra ảnh"
+        showAiBadge
+        backHref={`/ai/photo-upload?recommendation=${recommendationId || ""}`}
+        backLabel="Upload ảnh"
+      />
 
-      <Card className="mt-8">
+      <Card>
         <CardContent className="flex flex-col items-center p-8 text-center">
           <Icon className={`h-16 w-16 ${config.color}`} />
           <h2 className="mt-4 text-xl font-semibold">{config.label}</h2>
-          <p className="mt-2 text-stone-500">{data?.message}</p>
+          <p className="mt-2 text-muted-foreground">{data?.message}</p>
         </CardContent>
       </Card>
 
@@ -68,12 +84,13 @@ function PhotoCheckContent() {
         {data?.canProceed && (
           <Button
             className="flex-1"
+            variant="ai"
             onClick={() => router.push(`/ai/processing?preview=true&photo=${photoId}&recommendation=${recommendationId}`)}
           >
             Tiếp tục tạo preview
           </Button>
         )}
       </div>
-    </div>
+    </PageShell>
   );
 }

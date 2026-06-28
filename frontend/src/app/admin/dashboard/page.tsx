@@ -14,7 +14,7 @@ export default function AdminDashboardPage() {
 
   return (
     <PortalLayout title="Admin" nav={adminNav}>
-      <h1 className="text-2xl font-bold">Tổng quan hệ thống</h1>
+      <h1 className="font-display text-2xl font-bold tracking-tight text-foreground">Tổng quan hệ thống</h1>
       {isLoading ? <LoadingSkeleton count={4} /> : data && (
         <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           <StatCard label="Tổng brand" value={data.totalBrands} sub={`${data.pendingBrands} chờ duyệt`} />

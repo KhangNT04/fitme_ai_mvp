@@ -1,6 +1,7 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import type { AuthUser } from "@/types/auth";
+import { authApi } from "@/services/auth-api";
 import { AUTH_TOKEN_KEY, AUTH_REFRESH_KEY } from "@/utils/constants";
 
 function setRoleCookie(role: AuthUser["role"]) {
@@ -21,6 +22,7 @@ interface AuthState {
   refreshToken: string | null;
   setAuth: (user: AuthUser, accessToken: string, refreshToken: string) => void;
   clearAuth: () => void;
+  logout: () => Promise<void>;
   isAuthenticated: () => boolean;
   isBrand: () => boolean;
   isAdmin: () => boolean;
@@ -36,6 +38,11 @@ export const useAuthStore = create<AuthState>()(
         if (typeof window !== "undefined") {
           localStorage.setItem(AUTH_TOKEN_KEY, accessToken);
           localStorage.setItem(AUTH_REFRESH_KEY, refreshToken);
+          fetch("/api/auth/session", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ accessToken }),
+          }).catch(() => undefined);
         }
         setRoleCookie(user.role);
         set({ user, accessToken, refreshToken });
@@ -48,10 +55,14 @@ export const useAuthStore = create<AuthState>()(
         clearRoleCookie();
         set({ user: null, accessToken: null, refreshToken: null });
       },
+      logout: async () => {
+        await authApi.logout();
+        get().clearAuth();
+      },
       isAuthenticated: () => !!get().accessToken,
       isBrand: () => get().user?.role === "BRAND",
       isAdmin: () => get().user?.role === "ADMIN",
     }),
-    { name: "fitme-auth" }
+    { name: "fitme-auth", skipHydration: true }
   )
 );

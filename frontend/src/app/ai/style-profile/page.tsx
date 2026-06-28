@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -11,7 +12,10 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { styleProfileSchema, type StyleProfileForm } from "@/utils/validators";
 import { RISK_LEVELS, STYLE_OPTIONS } from "@/utils/constants";
 import { useConsultationStore } from "@/stores/consultation-store";
-import { cn } from "@/lib/utils";
+import { PageShell } from "@/components/layout/PageShell";
+import { PageHeader } from "@/components/layout/PageHeader";
+import { AI_FLOW_STEPS } from "@/components/layout/FlowStepper";
+import { Chip } from "@/components/ui/chip";
 
 const COLOR_OPTIONS = ["Đen", "Trắng", "Navy", "Beige", "Nâu", "Xám", "Pastel", "Đỏ", "Xanh lá"];
 
@@ -46,28 +50,29 @@ export default function StyleProfilePage() {
   };
 
   return (
-    <div className="mx-auto max-w-xl px-4 py-8 sm:px-6">
-      <h1 className="text-2xl font-bold text-stone-900">Gu thời trang</h1>
-      <p className="mt-2 text-stone-500">Chọn phong cách và màu sắc bạn yêu thích</p>
+    <PageShell>
+      <PageHeader
+        steps={AI_FLOW_STEPS}
+        currentStep={2}
+        title="Gu thời trang"
+        subtitle="Chọn phong cách và màu sắc bạn yêu thích"
+        showAiBadge
+        backHref="/ai/body-profile"
+        backLabel="Thông tin cơ thể"
+      />
 
-      <form onSubmit={handleSubmit(onSubmit)} className="mt-8 space-y-6">
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
         <Card>
           <CardHeader><CardTitle className="text-base">Phong cách chính</CardTitle></CardHeader>
           <CardContent className="flex flex-wrap gap-2">
             {STYLE_OPTIONS.map((style) => (
-              <button
+              <Chip
                 key={style}
-                type="button"
+                selected={primaryStyle === style}
                 onClick={() => setValue("primaryStyle", style, { shouldValidate: true })}
-                className={cn(
-                  "rounded-full border px-4 py-2 text-sm transition-colors",
-                  primaryStyle === style
-                    ? "border-stone-900 bg-stone-900 text-white"
-                    : "border-stone-300 hover:border-stone-400"
-                )}
               >
                 {style}
-              </button>
+              </Chip>
             ))}
             {errors.primaryStyle && <p className="w-full text-xs text-red-600">{errors.primaryStyle.message}</p>}
           </CardContent>
@@ -95,29 +100,25 @@ export default function StyleProfilePage() {
           <CardHeader><CardTitle className="text-base">Màu ưa thích</CardTitle></CardHeader>
           <CardContent className="flex flex-wrap gap-2">
             {COLOR_OPTIONS.map((color) => (
-              <button
+              <Chip
                 key={color}
-                type="button"
+                selected={preferredColors.includes(color)}
                 onClick={() => toggleColor(color)}
-                className={cn(
-                  "rounded-full border px-3 py-1.5 text-sm",
-                  preferredColors.includes(color)
-                    ? "border-stone-900 bg-stone-900 text-white"
-                    : "border-stone-300"
-                )}
               >
                 {color}
-              </button>
+              </Chip>
             ))}
             {errors.preferredColors && <p className="w-full text-xs text-red-600">{errors.preferredColors.message}</p>}
           </CardContent>
         </Card>
 
         <div className="flex gap-3">
-          <Button type="button" variant="outline" onClick={() => router.back()}>Quay lại</Button>
+          <Button type="button" variant="outline" asChild>
+            <Link href="/ai/body-profile">Quay lại</Link>
+          </Button>
           <Button type="submit" className="flex-1">Tiếp tục</Button>
         </div>
       </form>
-    </div>
+    </PageShell>
   );
 }

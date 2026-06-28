@@ -11,13 +11,13 @@ export function Disclaimer({ className, compact }: DisclaimerProps) {
   return (
     <div
       className={cn(
-        "flex gap-3 rounded-lg border border-amber-200 bg-amber-50 p-4 text-amber-900",
+        "flex gap-3 rounded-2xl border border-amber-200/80 bg-amber-50/90 p-4 text-amber-900 shadow-sm",
         compact && "p-3 text-xs",
         className
       )}
       role="note"
     >
-      <AlertCircle className={cn("shrink-0", compact ? "h-4 w-4" : "h-5 w-5")} />
+      <AlertCircle className={cn("shrink-0 text-amber-600", compact ? "h-4 w-4" : "h-5 w-5")} />
       <p className={cn("leading-relaxed", compact ? "text-xs" : "text-sm")}>
         {AI_DISCLAIMER}
       </p>

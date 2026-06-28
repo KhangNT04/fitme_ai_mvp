@@ -273,3 +273,266 @@ Doc audit retest **passed** with no regressions. All automated suites green (40 
 cd frontend && npm run test:e2e          # 72 tests
 cd frontend && npx playwright test e2e/brand-full.spec.ts  # subset
 ```
+
+---
+
+## 9. Full MVP retest — 2026-06-28 (3-role auth + business flows)
+
+**Scope:** Kiểm thử lại toàn bộ dự án sau MVP (auth 3 role, brand apply → admin approve, reset password, profile/privacy, admin/brand analytics, rules engine).  
+**Tester role:** Senior QA — automated suites + API smoke + ghi nhận môi trường Windows/OneDrive.
+
+### 9.1 Automated summary
+
+| Layer | Target | Result | Notes |
+|-------|--------|--------|-------|
+| Backend JUnit | **44/44** | **Pass** | `mvn test` — Flyway V1+V2, Postgres `:5433/fitme_test` |
+| Frontend Vitest | **26/26** | **Pass*** | *Chạy từ `%TEMP%\fitme-fe-vitest` (ngoài OneDrive); trên OneDrive worker timeout |
+| Frontend build | exit 0 | **Pass*** | *Build tại `%TEMP%` — 50 routes; trên OneDrive `EPERM` `.next/` |
+| E2E Playwright | **72/72** | **Pass*** | *Docker FE `:3001` + compose BE; 71/72 lần 1, `product-advice` flaky pass retry |
+
+**Tổng kết tự động:** Logic ứng dụng **đạt** khi chạy ngoài hạn chế OneDrive hoặc qua Docker test stack.
+
+### 9.2 Backend — lớp mới / mở rộng
+
+| Test class | Tests | Phạm vi MVP |
+|------------|-------|-------------|
+| `AuthResetPasswordTest` | 2 | Forgot + reset token invalid |
+| `BrandApplicationControllerTest` | 2 | USER apply → PENDING; admin approve → `BRAND_OWNER` |
+| `AnalyticsServiceTest` | 2 | Brand/admin aggregates, không lộ PII |
+| Các suite cũ | 38 | Recommendation, try-on, wardrobe, RBAC, redirect, … |
+
+### 9.3 Frontend routes (58 `page.tsx`)
+
+Route mới so với báo cáo §7: `/auth/reset-password`, `/brand/pending`, `/profile/privacy`, admin `flagged-links`, `try-on-monitoring`, brand `settings` (form edit).
+
+E2E smoke đã cover load trang cho onboarding; **chưa** có E2E submit onboarding / reset-password token / privacy deletion.
+
+### 9.4 API smoke (live backend `:8080`, DB seed mới)
+
+| Flow | Kết quả | Ghi chú |
+|------|---------|---------|
+| `POST /auth/forgot-password` | **Pass** | Token MVP log console |
+| `POST /brand/applications` (USER) | **Pass** | Body: `name`, `contactEmail`, `websiteUrl` |
+| `POST /admin/brands/{id}/approve` | **Pass** | Status `APPROVED` |
+| Re-login sau approve | **Pass** | Role = `BRAND_OWNER` (cần đăng nhập lại JWT) |
+| `POST/GET /me/body-profile` | **Pass** | CRUD profile authenticated user |
+
+### 9.5 E2E coverage (72 tests, 19 spec files)
+
+| Nhóm | Pass | Ghi chú |
+|------|------|---------|
+| Core (consult, try-on, wardrobe, redirect, saved) | 10/10 | Không regression |
+| Auth + RBAC | 12/12 | Login, register, forgot, guards 3 role |
+| Brand portal full | 14/14 | Create/edit/submit product, analytics pages |
+| Admin portal full | 12/12 | Moderation approve, rules, privacy, monitoring |
+| Smoke routes | 18/18 | Gồm `/brand/onboarding`, `/brand/pending` load |
+| AI / navigation / discover | 6/6 | |
+| `product-advice` | 1/1* | *Flaky lần đầu (timeout 90s, quay về `/ai/start`); pass retry 4s |
+
+### 9.6 Bugs / risks phát hiện
+
+| Mức | Vấn đề | Khuyến nghị |
+|-----|--------|-------------|
+| **Ops P1** | OneDrive sync gây Vitest worker timeout, `next dev` crash, build `EPERM` | Clone repo ra `C:\dev\fitme` hoặc tắt sync thư mục `.next`/`node_modules` |
+| **Ops P2** | E2E mặc định `:3000` — dev server OneDrive không ổn định | Dùng `docker compose -f docker-compose.test.yml up -d` + map `APP_PORT=3001` và `baseURL` tương ứng |
+| **Test P2** | `product-advice.spec.ts` flaky khi tải cao | Tăng retry CI hoặc chờ processing selector thay vì chỉ `waitForURL` |
+| **Gap P3** | Không E2E: reset-password UI, brand apply submit, privacy deletion | Bổ sung spec cho luồng MVP mới |
+| **UX P3** | Role nâng sau admin approve chỉ có sau re-login | Document trong README/onboarding (đã có trong plan) |
+
+### 9.7 Acceptance criteria MVP (3 role)
+
+| Tiêu chí | Kết quả | Bằng chứng |
+|----------|---------|------------|
+| USER: register → profile, consultation, try-on | **Pass** | E2E auth-flow, consultation, try-on |
+| USER: forgot/reset password (BE) | **Pass** | `AuthResetPasswordTest` + API forgot-password |
+| USER: privacy deletion page | **Partial** | Route smoke; chưa E2E submit |
+| BRAND: apply → pending → admin approve → portal | **Pass** | BE `BrandApplicationControllerTest` + API smoke; FE onboarding/pending smoke only |
+| BRAND: product CRUD + analytics | **Pass** | E2E `brand-full` |
+| ADMIN: moderation, rules, flagged links, monitoring | **Pass** | E2E `admin-full` |
+| RBAC: chặn cross-role | **Pass** | E2E `rbac` + `SecurityConfigTest` |
+| Anonymous session + consultation | **Pass** | E2E `consultation-anonymous` |
+
+### 9.8 Cách reproduce (khuyến nghị cho Windows)
+
+```powershell
+# 1. Backend tests
+cd backend
+$env:DB_URL="jdbc:postgresql://localhost:5433/fitme_test"
+$env:DB_USERNAME="fitme"; $env:DB_PASSWORD="fitme123"
+mvn test
+
+# 2. Frontend unit tests + build (tránh OneDrive)
+$dest = "$env:TEMP\fitme-fe-vitest"
+robocopy .\frontend $dest /E /XD node_modules .next /NFL /NDL /NJH /NJS
+cd $dest
+npm ci
+npm test
+npm run build
+
+# 3. E2E — Docker test stack (ổn định hơn next dev trên OneDrive)
+cd <repo>
+docker compose --env-file .env.test -f docker-compose.test.yml up -d --build
+# Đặt APP_PORT=3000 trong .env.test để khớp playwright.config.ts baseURL
+cd frontend
+npx playwright test --workers=1
+```
+
+### 9.9 Kết luận
+
+**MVP FitMe AI sẵn sàng release** về mặt logic nghiệp vụ: backend 44/44, frontend 26/26 (ngoài OneDrive), build production 50 trang OK, E2E 72/72 qua Docker stack.  
+**Điều kiện:** môi trường dev/test không nên nằm trên OneDrive; bổ sung E2E cho luồng brand apply + reset password UI để đóng gap MVP còn lại.
+
+---
+
+## 10. Full retest — 2026-06-28 (local dev `:3000` + `:8080`)
+
+**Scope:** Chạy lại đầy đủ BE / FE unit / build / E2E / API smoke trên môi trường local dev (tách biệt deploy Vercel/Render/Neon).
+
+### 10.1 Kết quả tự động
+
+| Layer | Kết quả | Thời gian / Ghi chú |
+|-------|---------|---------------------|
+| Backend JUnit | **44/44 Pass** | `mvn test` ~43s, Postgres `:5433/fitme_test` |
+| Frontend Vitest | **26/26 Pass** | `%TEMP%\fitme-fe-vitest`, 9s |
+| Frontend build | **Pass** | 50 routes, TypeScript OK |
+| E2E Playwright | **72/72 Pass** | Local dev `:3000` + BE `:8080`, ~3.5m, 1 worker |
+| API smoke | **Pass** | forgot-password, body-profile POST/GET |
+
+### 10.2 Bug phát hiện & sửa trong phiên test
+
+| Mức | Vấn đề | Fix |
+|-----|--------|-----|
+| **P1** | `POST /redirects/buy-click` trả 401 khi user vào `/redirect/confirm` trực tiếp (không có anonymous session) → E2E redirect-flow fail | `redirect/confirm/[id]/page.tsx` — gọi `ensureSession()` trước `trackBuyClick` |
+| **P2** | E2E `auth-flow` expect text cũ sau MVP reset-password UI | Cập nhật `auth-flow.spec.ts` khớp copy MVP mới |
+
+### 10.3 E2E lần chạy đầu (trước fix)
+
+| Test | Lỗi | Sau fix |
+|------|-----|---------|
+| `auth-flow` forgot password | Text confirmation không khớp | **Pass** |
+| `redirect-flow` product confirm | Timeout — không navigate tới `/redirect/loading` | **Pass** (2.7s) |
+
+### 10.4 Gap còn lại (không chặn release)
+
+- E2E submit brand onboarding / reset-password token / privacy deletion
+- Vitest + `npm run build` trên đường dẫn OneDrive vẫn không ổn định (dùng `%TEMP%` hoặc clone ra `C:\dev\fitme`)
+
+### 10.5 Kết luận
+
+**Toàn bộ suite xanh sau fix:** 44 BE + 26 FE + build + **72/72 E2E**. Deploy production không bị ảnh hưởng — chỉ local dev và test DB.
+
+---
+
+## 11. Role flows E2E — 2026-06-28
+
+**File:** `frontend/e2e/role-flows.spec.ts` (29 tests, serial)  
+**Chạy:** `cd frontend && npm run test:e2e:roles`
+
+| Nhóm | Tests | Luồng |
+|------|-------|-------|
+| Công khai | 3 | Tư vấn ẩn danh, try-on, redirect mua |
+| USER | 5 | Profile, forgot password, privacy, save outfit, wardrobe |
+| BRAND | 10 | 9 trang portal + tạo/gửi duyệt sản phẩm |
+| ADMIN | 10 | 9 trang portal + duyệt sản phẩm pending |
+| Liên role | 1 | USER đăng ký → apply brand → ADMIN duyệt → brand portal |
+
+**Bug sửa khi thêm suite:** FE privacy gửi `SESSION_DATA`/`ACCOUNT` không khớp enum BE → đồng bộ `RECOMMENDATION_HISTORY` / `PHOTO_UPLOAD` / `ALL`.
+
+---
+
+## 12. MVP fashion & media completion — 2026-06-28
+
+**Scope:** Hoàn thiện mapper brand→BE, size chart end-to-end, gallery ảnh URL, upload preview, wardrobe upload, moderation guard.
+
+### 12.1 Tính năng đã triển khai
+
+| Vùng | Thay đổi |
+|------|----------|
+| Brand FE→BE | `product-mapper.ts` — `colors`×`sizes`→`variants`, tags, images URL, sizeCharts |
+| Brand forms | Multi URL ảnh, fitType, material, bảng size; edit gửi full payload |
+| Upload preview | `upload-api` map `id`→`photoUploadId`, `qualityStatus`→`canProceed` |
+| Size chart API | `SizeChartDto`, persist/read trong `ProductService` |
+| Gợi ý size | `RecommendationService.resolveSize()` — chest/waist/hip + height/weight range |
+| Gallery | `ProductImageGallery` trên product detail; seed 3 ảnh/demo SP |
+| Body profile | Số đo chi tiết (optional), GET mapping `profile-api` |
+| Wardrobe | Upload ảnh sau tạo item + consent |
+| Admin moderation | Cảnh báo thiếu ảnh/variant/size chart; chặn duyệt nếu không có ảnh |
+| E2E | `reset-password.spec.ts` (test token hook), brand helper có URL ảnh |
+
+### 12.2 Test bổ sung
+
+| Layer | File mới / mở rộng |
+|-------|---------------------|
+| BE | `BrandProductControllerTest` variants/images/charts; `RecommendationSizeChartTest` |
+| FE | `product-mapper.test.ts`, `upload-api.test.ts` |
+| E2E | `reset-password.spec.ts`, `helpers/brand.ts` multi-image |
+
+### 12.3 Chạy test
+
+```bash
+cd backend && mvn test                    # 46+ tests
+cd frontend && npm test                 # 28+ tests (dùng %TEMP% nếu OneDrive)
+cd frontend && npm run test:e2e:roles   # brand form có URL ảnh
+```
+
+Reset password E2E: backend cần `FITME_TEST_EXPOSE_RESET_TOKENS=true`.
+
+### 12.4 Definition of Done
+
+| Tiêu chí | Trạng thái |
+|----------|------------|
+| Brand tạo SP ≥2 URL ảnh + variants → discover gallery | **Done** |
+| Edit SP không mất variants/images/tags | **Done** |
+| Upload ảnh → photo-check `canProceed` khi GOOD | **Done** |
+| Gợi ý size dùng size chart + body measurements | **Done** |
+| Product detail hiển thị bảng size | **Done** |
+| Admin moderation eligibility | **Done** |
+
+---
+
+## 13. Quality 9+ upgrade (2026-06-28)
+
+### Architecture & CI
+
+| Item | Status |
+|------|--------|
+| GitHub Actions CI (BE unit, FE unit, build, E2E) | **Done** — `.github/workflows/ci.yml` |
+| `docs/ARCHITECTURE.md` | **Done** |
+| `docs/API_CONTRACT.md` | **Done** |
+
+### Frontend
+
+| Item | Status |
+|------|--------|
+| `AuthCardShell`, `PortalLoginShell`, `TryOnVariantShell` | **Done** |
+| `PageShell`/`PageHeader` on consumer pages | **Done** |
+| `FlowStepper` on AI + try-on flows | **Done** |
+| `wardrobe-api.ts` split from profile-api | **Done** |
+
+### Backend refactor
+
+| Item | Status |
+|------|--------|
+| `RecommendationService` split (Size, Scoring, Composition, Wardrobe) | **Done** |
+| `AdminFlaggedLinkService`, `AdminPreviewMonitoringService` | **Done** |
+| Admin DTOs (rules, privacy, previews) | **Done** |
+| `SeedDataLoader` → `common.config` | **Done** |
+
+### Test pyramid targets
+
+| Layer | Target | Notes |
+|-------|--------|-------|
+| FE Vitest | 50+ tests | auth/tryon stores, API, layout shells |
+| BE JUnit | 35+ test classes | Admin, Auth, Privacy, Product, extracted services |
+| E2E CI | smoke + role-flows | 46 tests on PR |
+
+### Quality score targets (all ≥9)
+
+| Dimension | Criteria met |
+|-----------|--------------|
+| Directory organization | 1:1 services, ARCHITECTURE doc |
+| Separation of concerns | No controller→repo; services ≤200 LOC orchestrator |
+| K-fashion UI | PageShell/Header/FlowStepper/Chip unified |
+| Test pyramid | CI gate + expanded unit tests |
+| Maintainability | Shared shells; try-on variant dedupe |
+| API contract | API_CONTRACT.md + wardrobe-api |

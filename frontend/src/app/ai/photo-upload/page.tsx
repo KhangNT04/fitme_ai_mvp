@@ -10,6 +10,9 @@ import { Disclaimer } from "@/components/layout/Disclaimer";
 import { uploadApi } from "@/services/upload-api";
 import { useConsultationStore } from "@/stores/consultation-store";
 import { PageSuspense } from "@/components/common/PageSuspense";
+import { PageShell } from "@/components/layout/PageShell";
+import { PageHeader } from "@/components/layout/PageHeader";
+import { AI_FLOW_STEPS } from "@/components/layout/FlowStepper";
 
 export default function PhotoUploadPage() {
   return (
@@ -49,14 +52,21 @@ function PhotoUploadContent() {
   };
 
   return (
-    <div className="mx-auto max-w-xl px-4 py-8 sm:px-6">
-      <h1 className="text-2xl font-bold text-stone-900">Upload ảnh preview 2D</h1>
-      <p className="mt-2 text-stone-500">Ảnh sẽ được dùng để tạo minh họa outfit trên hình của bạn</p>
+    <PageShell>
+      <PageHeader
+        steps={AI_FLOW_STEPS}
+        currentStep={4}
+        title="Upload ảnh preview 2D"
+        subtitle="Ảnh sẽ được dùng để tạo minh họa outfit trên hình của bạn"
+        showAiBadge
+        backHref={recommendationId ? `/ai/result/${recommendationId}` : "/ai/start"}
+        backLabel={recommendationId ? "Kết quả tư vấn" : "Bắt đầu tư vấn"}
+      />
 
-      <Card className="mt-8">
+      <Card>
         <CardContent className="p-6">
           <h3 className="font-semibold">Hướng dẫn chụp ảnh</h3>
-          <ul className="mt-3 space-y-2 text-sm text-stone-600">
+          <ul className="mt-3 space-y-2 text-sm text-muted-foreground">
             <li>• Đứng thẳng, toàn thân hoặc nửa người trở lên</li>
             <li>• Ánh sáng đủ, nền đơn giản</li>
             <li>• Không che khuất phần thân</li>
@@ -65,9 +75,9 @@ function PhotoUploadContent() {
         </CardContent>
       </Card>
 
-      <label className="mt-6 flex items-start gap-3 rounded-lg border border-stone-200 p-4">
+      <label className="mt-6 flex items-start gap-3 rounded-lg border border-border p-4">
         <Checkbox checked={consented} onCheckedChange={(c) => setConsented(!!c)} />
-        <span className="text-sm text-stone-600">
+        <span className="text-sm text-muted-foreground">
           Tôi đồng ý cho FitMe AI xử lý ảnh của tôi để tạo preview minh họa.
           Ảnh sẽ không được chia sẻ với thương hiệu.
         </span>
@@ -85,20 +95,20 @@ function PhotoUploadContent() {
         type="button"
         onClick={() => fileRef.current?.click()}
         disabled={uploading || !consented}
-        className="mt-6 flex w-full flex-col items-center justify-center rounded-xl border-2 border-dashed border-stone-300 bg-stone-50 py-16 transition-colors hover:border-stone-400 disabled:opacity-50"
+        className="mt-6 flex w-full flex-col items-center justify-center rounded-xl border-2 border-dashed border-border bg-muted py-16 transition-colors hover:border-primary/40 disabled:opacity-50"
       >
         {uploading ? (
-          <Camera className="h-10 w-10 animate-pulse text-stone-400" />
+          <Camera className="h-10 w-10 animate-pulse text-muted-foreground/70" />
         ) : (
-          <Upload className="h-10 w-10 text-stone-400" />
+          <Upload className="h-10 w-10 text-muted-foreground/70" />
         )}
-        <p className="mt-4 font-medium text-stone-700">
+        <p className="mt-4 font-medium text-foreground">
           {uploading ? "Đang tải lên..." : "Kéo thả hoặc chọn ảnh"}
         </p>
       </button>
 
       {error && <p className="mt-4 text-sm text-red-600">{error}</p>}
       <Disclaimer className="mt-6" />
-    </div>
+    </PageShell>
   );
 }

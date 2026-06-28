@@ -41,15 +41,16 @@ export interface FlaggedLink {
   productName: string;
   url: string;
   reason: string;
-  status: "PENDING" | "RESOLVED" | "REJECTED";
-  createdAt: string;
+  status: "OPEN" | "PENDING" | "RESOLVED" | "REJECTED";
+  createdAt?: string;
 }
 
 export interface StyleRule {
   id: string;
   name: string;
   description: string;
-  tags: string[];
+  tags?: string[];
+  keywords?: string[];
   active: boolean;
 }
 
@@ -57,6 +58,7 @@ export interface OccasionRule {
   id: string;
   name: string;
   description: string;
-  tags: string[];
+  tags?: string[];
+  keywords?: string[];
   active: boolean;
 }

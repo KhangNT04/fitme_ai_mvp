@@ -37,6 +37,12 @@ public class AuthController {
         return ApiResponse.ok(authService.forgotPassword(request));
     }
 
+    @PostMapping("/reset-password")
+    public ApiResponse<Void> resetPassword(@Valid @RequestBody ResetPasswordRequest request) {
+        authService.resetPassword(request);
+        return ApiResponse.ok(null);
+    }
+
     @PostMapping("/refresh-token")
     public ApiResponse<AuthResponse> refreshToken(@Valid @RequestBody RefreshTokenRequest request) {
         return ApiResponse.ok(authService.refreshToken(request));

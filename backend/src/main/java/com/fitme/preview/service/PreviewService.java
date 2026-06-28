@@ -4,11 +4,16 @@ import com.fitme.analytics.service.AnalyticsService;
 import com.fitme.common.enums.PreviewStatus;
 import com.fitme.common.enums.PreviewType;
 import com.fitme.common.exception.NotFoundException;
+import com.fitme.common.security.OwnershipChecker;
 import com.fitme.common.security.RequestContext;
 import com.fitme.preview.dto.CreatePreviewRequest;
 import com.fitme.preview.dto.PreviewResponse;
 import com.fitme.preview.entity.PreviewGeneration;
 import com.fitme.preview.repository.PreviewGenerationRepository;
+import com.fitme.recommendation.entity.Recommendation;
+import com.fitme.recommendation.repository.RecommendationRepository;
+import com.fitme.tryon.entity.TryOnRequest;
+import com.fitme.tryon.repository.TryOnRequestRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -22,9 +27,12 @@ public class PreviewService {
     private final PreviewGenerationRepository previewRepository;
     private final PreviewGenerator previewGenerator;
     private final AnalyticsService analyticsService;
+    private final RecommendationRepository recommendationRepository;
+    private final TryOnRequestRepository tryOnRequestRepository;
 
     @Transactional
     public PreviewResponse create(CreatePreviewRequest request) {
+        verifyLinkedResourceOwnership(request.getRecommendationId(), request.getTryOnRequestId());
         PreviewType type = request.getPreviewType() != null ? request.getPreviewType() : PreviewType.OUTFIT_BOARD;
         PreviewGeneration preview = PreviewGeneration.builder()
                 .recommendationId(request.getRecommendationId())
@@ -56,13 +64,36 @@ public class PreviewService {
     }
 
     public PreviewResponse get(UUID id) {
-        return toResponse(previewRepository.findById(id)
-                .orElseThrow(() -> new NotFoundException("Preview không tồn tại")));
+        PreviewGeneration preview = previewRepository.findById(id)
+                .orElseThrow(() -> new NotFoundException("Preview không tồn tại"));
+        verifyPreviewOwnership(preview);
+        return toResponse(preview);
     }
 
     @Transactional
     public void delete(UUID id) {
-        previewRepository.deleteById(id);
+        PreviewGeneration preview = previewRepository.findById(id)
+                .orElseThrow(() -> new NotFoundException("Preview không tồn tại"));
+        verifyPreviewOwnership(preview);
+        previewRepository.delete(preview);
+    }
+
+    private void verifyPreviewOwnership(PreviewGeneration preview) {
+        verifyLinkedResourceOwnership(preview.getRecommendationId(), preview.getTryOnRequestId());
+    }
+
+    private void verifyLinkedResourceOwnership(UUID recommendationId, UUID tryOnRequestId) {
+        if (recommendationId != null) {
+            Recommendation rec = recommendationRepository.findById(recommendationId)
+                    .orElseThrow(() -> new NotFoundException("Recommendation không tồn tại"));
+            OwnershipChecker.verify(rec.getUserId(), rec.getSessionId());
+            return;
+        }
+        if (tryOnRequestId != null) {
+            TryOnRequest tryOn = tryOnRequestRepository.findById(tryOnRequestId)
+                    .orElseThrow(() -> new NotFoundException("Try-on không tồn tại"));
+            OwnershipChecker.verify(tryOn.getUserId(), tryOn.getSessionId());
+        }
     }
 
     private PreviewResponse toResponse(PreviewGeneration p) {

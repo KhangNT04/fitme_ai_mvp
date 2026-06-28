@@ -13,6 +13,9 @@ import { LoadingSkeleton } from "@/components/common/LoadingSkeleton";
 import { ErrorState } from "@/components/common/ErrorState";
 import { Disclaimer } from "@/components/layout/Disclaimer";
 import { formatPrice } from "@/utils/format-price";
+import { PageShell } from "@/components/layout/PageShell";
+import { PageHeader } from "@/components/layout/PageHeader";
+import { AI_FLOW_STEPS } from "@/components/layout/FlowStepper";
 
 export default function AiResultPage({
   params,
@@ -27,17 +30,26 @@ export default function AiResultPage({
   });
 
   if (isLoading) {
-    return <div className="mx-auto max-w-4xl px-4 py-8"><LoadingSkeleton type="detail" /></div>;
+    return (
+      <PageShell width="wide">
+        <LoadingSkeleton type="detail" />
+      </PageShell>
+    );
   }
 
   if (error || !data) {
-    return <div className="mx-auto max-w-4xl px-4 py-8"><ErrorState onRetry={() => refetch()} /></div>;
+    return (
+      <PageShell width="wide">
+        <ErrorState onRetry={() => refetch()} />
+      </PageShell>
+    );
   }
 
   return (
-    <div className="mx-auto max-w-4xl px-4 py-8 sm:px-6">
-      <h1 className="text-2xl font-bold text-stone-900">{data.title}</h1>
-      <div className="mt-2 flex flex-wrap gap-2">
+    <PageShell width="wide">
+      <PageHeader steps={AI_FLOW_STEPS} currentStep={4} title={data.title} showAiBadge backHref="/discover" backLabel="Khám phá sản phẩm" />
+
+      <div className="flex flex-wrap gap-2">
         {data.recommendedSize && <Badge>Gợi ý size: {data.recommendedSize}</Badge>}
         {data.recommendedForm && <Badge variant="secondary">Form: {data.recommendedForm}</Badge>}
         {data.recommendedColor && <Badge variant="outline">Màu: {data.recommendedColor}</Badge>}
@@ -47,7 +59,7 @@ export default function AiResultPage({
       </div>
 
       {data.preview?.imageUrl && (
-        <div className="mt-6 relative aspect-[4/5] overflow-hidden rounded-xl bg-stone-100">
+        <div className="mt-6 relative aspect-[4/5] overflow-hidden rounded-xl bg-muted">
           <Image src={data.preview.imageUrl} alt="Preview outfit" fill className="object-cover" unoptimized />
         </div>
       )}
@@ -58,7 +70,7 @@ export default function AiResultPage({
         {data.outfitItems.map((item) => (
           <Card key={item.id}>
             <CardContent className="flex gap-4 p-4">
-              <div className="relative h-24 w-20 shrink-0 overflow-hidden rounded-lg bg-stone-100">
+              <div className="relative h-24 w-20 shrink-0 overflow-hidden rounded-lg bg-muted">
                 <Image
                   src={item.imageUrl || "/placeholder-product.svg"}
                   alt={item.name}
@@ -70,9 +82,9 @@ export default function AiResultPage({
               <div className="flex-1">
                 <div className="flex items-start justify-between">
                   <div>
-                    <p className="text-xs text-stone-500">{item.category}</p>
+                    <p className="text-xs text-muted-foreground">{item.category}</p>
                     <h3 className="font-medium">{item.name}</h3>
-                    {item.size && <p className="text-sm text-stone-500">Size: {item.size}</p>}
+                    {item.size && <p className="text-sm text-muted-foreground">Size: {item.size}</p>}
                   </div>
                   {item.fromWardrobe && <Badge variant="success">Bạn đã có</Badge>}
                 </div>
@@ -90,7 +102,7 @@ export default function AiResultPage({
 
       <Card className="mt-8">
         <CardHeader><CardTitle className="text-base">Giải thích AI</CardTitle></CardHeader>
-        <CardContent className="space-y-3 text-sm text-stone-600">
+        <CardContent className="space-y-3 text-sm text-muted-foreground">
           <p><strong>Phù hợp dáng:</strong> {data.explanation.bodyFit}</p>
           <p><strong>Phù hợp gu:</strong> {data.explanation.styleFit}</p>
           <p><strong>Phù hợp hoàn cảnh:</strong> {data.explanation.occasionFit}</p>
@@ -105,7 +117,7 @@ export default function AiResultPage({
         <Button onClick={() => recommendationApi.save(id)}>
           <Save className="mr-2 h-4 w-4" />Lưu gợi ý
         </Button>
-        <Button variant="outline" asChild>
+        <Button variant="ai" asChild>
           <Link href={`/ai/photo-upload?recommendation=${id}`}>
             <Camera className="mr-2 h-4 w-4" />Upload ảnh tạo preview 2D
           </Link>
@@ -115,12 +127,12 @@ export default function AiResultPage({
             <Sparkles className="mr-2 h-4 w-4" />Sản phẩm tương tự
           </Link>
         </Button>
-        <Button variant="outline" asChild>
+        <Button variant="ai" asChild>
           <Link href={`/ai/variants/${id}`}>
             <ShoppingBag className="mr-2 h-4 w-4" />Thử biến thể
           </Link>
         </Button>
       </div>
-    </div>
+    </PageShell>
   );
 }

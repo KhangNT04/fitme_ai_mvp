@@ -11,6 +11,7 @@ import com.fitme.product.entity.Product;
 import com.fitme.product.entity.ProductImage;
 import com.fitme.product.entity.ProductTag;
 import com.fitme.product.entity.ProductVariant;
+import com.fitme.product.entity.SizeChart;
 import com.fitme.product.repository.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -28,6 +29,7 @@ public class ProductService {
     private final ProductImageRepository imageRepository;
     private final ProductVariantRepository variantRepository;
     private final ProductTagRepository tagRepository;
+    private final SizeChartRepository sizeChartRepository;
     private final BrandRepository brandRepository;
     private final ProductEligibilityService eligibilityService;
 
@@ -110,6 +112,7 @@ public class ProductService {
         imageRepository.findByProductIdOrderBySortOrderAsc(productId).forEach(imageRepository::delete);
         variantRepository.findByProductId(productId).forEach(variantRepository::delete);
         tagRepository.findByProductId(productId).forEach(tagRepository::delete);
+        sizeChartRepository.findByProductId(productId).forEach(sizeChartRepository::delete);
         saveRelated(productId, request);
         updateAiEligibility(product);
         return toResponse(product);
@@ -140,6 +143,10 @@ public class ProductService {
     public ProductResponse approveProduct(UUID productId) {
         Product product = productRepository.findById(productId)
                 .orElseThrow(() -> new NotFoundException("Sản phẩm không tồn tại"));
+        java.util.List<String> issues = eligibilityService.getModerationIssues(productId);
+        if (issues.stream().anyMatch(i -> i.contains("Thiếu ảnh"))) {
+            throw new BusinessException("Không thể duyệt: " + String.join(", ", issues));
+        }
         product.setStatus(ProductStatus.ACTIVE);
         updateAiEligibility(product);
         return toResponse(productRepository.save(product));
@@ -208,6 +215,25 @@ public class ProductService {
                         .build());
             }
         }
+        if (request.getSizeCharts() != null) {
+            for (SizeChartDto sc : request.getSizeCharts()) {
+                sizeChartRepository.save(SizeChart.builder()
+                        .productId(productId)
+                        .sizeLabel(sc.getSizeLabel())
+                        .chestCm(sc.getChestCm())
+                        .waistCm(sc.getWaistCm())
+                        .hipCm(sc.getHipCm())
+                        .shoulderCm(sc.getShoulderCm())
+                        .lengthCm(sc.getLengthCm())
+                        .inseamCm(sc.getInseamCm())
+                        .weightMinKg(sc.getWeightMinKg())
+                        .weightMaxKg(sc.getWeightMaxKg())
+                        .heightMinCm(sc.getHeightMinCm())
+                        .heightMaxCm(sc.getHeightMaxCm())
+                        .note(sc.getNote())
+                        .build());
+            }
+        }
     }
 
     private void updateAiEligibility(Product product) {
@@ -235,6 +261,16 @@ public class ProductService {
             if (filter.getOccasion() != null && tags.stream().noneMatch(t -> "OCCASION".equals(t.getTagType()) && t.getTagValue().equalsIgnoreCase(filter.getOccasion()))) return false;
             if (filter.getColor() != null && variantRepository.findByProductId(p.getId()).stream().noneMatch(v -> filter.getColor().equalsIgnoreCase(v.getColorName()))) return false;
             if (filter.getSize() != null && variantRepository.findByProductId(p.getId()).stream().noneMatch(v -> filter.getSize().equalsIgnoreCase(v.getSizeLabel()))) return false;
+        }
+        if (filter.getSearch() != null && !filter.getSearch().isBlank()) {
+            String q = filter.getSearch().trim().toLowerCase();
+            String brandName = brandRepository.findById(p.getBrandId()).map(Brand::getName).orElse("");
+            boolean brandMatch = brandName.toLowerCase().contains(q);
+            boolean productMatch =
+                    (p.getName() != null && p.getName().toLowerCase().contains(q))
+                            || (p.getDescription() != null && p.getDescription().toLowerCase().contains(q))
+                            || (p.getCategory() != null && p.getCategory().toLowerCase().contains(q));
+            if (!brandMatch && !productMatch) return false;
         }
         return true;
     }
@@ -270,6 +306,22 @@ public class ProductService {
                 .tags(tagRepository.findByProductId(productId).stream()
                         .map(t -> ProductTagDto.builder().tagType(t.getTagType()).tagValue(t.getTagValue()).build())
                         .toList())
+                .sizeCharts(sizeChartRepository.findByProductId(productId).stream()
+                        .map(sc -> SizeChartDto.builder()
+                                .sizeLabel(sc.getSizeLabel())
+                                .chestCm(sc.getChestCm())
+                                .waistCm(sc.getWaistCm())
+                                .hipCm(sc.getHipCm())
+                                .shoulderCm(sc.getShoulderCm())
+                                .lengthCm(sc.getLengthCm())
+                                .inseamCm(sc.getInseamCm())
+                                .weightMinKg(sc.getWeightMinKg())
+                                .weightMaxKg(sc.getWeightMaxKg())
+                                .heightMinCm(sc.getHeightMinCm())
+                                .heightMaxCm(sc.getHeightMaxCm())
+                                .note(sc.getNote())
+                                .build())
+                        .toList())
                 .createdAt(product.getCreatedAt())
                 .build();
     }
@@ -285,6 +337,7 @@ public class ProductService {
         private String color;
         private com.fitme.common.enums.FitPreference fitType;
         private String size;
+        private String search;
         private boolean aiTryOnEligible;
     }
 }

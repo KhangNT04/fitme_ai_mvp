@@ -6,7 +6,7 @@ import { authApi } from "@/services/auth-api";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { AuthCardShell } from "@/components/layout/AuthCardShell";
 
 export default function ForgotPasswordPage() {
   const [email, setEmail] = useState("");
@@ -25,30 +25,36 @@ export default function ForgotPasswordPage() {
   };
 
   return (
-    <div className="mx-auto max-w-md px-4 py-12">
-      <Card>
-        <CardHeader><CardTitle>Quên mật khẩu</CardTitle></CardHeader>
-        <CardContent>
-          {sent ? (
-            <p className="text-sm text-stone-600">
-              Nếu email tồn tại, chúng tôi đã gửi hướng dẫn đặt lại mật khẩu.
-            </p>
-          ) : (
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div>
-                <Label>Email</Label>
-                <Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} className="mt-1" required />
-              </div>
-              <Button type="submit" className="w-full" disabled={loading}>
-                {loading ? "Đang gửi..." : "Gửi link đặt lại"}
-              </Button>
-            </form>
-          )}
-          <p className="mt-4 text-center text-sm">
-            <Link href="/auth/login" className="text-stone-500 hover:underline">Quay lại đăng nhập</Link>
+    <AuthCardShell
+      title="Quên mật khẩu"
+      backHref="/auth/login"
+      backLabel="Quay lại đăng nhập"
+      footer={
+        <p className="mt-4 text-center text-sm">
+          <Link href="/auth/login" className="text-muted-foreground hover:underline">Quay lại đăng nhập</Link>
+        </p>
+      }
+    >
+      {sent ? (
+        <div className="space-y-3 text-sm text-muted-foreground">
+          <p>Nếu email tồn tại, token đặt lại mật khẩu đã được tạo (MVP: xem log backend).</p>
+          <p>
+            <Link href="/auth/reset-password" className="font-medium underline">
+              Nhập token để đặt lại mật khẩu
+            </Link>
           </p>
-        </CardContent>
-      </Card>
-    </div>
+        </div>
+      ) : (
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <Label>Email</Label>
+            <Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} className="mt-1" required />
+          </div>
+          <Button type="submit" className="w-full" disabled={loading}>
+            {loading ? "Đang gửi..." : "Gửi link đặt lại"}
+          </Button>
+        </form>
+      )}
+    </AuthCardShell>
   );
 }

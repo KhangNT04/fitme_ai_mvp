@@ -1,8 +1,12 @@
 # FitMe AI
 
+[![CI](https://github.com/KhangNT04/fitme_ai_mvp/actions/workflows/ci.yml/badge.svg)](https://github.com/KhangNT04/fitme_ai_mvp/actions/workflows/ci.yml)
+
 Web app tư vấn thời trang cá nhân hóa bằng AI — gợi ý outfit, size, form, màu sắc, preview 2D minh họa, và chuyển hướng mua hàng qua kênh bán ngoài (Shopee/TikTok/website brand).
 
 ## Kiến trúc
+
+Chi tiết: [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) · API mapping: [`docs/API_CONTRACT.md`](docs/API_CONTRACT.md)
 
 | Thành phần | Công nghệ |
 |------------|-----------|
@@ -16,6 +20,27 @@ Web app tư vấn thời trang cá nhân hóa bằng AI — gợi ý outfit, siz
 - Maven 3.9+
 - Node.js 20+
 - Docker & Docker Compose (khuyến nghị)
+
+## Luồng 3 vai trò (MVP)
+
+### USER (Người dùng)
+1. Đăng ký / đăng nhập tại `/auth/register`, `/auth/login`
+2. Tư vấn AI ẩn danh hoặc đã login — lưu profile, wardrobe, saved outfits
+3. Quản lý hồ sơ tại `/profile`, quyền riêng tư tại `/profile/privacy`
+4. Reset mật khẩu: `/auth/forgot-password` → `/auth/reset-password`
+
+### BRAND_OWNER (Đối tác thương hiệu)
+1. Đăng ký USER → gửi đơn tại `/brand/onboarding`
+2. Chờ admin duyệt — theo dõi tại `/brand/pending`
+3. Sau khi duyệt: **đăng xuất và đăng nhập lại** → portal `/brand/login`
+4. Quản lý sản phẩm, analytics, cài đặt brand
+
+### ADMIN
+1. Đăng nhập `/admin/login` (tài khoản seed hoặc DB)
+2. Duyệt brand (nâng role USER → BRAND_OWNER), duyệt/flag sản phẩm
+3. Quản lý rules, flagged links, privacy requests, try-on monitoring
+
+**Tài khoản demo (seed):** `admin@fitme.ai`, `brand@fitme.ai`, `user@fitme.ai` / `fitme123`
 
 ## Chạy nhanh với Docker
 
@@ -133,6 +158,14 @@ Header cho session ẩn danh: `X-Anonymous-Session: <token>`
 
 ## Kiểm thử (Testing)
 
+### CI (GitHub Actions)
+
+Mỗi PR/push chạy: backend `mvn test`, frontend `npm test` + `npm run build`, E2E `smoke-routes` + `role-flows`.
+
+Workflow: [`.github/workflows/ci.yml`](.github/workflows/ci.yml)
+
+E2E local (Linux/macOS): `bash scripts/ci-e2e.sh`
+
 ### Backend (JUnit + Testcontainers)
 
 ```bash
@@ -154,9 +187,15 @@ cd frontend
 npm test
 ```
 
-**Full QA:** **26** unit tests — thêm `ai/processing`, `consultation-store`, `use-ensure-session`.
+**OneDrive workaround:** Vitest/build trên đường dẫn OneDrive có thể fail — chạy từ bản copy tạm:
 
-17 unit tests gốc: validators, format-price, api-client, recommendation mapping, Disclaimer, session store.
+```powershell
+xcopy /E /I /Y "%CD%" "$env:TEMP\fitme-fe-vitest"
+cd $env:TEMP\fitme-fe-vitest\frontend
+npm test
+```
+
+**Full QA:** **28+** unit tests — thêm `product-mapper`, `upload-api` normalize.
 
 ### E2E (Playwright)
 
@@ -164,15 +203,38 @@ npm test
 cd frontend
 npm run dev          # terminal 1
 npm run test:e2e     # terminal 2
+npm run test:e2e:roles   # 29 luồng 3-role (brand form có URL ảnh)
 ```
 
-**Full QA:** **72** E2E tests — 6 luồng tài liệu + smoke routes + auth/RBAC + brand/admin portal full + AI/try-on sub-pages + saved-outfits.
+Reset password E2E (`e2e/reset-password.spec.ts`): backend cần `FITME_TEST_EXPOSE_RESET_TOKENS=true`.
+
+**Brand sản phẩm:** ảnh nhập bằng **URL** (1 URL/dòng), không upload file lên cloud trong MVP.
+
+**Full QA:** **72+** E2E tests — 6 luồng tài liệu + smoke routes + auth/RBAC + brand/admin portal full + AI/try-on sub-pages + saved-outfits.
 
 Yêu cầu: Backend `:8080` + frontend `:3000` đang chạy (xem [`docs/QA_REPORT.md`](docs/QA_REPORT.md)).
 
 ```bash
 bash scripts/test-all.sh   # chạy BE + FE unit (từ repo root)
 ```
+
+### Test từng flow / màn hình (Windows)
+
+Chạy unit + E2E **từng spec** (mỗi file = một luồng hoặc nhóm màn hình), có bảng kết quả:
+
+```powershell
+.\scripts\test-flows.ps1
+# hoặc từ frontend:
+npm run test:flows
+```
+
+Chỉ E2E (bỏ unit):
+
+```powershell
+.\scripts\test-flows.ps1 -E2eOnly
+```
+
+Yêu cầu: backend `:8080` + frontend `:3000` đang chạy.
 
 ### Acceptance criteria đã verify qua test
 

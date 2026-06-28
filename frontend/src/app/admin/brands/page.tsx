@@ -16,7 +16,10 @@ export default function AdminBrandsPage() {
 
   const approve = useMutation({
     mutationFn: (id: string) => adminApi.approveBrand(id),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["admin-brands"] }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["admin-brands"] });
+      alert("Brand đã duyệt. Chủ brand cần đăng nhập lại để nhận quyền BRAND_OWNER.");
+    },
   });
 
   const reject = useMutation({
@@ -24,16 +27,21 @@ export default function AdminBrandsPage() {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["admin-brands"] }),
   });
 
+  const suspend = useMutation({
+    mutationFn: (id: string) => adminApi.suspendBrand(id),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["admin-brands"] }),
+  });
+
   return (
     <PortalLayout title="Admin" nav={adminNav}>
-      <h1 className="text-2xl font-bold">Quản lý thương hiệu</h1>
+      <h1 className="font-display text-2xl font-bold tracking-tight text-foreground">Quản lý thương hiệu</h1>
       {isLoading ? <LoadingSkeleton type="list" /> : (
-        <div className="mt-8 overflow-x-auto rounded-lg border">
+        <div className="mt-8 overflow-x-auto rounded-2xl border border-border/60">
           <table className="w-full text-sm">
-            <thead className="bg-stone-50">
+            <thead className="bg-muted">
               <tr>
                 <th className="px-4 py-3 text-left">Tên</th>
-                <th className="px-4 py-3 text-left">Email</th>
+                <th className="px-4 py-3 text-left">Email liên hệ</th>
                 <th className="px-4 py-3 text-left">Trạng thái</th>
                 <th className="px-4 py-3 text-left">Thao tác</th>
               </tr>
@@ -42,7 +50,7 @@ export default function AdminBrandsPage() {
               {data?.map((b) => (
                 <tr key={b.id} className="border-t">
                   <td className="px-4 py-3">{b.name}</td>
-                  <td className="px-4 py-3">{b.email}</td>
+                  <td className="px-4 py-3">{b.contactEmail ?? "—"}</td>
                   <td className="px-4 py-3"><Badge variant="outline">{b.status}</Badge></td>
                   <td className="px-4 py-3 space-x-2">
                     {b.status === "PENDING" && (
@@ -50,6 +58,9 @@ export default function AdminBrandsPage() {
                         <Button size="sm" onClick={() => approve.mutate(b.id)}>Duyệt</Button>
                         <Button size="sm" variant="outline" onClick={() => reject.mutate(b.id)}>Từ chối</Button>
                       </>
+                    )}
+                    {b.status === "APPROVED" && (
+                      <Button size="sm" variant="destructive" onClick={() => suspend.mutate(b.id)}>Tạm ngưng</Button>
                     )}
                   </td>
                 </tr>

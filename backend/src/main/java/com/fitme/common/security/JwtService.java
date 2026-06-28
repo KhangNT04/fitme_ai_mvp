@@ -1,5 +1,7 @@
 package com.fitme.common.security;
 
+import com.fitme.auth.entity.RefreshTokenRevocation;
+import com.fitme.auth.repository.RefreshTokenRevocationRepository;
 import com.fitme.common.config.FitMeProperties;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
@@ -8,10 +10,13 @@ import org.springframework.stereotype.Service;
 
 import javax.crypto.SecretKey;
 import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.time.Instant;
 import java.util.Date;
+import java.util.HexFormat;
 import java.util.Map;
 import java.util.UUID;
-import java.util.concurrent.ConcurrentHashMap;
 
 @Service
 public class JwtService {
@@ -23,11 +28,12 @@ public class JwtService {
 
     private final FitMeProperties properties;
     private final SecretKey secretKey;
-    private final ConcurrentHashMap<String, Boolean> revokedRefreshTokens = new ConcurrentHashMap<>();
+    private final RefreshTokenRevocationRepository revocationRepository;
 
-    public JwtService(FitMeProperties properties) {
+    public JwtService(FitMeProperties properties, RefreshTokenRevocationRepository revocationRepository) {
         this.properties = properties;
         this.secretKey = Keys.hmacShaKeyFor(properties.getJwt().getSecret().getBytes(StandardCharsets.UTF_8));
+        this.revocationRepository = revocationRepository;
     }
 
     public String generateAccessToken(UUID userId, String email, String role) {
@@ -79,10 +85,23 @@ public class JwtService {
     }
 
     public void revokeRefreshToken(String token) {
-        revokedRefreshTokens.put(token, Boolean.TRUE);
+        revocationRepository.save(RefreshTokenRevocation.builder()
+                .tokenHash(hashToken(token))
+                .revokedAt(Instant.now())
+                .build());
     }
 
     public boolean isRefreshTokenRevoked(String token) {
-        return revokedRefreshTokens.containsKey(token);
+        return revocationRepository.existsById(hashToken(token));
+    }
+
+    private static String hashToken(String token) {
+        try {
+            MessageDigest digest = MessageDigest.getInstance("SHA-256");
+            byte[] hash = digest.digest(token.getBytes(StandardCharsets.UTF_8));
+            return HexFormat.of().formatHex(hash);
+        } catch (NoSuchAlgorithmException e) {
+            throw new IllegalStateException("SHA-256 not available", e);
+        }
     }
 }

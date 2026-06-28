@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -11,7 +12,10 @@ import { Card, CardContent } from "@/components/ui/card";
 import { occasionSchema, type OccasionForm } from "@/utils/validators";
 import { OCCASION_OPTIONS, VIBE_OPTIONS, WARDROBE_MODES } from "@/utils/constants";
 import { useConsultationStore } from "@/stores/consultation-store";
-import { cn } from "@/lib/utils";
+import { PageShell } from "@/components/layout/PageShell";
+import { PageHeader } from "@/components/layout/PageHeader";
+import { AI_FLOW_STEPS } from "@/components/layout/FlowStepper";
+import { Chip } from "@/components/ui/chip";
 
 export default function OccasionPage() {
   const router = useRouter();
@@ -37,28 +41,31 @@ export default function OccasionPage() {
   };
 
   return (
-    <div className="mx-auto max-w-xl px-4 py-8 sm:px-6">
-      <h1 className="text-2xl font-bold text-stone-900">Hoàn cảnh & vibe</h1>
-      <p className="mt-2 text-stone-500">Bạn sẽ mặc outfit này ở đâu?</p>
+    <PageShell>
+      <PageHeader
+        steps={AI_FLOW_STEPS}
+        currentStep={3}
+        title="Hoàn cảnh & vibe"
+        subtitle="Bạn sẽ mặc outfit này ở đâu?"
+        showAiBadge
+        backHref="/ai/style-profile"
+        backLabel="Gu thời trang"
+      />
 
-      <form onSubmit={handleSubmit(onSubmit)} className="mt-8 space-y-6">
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
         <Card>
           <CardContent className="p-6 space-y-4">
             <div>
               <Label>Hoàn cảnh</Label>
               <div className="mt-2 flex flex-wrap gap-2">
                 {OCCASION_OPTIONS.map((o) => (
-                  <button
+                  <Chip
                     key={o}
-                    type="button"
+                    selected={occasion === o}
                     onClick={() => setValue("occasion", o, { shouldValidate: true })}
-                    className={cn(
-                      "rounded-full border px-4 py-2 text-sm",
-                      occasion === o ? "border-stone-900 bg-stone-900 text-white" : "border-stone-300"
-                    )}
                   >
                     {o}
-                  </button>
+                  </Chip>
                 ))}
               </div>
               {errors.occasion && <p className="mt-1 text-xs text-red-600">{errors.occasion.message}</p>}
@@ -68,17 +75,13 @@ export default function OccasionPage() {
               <Label>Vibe mong muốn</Label>
               <div className="mt-2 flex flex-wrap gap-2">
                 {VIBE_OPTIONS.map((v) => (
-                  <button
+                  <Chip
                     key={v}
-                    type="button"
+                    selected={desiredVibe === v}
                     onClick={() => setValue("desiredVibe", v, { shouldValidate: true })}
-                    className={cn(
-                      "rounded-full border px-4 py-2 text-sm",
-                      desiredVibe === v ? "border-stone-900 bg-stone-900 text-white" : "border-stone-300"
-                    )}
                   >
                     {v}
-                  </button>
+                  </Chip>
                 ))}
               </div>
               {errors.desiredVibe && <p className="mt-1 text-xs text-red-600">{errors.desiredVibe.message}</p>}
@@ -118,10 +121,12 @@ export default function OccasionPage() {
         </Card>
 
         <div className="flex gap-3">
-          <Button type="button" variant="outline" onClick={() => router.back()}>Quay lại</Button>
-          <Button type="submit" className="flex-1">Tạo gợi ý outfit</Button>
+          <Button type="button" variant="outline" asChild>
+            <Link href="/ai/style-profile">Quay lại</Link>
+          </Button>
+          <Button type="submit" className="flex-1" variant="ai">Tạo gợi ý outfit</Button>
         </div>
       </form>
-    </div>
+    </PageShell>
   );
 }

@@ -4,6 +4,8 @@ import { useEffect } from "react";
 import { useSearchParams } from "next/navigation";
 import { Loader2 } from "lucide-react";
 import { PageSuspense } from "@/components/common/PageSuspense";
+import { PageShell } from "@/components/layout/PageShell";
+import { PageHeader } from "@/components/layout/PageHeader";
 
 export default function RedirectLoadingPage() {
   return (
@@ -27,10 +29,14 @@ function RedirectLoadingContent() {
   }, [url]);
 
   return (
-    <div className="mx-auto flex max-w-md flex-col items-center px-4 py-24 text-center">
-      <Loader2 className="h-12 w-12 animate-spin text-stone-400" />
-      <h1 className="mt-6 text-xl font-semibold text-stone-900">Đang chuyển hướng...</h1>
-      <p className="mt-2 text-stone-500">Bạn sẽ được chuyển đến trang bán hàng trong giây lát</p>
-    </div>
+    <PageShell width="narrow" className="flex flex-col items-center py-24 text-center">
+      <Loader2 className="h-12 w-12 animate-spin text-muted-foreground/70" />
+      <PageHeader
+        title="Đang chuyển hướng..."
+        subtitle="Bạn sẽ được chuyển đến trang bán hàng trong giây lát"
+        sticky={false}
+        className="mt-6 text-center [&_h1]:text-xl [&_h1]:font-semibold"
+      />
+    </PageShell>
   );
 }

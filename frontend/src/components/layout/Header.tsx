@@ -46,7 +46,7 @@ export function Header() {
     <header className="glass-nav sticky top-0 z-40">
       <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6">
         <Link href="/" className="group flex items-center gap-2.5 font-display font-bold text-foreground">
-          <span className="flex h-9 w-9 items-center justify-center rounded-xl gradient-ai text-white shadow-md transition-transform duration-300 group-hover:scale-105">
+          <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-amber-600 to-orange-700 text-white shadow-md transition-transform duration-300 group-hover:scale-105">
             <Sparkles className="h-4 w-4" />
           </span>
           <span className="tracking-tight">FitMe AI</span>
@@ -62,7 +62,7 @@ export function Header() {
                 className={cn(
                   "rounded-full px-4 py-2 text-sm font-medium transition-all duration-300",
                   active
-                    ? "bg-primary/10 text-primary shadow-sm ring-1 ring-primary/20"
+                    ? "bg-amber-100/50 text-amber-900 shadow-sm ring-1 ring-amber-300/40"
                     : "text-muted-foreground hover:bg-muted hover:text-foreground"
                 )}
               >
@@ -83,7 +83,7 @@ export function Header() {
               <Button variant="ghost" size="sm" asChild>
                 <Link href="/auth/login">Đăng nhập</Link>
               </Button>
-              <Button variant="ai" size="sm" asChild>
+              <Button size="sm" className="bg-amber-600 text-white hover:bg-amber-700" asChild>
                 <Link href="/ai/start">Tư vấn AI</Link>
               </Button>
             </>

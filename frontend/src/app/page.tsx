@@ -13,25 +13,25 @@ const features = [
     icon: Sparkles,
     title: "Tư vấn size & phối đồ",
     desc: "AI gợi ý outfit phù hợp dáng người, gu và hoàn cảnh của bạn.",
-    accent: "from-violet-500/15 to-fuchsia-500/10",
+    accent: "from-amber-500/15 to-orange-500/10",
   },
   {
     icon: Shirt,
     title: "Thử mặc bằng AI",
     desc: "Xem minh họa 2D trước khi quyết định mua.",
-    accent: "from-pink-500/15 to-rose-500/10",
+    accent: "from-yellow-500/15 to-amber-500/10",
   },
   {
     icon: Palette,
     title: "Gợi ý màu & form",
     desc: "Tìm size, form và màu sắc phù hợp nhất.",
-    accent: "from-purple-500/15 to-violet-500/10",
+    accent: "from-orange-500/15 to-red-500/10",
   },
   {
     icon: Camera,
     title: "Preview outfit 2D",
     desc: "Upload ảnh để xem outfit minh họa trên hình của bạn.",
-    accent: "from-fuchsia-500/15 to-pink-500/10",
+    accent: "from-rose-500/15 to-orange-500/10",
   },
 ];
 
@@ -47,9 +47,9 @@ const MARQUEE_ITEMS = [
 ];
 
 const LOOKBOOK = [
-  { label: "Office Chic", gradient: "from-slate-700 via-violet-900 to-fuchsia-800", rotate: "-rotate-3", z: "z-10", size: "h-72 w-52" },
-  { label: "Weekend Casual", gradient: "from-rose-400 via-pink-500 to-violet-600", rotate: "rotate-2", z: "z-20 -mt-16 ml-8", size: "h-80 w-56" },
-  { label: "Evening Edit", gradient: "from-indigo-900 via-purple-800 to-rose-700", rotate: "rotate-6", z: "z-30 -mt-20 ml-4", size: "h-64 w-48" },
+  { label: "Office Chic", gradient: "from-stone-800 via-amber-900 to-orange-800", rotate: "-rotate-3", z: "z-10", size: "h-72 w-52" },
+  { label: "Weekend Casual", gradient: "from-amber-600 via-yellow-500 to-orange-600", rotate: "rotate-2", z: "z-20 -mt-16 ml-8", size: "h-80 w-56" },
+  { label: "Evening Edit", gradient: "from-stone-900 via-amber-800 to-red-700", rotate: "rotate-6", z: "z-30 -mt-20 ml-4", size: "h-64 w-48" },
 ];
 
 export default function HomePage() {
@@ -65,7 +65,7 @@ export default function HomePage() {
     <div className="overflow-hidden">
       {/* Hero — editorial split */}
       <section className="editorial-hero relative min-h-[88vh] lg:min-h-[92vh]">
-        <div className="absolute inset-0 bg-gradient-to-br from-violet-100/40 via-transparent to-pink-100/30" />
+        <div className="absolute inset-0 bg-gradient-to-br from-amber-50/40 via-transparent to-orange-50/30" />
         <div className="relative mx-auto grid max-w-7xl items-center gap-12 px-4 py-16 sm:px-6 lg:grid-cols-2 lg:py-24">
           <div className="relative z-10">
             <Badge variant="ai" className="animate-fade-up mb-5 shadow-md">
@@ -133,7 +133,7 @@ export default function HomePage() {
             {[...MARQUEE_ITEMS, ...MARQUEE_ITEMS].map((item, i) => (
               <span key={`${item}-${i}`} className="flex shrink-0 items-center gap-12 text-sm font-medium uppercase tracking-[0.25em]">
                 {item}
-                <span className="h-1 w-1 rounded-full bg-fuchsia-400" aria-hidden="true" />
+                <span className="h-1 w-1 rounded-full bg-amber-400" aria-hidden="true" />
               </span>
             ))}
           </div>
@@ -151,11 +151,11 @@ export default function HomePage() {
           {features.map((f, i) => (
             <Card
               key={f.title}
-              className={`group glass-panel border-white/60 transition-all duration-500 hover:-translate-y-1 hover:shadow-xl hover:shadow-violet-500/10 ${i % 2 === 1 ? "lg:mt-8" : ""}`}
+              className={`group glass-panel border-white/60 transition-all duration-500 hover:-translate-y-1 hover:shadow-xl hover:shadow-amber-500/10 ${i % 2 === 1 ? "lg:mt-8" : ""}`}
             >
               <CardContent className="p-7">
                 <div className={`mb-5 inline-flex rounded-2xl bg-gradient-to-br p-3.5 ${f.accent} ring-1 ring-white/50 transition-transform duration-500 group-hover:scale-110`}>
-                  <f.icon className="h-6 w-6 text-primary" />
+                  <f.icon className="h-6 w-6 text-amber-700" />
                 </div>
                 <h3 className="font-display text-lg font-semibold text-foreground">{f.title}</h3>
                 <p className="mt-2.5 text-sm leading-relaxed text-muted-foreground">{f.desc}</p>
@@ -180,7 +180,7 @@ export default function HomePage() {
             size="lg"
             onClick={handleStartConsultation}
           >
-            <Sparkles className="h-4 w-4 text-violet-600" />
+            <Sparkles className="h-4 w-4 text-amber-600" />
             Bắt đầu tư vấn outfit
           </Button>
         </div>

@@ -1,22 +1,23 @@
 @import "tailwindcss";
 
 :root {
-  --background: #faf8f5;
-  --foreground: #14121c;
+  --background: #f9f7f4;
+  --foreground: #1a1814;
   --card: #ffffff;
-  --muted: #f3f0eb;
-  --muted-foreground: #6b6578;
-  --border: rgba(20, 18, 28, 0.08);
-  --primary: #7c3aed;
+  --muted: #ede8e0;
+  --muted-foreground: #6b6560;
+  --border: rgba(26, 24, 20, 0.08);
+  --primary: #1a1814;
   --primary-foreground: #ffffff;
-  --accent: #fce7f3;
-  --accent-foreground: #9d174d;
-  --ring: #c4b5fd;
+  --accent: #c79a7a;
+  --accent-foreground: #1a1814;
+  --ring: #d4a574;
   --radius: 1rem;
-  --fashion-ink: #0f0e14;
-  --fashion-rose: #f472b6;
-  --fashion-violet: #8b5cf6;
+  --fashion-ink: #1a1814;
+  --fashion-rose: #d4937c;
+  --fashion-gold: #c79a7a;
   --fashion-champagne: #f5ebe0;
+  --fashion-light: #f9f7f4;
 }
 
 @theme inline {
@@ -51,7 +52,7 @@ body {
 /* ── Gradients & surfaces ── */
 
 .gradient-ai {
-  background: linear-gradient(135deg, #7c3aed 0%, #db2777 50%, #f472b6 100%);
+  background: linear-gradient(135deg, #1a1814 0%, #c79a7a 50%, #d4937c 100%);
   background-size: 200% 200%;
   animation: gradient-shift 8s ease infinite;
 }
@@ -59,10 +60,10 @@ body {
 .gradient-fashion {
   background: linear-gradient(
     145deg,
-    #1a1625 0%,
-    #2d1f3d 35%,
-    #4c1d4f 70%,
-    #831843 100%
+    #1a1814 0%,
+    #3d322a 35%,
+    #5c4a3f 70%,
+    #8b6f5a 100%
   );
 }
 
@@ -70,25 +71,25 @@ body {
   background: linear-gradient(
     120deg,
     rgba(255, 255, 255, 0.9) 0%,
-    rgba(252, 231, 243, 0.6) 40%,
-    rgba(237, 233, 254, 0.5) 100%
+    rgba(245, 235, 224, 0.8) 40%,
+    rgba(220, 180, 150, 0.4) 100%
   );
 }
 
 .glass-panel {
-  background: rgba(255, 255, 255, 0.72);
+  background: rgba(255, 255, 255, 0.75);
   backdrop-filter: blur(16px) saturate(1.4);
   -webkit-backdrop-filter: blur(16px) saturate(1.4);
-  border: 1px solid rgba(255, 255, 255, 0.65);
+  border: 1px solid rgba(199, 154, 122, 0.2);
   box-shadow:
-    0 1px 2px rgba(15, 14, 20, 0.04),
-    0 8px 32px rgba(124, 58, 237, 0.06);
+    0 1px 2px rgba(26, 24, 20, 0.04),
+    0 8px 32px rgba(199, 154, 122, 0.08);
 }
 
 .glass-nav {
   background-color: var(--background);
-  border-bottom: 1px solid rgba(20, 18, 28, 0.1);
-  box-shadow: 0 2px 12px rgba(15, 14, 20, 0.06);
+  border-bottom: 1px solid rgba(26, 24, 20, 0.1);
+  box-shadow: 0 2px 12px rgba(26, 24, 20, 0.06);
 }
 
 .page-sticky-toolbar {
@@ -98,9 +99,9 @@ body {
   margin-bottom: 1rem;
   overflow: hidden;
   border-radius: 1rem;
-  border: 1px solid rgba(20, 18, 28, 0.1);
+  border: 1px solid rgba(26, 24, 20, 0.1);
   background-color: #ffffff;
-  box-shadow: 0 1px 3px rgba(15, 14, 20, 0.06);
+  box-shadow: 0 1px 3px rgba(26, 24, 20, 0.06);
 }
 
 .page-sticky-toolbar-section {
@@ -114,7 +115,7 @@ body {
 }
 
 .page-sticky-toolbar-section + .page-sticky-toolbar-section {
-  border-top: 1px solid rgba(20, 18, 28, 0.08);
+  border-top: 1px solid rgba(26, 24, 20, 0.08);
 }
 
 .page-sticky-toolbar-filters {
@@ -144,10 +145,10 @@ body {
   position: absolute;
   inset: 0;
   background:
-    radial-gradient(ellipse 80% 50% at 20% -10%, rgba(124, 58, 237, 0.12), transparent 55%),
-    radial-gradient(ellipse 60% 45% at 90% 10%, rgba(244, 114, 182, 0.1), transparent 50%),
-    radial-gradient(ellipse 50% 40% at 50% 100%, rgba(245, 235, 224, 0.9), transparent 60%),
-    linear-gradient(180deg, #faf8f5 0%, #f5f0ea 100%);
+    radial-gradient(ellipse 80% 50% at 20% -10%, rgba(199, 154, 122, 0.15), transparent 55%),
+    radial-gradient(ellipse 60% 45% at 90% 10%, rgba(212, 147, 124, 0.12), transparent 50%),
+    radial-gradient(ellipse 50% 40% at 50% 100%, rgba(245, 235, 224, 0.95), transparent 60%),
+    linear-gradient(180deg, #f9f7f4 0%, #f5f0ea 100%);
 }
 
 .fashion-orb {
@@ -163,7 +164,7 @@ body {
   right: 5%;
   width: 420px;
   height: 420px;
-  background: radial-gradient(circle, rgba(167, 139, 250, 0.5), transparent 70%);
+  background: radial-gradient(circle, rgba(199, 154, 122, 0.4), transparent 70%);
 }
 
 .fashion-orb-2 {
@@ -171,7 +172,7 @@ body {
   left: -5%;
   width: 360px;
   height: 360px;
-  background: radial-gradient(circle, rgba(251, 113, 133, 0.35), transparent 70%);
+  background: radial-gradient(circle, rgba(212, 147, 124, 0.3), transparent 70%);
   animation-delay: -6s;
 }
 
@@ -180,7 +181,7 @@ body {
   left: 45%;
   width: 280px;
   height: 280px;
-  background: radial-gradient(circle, rgba(253, 224, 71, 0.15), transparent 70%);
+  background: radial-gradient(circle, rgba(230, 190, 160, 0.2), transparent 70%);
   animation-delay: -12s;
 }
 
@@ -276,7 +277,7 @@ body {
   position: absolute;
   inset: 0;
   background:
-    linear-gradient(105deg, rgba(250, 248, 245, 0.97) 0%, rgba(250, 248, 245, 0.75) 45%, transparent 70%);
+    linear-gradient(105deg, rgba(249, 247, 244, 0.98) 0%, rgba(249, 247, 244, 0.8) 45%, transparent 70%);
   pointer-events: none;
   z-index: 1;
 }
@@ -286,16 +287,16 @@ body {
   overflow: hidden;
   border-radius: 1.25rem;
   box-shadow:
-    0 4px 6px rgba(15, 14, 20, 0.06),
-    0 20px 48px rgba(124, 58, 237, 0.12);
+    0 4px 6px rgba(26, 24, 20, 0.08),
+    0 20px 48px rgba(199, 154, 122, 0.12);
   transition: transform 0.5s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.5s ease;
 }
 
 .lookbook-card:hover {
   transform: translateY(-4px) scale(1.01);
   box-shadow:
-    0 8px 12px rgba(15, 14, 20, 0.08),
-    0 28px 56px rgba(124, 58, 237, 0.18);
+    0 8px 12px rgba(26, 24, 20, 0.1),
+    0 28px 56px rgba(199, 154, 122, 0.16);
 }
 
 .product-card-luxe {
@@ -307,8 +308,8 @@ body {
 .product-card-luxe:hover {
   transform: translateY(-6px);
   box-shadow:
-    0 12px 40px rgba(15, 14, 20, 0.1),
-    0 4px 12px rgba(124, 58, 237, 0.08);
+    0 12px 40px rgba(26, 24, 20, 0.12),
+    0 4px 12px rgba(199, 154, 122, 0.1);
 }
 
 @media (prefers-reduced-motion: reduce) {

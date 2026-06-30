@@ -13,6 +13,7 @@ import com.fitme.product.service.ProductEligibilityService;
 import com.fitme.recommendation.dto.RecommendationResponse;
 import com.fitme.recommendation.entity.Recommendation;
 import com.fitme.recommendation.entity.RecommendationItem;
+import com.fitme.common.util.FitPreferenceLabels;
 import com.fitme.userprofile.entity.BodyProfile;
 import com.fitme.userprofile.entity.StyleProfile;
 import com.fitme.wardrobe.entity.WardrobeItem;
@@ -134,9 +135,9 @@ public class OutfitCompositionService {
 
     public String recommendForm(BodyProfile body, StyleProfile style, String occasion) {
         if (body.getFitPreference() != null) {
-            return body.getFitPreference().name().charAt(0) + body.getFitPreference().name().substring(1).toLowerCase();
+            return FitPreferenceLabels.vietnamese(body.getFitPreference());
         }
-        return "Regular";
+        return FitPreferenceLabels.vietnamese(com.fitme.common.enums.FitPreference.REGULAR);
     }
 
     public String recommendColor(StyleProfile style, List<RecommendationResponse.OutfitItemDto> items) {

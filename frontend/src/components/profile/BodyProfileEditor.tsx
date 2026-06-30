@@ -10,7 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { bodyProfileSchema, type BodyProfileForm } from "@/utils/validators";
-import { FIT_PREFERENCES, SKIN_TONES } from "@/utils/constants";
+import { FIT_PREFERENCES, GENDERS, SKIN_TONES } from "@/utils/constants";
 import {
   optionalNumberRegisterOptions,
   profileSnapshotKey,
@@ -30,7 +30,8 @@ export function bodyProfileToForm(profile: BodyProfile): BodyProfileForm {
   return {
     heightCm: profile.heightCm,
     weightKg: profile.weightKg,
-    fitPreference: profile.fitPreference,
+    gender: profile.gender,
+    fitPreference: profile.fitPreference ?? "REGULAR",
     skinTone: profile.skinTone,
     goals: profile.goals ?? [],
     shoulderWidthCm: profile.measurements?.shoulderWidthCm,
@@ -62,6 +63,7 @@ export function formToBodyProfile(data: BodyProfileForm): BodyProfile {
   return {
     heightCm: data.heightCm,
     weightKg: data.weightKg,
+    gender: data.gender,
     ...(data.fitPreference !== undefined ? { fitPreference: data.fitPreference } : {}),
     ...(data.skinTone !== undefined ? { skinTone: data.skinTone } : {}),
     ...(data.goals !== undefined ? { goals: data.goals } : {}),
@@ -87,7 +89,7 @@ export function BodyProfileEditor({
   saving,
 }: BodyProfileEditorProps) {
   const formValues = useMemo((): BodyProfileForm => {
-    if (!initial) return { heightCm: 165, weightKg: 55, goals: [] };
+    if (!initial) return { heightCm: 165, weightKg: 55, gender: "FEMALE" as const, fitPreference: "REGULAR" as const, goals: [] };
     return bodyProfileToForm(initial);
   }, [initial ? profileSnapshotKey(bodyProfileToForm(initial)) : "empty"]);
 
@@ -106,6 +108,7 @@ export function BodyProfileEditor({
     }
   }, [initial]);
   const goals = watch("goals") || [];
+  const gender = watch("gender");
   const fitPreference = watch("fitPreference");
   const skinTone = watch("skinTone");
 
@@ -129,29 +132,44 @@ export function BodyProfileEditor({
             <Input id="weightKg" type="number" step="0.1" {...register("weightKg", requiredNumberRegisterOptions)} className="mt-1" />
             {errors.weightKg && <p className="mt-1 text-xs text-red-600">{errors.weightKg.message}</p>}
           </div>
+          <div className="sm:col-span-2">
+            <Label>Giới tính</Label>
+            <Select
+              value={gender ?? ""}
+              onValueChange={(v) => setValue("gender", v as BodyProfileForm["gender"], { shouldValidate: true })}
+            >
+              <SelectTrigger className="mt-1"><SelectValue placeholder="Chọn giới tính" /></SelectTrigger>
+              <SelectContent>
+                {GENDERS.map((g) => (
+                  <SelectItem key={g.value} value={g.value}>{g.label}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            {errors.gender && <p className="mt-1 text-xs text-red-600">{errors.gender.message}</p>}
+          </div>
+          <div className="sm:col-span-2">
+            <Label>Gu mặc (form)</Label>
+            <Select
+              value={fitPreference ?? ""}
+              onValueChange={(v) =>
+                setValue("fitPreference", v as BodyProfileForm["fitPreference"], { shouldValidate: true })
+              }
+            >
+              <SelectTrigger className="mt-1"><SelectValue placeholder="Chọn gu mặc" /></SelectTrigger>
+              <SelectContent>
+                {FIT_PREFERENCES.map((f) => (
+                  <SelectItem key={f.value} value={f.value}>{f.label}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            {errors.fitPreference && <p className="mt-1 text-xs text-red-600">{errors.fitPreference.message}</p>}
+          </div>
         </CardContent>
       </Card>
 
       <Card>
         <CardHeader><CardTitle className="text-base">Thông tin bổ sung (tùy chọn)</CardTitle></CardHeader>
         <CardContent className="grid gap-4 sm:grid-cols-2">
-          <div>
-            <Label>Gu mặc</Label>
-            <Select
-              value={fitPreference ?? NONE}
-              onValueChange={(v) =>
-                setValue("fitPreference", v === NONE ? undefined : (v as BodyProfileForm["fitPreference"]))
-              }
-            >
-              <SelectTrigger className="mt-1"><SelectValue placeholder="Chưa chọn" /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value={NONE}>Chưa chọn</SelectItem>
-                {FIT_PREFERENCES.map((f) => (
-                  <SelectItem key={f.value} value={f.value}>{f.label}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
           <div>
             <Label>Tông da</Label>
             <Select

@@ -71,6 +71,9 @@ export const brandApi = {
   deleteProduct: async (id: string): Promise<void> => {
     await apiClient.delete(`/brand/products/${id}`);
   },
+  hideProduct: async (id: string): Promise<void> => {
+    await apiClient.post(`/brand/products/${id}/hide`);
+  },
   submitReview: async (id: string): Promise<void> => {
     await apiClient.post(`/brand/products/${id}/submit-review`);
   },

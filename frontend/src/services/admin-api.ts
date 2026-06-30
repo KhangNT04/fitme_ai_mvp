@@ -35,6 +35,14 @@ export const adminApi = {
     const res = await apiClient.get("/admin/products/pending");
     return mapProducts(unwrap(res) as BackendProduct[]);
   },
+  getFlaggedProducts: async (): Promise<Product[]> => {
+    const res = await apiClient.get("/admin/products/flagged");
+    return mapProducts(unwrap(res) as BackendProduct[]);
+  },
+  getProduct: async (id: string): Promise<Product> => {
+    const res = await apiClient.get(`/admin/products/${id}`);
+    return mapProduct(unwrap(res) as BackendProduct);
+  },
   approveProduct: async (id: string): Promise<void> => {
     await apiClient.post(`/admin/products/${id}/approve`);
   },

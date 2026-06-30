@@ -53,6 +53,7 @@ class RecommendationSizeChartTest extends AbstractIntegrationTest {
                                 {
                                   "heightCm": 170,
                                   "weightKg": 65,
+                                  "gender": "FEMALE",
                                   "fitPreference": "REGULAR",
                                   "chestCm": 97,
                                   "waistCm": 77,

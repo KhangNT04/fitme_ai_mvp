@@ -20,8 +20,10 @@ export async function fillBodyProfile(page: Page) {
 
   const comboboxes = page.locator("form [role=combobox]");
   await comboboxes.nth(0).click();
-  await page.getByRole("option", { name: /Vừa vặn \(Regular\)/ }).click();
+  await page.getByRole("option", { name: "Nữ", exact: true }).click();
   await comboboxes.nth(1).click();
+  await page.getByRole("option", { name: /Vừa vặn \(Regular\)/ }).click();
+  await comboboxes.nth(2).click();
   await page.getByRole("option", { name: "Trung bình" }).click();
 
   await page.getByRole("button", { name: "Tiếp tục" }).click();

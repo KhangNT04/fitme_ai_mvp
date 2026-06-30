@@ -21,17 +21,19 @@ interface StickyToolbarProps {
   pinned?: boolean;
   /** Shrunken sticky state after scrolling past page title */
   compact?: boolean;
+  /** Override sticky offset below the main header (default top-16). */
+  pinnedTopClass?: string;
 }
 
 export const StickyToolbar = forwardRef<HTMLDivElement, StickyToolbarProps>(function StickyToolbar(
-  { children, className, pinned = true, compact },
+  { children, className, pinned = true, compact, pinnedTopClass = "top-16" },
   ref,
 ) {
   return (
     <div
       ref={ref}
       className={cn(
-        pinned ? stickyToolbarClasses : scrollToolbarClasses,
+        pinned ? cn(scrollToolbarClasses, "sticky z-30 w-full", pinnedTopClass) : scrollToolbarClasses,
         compact && pinned && "shadow-md",
         "transition-shadow duration-200",
         className,

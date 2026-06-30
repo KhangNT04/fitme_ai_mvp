@@ -3,16 +3,18 @@ import {
   pageContainer,
   pageContainerMedium,
   pageContainerNarrow,
+  pageContainerPortal,
   pageContainerWide,
 } from "@/lib/design-tokens";
 
-type PageShellWidth = "narrow" | "medium" | "wide" | "full";
+type PageShellWidth = "narrow" | "medium" | "wide" | "full" | "portal";
 
 const widthClass: Record<PageShellWidth, string> = {
   narrow: pageContainerNarrow,
   medium: pageContainerMedium,
   wide: pageContainerWide,
   full: pageContainer,
+  portal: pageContainerPortal,
 };
 
 interface PageShellProps {

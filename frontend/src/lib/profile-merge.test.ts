@@ -5,6 +5,7 @@ describe("mergeBodyProfiles", () => {
   const saved = {
     heightCm: 170,
     weightKg: 60,
+    gender: "FEMALE" as const,
     fitPreference: "REGULAR" as const,
     skinTone: "MEDIUM" as const,
     goals: ["Thoải mái hơn"],
@@ -12,10 +13,11 @@ describe("mergeBodyProfiles", () => {
   };
 
   it("keeps saved optional fields when update omits them", () => {
-    const update = { heightCm: 172, weightKg: 61 };
+    const update = { heightCm: 172, weightKg: 61, gender: "FEMALE" as const };
     expect(mergeBodyProfiles(saved, update)).toEqual({
       heightCm: 172,
       weightKg: 61,
+      gender: "FEMALE",
       fitPreference: "REGULAR",
       skinTone: "MEDIUM",
       goals: ["Thoải mái hơn"],
@@ -27,6 +29,7 @@ describe("mergeBodyProfiles", () => {
     const update = {
       heightCm: 172,
       weightKg: 61,
+      gender: "FEMALE" as const,
       fitPreference: "SLIM" as const,
       measurements: { hipCm: 95 },
     };
@@ -40,11 +43,13 @@ describe("mergeBodyProfiles", () => {
     const saved = {
       heightCm: 170,
       weightKg: 60,
+      gender: "FEMALE" as const,
       measurements: { chestCm: 88 },
     };
     const update = {
       heightCm: 170,
       weightKg: 60,
+      gender: "FEMALE" as const,
       measurements: { chestCm: 90 },
     };
     expect(mergeBodyProfiles(saved, update)?.measurements?.chestCm).toBe(90);

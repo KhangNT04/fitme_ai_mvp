@@ -28,7 +28,7 @@ class SessionServiceTest extends AbstractIntegrationTest {
                         .header(SESSION_HEADER, sessionToken)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
-                                {"heightCm": 172, "weightKg": 68, "fitPreference": "REGULAR"}
+                                {"heightCm": 172, "weightKg": 68, "gender": "FEMALE", "fitPreference": "REGULAR"}
                                 """))
                 .andExpect(status().isOk());
 

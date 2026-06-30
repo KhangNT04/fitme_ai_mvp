@@ -1,14 +1,21 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
-import { Sparkles, Search, Bookmark } from "lucide-react";
+import { usePathname, useRouter } from "next/navigation";
+import { Sparkles, Search, Bookmark, Home, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { NavScrollLink } from "@/components/layout/NavScrollLink";
+import { PortalMenuButton } from "@/components/layout/PortalSidebar";
 import { openDiscoverSearch } from "@/lib/discover-search";
 import { normalizeNavPath } from "@/lib/scroll-to-top";
+import {
+  getPortalHomeHref,
+  getPortalLoginHref,
+  isPortalAppRoute,
+} from "@/lib/portal-nav";
 import { useAuthStore } from "@/stores/auth-store";
 import { cn } from "@/lib/utils";
+import { portalShellMaxWidthClass } from "@/lib/design-tokens";
 import { isCompactHeader } from "@/lib/mobile-chrome";
 
 const navLinks = [
@@ -20,6 +27,9 @@ const navLinks = [
 
 const navIconButtonClass =
   "inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-muted hover:text-foreground";
+
+const navPillClass =
+  "shrink-0 rounded-full px-3 py-2 text-sm font-medium transition-all duration-300 sm:px-4";
 
 function NavQuickSaved({ className }: { className?: string }) {
   const pathname = usePathname() ?? "/";
@@ -63,16 +73,66 @@ function NavQuickSearch({ className }: { className?: string }) {
   );
 }
 
+function PortalHeader() {
+  const pathname = usePathname() ?? "/";
+  const router = useRouter();
+  const logout = useAuthStore((s) => s.logout);
+  const portalHome = getPortalHomeHref(pathname);
+  const loginHref = getPortalLoginHref(pathname);
+  const isAdmin = pathname.startsWith("/admin");
+
+  const handleLogout = async () => {
+    await logout();
+    router.push(loginHref);
+  };
+
+  return (
+    <header className="glass-nav sticky top-0 z-40 bg-white">
+      <div className={cn("mx-auto flex h-16 w-full items-center gap-2 px-4 sm:gap-3 sm:px-6", portalShellMaxWidthClass)}>
+        <PortalMenuButton />
+        <NavScrollLink
+          href={portalHome}
+          className="group flex min-w-0 flex-1 items-center gap-2 font-display font-bold text-foreground sm:flex-none sm:gap-2.5"
+        >
+          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl gradient-ai text-white shadow-md transition-transform duration-300 group-hover:scale-105">
+            <Sparkles className="h-4 w-4" />
+          </span>
+          <span className="truncate tracking-tight sm:inline">
+            FitMe AI
+            <span className="hidden font-normal text-muted-foreground sm:inline">
+              {" "}
+              — {isAdmin ? "Quản trị" : "Thương hiệu"}
+            </span>
+          </span>
+        </NavScrollLink>
+
+        <div className="ml-auto flex shrink-0 items-center gap-1 sm:gap-2">
+          <Button variant="ghost" size="sm" className="hidden sm:inline-flex" asChild>
+            <Link href="/">
+              <Home className="mr-1.5 h-4 w-4" />
+              Trang chủ
+            </Link>
+          </Button>
+          <Button variant="outline" size="sm" onClick={handleLogout}>
+            <LogOut className="mr-1.5 h-4 w-4 sm:mr-0" />
+            <span className="hidden sm:inline">Đăng xuất</span>
+          </Button>
+        </div>
+      </div>
+    </header>
+  );
+}
+
 export function Header() {
-  const pathname = usePathname();
+  const pathname = usePathname() ?? "/";
   const user = useAuthStore((s) => s.user);
   const accessToken = useAuthStore((s) => s.accessToken);
   const isAuthed = !!accessToken;
-
-  const isPortal = pathname.startsWith("/brand") || pathname.startsWith("/admin");
   const compactMobile = isCompactHeader(pathname);
 
-  if (isPortal) return null;
+  if (isPortalAppRoute(pathname)) {
+    return <PortalHeader />;
+  }
 
   return (
     <header className="glass-nav sticky top-0 z-40 bg-white">
@@ -86,16 +146,16 @@ export function Header() {
 
         <nav className="hidden items-center gap-1 md:flex">
           {navLinks.map((link) => {
-            const active = pathname === link.href || pathname.startsWith(link.href + "/");
+            const active = pathname === link.href || pathname.startsWith(`${link.href}/`);
             return (
               <NavScrollLink
                 key={link.href}
                 href={link.href}
                 className={cn(
-                  "rounded-full px-4 py-2 text-sm font-medium transition-all duration-300",
+                  navPillClass,
                   active
                     ? "bg-primary/10 text-primary shadow-sm ring-1 ring-primary/20"
-                    : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                    : "text-muted-foreground hover:bg-muted hover:text-foreground",
                 )}
               >
                 {link.label}

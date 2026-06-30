@@ -34,8 +34,8 @@ function LoginForm() {
     setError("");
     try {
       const res = await authApi.login(data);
-      setAuth(res.user, res.accessToken, res.refreshToken);
-      goAfterAuth();
+      await setAuth(res.user, res.accessToken, res.refreshToken);
+      await goAfterAuth();
     } catch (e: unknown) {
       setError(getUserErrorMessage(e, { fallback: "Đăng nhập thất bại", context: "auth" }));
     }

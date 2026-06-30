@@ -27,7 +27,7 @@ export const ADMIN_PAGES: { path: string; heading: string | RegExp }[] = [
   { path: "/admin/dashboard", heading: "Tổng quan hệ thống" },
   { path: "/admin/brands", heading: "Quản lý thương hiệu" },
   { path: "/admin/products/moderation", heading: "Duyệt sản phẩm" },
-  { path: "/admin/flagged-links", heading: "Link bị báo lỗi" },
+  { path: "/admin/flagged-links", heading: "Link bị gắn cờ" },
   { path: "/admin/rules/styles", heading: "Rule phong cách" },
   { path: "/admin/rules/occasions", heading: "Rule hoàn cảnh" },
   { path: "/admin/analytics", heading: "Phân tích toàn hệ thống" },

@@ -30,8 +30,9 @@ export default function AdminLoginPage() {
         setError("Tài khoản này không có quyền Admin.");
         return;
       }
-      setAuth(res.user, res.accessToken, res.refreshToken);
+      await setAuth(res.user, res.accessToken, res.refreshToken);
       router.push("/admin/dashboard");
+      router.refresh();
     } catch (e: unknown) {
       setError(getUserErrorMessage(e, { fallback: "Đăng nhập thất bại", context: "admin-auth" }));
     }

@@ -45,6 +45,7 @@ const mockDraft = {
   bodyProfile: {
     heightCm: 165,
     weightKg: 55,
+    gender: "FEMALE" as const,
     fitPreference: "REGULAR" as const,
     skinTone: "MEDIUM" as const,
     goals: [] as string[],

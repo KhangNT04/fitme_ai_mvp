@@ -20,7 +20,7 @@ public class FashionCatalogSeeder {
 
     private static final Logger log = LoggerFactory.getLogger(FashionCatalogSeeder.class);
     private static final String LEGACY_DEMO_PREFIX = "Sản phẩm demo ";
-    private static final String CATALOG_META_TAG = "catalog-v4";
+    private static final String CATALOG_META_TAG = "catalog-v5";
     private static final String[] SIZES = {"S", "M", "L", "XL"};
 
     private final FashionCatalogLoader catalogLoader;
@@ -52,7 +52,13 @@ public class FashionCatalogSeeder {
         }
         return existing.stream().anyMatch(p -> p.getName().startsWith(LEGACY_DEMO_PREFIX))
                 || existing.stream().anyMatch(p -> !hasCurrentCatalogMeta(p))
+                || existing.stream().anyMatch(this::missingTargetGenderTag)
                 || usesRemoteCatalogImages(existing);
+    }
+
+    private boolean missingTargetGenderTag(Product product) {
+        return tagRepository.findByProductId(product.getId()).stream()
+                .noneMatch(t -> "TARGET_GENDER".equals(t.getTagType()));
     }
 
     private boolean hasCurrentCatalogMeta(Product product) {
@@ -205,6 +211,11 @@ public class FashionCatalogSeeder {
         }
         tagRepository.save(ProductTag.builder()
                 .productId(productId)
+                .tagType("TARGET_GENDER")
+                .tagValue(inferTargetGender(entry).name())
+                .build());
+        tagRepository.save(ProductTag.builder()
+                .productId(productId)
                 .tagType("COLOR")
                 .tagValue(colors.get(0))
                 .build());
@@ -227,6 +238,15 @@ public class FashionCatalogSeeder {
                     .weightMaxKg(BigDecimal.valueOf(85))
                     .build());
         }
+    }
+
+    private static ProductTargetGender inferTargetGender(FashionCatalogLoader.ProductEntry entry) {
+        String category = entry.category != null ? entry.category.toLowerCase() : "";
+        String name = entry.name != null ? entry.name.toLowerCase() : "";
+        if (category.contains("váy") || name.contains("váy") || name.contains("dress")) {
+            return ProductTargetGender.FEMALE;
+        }
+        return ProductTargetGender.UNISEX;
     }
 
     private static FitPreference parseFitType(String fitType) {

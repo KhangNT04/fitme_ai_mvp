@@ -24,7 +24,7 @@ import { LoadingSkeleton } from "@/components/common/LoadingSkeleton";
 import { PageShell } from "@/components/layout/PageShell";
 import { CollapsingPageHeader } from "@/components/layout/CollapsingPageHeader";
 import { consumerPageShellClass } from "@/lib/design-tokens";
-import { FIT_PREFERENCES, RISK_LEVELS, SKIN_TONES } from "@/utils/constants";
+import { FIT_PREFERENCES, GENDERS, RISK_LEVELS, SKIN_TONES } from "@/utils/constants";
 import { mergeBodyProfiles, mergeStyleProfiles } from "@/lib/profile-merge";
 import { hasMinimalBodyProfile, hasStyleProfileContent } from "@/lib/profile-prefill";
 import { cn } from "@/lib/utils";
@@ -207,6 +207,7 @@ export default function ProfilePage() {
 
   const fitLabel = FIT_PREFERENCES.find((f) => f.value === bodyProfile?.fitPreference)?.label;
   const skinLabel = SKIN_TONES.find((s) => s.value === bodyProfile?.skinTone)?.label;
+  const genderLabel = GENDERS.find((g) => g.value === bodyProfile?.gender)?.label;
   const riskLabel = RISK_LEVELS.find((r) => r.value === styleProfile?.riskLevel)?.label;
   const roleLabel = user?.role ? ROLE_LABELS[user.role] : "—";
 
@@ -264,6 +265,7 @@ export default function ProfilePage() {
                 <dl>
                   <ProfileDetail label="Chiều cao" value={`${bodyProfile.heightCm} cm`} />
                   <ProfileDetail label="Cân nặng" value={`${bodyProfile.weightKg} kg`} />
+                  <ProfileDetail label="Giới tính" value={genderLabel ?? bodyProfile.gender} />
                   {bodyProfile.fitPreference && (
                     <ProfileDetail label="Form ưa thích" value={fitLabel ?? bodyProfile.fitPreference} />
                   )}

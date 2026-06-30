@@ -17,6 +17,8 @@ export default function BrandAnalyticsTryOnPage() {
       <PortalPageHeader
         title="Phân tích thử mặc AI"
         description="Biểu đồ combo cột + đường cho sản phẩm; donut cho phân bổ màu."
+        backHref="/brand/analytics"
+        backLabel="Phân tích"
       />
       <div className="grid gap-6 lg:grid-cols-2">
         <AnalyticsChart

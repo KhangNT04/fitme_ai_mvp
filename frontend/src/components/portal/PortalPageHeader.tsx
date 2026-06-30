@@ -1,21 +1,38 @@
+"use client";
+
+import type { ReactNode } from "react";
+import { CollapsingPageHeader } from "@/components/layout/CollapsingPageHeader";
 import { cn } from "@/lib/utils";
-import { pageTitle, pageSubtitle } from "@/lib/design-tokens";
 
 interface PortalPageHeaderProps {
   title: string;
   description?: string;
-  children?: React.ReactNode;
+  children?: ReactNode;
   className?: string;
+  backHref?: string;
+  backLabel?: string;
+  showMobileBack?: boolean;
 }
 
-export function PortalPageHeader({ title, description, children, className }: PortalPageHeaderProps) {
+/** Portal page title — same CollapsingPageHeader pattern as consumer pages. */
+export function PortalPageHeader({
+  title,
+  description,
+  children,
+  className,
+  backHref,
+  backLabel,
+  showMobileBack,
+}: PortalPageHeaderProps) {
   return (
-    <div className={cn("flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between", className)}>
-      <div className="min-w-0">
-        <h1 className={pageTitle}>{title}</h1>
-        {description && <p className={pageSubtitle}>{description}</p>}
-      </div>
-      {children && <div className="flex shrink-0 flex-wrap items-center gap-2">{children}</div>}
-    </div>
+    <CollapsingPageHeader
+      title={title}
+      subtitle={description}
+      trailing={children}
+      className={cn("mb-0", className)}
+      backHref={backHref}
+      backLabel={backLabel}
+      showMobileBack={showMobileBack ?? !!backHref}
+    />
   );
 }

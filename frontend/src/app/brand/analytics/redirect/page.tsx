@@ -17,6 +17,8 @@ export default function BrandAnalyticsRedirectPage() {
       <PortalPageHeader
         title="Phân tích chuyển hướng mua"
         description="Cột xanh: số lượt click — đường cam: tỷ trọng % trên tổng."
+        backHref="/brand/analytics"
+        backLabel="Phân tích"
       />
       <AnalyticsChart
         title="Click mua theo kênh"

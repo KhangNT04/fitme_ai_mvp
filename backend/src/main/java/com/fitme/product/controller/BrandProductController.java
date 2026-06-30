@@ -49,7 +49,13 @@ public class BrandProductController {
 
     @DeleteMapping("/{id}")
     public ApiResponse<Void> delete(@AuthenticationPrincipal FitMeUserPrincipal principal, @PathVariable UUID id) {
-        productService.deleteProduct(requireBrand(principal).getId(), id);
+        productService.permanentlyDeleteProduct(requireBrand(principal).getId(), id);
+        return ApiResponse.ok(null);
+    }
+
+    @PostMapping("/{id}/hide")
+    public ApiResponse<Void> hide(@AuthenticationPrincipal FitMeUserPrincipal principal, @PathVariable UUID id) {
+        productService.hideProduct(requireBrand(principal).getId(), id);
         return ApiResponse.ok(null);
     }
 

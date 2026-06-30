@@ -1,6 +1,7 @@
 package com.fitme.userprofile.dto;
 
 import com.fitme.common.enums.FitPreference;
+import com.fitme.common.enums.Gender;
 import com.fitme.common.enums.SkinTone;
 import jakarta.validation.constraints.DecimalMax;
 import jakarta.validation.constraints.DecimalMin;
@@ -19,6 +20,8 @@ public class BodyProfileRequest {
     private Integer heightCm;
     @NotNull @DecimalMin("25") @DecimalMax("250")
     private BigDecimal weightKg;
+    @NotNull
+    private Gender gender;
     private FitPreference fitPreference;
     private SkinTone skinTone;
     private Map<String, Object> goals;

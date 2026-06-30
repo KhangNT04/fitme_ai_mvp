@@ -4,11 +4,18 @@ import { bodyProfileSchema, occasionSchema } from "./validators";
 const validBodyProfile = {
   heightCm: 170,
   weightKg: 65,
+  gender: "FEMALE" as const,
+  fitPreference: "REGULAR" as const,
 };
 
 describe("bodyProfileSchema", () => {
   it("accepts only basic measurements", () => {
-    expect(bodyProfileSchema.safeParse({ heightCm: 170, weightKg: 65 }).success).toBe(true);
+    expect(bodyProfileSchema.safeParse({
+      heightCm: 170,
+      weightKg: 65,
+      gender: "FEMALE",
+      fitPreference: "OVERSIZE",
+    }).success).toBe(true);
   });
 
   it("accepts weight within 25-250 kg", () => {
@@ -44,6 +51,18 @@ describe("bodyProfileSchema", () => {
       chestCm: 10,
     });
     expect(result.success).toBe(false);
+  });
+
+  it("rejects missing gender", () => {
+    expect(bodyProfileSchema.safeParse({
+      heightCm: 170,
+      weightKg: 65,
+      fitPreference: "REGULAR",
+    }).success).toBe(false);
+  });
+
+  it("rejects missing fit preference", () => {
+    expect(bodyProfileSchema.safeParse({ heightCm: 170, weightKg: 65, gender: "FEMALE" }).success).toBe(false);
   });
 
   it("rejects weight below 25 kg", () => {

@@ -1,6 +1,7 @@
 package com.fitme.userprofile.entity;
 
 import com.fitme.common.enums.FitPreference;
+import com.fitme.common.enums.Gender;
 import com.fitme.common.enums.SkinTone;
 import jakarta.persistence.*;
 import lombok.*;
@@ -38,6 +39,11 @@ public class BodyProfile {
 
     @Column(name = "weight_kg", nullable = false, precision = 5, scale = 2)
     private BigDecimal weightKg;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    @Builder.Default
+    private Gender gender = Gender.OTHER;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "fit_preference", nullable = false)

@@ -38,6 +38,7 @@ export function CollapsingPageHeader({
   const inlineTrailing = trailingCompact ?? trailing;
   const showMobileToolbar = !!inlineTrailing;
   const showMobileBar = showMobileToolbar || (showMobileBack && !!backHref);
+  const pinnedTopClass = "top-16";
 
   return (
     <CollapsingHeaderContext.Provider value={{ scrollCompact: compact }}>
@@ -47,6 +48,7 @@ export function CollapsingPageHeader({
         <StickyToolbar
           ref={headerRef}
           compact={compact}
+          pinnedTopClass={pinnedTopClass}
           className={cn("mb-3 sm:mb-4", className)}
         >
           <StickyToolbarSection

@@ -21,6 +21,8 @@ export default function BrandProductAnalyticsPage({ params }: { params: Promise<
       <PortalPageHeader
         title="Phân tích sản phẩm"
         description="Combo cột + đường cho số liệu; donut cho phân bổ."
+        backHref="/brand/products"
+        backLabel="Sản phẩm"
       />
       {isLoading ? (
         <LoadingSkeleton />

@@ -4,7 +4,10 @@ import com.fitme.admin.entity.OccasionRule;
 import com.fitme.admin.entity.StyleRule;
 import com.fitme.admin.repository.OccasionRuleRepository;
 import com.fitme.admin.repository.StyleRuleRepository;
+import com.fitme.common.enums.ProductTargetGender;
 import com.fitme.common.enums.StockStatus;
+import com.fitme.common.util.FitCompatibility;
+import com.fitme.common.util.GenderAffinity;
 import com.fitme.product.entity.Product;
 import com.fitme.product.entity.ProductTag;
 import com.fitme.product.repository.ProductTagRepository;
@@ -37,7 +40,12 @@ public class OutfitScoringService {
         }
         score += scoreFromStyleRules(style, tags);
         score += scoreFromOccasionRules(occasion, tags);
-        if (p.getFitType() == body.getFitPreference()) score += 15;
+        if (body != null) {
+            score += GenderAffinity.scoreBonus(body, targetGenderFromTags(tags));
+            if (p.getFitType() != null) {
+                score += FitCompatibility.scoreBonus(p.getFitType(), body.getFitPreference());
+            }
+        }
         if (p.getStockStatus() == StockStatus.IN_STOCK) score += 10;
         if (p.isSponsored()) score += 5;
         return score;
@@ -78,5 +86,22 @@ public class OutfitScoringService {
         if (min != null && p.getPrice().compareTo(min) < 0) return false;
         if (max != null && p.getPrice().compareTo(max) > 0) return false;
         return true;
+    }
+
+    private ProductTargetGender targetGenderFromTags(List<ProductTag> tags) {
+        return tags.stream()
+                .filter(t -> "TARGET_GENDER".equals(t.getTagType()))
+                .map(ProductTag::getTagValue)
+                .findFirst()
+                .map(this::parseTargetGender)
+                .orElse(ProductTargetGender.UNISEX);
+    }
+
+    private ProductTargetGender parseTargetGender(String value) {
+        try {
+            return ProductTargetGender.valueOf(value);
+        } catch (IllegalArgumentException ignored) {
+            return ProductTargetGender.UNISEX;
+        }
     }
 }

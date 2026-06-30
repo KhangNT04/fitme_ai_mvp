@@ -114,7 +114,7 @@ public class RecommendationService {
                 .recommendedForm(recommendedForm)
                 .recommendedColor(recommendedColor)
                 .confidence(confidence)
-                .explanationBody("Form " + recommendedForm.toLowerCase() + " giúp tổng thể thoải mái và phù hợp với số đo của bạn.")
+                .explanationBody("Form " + recommendedForm + " giúp tổng thể thoải mái và phù hợp với số đo của bạn.")
                 .explanationStyle("Phù hợp với gu " + style.getPrimaryStyle() + " bạn đã chọn.")
                 .explanationOccasion("Phù hợp cho " + occasion + " vì nhẹ nhàng và dễ phối.")
                 .explanationColor("Màu " + recommendedColor + " tạo cảm giác hài hòa và dễ mix-match.")

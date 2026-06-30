@@ -1,6 +1,7 @@
 package com.fitme.userprofile.dto;
 
 import com.fitme.common.enums.FitPreference;
+import com.fitme.common.enums.Gender;
 import com.fitme.common.enums.SkinTone;
 import lombok.Builder;
 import lombok.Data;
@@ -16,6 +17,7 @@ public class BodyProfileResponse {
     private UUID id;
     private Integer heightCm;
     private BigDecimal weightKg;
+    private Gender gender;
     private FitPreference fitPreference;
     private SkinTone skinTone;
     private Map<String, Object> goals;

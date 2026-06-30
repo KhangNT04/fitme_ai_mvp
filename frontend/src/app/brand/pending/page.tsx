@@ -12,6 +12,7 @@ import { Badge } from "@/components/ui/badge";
 import { LoadingSkeleton } from "@/components/common/LoadingSkeleton";
 import { PageShell } from "@/components/layout/PageShell";
 import { PageHeader } from "@/components/layout/PageHeader";
+import { brandStatusLabel } from "@/lib/status-labels";
 
 export default function BrandPendingPage() {
   const router = useRouter();
@@ -67,7 +68,7 @@ export default function BrandPendingPage() {
                 <p><strong>Email:</strong> {brand?.contactEmail}</p>
                 <p className="flex items-center gap-2">
                   <strong>Trạng thái:</strong>
-                  <Badge variant="outline">{status}</Badge>
+                  <Badge variant="outline">{brandStatusLabel(status)}</Badge>
                 </p>
               </div>
               {status === "APPROVED" && (

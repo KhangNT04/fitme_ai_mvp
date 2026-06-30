@@ -38,8 +38,8 @@ function RegisterForm() {
         password: data.password,
         fullName: data.fullName,
       });
-      setAuth(res.user, res.accessToken, res.refreshToken);
-      goAfterAuth();
+      await setAuth(res.user, res.accessToken, res.refreshToken);
+      await goAfterAuth();
     } catch (e: unknown) {
       setError(getUserErrorMessage(e, "Đăng ký thất bại"));
     }

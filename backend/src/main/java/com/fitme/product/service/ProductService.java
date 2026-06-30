@@ -110,20 +110,30 @@ public class ProductService {
             product.setStockStatus(request.getStockStatus());
         }
         productRepository.save(product);
-        imageRepository.findByProductIdOrderBySortOrderAsc(productId).forEach(imageRepository::delete);
-        variantRepository.findByProductId(productId).forEach(variantRepository::delete);
-        tagRepository.findByProductId(productId).forEach(tagRepository::delete);
-        sizeChartRepository.findByProductId(productId).forEach(sizeChartRepository::delete);
+        clearRelated(productId);
         saveRelated(productId, request);
         updateAiEligibility(product);
         return toResponse(product);
     }
 
     @Transactional
-    public void deleteProduct(UUID brandId, UUID productId) {
+    public void hideProduct(UUID brandId, UUID productId) {
         Product product = getOwnedProduct(brandId, productId);
+        if (product.getStatus() == ProductStatus.INACTIVE) {
+            throw new BusinessException("Sản phẩm đã được ẩn");
+        }
         product.setStatus(ProductStatus.INACTIVE);
         productRepository.save(product);
+    }
+
+    @Transactional
+    public void permanentlyDeleteProduct(UUID brandId, UUID productId) {
+        Product product = getOwnedProduct(brandId, productId);
+        if (product.getStatus() != ProductStatus.INACTIVE) {
+            throw new BusinessException("Chỉ có thể xóa vĩnh viễn sản phẩm đã ẩn (Tạm ẩn)");
+        }
+        clearRelated(productId);
+        productRepository.delete(product);
     }
 
     @Transactional
@@ -138,6 +148,18 @@ public class ProductService {
         return productRepository.findByStatus(ProductStatus.PENDING_REVIEW).stream()
                 .map(this::toResponse)
                 .toList();
+    }
+
+    public List<ProductResponse> listFlaggedProducts() {
+        return productRepository.findByStatus(ProductStatus.FLAGGED).stream()
+                .map(this::toResponse)
+                .toList();
+    }
+
+    public ProductResponse getAdminProduct(UUID productId) {
+        Product product = productRepository.findById(productId)
+                .orElseThrow(() -> new NotFoundException("Sản phẩm không tồn tại"));
+        return toResponse(product);
     }
 
     @Transactional
@@ -162,11 +184,22 @@ public class ProductService {
     }
 
     @Transactional
-    public ProductResponse flagProduct(UUID productId) {
+    public ProductResponse flagProduct(UUID productId, String reason) {
         Product product = productRepository.findById(productId)
                 .orElseThrow(() -> new NotFoundException("Sản phẩm không tồn tại"));
         product.setStatus(ProductStatus.FLAGGED);
-        return toResponse(productRepository.save(product));
+        productRepository.save(product);
+        tagRepository.findByProductId(productId).stream()
+                .filter(t -> "FLAG_REASON".equals(t.getTagType()))
+                .forEach(tagRepository::delete);
+        if (reason != null && !reason.isBlank()) {
+            tagRepository.save(ProductTag.builder()
+                    .productId(productId)
+                    .tagType("FLAG_REASON")
+                    .tagValue(reason.trim())
+                    .build());
+        }
+        return toResponse(product);
     }
 
     public Product getEntity(UUID id) {
@@ -181,6 +214,13 @@ public class ProductService {
             throw new BusinessException("Sản phẩm không thuộc brand của bạn");
         }
         return product;
+    }
+
+    private void clearRelated(UUID productId) {
+        imageRepository.findByProductIdOrderBySortOrderAsc(productId).forEach(imageRepository::delete);
+        variantRepository.findByProductId(productId).forEach(variantRepository::delete);
+        tagRepository.findByProductId(productId).forEach(tagRepository::delete);
+        sizeChartRepository.findByProductId(productId).forEach(sizeChartRepository::delete);
     }
 
     private void saveRelated(UUID productId, CreateProductRequest request) {

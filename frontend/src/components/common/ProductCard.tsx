@@ -8,6 +8,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { formatPrice } from "@/utils/format-price";
+import { fitPreferenceLabel } from "@/lib/fit-labels";
 import { cn } from "@/lib/utils";
 import { productDetailHref, type ConsumerNavContext } from "@/lib/nav-context";
 import type { Product } from "@/types/product";
@@ -98,6 +99,32 @@ export function ProductCard({
             >
               <Sparkles className={cn("mr-0.5", cardSize === "catalog" || cardSize === "compact" ? "h-2.5 w-2.5 sm:h-3 sm:w-3" : "h-3 w-3")} />
               Thử AI
+            </Badge>
+          )}
+          {product.targetGender === "UNISEX" && (
+            <Badge
+              variant="outline"
+              className={cn(
+                "absolute bottom-1.5 left-1.5 z-10 border-white/80 bg-white/90 text-foreground shadow-sm",
+                cardSize === "catalog" || cardSize === "compact"
+                  ? "px-1.5 py-0 text-[9px] sm:bottom-2 sm:left-2 sm:text-[10px]"
+                  : "text-[10px]"
+              )}
+            >
+              Unisex
+            </Badge>
+          )}
+          {product.fitType && product.fitType !== "REGULAR" && (
+            <Badge
+              variant="secondary"
+              className={cn(
+                "absolute right-1.5 top-1.5 z-10 bg-white/90 text-foreground shadow-sm",
+                cardSize === "catalog" || cardSize === "compact"
+                  ? "px-1.5 py-0 text-[9px] sm:right-2 sm:top-2 sm:text-[10px]"
+                  : "text-[10px]"
+              )}
+            >
+              {fitPreferenceLabel(product.fitType)}
             </Badge>
           )}
         </div>

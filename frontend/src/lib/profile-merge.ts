@@ -43,6 +43,7 @@ export function mergeBodyProfiles(
   return {
     heightCm: update.heightCm,
     weightKg: update.weightKg,
+    gender: update.gender ?? base.gender,
     fitPreference: "fitPreference" in update ? update.fitPreference : base?.fitPreference,
     skinTone: "skinTone" in update ? update.skinTone : base?.skinTone,
     goals: "goals" in update ? update.goals : base?.goals,
@@ -72,8 +73,9 @@ export function bodyProfileToPayload(data: BodyProfile): Record<string, unknown>
   const payload: Record<string, unknown> = {
     heightCm: data.heightCm,
     weightKg: data.weightKg,
+    gender: data.gender,
+    fitPreference: data.fitPreference ?? "REGULAR",
   };
-  if (data.fitPreference != null) payload.fitPreference = data.fitPreference;
   if (data.skinTone != null) payload.skinTone = data.skinTone;
   if (data.goals != null) payload.goals = { items: data.goals };
 

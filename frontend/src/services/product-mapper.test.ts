@@ -10,6 +10,7 @@ describe("product-mapper", () => {
       colors: ["Đen", "Trắng"],
       sizes: ["M", "L"],
       fitType: "REGULAR",
+      targetGender: "FEMALE",
       styleTags: ["Casual"],
       occasionTags: ["Cafe"],
       purchaseUrl: "https://shopee.vn/shirt",
@@ -21,6 +22,7 @@ describe("product-mapper", () => {
     expect(payload.images[0].imageType).toBe("MAIN");
     expect(payload.images[1].imageType).toBe("DETAIL");
     expect(payload.tags).toEqual([
+      { tagType: "TARGET_GENDER", tagValue: "FEMALE" },
       { tagType: "STYLE", tagValue: "Casual" },
       { tagType: "OCCASION", tagValue: "Cafe" },
     ]);
@@ -39,7 +41,10 @@ describe("product-mapper", () => {
       aiTryOnEligible: true,
       images: [{ imageUrl: "https://a.jpg", imageType: "MAIN", sortOrder: 0 }],
       variants: [{ colorName: "Đen", sizeLabel: "M" }],
-      tags: [{ tagType: "STYLE", tagValue: "Casual" }],
+      tags: [
+        { tagType: "STYLE", tagValue: "Casual" },
+        { tagType: "TARGET_GENDER", tagValue: "MALE" },
+      ],
       sizeCharts: [{ sizeLabel: "M", chestCm: 90, waistCm: 72, hipCm: 94 }],
     });
 
@@ -47,5 +52,6 @@ describe("product-mapper", () => {
     expect(product.colors).toEqual(["Đen"]);
     expect(product.sizes).toEqual(["M"]);
     expect(product.sizeCharts?.[0].sizeLabel).toBe("M");
+    expect(product.targetGender).toBe("MALE");
   });
 });

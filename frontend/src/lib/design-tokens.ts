@@ -1,5 +1,8 @@
 /** Presentational class constants — style only, no logic */
 export const pageContainer = "mx-auto max-w-7xl px-4 py-5 sm:px-6 sm:py-6";
+/** Brand/admin portal — 1.5× consumer full width (7xl → 120rem). */
+export const portalShellMaxWidthClass = "max-w-[120rem]";
+export const pageContainerPortal = `mx-auto flex min-h-[calc(100dvh-4rem)] w-full flex-col ${portalShellMaxWidthClass} px-4 py-3 sm:px-6 sm:py-4 lg:py-5`;
 export const pageContainerNarrow = "mx-auto max-w-xl px-4 py-8 sm:px-6";
 export const pageContainerMedium = "mx-auto max-w-2xl px-4 py-8 sm:px-6";
 export const pageContainerWide = "mx-auto max-w-4xl px-4 py-8 sm:px-6";
@@ -18,11 +21,23 @@ export const catalogProductRowItemClass =
 export const consumerPageShellClass = "py-3 sm:py-5";
 
 /** Brand / admin portal shell */
+export const portalLayoutRowClass = "flex min-h-0 flex-1 gap-6 sm:gap-8";
 export const portalContentClass = "min-w-0 flex-1 space-y-6";
-export const portalTableShellClass =
-  "hidden overflow-x-auto rounded-2xl border border-border/60 bg-card md:block";
+export const portalTableShellClass = "";
+export const portalTableWrapClass = "mt-5 sm:mt-6";
+export const portalTableScrollClass =
+  "max-h-[calc(100dvh-14rem)] overflow-auto overscroll-contain rounded-2xl border border-border/60 bg-card shadow-sm [scrollbar-width:thin] [&::-webkit-scrollbar]:h-1.5 [&::-webkit-scrollbar]:w-1.5";
+export const portalTableClass = "portal-data-table";
+/** Kept for thead grouping; sticky + opaque bg live on th via .portal-data-table CSS. */
+export const portalTableHeadClass = "";
+export const portalTableThClass =
+  "px-4 py-3 text-left text-xs font-semibold tracking-wide text-primary/80";
+export const portalTableTdClass = "px-4 py-3 align-middle";
+export const portalTableBodyClass =
+  "[&_tr:nth-child(odd)]:bg-card [&_tr:nth-child(even)]:bg-primary/[0.04] [&_tr:hover]:bg-primary/[0.07] [&_tr]:transition-colors [&_tr_td]:border-b [&_tr_td]:border-primary/[0.06] [&_tr:last-child_td]:border-b-0";
 export const portalCardListClass = "space-y-3 md:hidden";
 export const portalCardClass =
   "rounded-2xl border border-border/60 bg-card p-4 shadow-sm";
 export const portalCardRowClass = "flex items-start justify-between gap-3";
 export const portalCardActionsClass = "mt-3 flex flex-wrap gap-2";
+export const portalTableActionsClass = "flex flex-wrap items-center gap-2";

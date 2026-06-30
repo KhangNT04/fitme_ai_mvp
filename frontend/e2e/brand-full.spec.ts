@@ -23,9 +23,11 @@ test.describe("Brand portal — full coverage", () => {
     await fillBrandProductForm(page, productName);
     await page.getByRole("button", { name: "Tạo sản phẩm" }).click();
 
+    await expect(page.getByRole("button", { name: "Gửi duyệt" })).toBeVisible({ timeout: 15_000 });
+    await page.getByRole("button", { name: "Gửi duyệt" }).click();
     await page.waitForURL(/\/brand\/products$/);
     await expect(page.getByText(productName)).toBeVisible({ timeout: 15_000 });
-    await expect(page.getByText("DRAFT").first()).toBeVisible();
+    await expect(page.getByText("Chờ duyệt").first()).toBeVisible();
   });
 
   test("edit product → submit for review → PENDING_REVIEW", async ({ page }) => {
@@ -34,10 +36,7 @@ test.describe("Brand portal — full coverage", () => {
     await page.goto("/brand/products/new");
     await fillBrandProductForm(page, productName, "https://shopee.vn/e2e-submit");
     await page.getByRole("button", { name: "Tạo sản phẩm" }).click();
-    await page.waitForURL(/\/brand\/products$/);
-
-    await page.getByRole("link", { name: "Sửa" }).first().click();
-    await expect(page.getByRole("heading", { name: "Chỉnh sửa sản phẩm" })).toBeVisible();
+    await expect(page.getByRole("button", { name: "Gửi duyệt" })).toBeVisible({ timeout: 15_000 });
 
     const submitResponse = page.waitForResponse(
       (resp) =>
@@ -47,10 +46,9 @@ test.describe("Brand portal — full coverage", () => {
     );
     await page.getByRole("button", { name: "Gửi duyệt" }).click();
     await submitResponse;
-
-    await page.goto("/brand/products");
+    await page.waitForURL(/\/brand\/products$/);
     await expect(page.getByText(productName)).toBeVisible({ timeout: 15_000 });
-    await expect(page.getByText("PENDING_REVIEW").first()).toBeVisible();
+    await expect(page.getByText("Chờ duyệt").first()).toBeVisible();
   });
 
   test("product analytics page loads for existing product", async ({ page }) => {

@@ -19,6 +19,19 @@ export const SKIN_TONES = [
   { value: "UNSURE", label: "Chưa chắc" },
 ] as const;
 
+export const GENDERS = [
+  { value: "FEMALE", label: "Nữ" },
+  { value: "MALE", label: "Nam" },
+  { value: "OTHER", label: "Khác" },
+] as const;
+
+/** Product design audience — used by AI scoring only; catalog shows all items to every user. */
+export const TARGET_GENDERS = [
+  { value: "UNISEX", label: "Unisex" },
+  { value: "FEMALE", label: "Nữ" },
+  { value: "MALE", label: "Nam" },
+] as const;
+
 export const RISK_LEVELS = [
   { value: "SAFE", label: "An toàn" },
   { value: "BALANCED", label: "Cân bằng" },

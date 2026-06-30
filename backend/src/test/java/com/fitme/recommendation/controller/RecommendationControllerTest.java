@@ -27,7 +27,7 @@ class RecommendationControllerTest extends AbstractIntegrationTest {
                         .header(SESSION_HEADER, sessionToken)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
-                                {"heightCm": 165, "weightKg": 55, "fitPreference": "REGULAR"}
+                                {"heightCm": 165, "weightKg": 55, "gender": "FEMALE", "fitPreference": "REGULAR"}
                                 """))
                 .andExpect(status().isOk());
 

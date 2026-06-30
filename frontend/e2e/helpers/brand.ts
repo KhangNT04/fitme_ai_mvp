@@ -12,6 +12,7 @@ export async function fillBrandProductForm(
 ) {
   await page.getByText("Tên sản phẩm").locator("..").locator("input").fill(productName);
   await page.locator("select").first().selectOption({ label: "Áo" });
+  await page.locator("#targetGender").selectOption("UNISEX");
   await page.getByText("Giá (VND)").locator("..").locator("input").fill("250000");
   await page.getByText("Màu (phân cách bằng dấu phẩy)").locator("..").locator("input").fill("Đen, Navy");
   await page.getByText("Size (phân cách bằng dấu phẩy)").locator("..").locator("input").fill("S, M, L");

@@ -35,7 +35,7 @@ export interface BrandApplicationResponse {
   message: string;
 }
 
-import type { SizeChartRow } from "@/types/product";
+import type { SizeChartRow, TargetGender } from "@/types/product";
 
 export interface CreateProductRequest {
   name: string;
@@ -45,6 +45,7 @@ export interface CreateProductRequest {
   sizes: string[];
   material?: string;
   fitType: string;
+  targetGender: TargetGender;
   styleTags: string[];
   occasionTags: string[];
   purchaseUrl: string;

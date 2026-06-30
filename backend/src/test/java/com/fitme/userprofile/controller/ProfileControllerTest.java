@@ -19,6 +19,7 @@ class ProfileControllerTest extends AbstractIntegrationTest {
                 {
                   "heightCm": 170,
                   "weightKg": 65,
+                  "gender": "FEMALE",
                   "fitPreference": "REGULAR"
                 }
                 """;

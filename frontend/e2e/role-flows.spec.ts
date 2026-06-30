@@ -154,11 +154,10 @@ test.describe("Luồng BRAND", () => {
     await page.goto("/brand/products/new");
     await fillBrandProductForm(page, productName);
     await page.getByRole("button", { name: "Tạo sản phẩm" }).click();
-    await page.waitForURL(/\/brand\/products$/);
-    await page.getByRole("link", { name: "Sửa" }).first().click();
+    await expect(page.getByRole("button", { name: "Gửi duyệt" })).toBeVisible({ timeout: 15_000 });
     await page.getByRole("button", { name: "Gửi duyệt" }).click();
-    await page.goto("/brand/products");
-    await expect(page.getByText("PENDING_REVIEW").first()).toBeVisible();
+    await page.waitForURL(/\/brand\/products$/);
+    await expect(page.getByText("Chờ duyệt").first()).toBeVisible();
   });
 });
 

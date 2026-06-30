@@ -1,6 +1,7 @@
 package com.fitme.product.controller;
 
 import com.fitme.common.dto.ApiResponse;
+import com.fitme.product.dto.FlagProductRequest;
 import com.fitme.product.dto.ProductResponse;
 import com.fitme.product.service.ProductService;
 import lombok.RequiredArgsConstructor;
@@ -23,6 +24,16 @@ public class AdminProductController {
         return ApiResponse.ok(productService.listPendingProducts());
     }
 
+    @GetMapping("/flagged")
+    public ApiResponse<List<ProductResponse>> flagged() {
+        return ApiResponse.ok(productService.listFlaggedProducts());
+    }
+
+    @GetMapping("/{id}")
+    public ApiResponse<ProductResponse> get(@PathVariable UUID id) {
+        return ApiResponse.ok(productService.getAdminProduct(id));
+    }
+
     @PostMapping("/{id}/approve")
     public ApiResponse<ProductResponse> approve(@PathVariable UUID id) {
         return ApiResponse.ok(productService.approveProduct(id));
@@ -34,7 +45,9 @@ public class AdminProductController {
     }
 
     @PostMapping("/{id}/flag")
-    public ApiResponse<ProductResponse> flag(@PathVariable UUID id) {
-        return ApiResponse.ok(productService.flagProduct(id));
+    public ApiResponse<ProductResponse> flag(@PathVariable UUID id,
+                                             @RequestBody(required = false) FlagProductRequest request) {
+        String reason = request != null ? request.getReason() : null;
+        return ApiResponse.ok(productService.flagProduct(id, reason));
     }
 }

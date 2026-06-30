@@ -19,7 +19,8 @@ function optionalMeasurementField(min: number, max: number) {
 export const bodyProfileSchema = z.object({
   heightCm: z.number({ error: "Nhập chiều cao" }).min(100, "Chiều cao tối thiểu 100cm").max(230, "Chiều cao tối đa 230cm"),
   weightKg: z.number({ error: "Nhập cân nặng" }).min(25, "Cân nặng tối thiểu 25kg").max(250, "Cân nặng tối đa 250kg"),
-  fitPreference: z.enum(["SLIM", "REGULAR", "RELAXED", "OVERSIZE", "UNSURE"]).optional(),
+  gender: z.enum(["FEMALE", "MALE", "OTHER"], { error: "Chọn giới tính" }),
+  fitPreference: z.enum(["SLIM", "REGULAR", "RELAXED", "OVERSIZE", "UNSURE"], { error: "Chọn gu mặc" }),
   skinTone: z.enum(["FAIR", "MEDIUM", "TAN", "DEEP", "UNSURE"]).optional(),
   goals: z.array(z.string()).optional(),
   shoulderWidthCm: optionalMeasurementField(20, 80),

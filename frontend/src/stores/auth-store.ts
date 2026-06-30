@@ -20,7 +20,7 @@ interface AuthState {
   user: AuthUser | null;
   accessToken: string | null;
   refreshToken: string | null;
-  setAuth: (user: AuthUser, accessToken: string, refreshToken: string) => void;
+  setAuth: (user: AuthUser, accessToken: string, refreshToken: string) => Promise<void>;
   clearAuth: () => void;
   logout: () => Promise<void>;
   isAuthenticated: () => boolean;
@@ -34,11 +34,11 @@ export const useAuthStore = create<AuthState>()(
       user: null,
       accessToken: null,
       refreshToken: null,
-      setAuth: (user, accessToken, refreshToken) => {
+      setAuth: async (user, accessToken, refreshToken) => {
         if (typeof window !== "undefined") {
           localStorage.setItem(AUTH_TOKEN_KEY, accessToken);
           localStorage.setItem(AUTH_REFRESH_KEY, refreshToken);
-          syncPortalSession(accessToken).catch(() => undefined);
+          await syncPortalSession(accessToken);
         }
         set({ user, accessToken, refreshToken });
       },

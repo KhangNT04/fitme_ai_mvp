@@ -1,5 +1,6 @@
 export type FitPreference = "SLIM" | "REGULAR" | "RELAXED" | "OVERSIZE" | "UNSURE";
 export type SkinTone = "FAIR" | "MEDIUM" | "TAN" | "DEEP" | "UNSURE";
+export type Gender = "FEMALE" | "MALE" | "OTHER";
 export type RiskLevel = "SAFE" | "BALANCED" | "BOLD" | "EXPERIMENTAL";
 export type WardrobeMode =
   | "NEW_ITEMS_ONLY"
@@ -21,6 +22,7 @@ export interface BodyMeasurements {
 export interface BodyProfile {
   heightCm: number;
   weightKg: number;
+  gender: Gender;
   fitPreference?: FitPreference;
   skinTone?: SkinTone;
   goals?: string[];

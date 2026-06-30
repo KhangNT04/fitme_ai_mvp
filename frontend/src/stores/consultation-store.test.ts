@@ -16,7 +16,7 @@ describe("useConsultationStore", () => {
       useConsultationStore.getState();
 
     setSessionId("sess-99");
-    setBodyProfile({ heightCm: 170, weightKg: 60, fitPreference: "REGULAR", skinTone: "MEDIUM", goals: [] });
+    setBodyProfile({ heightCm: 170, weightKg: 60, gender: "FEMALE", fitPreference: "REGULAR", skinTone: "MEDIUM", goals: [] });
     setStyleProfile({
       primaryStyle: "Minimal",
       secondaryStyles: [],

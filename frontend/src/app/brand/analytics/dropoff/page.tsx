@@ -17,6 +17,8 @@ export default function BrandAnalyticsDropoffPage() {
       <PortalPageHeader
         title="Phân tích điểm rời bỏ"
         description="Các bước trong luồng mà người dùng thường bỏ cuộc."
+        backHref="/brand/analytics"
+        backLabel="Phân tích"
       />
       <AnalyticsChart
         title="Điểm rời bỏ trong luồng"

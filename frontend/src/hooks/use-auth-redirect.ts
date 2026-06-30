@@ -8,8 +8,9 @@ export function useAuthRedirect(defaultPath = "/profile") {
   const searchParams = useSearchParams();
   const redirect = searchParams.get("redirect") || defaultPath;
 
-  const goAfterAuth = useCallback(() => {
+  const goAfterAuth = useCallback(async () => {
     router.push(redirect);
+    router.refresh();
   }, [router, redirect]);
 
   return { redirect, goAfterAuth };

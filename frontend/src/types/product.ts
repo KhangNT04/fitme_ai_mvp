@@ -1,6 +1,7 @@
 export type FitType = "SLIM" | "REGULAR" | "RELAXED" | "OVERSIZE";
+export type TargetGender = "FEMALE" | "MALE" | "UNISEX";
 export type StockStatus = "IN_STOCK" | "OUT_OF_STOCK" | "LIMITED";
-export type ProductStatus = "DRAFT" | "PENDING_REVIEW" | "ACTIVE" | "REJECTED" | "INACTIVE";
+export type ProductStatus = "DRAFT" | "PENDING_REVIEW" | "ACTIVE" | "REJECTED" | "INACTIVE" | "FLAGGED";
 
 export interface SizeChartRow {
   sizeLabel: string;
@@ -34,6 +35,7 @@ export interface Product {
   sizeCharts?: SizeChartRow[];
   material?: string;
   fitType: FitType;
+  targetGender?: TargetGender;
   styleTags: string[];
   occasionTags: string[];
   purchaseUrl: string;
@@ -41,6 +43,7 @@ export interface Product {
   status: ProductStatus;
   aiTryOnEligible: boolean;
   description?: string;
+  flagReason?: string;
 }
 
 export interface ProductFilters {

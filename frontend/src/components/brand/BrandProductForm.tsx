@@ -6,9 +6,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { BrandProductImagesUpload } from "@/components/brand/BrandImageUpload";
 import { brandApi } from "@/services/brand-api";
-import { PRODUCT_CATEGORIES, FIT_PREFERENCES } from "@/utils/constants";
+import { PRODUCT_CATEGORIES, FIT_PREFERENCES, TARGET_GENDERS } from "@/utils/constants";
 import type { CreateProductRequest } from "@/types/brand";
-import type { SizeChartRow } from "@/types/product";
+import type { SizeChartRow, TargetGender } from "@/types/product";
 
 const DEFAULT_SIZES = ["S", "M", "L", "XL"];
 
@@ -20,6 +20,7 @@ export interface BrandProductFormValues {
   sizes: string;
   material: string;
   fitType: string;
+  targetGender: TargetGender;
   styleTags: string;
   occasionTags: string;
   purchaseUrl: string;
@@ -37,6 +38,7 @@ export function emptyBrandProductForm(): BrandProductFormValues {
     sizes: "S, M, L, XL",
     material: "",
     fitType: "REGULAR",
+    targetGender: "UNISEX",
     styleTags: "",
     occasionTags: "",
     purchaseUrl: "",
@@ -63,6 +65,7 @@ export function productToFormValues(product: {
   sizes: string[];
   material?: string;
   fitType: string;
+  targetGender?: TargetGender;
   styleTags: string[];
   occasionTags: string[];
   purchaseUrl: string;
@@ -79,6 +82,7 @@ export function productToFormValues(product: {
     sizes: sizes.join(", "),
     material: product.material || "",
     fitType: product.fitType,
+    targetGender: product.targetGender ?? "UNISEX",
     styleTags: product.styleTags.join(", "),
     occasionTags: product.occasionTags.join(", "),
     purchaseUrl: product.purchaseUrl,
@@ -108,6 +112,7 @@ export function formValuesToRequest(form: BrandProductFormValues): CreateProduct
     sizes: form.sizes.split(",").map((s) => s.trim()).filter(Boolean),
     material: form.material || undefined,
     fitType: form.fitType,
+    targetGender: form.targetGender,
     styleTags: form.styleTags.split(",").map((t) => t.trim()).filter(Boolean),
     occasionTags: form.occasionTags.split(",").map((t) => t.trim()).filter(Boolean),
     purchaseUrl: form.purchaseUrl,
@@ -205,6 +210,23 @@ export function BrandProductForm({
           <option value="">Chọn</option>
           {PRODUCT_CATEGORIES.map((c) => <option key={c} value={c}>{c}</option>)}
         </select>
+      </div>
+      <div>
+        <Label htmlFor="targetGender">Đối tượng mặc</Label>
+        <select
+          id="targetGender"
+          value={form.targetGender}
+          onChange={(e) => setForm({ ...form, targetGender: e.target.value as TargetGender })}
+          className="mt-1 w-full rounded-xl border border-border/60 px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          required
+        >
+          {TARGET_GENDERS.map((g) => (
+            <option key={g.value} value={g.value}>{g.label}</option>
+          ))}
+        </select>
+        <p className="mt-1 text-xs text-muted-foreground">
+          Dùng cho gợi ý AI — mọi người dùng vẫn thấy sản phẩm trong catalog.
+        </p>
       </div>
       <div>
         <Label>Giá (VND)</Label>

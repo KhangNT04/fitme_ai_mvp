@@ -16,20 +16,8 @@ import { LoadingSkeleton } from "@/components/common/LoadingSkeleton";
 import { ErrorState } from "@/components/common/ErrorState";
 import type { BrandOnboardingRequest } from "@/types/brand";
 
-function brandStatusLabel(status: string): string {
-  switch (status) {
-    case "APPROVED":
-      return "Đã duyệt";
-    case "PENDING":
-      return "Chờ duyệt";
-    case "REJECTED":
-      return "Từ chối";
-    case "SUSPENDED":
-      return "Tạm ngưng";
-    default:
-      return status;
-  }
-}
+import { brandStatusLabel } from "@/lib/status-labels";
+import { actionFeedback } from "@/lib/action-feedback";
 
 function InfoRow({ label, children }: { label: string; children: React.ReactNode }) {
   return (
@@ -59,7 +47,9 @@ export default function BrandSettingsPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["brand-me"] });
       setEditing(false);
+      actionFeedback({ successMessage: "Đã cập nhật thông tin thương hiệu" }).onSuccess();
     },
+    onError: actionFeedback({ errorMessage: "Không thể cập nhật thương hiệu" }).onError,
   });
 
   const uploadLogo = useMutation({
@@ -67,7 +57,9 @@ export default function BrandSettingsPage() {
     onSuccess: (brand) => {
       setLogoUrl(brand.logoUrl ?? "");
       queryClient.invalidateQueries({ queryKey: ["brand-me"] });
+      actionFeedback({ successMessage: "Đã cập nhật logo" }).onSuccess();
     },
+    onError: actionFeedback({ errorMessage: "Không thể tải logo lên" }).onError,
   });
 
   const startEdit = () => {

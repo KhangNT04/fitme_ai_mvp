@@ -3,10 +3,19 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { adminApi } from "@/services/admin-api";
 import { PortalLayout, adminNav } from "@/components/layout/PortalLayout";
-import { Button } from "@/components/ui/button";
+import { PortalPageHeader } from "@/components/portal/PortalPageHeader";
+import { PortalActionButton } from "@/components/portal/PortalActionButton";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { LoadingSkeleton } from "@/components/common/LoadingSkeleton";
+import {
+  PortalDataTable,
+  PortalDataTableBody,
+  PortalDataTableHead,
+  portalTableTdClass,
+  portalTableThClass,
+} from "@/components/portal/PortalDataTable";
+import { actionFeedback } from "@/lib/action-feedback";
 
 interface ConsentRecord {
   id?: string;
@@ -37,42 +46,52 @@ export default function AdminPrivacyPage() {
 
   const processDeletion = useMutation({
     mutationFn: (id: string) => adminApi.processDeletionRequest(id),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["admin-deletions"] }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["admin-deletions"] });
+      actionFeedback({ successMessage: "Đã xử lý yêu cầu xóa dữ liệu" }).onSuccess();
+    },
+    onError: actionFeedback({ errorMessage: "Không thể xử lý yêu cầu" }).onError,
   });
 
   return (
     <PortalLayout title="Admin" nav={adminNav}>
-      <h1 className="font-display text-2xl font-bold tracking-tight text-foreground">Quyền riêng tư & Consent</h1>
-      <Tabs defaultValue="consents" className="mt-8">
+      <PortalPageHeader title="Quyền riêng tư & Consent" />
+      <Tabs defaultValue="consents">
         <TabsList>
           <TabsTrigger value="consents">Consent logs</TabsTrigger>
           <TabsTrigger value="deletions">Yêu cầu xóa dữ liệu</TabsTrigger>
         </TabsList>
         <TabsContent value="consents">
           {loadingConsents ? <LoadingSkeleton type="list" /> : (
-            <div className="overflow-x-auto rounded-2xl border border-border/60">
-              <table className="w-full text-sm">
-                <thead className="bg-muted">
-                  <tr>
-                    <th className="px-4 py-3 text-left">Loại</th>
-                    <th className="px-4 py-3 text-left">Đồng ý</th>
-                    <th className="px-4 py-3 text-left">Thời gian</th>
+            <PortalDataTable showOnMobile className="mt-0">
+              <PortalDataTableHead>
+                <tr>
+                  <th className={portalTableThClass}>Loại</th>
+                  <th className={portalTableThClass}>Đồng ý</th>
+                  <th className={portalTableThClass}>Thời gian</th>
+                </tr>
+              </PortalDataTableHead>
+              <PortalDataTableBody>
+                {consents?.map((c, i) => (
+                  <tr key={c.id ?? i}>
+                    <td className={portalTableTdClass}>{c.consentType ?? "—"}</td>
+                    <td className={portalTableTdClass}>
+                      <Badge variant="outline">{c.granted ? "Có" : "Không"}</Badge>
+                    </td>
+                    <td className={portalTableTdClass}>
+                      {c.createdAt ? new Date(c.createdAt).toLocaleString("vi-VN") : "—"}
+                    </td>
                   </tr>
-                </thead>
-                <tbody>
-                  {consents?.map((c, i) => (
-                    <tr key={c.id ?? i} className="border-t">
-                      <td className="px-4 py-3">{c.consentType ?? "—"}</td>
-                      <td className="px-4 py-3"><Badge variant="outline">{c.granted ? "Có" : "Không"}</Badge></td>
-                      <td className="px-4 py-3">{c.createdAt ? new Date(c.createdAt).toLocaleString("vi-VN") : "—"}</td>
-                    </tr>
-                  ))}
-                  {(!consents || consents.length === 0) && (
-                    <tr><td colSpan={3} className="px-4 py-3 text-muted-foreground">Chưa có bản ghi consent</td></tr>
-                  )}
-                </tbody>
-              </table>
-            </div>
+                ))}
+                {(!consents || consents.length === 0) && (
+                  <tr>
+                    <td colSpan={3} className={`${portalTableTdClass} text-muted-foreground`}>
+                      Chưa có bản ghi consent
+                    </td>
+                  </tr>
+                )}
+              </PortalDataTableBody>
+            </PortalDataTable>
           )}
         </TabsContent>
         <TabsContent value="deletions">
@@ -86,7 +105,9 @@ export default function AdminPrivacyPage() {
                     <p><strong>Trạng thái:</strong> {d.status}</p>
                   </div>
                   {d.id && d.status !== "COMPLETED" && (
-                    <Button size="sm" onClick={() => processDeletion.mutate(d.id!)}>Xử lý</Button>
+                    <PortalActionButton variant="resolve" onClick={() => processDeletion.mutate(d.id!)}>
+                      Xử lý
+                    </PortalActionButton>
                   )}
                 </div>
               ))}

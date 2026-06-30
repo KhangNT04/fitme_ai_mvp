@@ -19,6 +19,7 @@ async function fetchProfileOrNull<T>(request: () => Promise<T>): Promise<T | nul
 interface BackendBodyProfile {
   heightCm: number;
   weightKg: number;
+  gender: BodyProfile["gender"];
   fitPreference: BodyProfile["fitPreference"];
   skinTone: BodyProfile["skinTone"];
   goals?: { items?: string[] } | string[];
@@ -54,6 +55,7 @@ function mapBodyProfile(raw: BackendBodyProfile): BodyProfile {
   return {
     heightCm: raw.heightCm,
     weightKg: Number(raw.weightKg),
+    gender: raw.gender,
     fitPreference: raw.fitPreference,
     skinTone: raw.skinTone,
     goals,

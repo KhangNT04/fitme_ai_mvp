@@ -31,8 +31,9 @@ export default function BrandLoginPage() {
         setError("Tài khoản này không có quyền Brand. Vui lòng dùng tài khoản brand.");
         return;
       }
-      setAuth(res.user, res.accessToken, res.refreshToken);
+      await setAuth(res.user, res.accessToken, res.refreshToken);
       router.push("/brand/dashboard");
+      router.refresh();
     } catch (e: unknown) {
       setError(getUserErrorMessage(e, { fallback: "Đăng nhập thất bại", context: "brand-auth" }));
     }

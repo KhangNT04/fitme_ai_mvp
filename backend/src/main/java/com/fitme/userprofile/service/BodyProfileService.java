@@ -1,5 +1,7 @@
 package com.fitme.userprofile.service;
 
+import com.fitme.common.enums.FitPreference;
+import com.fitme.common.enums.SkinTone;
 import com.fitme.common.exception.NotFoundException;
 import com.fitme.common.security.RequestContext;
 import com.fitme.userprofile.dto.BodyProfileRequest;
@@ -68,11 +70,16 @@ public class BodyProfileService {
     private void applyRequest(BodyProfile profile, BodyProfileRequest request) {
         profile.setHeightCm(request.getHeightCm());
         profile.setWeightKg(request.getWeightKg());
+        profile.setGender(request.getGender());
         if (request.getFitPreference() != null) {
             profile.setFitPreference(request.getFitPreference());
+        } else if (profile.getFitPreference() == null) {
+            profile.setFitPreference(FitPreference.REGULAR);
         }
         if (request.getSkinTone() != null) {
             profile.setSkinTone(request.getSkinTone());
+        } else if (profile.getSkinTone() == null) {
+            profile.setSkinTone(SkinTone.UNSURE);
         }
         if (request.getGoals() != null) {
             profile.setGoals(request.getGoals());
@@ -114,6 +121,7 @@ public class BodyProfileService {
                 .id(profile.getId())
                 .heightCm(profile.getHeightCm())
                 .weightKg(profile.getWeightKg())
+                .gender(profile.getGender())
                 .fitPreference(profile.getFitPreference())
                 .skinTone(profile.getSkinTone())
                 .goals(profile.getGoals())

@@ -67,6 +67,7 @@ export function toBackendProductRequest(data: CreateProductRequest) {
   const styleTags = (data.styleTags || []).filter(Boolean);
   const occasionTags = (data.occasionTags || []).filter(Boolean);
   const tags = [
+    { tagType: "TARGET_GENDER", tagValue: data.targetGender || "UNISEX" },
     ...styleTags.map((tagValue) => ({ tagType: "STYLE", tagValue })),
     ...occasionTags.map((tagValue) => ({ tagType: "OCCASION", tagValue })),
   ];
@@ -144,6 +145,8 @@ export function mapProduct(raw: BackendProduct): Product {
     fitType: raw.fitType || "REGULAR",
     styleTags: tags.filter((t) => t.tagType === "STYLE").map((t) => t.tagValue || ""),
     occasionTags: tags.filter((t) => t.tagType === "OCCASION").map((t) => t.tagValue || ""),
+    flagReason: tags.find((t) => t.tagType === "FLAG_REASON")?.tagValue,
+    targetGender: (tags.find((t) => t.tagType === "TARGET_GENDER")?.tagValue as Product["targetGender"]) || "UNISEX",
     purchaseUrl: raw.purchaseUrl,
     stockStatus: raw.stockStatus || "IN_STOCK",
     status: raw.status,

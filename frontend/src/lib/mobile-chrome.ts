@@ -1,4 +1,5 @@
-const PORTAL_PREFIXES = ["/brand", "/admin"];
+import { isPortalRoute as isPortalPath, isPortalAppRoute } from "@/lib/portal-nav";
+
 const AUTH_PREFIX = "/auth";
 const REDIRECT_PREFIX = "/redirect";
 
@@ -31,7 +32,7 @@ function startsWithAny(pathname: string, prefixes: string[]): boolean {
 }
 
 export function isPortalRoute(pathname: string): boolean {
-  return PORTAL_PREFIXES.some((p) => pathname.startsWith(p));
+  return isPortalPath(pathname);
 }
 
 const NAV_LEVEL_2_ROUTES = new Set([
@@ -47,7 +48,20 @@ const NAV_LEVEL_2_ROUTES = new Set([
   "/auth/register",
   "/brand/login",
   "/brand/onboarding",
+  "/brand/dashboard",
+  "/brand/products",
+  "/brand/analytics",
+  "/brand/settings",
   "/admin/login",
+  "/admin/dashboard",
+  "/admin/brands",
+  "/admin/products/moderation",
+  "/admin/flagged-links",
+  "/admin/rules/styles",
+  "/admin/rules/occasions",
+  "/admin/analytics",
+  "/admin/privacy",
+  "/admin/try-on-monitoring",
 ]);
 
 function normalizePath(pathname: string | null | undefined): string {
@@ -75,7 +89,7 @@ export function shouldShowBottomNav(pathname: string): boolean {
 }
 
 export function isCompactHeader(pathname: string): boolean {
-  if (isPortalRoute(pathname)) return false;
+  if (isPortalAppRoute(pathname)) return false;
   return shouldShowBottomNav(pathname);
 }
 

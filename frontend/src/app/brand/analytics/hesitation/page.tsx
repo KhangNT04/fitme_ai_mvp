@@ -17,6 +17,8 @@ export default function BrandAnalyticsHesitationPage() {
       <PortalPageHeader
         title="Phân tích do dự"
         description="Sản phẩm xem nhiều nhưng ít chuyển đổi."
+        backHref="/brand/analytics"
+        backLabel="Phân tích"
       />
       <AnalyticsChart
         title="Sản phẩm gây do dự"

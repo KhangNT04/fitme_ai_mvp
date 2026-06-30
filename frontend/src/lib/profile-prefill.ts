@@ -33,13 +33,14 @@ export function tryOnFormToBodyProfile(data: TryOnInputForm): BodyProfile {
   return {
     heightCm: data.heightCm,
     weightKg: data.weightKg,
+    gender: "OTHER",
     fitPreference: data.fitPreference as BodyProfile["fitPreference"],
     skinTone: data.skinTone as BodyProfile["skinTone"],
   };
 }
 
 export function hasMinimalBodyProfile(profile?: BodyProfile | null): profile is BodyProfile {
-  return profile != null && profile.heightCm > 0 && profile.weightKg > 0;
+  return profile != null && profile.heightCm > 0 && profile.weightKg > 0 && !!profile.gender;
 }
 
 export function hasStyleProfileContent(profile?: StyleProfile | null): boolean {

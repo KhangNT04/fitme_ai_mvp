@@ -11,6 +11,8 @@ import com.fitme.brand.repository.BrandRepository;
 import com.fitme.common.enums.*;
 import com.fitme.product.entity.Product;
 import com.fitme.product.repository.ProductRepository;
+import com.fitme.redirect.entity.FlaggedLink;
+import com.fitme.redirect.repository.FlaggedLinkRepository;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -36,6 +38,7 @@ public class SeedDataLoader implements CommandLineRunner {
     private final UserAccountRepository userRepository;
     private final BrandRepository brandRepository;
     private final ProductRepository productRepository;
+    private final FlaggedLinkRepository flaggedLinkRepository;
     private final StyleRuleRepository styleRuleRepository;
     private final OccasionRuleRepository occasionRuleRepository;
     private final PasswordEncoder passwordEncoder;
@@ -131,6 +134,7 @@ public class SeedDataLoader implements CommandLineRunner {
                 .build());
 
         seedRulesIfEmpty();
+        seedFlaggedLinksIfEmpty();
 
         log.info(
                 "Seed complete: {} fashion products across {} brands. Admin: {} / {}",
@@ -150,6 +154,7 @@ public class SeedDataLoader implements CommandLineRunner {
         }
 
         seedRulesIfEmpty();
+        seedFlaggedLinksIfEmpty();
 
         int activeCount = productRepository.findByStatus(ProductStatus.ACTIVE).size();
         log.info("Catalog status: {} active products", activeCount);
@@ -279,5 +284,35 @@ public class SeedDataLoader implements CommandLineRunner {
                     .active(true)
                     .build());
         }
+    }
+
+    private void seedFlaggedLinksIfEmpty() {
+        if (flaggedLinkRepository.count() > 0) {
+            return;
+        }
+        List<Product> activeProducts = productRepository.findByStatus(ProductStatus.ACTIVE);
+        if (activeProducts.isEmpty()) {
+            return;
+        }
+
+        Product brokenUrlProduct = activeProducts.get(0);
+        flaggedLinkRepository.save(FlaggedLink.builder()
+                .productId(brokenUrlProduct.getId())
+                .purchaseUrl("not-a-valid-url")
+                .reason(FlaggedLinkReason.BROKEN_URL)
+                .status(FlaggedLinkStatus.OPEN)
+                .build());
+
+        if (activeProducts.size() > 1) {
+            Product missingUrlProduct = activeProducts.get(1);
+            flaggedLinkRepository.save(FlaggedLink.builder()
+                    .productId(missingUrlProduct.getId())
+                    .purchaseUrl("")
+                    .reason(FlaggedLinkReason.MISSING_URL)
+                    .status(FlaggedLinkStatus.OPEN)
+                    .build());
+        }
+
+        log.info("Seeded sample flagged purchase links for admin review");
     }
 }

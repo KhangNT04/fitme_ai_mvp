@@ -11,8 +11,8 @@ import {
 } from "@/components/brand/BrandProductForm";
 
 const SAMPLE_IMAGES = [
-  "https://picsum.photos/seed/fitme-brand-main/400/500",
-  "https://picsum.photos/seed/fitme-brand-detail/400/500",
+  "https://images.unsplash.com/photo-1594938298603-c8148c4dae35?auto=format&fit=crop&w=800&h=1000&q=80",
+  "https://images.unsplash.com/photo-1620799140408-edc6dcb6d633?auto=format&fit=crop&w=800&h=1000&q=80",
 ];
 
 export default function BrandNewProductPage() {

@@ -3,6 +3,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { brandApi } from "@/services/brand-api";
 import { PortalLayout, brandNav } from "@/components/layout/PortalLayout";
+import { PortalPageHeader } from "@/components/portal/PortalPageHeader";
 import { AnalyticsChart } from "@/components/common/AnalyticsChart";
 
 export default function BrandAnalyticsDropoffPage() {
@@ -13,10 +14,18 @@ export default function BrandAnalyticsDropoffPage() {
 
   return (
     <PortalLayout title="Brand" nav={brandNav}>
-      <h1 className="font-display text-2xl font-bold tracking-tight text-foreground">Phân tích điểm rời bỏ</h1>
-      <div className="mt-8">
-        <AnalyticsChart title="Điểm rời bỏ trong luồng" data={data?.dropoffPoints || []} />
-      </div>
+      <PortalPageHeader
+        title="Phân tích điểm rời bỏ"
+        description="Các bước trong luồng mà người dùng thường bỏ cuộc."
+      />
+      <AnalyticsChart
+        title="Điểm rời bỏ trong luồng"
+        description="Càng cao càng cần tối ưu UX tại bước đó"
+        data={data?.dropoffPoints || []}
+        barLabel="Lượt rời"
+        lineLabel="% tổng"
+        layout="horizontal"
+      />
     </PortalLayout>
   );
 }

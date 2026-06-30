@@ -13,10 +13,12 @@ import { Label } from "@/components/ui/label";
 import { PortalLoginShell } from "@/components/layout/PortalLoginShell";
 import { getUserErrorMessage } from "@/lib/user-error-message";
 import { loginSchema, type LoginForm } from "@/utils/validators";
+import { usePortalSessionRedirect } from "@/hooks/use-portal-session-redirect";
 
 export default function BrandLoginPage() {
   const router = useRouter();
   const { setAuth } = useAuthStore();
+  usePortalSessionRedirect("brand");
   const [error, setError] = useState("");
   const { register, handleSubmit, formState: { isSubmitting } } = useForm<LoginForm>({
     resolver: zodResolver(loginSchema),

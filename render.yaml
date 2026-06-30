@@ -10,8 +10,10 @@ services:
     plan: free
     dockerfilePath: backend/Dockerfile
     dockerContext: backend
-    healthCheckPath: /api/v1/products
+    healthCheckPath: /actuator/health
     envVars:
+      - key: SPRING_PROFILES_ACTIVE
+        value: prod
       - key: DB_URL
         sync: false
       - key: DB_USERNAME
@@ -23,7 +25,7 @@ services:
       - key: CORS_ORIGINS
         sync: false
       - key: FITME_SEED_ENABLED
-        value: "true"
+        value: "false"
       - key: FITME_SEED_PASSWORD
         value: fitme123
       - key: UPLOAD_DIR

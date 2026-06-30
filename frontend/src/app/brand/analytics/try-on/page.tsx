@@ -3,6 +3,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { brandApi } from "@/services/brand-api";
 import { PortalLayout, brandNav } from "@/components/layout/PortalLayout";
+import { PortalPageHeader } from "@/components/portal/PortalPageHeader";
 import { AnalyticsChart } from "@/components/common/AnalyticsChart";
 
 export default function BrandAnalyticsTryOnPage() {
@@ -13,10 +14,25 @@ export default function BrandAnalyticsTryOnPage() {
 
   return (
     <PortalLayout title="Brand" nav={brandNav}>
-      <h1 className="font-display text-2xl font-bold tracking-tight text-foreground">Phân tích thử mặc AI</h1>
-      <div className="mt-8 grid gap-6 lg:grid-cols-2">
-        <AnalyticsChart title="Lượt thử theo sản phẩm" data={data?.tryOnStats || []} />
-        <AnalyticsChart title="Màu được thử nhiều" data={data?.topColors || []} type="pie" />
+      <PortalPageHeader
+        title="Phân tích thử mặc AI"
+        description="Biểu đồ combo cột + đường cho sản phẩm; donut cho phân bổ màu."
+      />
+      <div className="grid gap-6 lg:grid-cols-2">
+        <AnalyticsChart
+          title="Lượt thử theo sản phẩm"
+          description="Sản phẩm được thử mặc nhiều nhất"
+          data={data?.tryOnStats || []}
+          barLabel="Lượt thử"
+          lineLabel="% tổng"
+          layout="horizontal"
+        />
+        <AnalyticsChart
+          title="Màu được thử nhiều"
+          description="Tỷ trọng màu sắc trong các lần thử"
+          data={data?.topColors || []}
+          type="pie"
+        />
       </div>
     </PortalLayout>
   );

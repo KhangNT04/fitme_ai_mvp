@@ -4,16 +4,16 @@ import type { AuthUser } from "@/types/auth";
 import { authApi } from "@/services/auth-api";
 import { AUTH_TOKEN_KEY, AUTH_REFRESH_KEY } from "@/utils/constants";
 
-function setRoleCookie(role: AuthUser["role"]) {
-  if (typeof document !== "undefined") {
-    document.cookie = `fitme-role=${role}; path=/; max-age=86400; SameSite=Lax`;
-  }
+async function syncPortalSession(accessToken: string): Promise<void> {
+  await fetch("/api/auth/session", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ accessToken }),
+  });
 }
 
-function clearRoleCookie() {
-  if (typeof document !== "undefined") {
-    document.cookie = "fitme-role=; path=/; max-age=0";
-  }
+async function clearPortalSession(): Promise<void> {
+  await fetch("/api/auth/session", { method: "DELETE" });
 }
 
 interface AuthState {
@@ -38,21 +38,16 @@ export const useAuthStore = create<AuthState>()(
         if (typeof window !== "undefined") {
           localStorage.setItem(AUTH_TOKEN_KEY, accessToken);
           localStorage.setItem(AUTH_REFRESH_KEY, refreshToken);
-          fetch("/api/auth/session", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ accessToken }),
-          }).catch(() => undefined);
+          syncPortalSession(accessToken).catch(() => undefined);
         }
-        setRoleCookie(user.role);
         set({ user, accessToken, refreshToken });
       },
       clearAuth: () => {
         if (typeof window !== "undefined") {
           localStorage.removeItem(AUTH_TOKEN_KEY);
           localStorage.removeItem(AUTH_REFRESH_KEY);
+          clearPortalSession().catch(() => undefined);
         }
-        clearRoleCookie();
         set({ user: null, accessToken: null, refreshToken: null });
       },
       logout: async () => {

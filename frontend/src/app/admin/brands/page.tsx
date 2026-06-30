@@ -3,13 +3,22 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { adminApi } from "@/services/admin-api";
 import { PortalLayout, adminNav } from "@/components/layout/PortalLayout";
+import { PortalPageHeader } from "@/components/portal/PortalPageHeader";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { LoadingSkeleton } from "@/components/common/LoadingSkeleton";
+import { ErrorState } from "@/components/common/ErrorState";
+import {
+  portalCardActionsClass,
+  portalCardClass,
+  portalCardListClass,
+  portalCardRowClass,
+  portalTableShellClass,
+} from "@/lib/design-tokens";
 
 export default function AdminBrandsPage() {
   const queryClient = useQueryClient();
-  const { data, isLoading } = useQuery({
+  const { data, isLoading, error, refetch } = useQuery({
     queryKey: ["admin-brands"],
     queryFn: () => adminApi.getBrands(),
   });
@@ -34,40 +43,72 @@ export default function AdminBrandsPage() {
 
   return (
     <PortalLayout title="Admin" nav={adminNav}>
-      <h1 className="font-display text-2xl font-bold tracking-tight text-foreground">Quản lý thương hiệu</h1>
-      {isLoading ? <LoadingSkeleton type="list" /> : (
-        <div className="mt-8 overflow-x-auto rounded-2xl border border-border/60">
-          <table className="w-full text-sm">
-            <thead className="bg-muted">
-              <tr>
-                <th className="px-4 py-3 text-left">Tên</th>
-                <th className="px-4 py-3 text-left">Email liên hệ</th>
-                <th className="px-4 py-3 text-left">Trạng thái</th>
-                <th className="px-4 py-3 text-left">Thao tác</th>
-              </tr>
-            </thead>
-            <tbody>
-              {data?.map((b) => (
-                <tr key={b.id} className="border-t">
-                  <td className="px-4 py-3">{b.name}</td>
-                  <td className="px-4 py-3">{b.contactEmail ?? "—"}</td>
-                  <td className="px-4 py-3"><Badge variant="outline">{b.status}</Badge></td>
-                  <td className="px-4 py-3 space-x-2">
-                    {b.status === "PENDING" && (
-                      <>
-                        <Button size="sm" onClick={() => approve.mutate(b.id)}>Duyệt</Button>
-                        <Button size="sm" variant="outline" onClick={() => reject.mutate(b.id)}>Từ chối</Button>
-                      </>
-                    )}
-                    {b.status === "APPROVED" && (
-                      <Button size="sm" variant="destructive" onClick={() => suspend.mutate(b.id)}>Tạm ngưng</Button>
-                    )}
-                  </td>
+      <PortalPageHeader title="Quản lý thương hiệu" description="Duyệt đăng ký mới và quản lý trạng thái brand." />
+
+      {isLoading && <LoadingSkeleton type="list" />}
+      {error && <ErrorState onRetry={() => refetch()} />}
+      {data && (
+        <>
+          <div className={portalCardListClass}>
+            {data.map((b) => (
+              <article key={b.id} className={portalCardClass}>
+                <div className={portalCardRowClass}>
+                  <div className="min-w-0">
+                    <p className="font-medium text-foreground">{b.name}</p>
+                    <p className="mt-1 truncate text-sm text-muted-foreground">{b.contactEmail ?? "—"}</p>
+                  </div>
+                  <Badge variant="outline">{b.status}</Badge>
+                </div>
+                <div className={portalCardActionsClass}>
+                  {b.status === "PENDING" && (
+                    <>
+                      <Button size="sm" onClick={() => approve.mutate(b.id)}>Duyệt</Button>
+                      <Button size="sm" variant="outline" onClick={() => reject.mutate(b.id)}>Từ chối</Button>
+                    </>
+                  )}
+                  {b.status === "APPROVED" && (
+                    <Button size="sm" variant="destructive" onClick={() => suspend.mutate(b.id)}>Tạm ngưng</Button>
+                  )}
+                </div>
+              </article>
+            ))}
+          </div>
+
+          <div className={portalTableShellClass}>
+            <table className="w-full text-sm">
+              <thead className="bg-muted/80">
+                <tr>
+                  <th className="px-4 py-3 text-left font-medium">Tên</th>
+                  <th className="px-4 py-3 text-left font-medium">Email liên hệ</th>
+                  <th className="px-4 py-3 text-left font-medium">Trạng thái</th>
+                  <th className="px-4 py-3 text-left font-medium">Thao tác</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+              </thead>
+              <tbody>
+                {data.map((b) => (
+                  <tr key={b.id} className="border-t border-border/60">
+                    <td className="px-4 py-3">{b.name}</td>
+                    <td className="px-4 py-3">{b.contactEmail ?? "—"}</td>
+                    <td className="px-4 py-3">
+                      <Badge variant="outline">{b.status}</Badge>
+                    </td>
+                    <td className="space-x-2 px-4 py-3">
+                      {b.status === "PENDING" && (
+                        <>
+                          <Button size="sm" onClick={() => approve.mutate(b.id)}>Duyệt</Button>
+                          <Button size="sm" variant="outline" onClick={() => reject.mutate(b.id)}>Từ chối</Button>
+                        </>
+                      )}
+                      {b.status === "APPROVED" && (
+                        <Button size="sm" variant="destructive" onClick={() => suspend.mutate(b.id)}>Tạm ngưng</Button>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </>
       )}
     </PortalLayout>
   );

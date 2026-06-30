@@ -155,3 +155,15 @@ Frontend dev dùng rewrite `/api/v1` → `localhost:8080`.
 **Frontend build fail OOM** — tăng RAM Docker Desktop hoặc build trên CI rồi pull image.
 
 **API 502 qua /api/v1** — backend chưa sẵn sàng: `docker compose ... logs backend`
+
+**Postgres orphan / API 500 `UnknownHostException: postgres`** — xảy ra khi container `fitme-test-postgres` bị tạo/xóa lẻ ngoài compose stack (khác Docker network với backend). **Không** `docker rm` riêng postgres rồi `up` lại từng service.
+
+Sửa:
+
+```bash
+docker compose --env-file .env.test -f docker-compose.test.yml down
+docker rm -f fitme-test-postgres 2>/dev/null || true
+docker compose --env-file .env.test -f docker-compose.test.yml up -d --build
+```
+
+Luôn dùng `down` + `up` cùng file compose để postgres, backend, frontend cùng network `fitme_fitme-test`.

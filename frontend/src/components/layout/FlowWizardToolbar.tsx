@@ -1,5 +1,6 @@
 "use client";
 
+import type { ReactNode } from "react";
 import { FlowStepper } from "@/components/layout/FlowStepper";
 import { CollapsingPageHeader } from "@/components/layout/CollapsingPageHeader";
 
@@ -12,6 +13,8 @@ export interface FlowWizardToolbarProps {
   steps: readonly string[];
   currentStep: number;
   className?: string;
+  /** Extra controls shown beside the stepper (search, filters, …). */
+  trailing?: ReactNode;
 }
 
 /** Sticky title; stepper expands below and merges right when scrolled. */
@@ -24,6 +27,7 @@ export function FlowWizardToolbar({
   steps,
   currentStep,
   className,
+  trailing,
 }: FlowWizardToolbarProps) {
   const stepList = [...steps];
 
@@ -36,13 +40,16 @@ export function FlowWizardToolbar({
       backLabel={backLabel}
       className={className}
       trailing={
-        <FlowStepper
-          steps={stepList}
-          currentStep={currentStep}
-          compact
-          inline
-          className="mb-0"
-        />
+        <div className="flex min-w-0 flex-1 items-center justify-end gap-2">
+          {trailing}
+          <FlowStepper
+            steps={stepList}
+            currentStep={currentStep}
+            compact
+            inline
+            className="mb-0 shrink-0"
+          />
+        </div>
       }
     />
   );

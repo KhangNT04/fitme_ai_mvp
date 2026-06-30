@@ -129,8 +129,12 @@ jobs:
           mvn spring-boot:run -q &
           echo $! > ../backend.pid
           for i in $(seq 1 60); do
-            if curl -sf http://localhost:8080/actuator/health >/dev/null 2>&1 || curl -sf http://localhost:8080/api/v1/products >/dev/null 2>&1; then
+            if curl -sf http://localhost:8080/actuator/health >/dev/null 2>&1; then
               echo "Backend ready"
+              exit 0
+            fi
+            if curl -sf http://localhost:8080/api/v1/products >/dev/null 2>&1; then
+              echo "Backend ready (products fallback)"
               exit 0
             fi
             sleep 5
@@ -145,6 +149,7 @@ jobs:
           CI: "true"
         run: |
           npx playwright test e2e/smoke-routes.spec.ts e2e/role-flows.spec.ts --workers=1 --retries=2
+          npx playwright test e2e/rbac.spec.ts --workers=1 --retries=2
           npx playwright test e2e/mobile-nav.spec.ts --project=mobile-chrome --workers=1 --retries=2
 
       - name: Stop backend

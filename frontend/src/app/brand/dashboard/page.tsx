@@ -1,9 +1,11 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
+import { Package, CheckCircle2, MousePointerClick, Percent, Shirt, Sparkles, TrendingUp } from "lucide-react";
 import { brandApi } from "@/services/brand-api";
 import { PortalLayout, brandNav } from "@/components/layout/PortalLayout";
-import { StatCard } from "@/components/common/AnalyticsChart";
+import { PortalPageHeader } from "@/components/portal/PortalPageHeader";
+import { StatCard, StatCardGrid } from "@/components/common/AnalyticsChart";
 import { LoadingSkeleton } from "@/components/common/LoadingSkeleton";
 import { ErrorState } from "@/components/common/ErrorState";
 import { formatPercent } from "@/utils/format-price";
@@ -16,19 +18,23 @@ export default function BrandDashboardPage() {
 
   return (
     <PortalLayout title="Brand" nav={brandNav}>
-      <h1 className="font-display text-2xl font-bold tracking-tight text-foreground">Tổng quan</h1>
-      {isLoading && <div className="mt-8"><LoadingSkeleton count={4} /></div>}
-      {error && <div className="mt-8"><ErrorState onRetry={() => refetch()} /></div>}
+      <PortalPageHeader
+        title="Tổng quan"
+        description="Số liệu sản phẩm, lượt click mua và hiệu quả thử mặc AI."
+      />
+
+      {isLoading && <LoadingSkeleton count={4} />}
+      {error && <ErrorState onRetry={() => refetch()} />}
       {data && (
-        <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          <StatCard label="Tổng sản phẩm" value={data.totalProducts} />
-          <StatCard label="Đang hoạt động" value={data.activeProducts} />
-          <StatCard label="Lượt click mua" value={data.buyClicks} />
-          <StatCard label="CTR" value={formatPercent(data.clickThroughRate)} />
-          <StatCard label="Lượt thử AI" value={data.tryOnAttempts} />
-          <StatCard label="Try-on → Mua" value={formatPercent(data.tryOnToBuyRate)} />
-          <StatCard label="AI gợi ý" value={data.aiRecommendedProducts} />
-        </div>
+        <StatCardGrid className="lg:grid-cols-3 xl:grid-cols-4">
+          <StatCard label="Tổng sản phẩm" value={data.totalProducts} icon={<Package className="h-5 w-5" />} tone="violet" />
+          <StatCard label="Đang hoạt động" value={data.activeProducts} icon={<CheckCircle2 className="h-5 w-5" />} tone="emerald" />
+          <StatCard label="Lượt click mua" value={data.buyClicks} icon={<MousePointerClick className="h-5 w-5" />} tone="sky" />
+          <StatCard label="CTR" value={formatPercent(data.clickThroughRate)} icon={<Percent className="h-5 w-5" />} tone="amber" />
+          <StatCard label="Lượt thử AI" value={data.tryOnAttempts} icon={<Shirt className="h-5 w-5" />} tone="indigo" />
+          <StatCard label="Try-on → Mua" value={formatPercent(data.tryOnToBuyRate)} icon={<TrendingUp className="h-5 w-5" />} tone="rose" />
+          <StatCard label="AI gợi ý" value={data.aiRecommendedProducts} icon={<Sparkles className="h-5 w-5" />} tone="violet" />
+        </StatCardGrid>
       )}
     </PortalLayout>
   );

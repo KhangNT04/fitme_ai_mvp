@@ -4,6 +4,8 @@ import { useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { BrandProductImagesUpload } from "@/components/brand/BrandImageUpload";
+import { brandApi } from "@/services/brand-api";
 import { PRODUCT_CATEGORIES, FIT_PREFERENCES } from "@/utils/constants";
 import type { CreateProductRequest } from "@/types/brand";
 import type { SizeChartRow } from "@/types/product";
@@ -179,7 +181,7 @@ export function BrandProductForm({
     e.preventDefault();
     const images = form.imageUrls.split("\n").map((u) => u.trim()).filter(Boolean);
     if (images.length === 0) {
-      setImageError("Cần ít nhất 1 URL ảnh sản phẩm");
+      setImageError("Cần ít nhất 1 ảnh sản phẩm");
       return;
     }
     setImageError("");
@@ -217,12 +219,11 @@ export function BrandProductForm({
         />
       </div>
       <div>
-        <Label>URL ảnh (1 URL mỗi dòng, tối thiểu 1)</Label>
-        <textarea
+        <BrandProductImagesUpload
           value={form.imageUrls}
-          onChange={(e) => setForm({ ...form, imageUrls: e.target.value })}
-          placeholder={"https://picsum.photos/seed/product-main/400/500\nhttps://picsum.photos/seed/product-detail/400/500"}
-          className="mt-1 w-full rounded-xl border border-border/60 px-3 py-2 text-sm min-h-[80px] font-mono text-xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          onChange={(imageUrls) => setForm({ ...form, imageUrls })}
+          onUpload={(file) => brandApi.uploadProductImage(file)}
+          disabled={loading}
         />
         {imageError && <p className="mt-1 text-xs text-red-600">{imageError}</p>}
       </div>

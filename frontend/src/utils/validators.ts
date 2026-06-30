@@ -1,15 +1,19 @@
 import { z } from "zod";
 
-/** Empty number inputs from react-hook-form become NaN — treat as "not filled". */
+/** Treat empty / missing as unset for optional text fields. */
+function optionalTextField() {
+  return z
+    .union([z.string(), z.literal(""), z.undefined()])
+    .transform((value) => {
+      if (typeof value !== "string") return undefined;
+      const trimmed = value.trim();
+      return trimmed.length > 0 ? trimmed : undefined;
+    });
+}
+
+/** Optional body measurement — empty inputs are normalized via optionalNumberRegisterOptions. */
 function optionalMeasurementField(min: number, max: number) {
-  return z.preprocess(
-    (value) => {
-      if (value === "" || value === null || value === undefined) return undefined;
-      if (typeof value === "number" && Number.isNaN(value)) return undefined;
-      return value;
-    },
-    z.number({ error: "Nhập số hợp lệ" }).min(min).max(max).optional(),
-  );
+  return z.number({ error: "Nhập số hợp lệ" }).min(min).max(max).optional();
 }
 
 export const bodyProfileSchema = z.object({
@@ -37,20 +41,9 @@ export const styleProfileSchema = z.object({
   avoidedColors: z.array(z.string()).optional(),
 });
 
-/** Treat empty / missing as unset for optional text fields. */
-function optionalTextField() {
-  return z.preprocess(
-    (value) => {
-      if (value === "" || value === null || value === undefined) return undefined;
-      return value;
-    },
-    z.string().min(1).optional(),
-  );
-}
-
 export const occasionSchema = z.object({
-  occasion: optionalTextField(),
-  desiredVibe: optionalTextField(),
+  occasion: optionalTextField().optional(),
+  desiredVibe: optionalTextField().optional(),
   budgetMin: z.number().optional(),
   budgetMax: z.number().optional(),
   wardrobeMode: z.enum(["NEW_ITEMS_ONLY", "MIX_WARDROBE_AND_BRAND", "USE_WARDROBE_FIRST", "NO_WARDROBE_DATA"]),

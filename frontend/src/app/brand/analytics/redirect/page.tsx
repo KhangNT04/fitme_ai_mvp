@@ -3,6 +3,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { brandApi } from "@/services/brand-api";
 import { PortalLayout, brandNav } from "@/components/layout/PortalLayout";
+import { PortalPageHeader } from "@/components/portal/PortalPageHeader";
 import { AnalyticsChart } from "@/components/common/AnalyticsChart";
 
 export default function BrandAnalyticsRedirectPage() {
@@ -13,11 +14,17 @@ export default function BrandAnalyticsRedirectPage() {
 
   return (
     <PortalLayout title="Brand" nav={brandNav}>
-      <h1 className="font-display text-2xl font-bold tracking-tight text-foreground">Phân tích chuyển hướng mua</h1>
-      <div className="mt-8 grid gap-6 lg:grid-cols-2">
-        <AnalyticsChart title="Click theo kênh" data={data?.redirectClicks || []} />
-        <AnalyticsChart title="Theo thời gian" data={data?.redirectClicks || []} type="line" />
-      </div>
+      <PortalPageHeader
+        title="Phân tích chuyển hướng mua"
+        description="Cột xanh: số lượt click — đường cam: tỷ trọng % trên tổng."
+      />
+      <AnalyticsChart
+        title="Click mua theo kênh"
+        description="Shopee, website và các kênh chuyển hướng khác"
+        data={data?.redirectClicks || []}
+        barLabel="Lượt click"
+        lineLabel="% tổng"
+      />
     </PortalLayout>
   );
 }

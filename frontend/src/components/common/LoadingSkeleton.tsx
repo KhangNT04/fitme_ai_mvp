@@ -1,15 +1,17 @@
 import { Skeleton } from "@/components/ui/skeleton";
 import { catalogProductGridClass } from "@/lib/design-tokens";
+import { cn } from "@/lib/utils";
 
 interface LoadingSkeletonProps {
   count?: number;
   type?: "card" | "list" | "detail";
+  className?: string;
 }
 
-export function LoadingSkeleton({ count = 6, type = "card" }: LoadingSkeletonProps) {
+export function LoadingSkeleton({ count = 6, type = "card", className }: LoadingSkeletonProps) {
   if (type === "detail") {
     return (
-      <div className="space-y-6">
+      <div className={cn("space-y-6", className)}>
         <Skeleton className="h-96 w-full rounded-2xl" />
         <Skeleton className="h-8 w-2/3" />
         <Skeleton className="h-4 w-1/3" />

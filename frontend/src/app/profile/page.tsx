@@ -270,7 +270,7 @@ export default function ProfilePage() {
                   {bodyProfile.skinTone && (
                     <ProfileDetail label="Tông da" value={skinLabel ?? bodyProfile.skinTone} />
                   )}
-                  {bodyProfile.goals?.length > 0 && (
+                  {bodyProfile.goals && bodyProfile.goals.length > 0 && (
                     <ProfileDetail label="Mục tiêu" value={bodyProfile.goals.join(", ")} />
                   )}
                 </dl>
@@ -299,16 +299,16 @@ export default function ProfilePage() {
                   {styleProfile.primaryStyle && (
                     <ProfileDetail label="Phong cách chính" value={styleProfile.primaryStyle} />
                   )}
-                  {styleProfile.secondaryStyles?.length > 0 && (
+                  {styleProfile.secondaryStyles && styleProfile.secondaryStyles.length > 0 && (
                     <ProfileDetail label="Phong cách phụ" value={styleProfile.secondaryStyles.join(", ")} />
                   )}
                   {styleProfile.riskLevel && (
                     <ProfileDetail label="Mức rủi ro" value={riskLabel ?? styleProfile.riskLevel} />
                   )}
-                  {styleProfile.preferredColors?.length > 0 && (
+                  {styleProfile.preferredColors && styleProfile.preferredColors.length > 0 && (
                     <ProfileDetail label="Màu ưa thích" value={styleProfile.preferredColors.join(", ")} />
                   )}
-                  {styleProfile.avoidedColors?.length > 0 && (
+                  {styleProfile.avoidedColors && styleProfile.avoidedColors.length > 0 && (
                     <ProfileDetail label="Màu tránh" value={styleProfile.avoidedColors.join(", ")} />
                   )}
                 </dl>

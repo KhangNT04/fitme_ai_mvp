@@ -81,7 +81,7 @@ function PhotoCheckContent() {
             <PreviewOutfitTray items={previewItems} compact />
             {recommendationId && (
               <Button
-                variant="link"
+                variant="ghost"
                 className="mt-2 h-auto p-0 text-xs"
                 onClick={() => router.push(`/ai/preview-outfit?recommendation=${recommendationId}`)}
               >

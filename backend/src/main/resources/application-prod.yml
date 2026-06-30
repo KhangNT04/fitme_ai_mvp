@@ -1,0 +1,20 @@
+fitme:
+  seed:
+    enabled: false
+  test:
+    expose-reset-tokens: false
+
+springdoc:
+  swagger-ui:
+    enabled: false
+  api-docs:
+    enabled: false
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health
+  endpoint:
+    health:
+      show-details: never

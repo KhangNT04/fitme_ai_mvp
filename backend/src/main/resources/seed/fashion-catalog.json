@@ -1,0 +1,794 @@
+{
+  "version": 4,
+  "images": {
+    "ksh-ao-thun-cotton": [
+      "/catalog/products/ksh-ao-thun-cotton.jpg",
+      "/catalog/products/ksh-ao-thun-cotton.jpg",
+      "/catalog/products/ksh-ao-thun-cotton.jpg"
+    ],
+    "ksh-ao-so-mi-keo": [
+      "/catalog/products/ksh-ao-so-mi-keo.jpg",
+      "/catalog/products/ksh-ao-so-mi-keo.jpg",
+      "/catalog/products/ksh-ao-so-mi-keo.jpg"
+    ],
+    "ksh-cardigan-len": [
+      "/catalog/products/ksh-cardigan-len.jpg",
+      "/catalog/products/ksh-cardigan-len.jpg",
+      "/catalog/products/ksh-cardigan-len.jpg"
+    ],
+    "ksh-quan-jeans-suong": [
+      "/catalog/products/ksh-quan-jeans-suong.jpg",
+      "/catalog/products/ksh-quan-jeans-suong.jpg",
+      "/catalog/products/ksh-quan-jeans-suong.jpg"
+    ],
+    "ksh-quan-kaki-rong": [
+      "/catalog/products/ksh-quan-kaki-rong.jpg",
+      "/catalog/products/ksh-quan-kaki-rong.jpg",
+      "/catalog/products/ksh-quan-kaki-rong.jpg"
+    ],
+    "ksh-chan-vay-a-midi": [
+      "/catalog/products/ksh-chan-vay-a-midi.jpg",
+      "/catalog/products/ksh-chan-vay-a-midi.jpg",
+      "/catalog/products/ksh-chan-vay-a-midi.jpg"
+    ],
+    "ksh-ao-bomber": [
+      "/catalog/products/ksh-ao-bomber.jpg",
+      "/catalog/products/ksh-ao-bomber.jpg",
+      "/catalog/products/ksh-ao-bomber.jpg"
+    ],
+    "ksh-sneaker-canvas": [
+      "/catalog/products/ksh-sneaker-canvas.jpg",
+      "/catalog/products/ksh-sneaker-canvas.jpg",
+      "/catalog/products/ksh-sneaker-canvas.jpg"
+    ],
+    "ksh-loafer-chunky": [
+      "/catalog/products/ksh-loafer-chunky.jpg",
+      "/catalog/products/ksh-loafer-chunky.jpg",
+      "/catalog/products/ksh-loafer-chunky.jpg"
+    ],
+    "ksh-tui-tote": [
+      "/catalog/products/ksh-tui-tote.jpg",
+      "/catalog/products/ksh-tui-tote.jpg",
+      "/catalog/products/ksh-tui-tote.jpg"
+    ],
+    "ksh-khan-len": [
+      "/catalog/products/ksh-khan-len.jpg",
+      "/catalog/products/ksh-khan-len.jpg",
+      "/catalog/products/ksh-khan-len.jpg"
+    ],
+    "ksh-ao-len-co-lo": [
+      "/catalog/products/ksh-ao-len-co-lo.jpg",
+      "/catalog/products/ksh-ao-len-co-lo.jpg",
+      "/catalog/products/ksh-ao-len-co-lo.jpg"
+    ],
+    "lm-ao-so-mi-linen": [
+      "/catalog/products/lm-ao-so-mi-linen.jpg",
+      "/catalog/products/lm-ao-so-mi-linen.jpg",
+      "/catalog/products/lm-ao-so-mi-linen.jpg"
+    ],
+    "lm-ao-tank": [
+      "/catalog/products/lm-ao-tank.jpg",
+      "/catalog/products/lm-ao-tank.jpg",
+      "/catalog/products/lm-ao-tank.jpg"
+    ],
+    "lm-quan-linen-suong": [
+      "/catalog/products/lm-quan-linen-suong.jpg",
+      "/catalog/products/lm-quan-linen-suong.jpg",
+      "/catalog/products/lm-quan-linen-suong.jpg"
+    ],
+    "lm-quan-tay-cotton": [
+      "/catalog/products/lm-quan-tay-cotton.jpg",
+      "/catalog/products/lm-quan-tay-cotton.jpg",
+      "/catalog/products/lm-quan-tay-cotton.jpg"
+    ],
+    "lm-vay-wrap-linen": [
+      "/catalog/products/lm-vay-wrap-linen.jpg",
+      "/catalog/products/lm-vay-wrap-linen.jpg",
+      "/catalog/products/lm-vay-wrap-linen.jpg"
+    ],
+    "lm-vay-slip-satin": [
+      "/catalog/products/lm-vay-slip-satin.jpg",
+      "/catalog/products/lm-vay-slip-satin.jpg",
+      "/catalog/products/lm-vay-slip-satin.jpg"
+    ],
+    "lm-blazer-linen": [
+      "/catalog/products/lm-blazer-linen.jpg",
+      "/catalog/products/lm-blazer-linen.jpg",
+      "/catalog/products/lm-blazer-linen.jpg"
+    ],
+    "lm-cardigan-dai": [
+      "/catalog/products/lm-cardigan-dai.jpg",
+      "/catalog/products/lm-cardigan-dai.jpg",
+      "/catalog/products/lm-cardigan-dai.jpg"
+    ],
+    "lm-sandal-quai-cheo": [
+      "/catalog/products/lm-sandal-quai-cheo.jpg",
+      "/catalog/products/lm-sandal-quai-cheo.jpg",
+      "/catalog/products/lm-sandal-quai-cheo.jpg"
+    ],
+    "lm-sneaker-da-trang": [
+      "/catalog/products/lm-sneaker-da-trang.jpg",
+      "/catalog/products/lm-sneaker-da-trang.jpg",
+      "/catalog/products/lm-sneaker-da-trang.jpg"
+    ],
+    "lm-tui-bucket-da": [
+      "/catalog/products/lm-tui-bucket-da.jpg",
+      "/catalog/products/lm-tui-bucket-da.jpg",
+      "/catalog/products/lm-tui-bucket-da.jpg"
+    ],
+    "lm-khan-linen-riviera": [
+      "/catalog/products/lm-khan-linen-riviera.jpg",
+      "/catalog/products/lm-khan-linen-riviera.jpg",
+      "/catalog/products/lm-khan-linen-riviera.jpg"
+    ],
+    "sb-ao-thun-basic": [
+      "/catalog/products/sb-ao-thun-basic.jpg",
+      "/catalog/products/sb-ao-thun-basic.jpg",
+      "/catalog/products/sb-ao-thun-basic.jpg"
+    ],
+    "sb-ao-hoodie-zip": [
+      "/catalog/products/sb-ao-hoodie-zip.jpg",
+      "/catalog/products/sb-ao-hoodie-zip.jpg",
+      "/catalog/products/sb-ao-hoodie-zip.jpg"
+    ],
+    "sb-ao-len-basic": [
+      "/catalog/products/sb-ao-len-basic.jpg",
+      "/catalog/products/sb-ao-len-basic.jpg",
+      "/catalog/products/sb-ao-len-basic.jpg"
+    ],
+    "sb-quan-jogger-fleece": [
+      "/catalog/products/sb-quan-jogger-fleece.jpg",
+      "/catalog/products/sb-quan-jogger-fleece.jpg",
+      "/catalog/products/sb-quan-jogger-fleece.jpg"
+    ],
+    "sb-quan-jeans-den-slim": [
+      "/catalog/products/sb-quan-jeans-den-slim.jpg",
+      "/catalog/products/sb-quan-jeans-den-slim.jpg",
+      "/catalog/products/sb-quan-jeans-den-slim.jpg"
+    ],
+    "sb-chan-vay-tennis-ly": [
+      "/catalog/products/sb-chan-vay-tennis-ly.jpg",
+      "/catalog/products/sb-chan-vay-tennis-ly.jpg",
+      "/catalog/products/sb-chan-vay-tennis-ly.jpg"
+    ],
+    "sb-vay-hoodie-dress": [
+      "/catalog/products/sb-vay-hoodie-dress.jpg",
+      "/catalog/products/sb-vay-hoodie-dress.jpg",
+      "/catalog/products/sb-vay-hoodie-dress.jpg"
+    ],
+    "sb-ao-khoac-gio": [
+      "/catalog/products/sb-ao-khoac-gio.jpg",
+      "/catalog/products/sb-ao-khoac-gio.jpg",
+      "/catalog/products/sb-ao-khoac-gio.jpg"
+    ],
+    "sb-sneaker-chunky": [
+      "/catalog/products/sb-sneaker-chunky.jpg",
+      "/catalog/products/sb-sneaker-chunky.jpg",
+      "/catalog/products/sb-sneaker-chunky.jpg"
+    ],
+    "sb-giay-slipon-canvas": [
+      "/catalog/products/sb-giay-slipon-canvas.jpg",
+      "/catalog/products/sb-giay-slipon-canvas.jpg",
+      "/catalog/products/sb-giay-slipon-canvas.jpg"
+    ],
+    "sb-balo-mini-nylon": [
+      "/catalog/products/sb-balo-mini-nylon.jpg",
+      "/catalog/products/sb-balo-mini-nylon.jpg",
+      "/catalog/products/sb-balo-mini-nylon.jpg"
+    ],
+    "sb-mu-bucket": [
+      "/catalog/products/sb-mu-bucket.jpg",
+      "/catalog/products/sb-mu-bucket.jpg",
+      "/catalog/products/sb-mu-bucket.jpg"
+    ]
+  },
+  "brands": [
+    {
+      "key": "k-style-house",
+      "name": "K-Style House",
+      "description": "Thương hiệu K-fashion cho giới trẻ đô thị — form thoải mái, màu neutral và layer dễ phối.",
+      "logoUrl": "https://images.unsplash.com/photo-1441986300917-64674bd600d8?auto=format&fit=crop&w=200&h=200&q=80",
+      "contactEmail": "hello@kstyle.vn",
+      "websiteUrl": "https://kstylehouse.vn",
+      "shopeeUrl": "https://shopee.vn/kstylehouse",
+      "products": [
+        {
+          "name": "Áo thun cotton form rộng",
+          "description": "Cotton 240gsm mềm, form oversized Hàn Quốc. Phối quần jeans hoặc chân váy tennis đều hợp.",
+          "category": "Áo",
+          "price": 329000,
+          "material": "Cotton",
+          "fitType": "OVERSIZE",
+          "imageKey": "ksh-ao-thun-cotton",
+          "colors": [
+            "Trắng",
+            "Đen"
+          ],
+          "styleTag": "Korean Casual",
+          "occasionTag": "Dạo phố",
+          "sponsored": false
+        },
+        {
+          "name": "Áo sơ mi kẻ caro Seoul",
+          "description": "Sơ mi kẻ nhỏ tone be & navy, tay dài có thể xắn. Layer trong áo len mỏng mùa thu.",
+          "category": "Áo",
+          "price": 459000,
+          "material": "Cotton pha",
+          "fitType": "REGULAR",
+          "imageKey": "ksh-ao-so-mi-keo",
+          "colors": [
+            "Navy",
+            "Beige"
+          ],
+          "styleTag": "Korean Casual",
+          "occasionTag": "Đi làm",
+          "sponsored": true
+        },
+        {
+          "name": "Cardigan len mỏng cổ tròn",
+          "description": "Len pha mềm, không bí. Màu pastel dễ phối váy midi hoặc quần ống rộng.",
+          "category": "Áo khoác",
+          "price": 549000,
+          "material": "Len pha",
+          "fitType": "RELAXED",
+          "imageKey": "ksh-cardigan-len",
+          "colors": [
+            "Beige",
+            "Olive"
+          ],
+          "styleTag": "Korean Casual",
+          "occasionTag": "Đi cafe",
+          "sponsored": false
+        },
+        {
+          "name": "Quần jeans ống suông wash nhạt",
+          "description": "Denim co giãn nhẹ, cạp cao tôn dáng. Wash nhạt phong cách Seoul street.",
+          "category": "Quần",
+          "price": 589000,
+          "material": "Denim",
+          "fitType": "REGULAR",
+          "imageKey": "ksh-quan-jeans-suong",
+          "colors": [
+            "Xanh nhạt",
+            "Đen"
+          ],
+          "styleTag": "Streetwear",
+          "occasionTag": "Dạo phố",
+          "sponsored": false
+        },
+        {
+          "name": "Quần kaki ống rộng cạp cao",
+          "description": "Kaki cotton dày vừa, ống rộng dáng Hàn. Phối sneaker trắng là chuẩn K-style.",
+          "category": "Quần",
+          "price": 499000,
+          "material": "Cotton",
+          "fitType": "RELAXED",
+          "imageKey": "ksh-quan-kaki-rong",
+          "colors": [
+            "Beige",
+            "Olive"
+          ],
+          "styleTag": "Korean Casual",
+          "occasionTag": "Đi làm",
+          "sponsored": false
+        },
+        {
+          "name": "Chân váy chữ A midi",
+          "description": "Vải twill giữ form, độ dài qua gối. Phối áo thun tuck-in hoặc blazer mỏng.",
+          "category": "Váy",
+          "price": 419000,
+          "material": "Twill",
+          "fitType": "REGULAR",
+          "imageKey": "ksh-chan-vay-a-midi",
+          "colors": [
+            "Đen",
+            "Navy"
+          ],
+          "styleTag": "Minimal",
+          "occasionTag": "Đi làm",
+          "sponsored": true
+        },
+        {
+          "name": "Áo khoác bomber nhẹ",
+          "description": "Bomber form ngắn, lót mỏng. Phù hợp layer mùa giao mùa, phong cách street Hàn.",
+          "category": "Áo khoác",
+          "price": 699000,
+          "material": "Polyester",
+          "fitType": "REGULAR",
+          "imageKey": "ksh-ao-bomber",
+          "colors": [
+            "Đen",
+            "Beige"
+          ],
+          "styleTag": "Streetwear",
+          "occasionTag": "Dạo phố",
+          "sponsored": false
+        },
+        {
+          "name": "Sneaker canvas trắng cổ thấp",
+          "description": "Đế cao su bám tốt, upper canvas thoáng. Item basic không thể thiếu trong tủ đồ K-fashion.",
+          "category": "Giày",
+          "price": 649000,
+          "material": "Canvas",
+          "fitType": "REGULAR",
+          "imageKey": "ksh-sneaker-canvas",
+          "colors": [
+            "Trắng"
+          ],
+          "styleTag": "Korean Casual",
+          "occasionTag": "Dạo phố",
+          "sponsored": false
+        },
+        {
+          "name": "Loafer da nhân tạo đế chunky",
+          "description": "Form vuông Hàn Quốc, đế chunky 3cm. Phối tất dài và chân váy midi.",
+          "category": "Giày",
+          "price": 729000,
+          "material": "Da PU",
+          "fitType": "REGULAR",
+          "imageKey": "ksh-loafer-chunky",
+          "colors": [
+            "Đen",
+            "Nâu"
+          ],
+          "styleTag": "Office",
+          "occasionTag": "Đi làm",
+          "sponsored": false
+        },
+        {
+          "name": "Túi tote canvas logo thêu",
+          "description": "Tote size medium, quai đeo vai. Đựng laptop 13 inch và essentials hằng ngày.",
+          "category": "Phụ kiện",
+          "price": 389000,
+          "material": "Canvas",
+          "fitType": "REGULAR",
+          "imageKey": "ksh-tui-tote",
+          "colors": [
+            "Beige",
+            "Đen"
+          ],
+          "styleTag": "Korean Casual",
+          "occasionTag": "Đi cafe",
+          "sponsored": false
+        },
+        {
+          "name": "Khăn choàng len pha mềm",
+          "description": "Len mỏng không ngứa, size lớn quấn 2 vòng. Tone neutral cho mùa lạnh.",
+          "category": "Phụ kiện",
+          "price": 279000,
+          "material": "Len pha",
+          "fitType": "REGULAR",
+          "imageKey": "ksh-khan-len",
+          "colors": [
+            "Beige",
+            "Xám"
+          ],
+          "styleTag": "Minimal",
+          "occasionTag": "Dạo phố",
+          "sponsored": false
+        },
+        {
+          "name": "Áo len cổ lọ basic",
+          "description": "Len đan mịn ôm nhẹ, không bí cổ. Layer trong blazer hoặc mặc riêng với quần ống rộng.",
+          "category": "Áo",
+          "price": 389000,
+          "material": "Len acrylic",
+          "fitType": "SLIM",
+          "imageKey": "ksh-ao-len-co-lo",
+          "colors": [
+            "Cream",
+            "Đen"
+          ],
+          "styleTag": "Korean Casual",
+          "occasionTag": "Đi cafe",
+          "sponsored": false
+        }
+      ]
+    },
+    {
+      "key": "linen-muse",
+      "name": "Linen Muse",
+      "description": "Tinh thần quiet luxury — linen, cotton organic và tone đất cho ngày thường thanh lịch.",
+      "logoUrl": "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?auto=format&fit=crop&w=200&h=200&q=80",
+      "contactEmail": "hello@linenmuse.vn",
+      "websiteUrl": "https://linenmuse.vn",
+      "shopeeUrl": "https://shopee.vn/linenmuse",
+      "products": [
+        {
+          "name": "Áo sơ mi linen oversized",
+          "description": "100% linen thoáng, form rộng French tuck. Màu đất dễ phối túi wicker và sandal.",
+          "category": "Áo",
+          "price": 689000,
+          "material": "Linen",
+          "fitType": "OVERSIZE",
+          "imageKey": "lm-ao-so-mi-linen",
+          "colors": [
+            "Beige",
+            "Trắng"
+          ],
+          "styleTag": "Minimal",
+          "occasionTag": "Đi cafe",
+          "sponsored": true
+        },
+        {
+          "name": "Áo tank cotton organic",
+          "description": "Cotton GOTS mềm, viền bo gọn. Layer dưới sơ mi linen hoặc blazer unlined.",
+          "category": "Áo",
+          "price": 249000,
+          "material": "Cotton organic",
+          "fitType": "SLIM",
+          "imageKey": "lm-ao-tank",
+          "colors": [
+            "Trắng",
+            "Olive"
+          ],
+          "styleTag": "Minimal",
+          "occasionTag": "Dạo phố",
+          "sponsored": false
+        },
+        {
+          "name": "Quần linen ống suông",
+          "description": "Linen pha giữ form, cạp elastic sau thoải mái. Item must-have mùa hè.",
+          "category": "Quần",
+          "price": 599000,
+          "material": "Linen pha",
+          "fitType": "RELAXED",
+          "imageKey": "lm-quan-linen-suong",
+          "colors": [
+            "Beige",
+            "Trắng"
+          ],
+          "styleTag": "Minimal",
+          "occasionTag": "Đi cafe",
+          "sponsored": false
+        },
+        {
+          "name": "Quần tây cotton mềm",
+          "description": "Cotton stretch mỏng, nếp ly sắc. Phù hợp smart casual không quá formal.",
+          "category": "Quần",
+          "price": 549000,
+          "material": "Cotton stretch",
+          "fitType": "REGULAR",
+          "imageKey": "lm-quan-tay-cotton",
+          "colors": [
+            "Navy",
+            "Beige"
+          ],
+          "styleTag": "Office",
+          "occasionTag": "Đi làm",
+          "sponsored": false
+        },
+        {
+          "name": "Váy wrap linen midi",
+          "description": "Wrap dress linen, buộc eo tôn dáng. Đi biển hoặc brunch đều hợp.",
+          "category": "Váy",
+          "price": 749000,
+          "material": "Linen",
+          "fitType": "REGULAR",
+          "imageKey": "lm-vay-wrap-linen",
+          "colors": [
+            "Beige",
+            "Olive"
+          ],
+          "styleTag": "Minimal",
+          "occasionTag": "Hẹn hò",
+          "sponsored": true
+        },
+        {
+          "name": "Váy satin slip midi",
+          "description": "Satin lụa mờ, dây điều chỉnh. Layer cardigan len cho buổi tối thanh lịch.",
+          "category": "Váy",
+          "price": 629000,
+          "material": "Satin",
+          "fitType": "SLIM",
+          "imageKey": "lm-vay-slip-satin",
+          "colors": [
+            "Champagne",
+            "Đen"
+          ],
+          "styleTag": "Vintage",
+          "occasionTag": "Dự tiệc",
+          "sponsored": false
+        },
+        {
+          "name": "Blazer linen không lót",
+          "description": "Blazer unlined nhẹ, vai tự nhiên. Phối quần linen cùng bộ tone-on-tone.",
+          "category": "Áo khoác",
+          "price": 899000,
+          "material": "Linen pha",
+          "fitType": "RELAXED",
+          "imageKey": "lm-blazer-linen",
+          "colors": [
+            "Beige",
+            "Trắng"
+          ],
+          "styleTag": "Office",
+          "occasionTag": "Đi làm",
+          "sponsored": false
+        },
+        {
+          "name": "Cardigan dài len pha",
+          "description": "Cardigan maxi len mỏng, mặc như áo khoác nhẹ. Tone neutral signature của Linen Muse.",
+          "category": "Áo khoác",
+          "price": 659000,
+          "material": "Len pha",
+          "fitType": "RELAXED",
+          "imageKey": "lm-cardigan-dai",
+          "colors": [
+            "Cream",
+            "Xám"
+          ],
+          "styleTag": "Minimal",
+          "occasionTag": "Đi cafe",
+          "sponsored": false
+        },
+        {
+          "name": "Sandal da flat quai chéo",
+          "description": "Da thật quai chéo, đế cao su êm. Phối váy linen hoặc quần ống suông.",
+          "category": "Giày",
+          "price": 559000,
+          "material": "Da",
+          "fitType": "REGULAR",
+          "imageKey": "lm-sandal-quai-cheo",
+          "colors": [
+            "Nâu",
+            "Đen"
+          ],
+          "styleTag": "Minimal",
+          "occasionTag": "Dạo phố",
+          "sponsored": false
+        },
+        {
+          "name": "Sneaker da trắng minimal",
+          "description": "Upper da mịn, logo ẩn. Sneaker quiet luxury cho office casual.",
+          "category": "Giày",
+          "price": 899000,
+          "material": "Da",
+          "fitType": "REGULAR",
+          "imageKey": "lm-sneaker-da-trang",
+          "colors": [
+            "Trắng"
+          ],
+          "styleTag": "Minimal",
+          "occasionTag": "Đi làm",
+          "sponsored": false
+        },
+        {
+          "name": "Túi bucket da mềm",
+          "description": "Bucket bag da mềm, quai đeo chéo. Đựng phone, ví và son cho ngày thường.",
+          "category": "Phụ kiện",
+          "price": 799000,
+          "material": "Da",
+          "fitType": "REGULAR",
+          "imageKey": "lm-tui-bucket-da",
+          "colors": [
+            "Nâu",
+            "Đen"
+          ],
+          "styleTag": "Minimal",
+          "occasionTag": "Đi cafe",
+          "sponsored": true
+        },
+        {
+          "name": "Khăn linen phong cách Riviera",
+          "description": "Linen mỏng in họa tiết nhẹ, dùng làm khăn cổ hoặc quấn túi.",
+          "category": "Phụ kiện",
+          "price": 319000,
+          "material": "Linen",
+          "fitType": "REGULAR",
+          "imageKey": "lm-khan-linen-riviera",
+          "colors": [
+            "Beige",
+            "Xanh nhạt"
+          ],
+          "styleTag": "Vintage",
+          "occasionTag": "Hẹn hò",
+          "sponsored": false
+        }
+      ]
+    },
+    {
+      "key": "seoul-basic",
+      "name": "Seoul Basic",
+      "description": "Basics chất lượng giá tốt — tee, hoodie và quần jogger theo trend Seoul daily wear.",
+      "logoUrl": "https://images.unsplash.com/photo-1489987707025-afc232f7ea0f?auto=format&fit=crop&w=200&h=200&q=80",
+      "contactEmail": "hello@seoulbasic.vn",
+      "websiteUrl": "https://seoulbasic.vn",
+      "shopeeUrl": "https://shopee.vn/seoulbasic",
+      "products": [
+        {
+          "name": "Áo thun basic cổ tròn",
+          "description": "Cotton compact 220gsm, form regular fit. Có đủ bảng màu basic để mix capsule wardrobe.",
+          "category": "Áo",
+          "price": 199000,
+          "material": "Cotton",
+          "fitType": "REGULAR",
+          "imageKey": "sb-ao-thun-basic",
+          "colors": [
+            "Trắng",
+            "Đen",
+            "Xám"
+          ],
+          "styleTag": "Korean Casual",
+          "occasionTag": "Dạo phố",
+          "sponsored": false
+        },
+        {
+          "name": "Áo nỉ hoodie zip mỏng",
+          "description": "Nỉ bông mỏng, zip full. Layer trong áo khoác gió hoặc mặc riêng mùa thu.",
+          "category": "Áo khoác",
+          "price": 449000,
+          "material": "Cotton nỉ",
+          "fitType": "RELAXED",
+          "imageKey": "sb-ao-hoodie-zip",
+          "colors": [
+            "Xám",
+            "Đen"
+          ],
+          "styleTag": "Streetwear",
+          "occasionTag": "Dạo phố",
+          "sponsored": true
+        },
+        {
+          "name": "Áo len cổ tròn basic",
+          "description": "Len acrylic mịn, giá tốt. Màu earth tone dễ phối theo phong cách Seoul daily.",
+          "category": "Áo",
+          "price": 299000,
+          "material": "Len acrylic",
+          "fitType": "REGULAR",
+          "imageKey": "sb-ao-len-basic",
+          "colors": [
+            "Beige",
+            "Navy"
+          ],
+          "styleTag": "Korean Casual",
+          "occasionTag": "Đi cafe",
+          "sponsored": false
+        },
+        {
+          "name": "Quần jogger cotton fleece",
+          "description": "Jogger nỉ bông trong, bo gấu. Comfort wear trend Hàn Quốc, phối sneaker chunky.",
+          "category": "Quần",
+          "price": 379000,
+          "material": "Cotton fleece",
+          "fitType": "RELAXED",
+          "imageKey": "sb-quan-jogger-fleece",
+          "colors": [
+            "Xám",
+            "Đen"
+          ],
+          "styleTag": "Streetwear",
+          "occasionTag": "Dạo phố",
+          "sponsored": false
+        },
+        {
+          "name": "Quần jeans đen slim",
+          "description": "Denim đen wash solid, form slim không quá chật. Basic đi học, đi làm đều được.",
+          "category": "Quần",
+          "price": 429000,
+          "material": "Denim",
+          "fitType": "SLIM",
+          "imageKey": "sb-quan-jeans-den-slim",
+          "colors": [
+            "Đen"
+          ],
+          "styleTag": "Korean Casual",
+          "occasionTag": "Đi làm",
+          "sponsored": false
+        },
+        {
+          "name": "Chân váy tennis xếp ly",
+          "description": "Vải polyester giữ ly, dài trên gối. Phối áo thun tuck-in kiểu preppy Seoul.",
+          "category": "Váy",
+          "price": 349000,
+          "material": "Polyester",
+          "fitType": "REGULAR",
+          "imageKey": "sb-chan-vay-tennis-ly",
+          "colors": [
+            "Đen",
+            "Navy"
+          ],
+          "styleTag": "Korean Casual",
+          "occasionTag": "Đi cafe",
+          "sponsored": false
+        },
+        {
+          "name": "Váy hoodie dress",
+          "description": "Hoodie dress cotton nỉ, túi kangaroo. Streetwear nữ tính kiểu Hongdae.",
+          "category": "Váy",
+          "price": 399000,
+          "material": "Cotton nỉ",
+          "fitType": "OVERSIZE",
+          "imageKey": "sb-vay-hoodie-dress",
+          "colors": [
+            "Xám",
+            "Beige"
+          ],
+          "styleTag": "Streetwear",
+          "occasionTag": "Dạo phố",
+          "sponsored": true
+        },
+        {
+          "name": "Áo khoác gió chống nước",
+          "description": "Vải nylon mỏng, gấp gọn túi. Essential cho commute và du lịch cuối tuần.",
+          "category": "Áo khoác",
+          "price": 499000,
+          "material": "Nylon",
+          "fitType": "REGULAR",
+          "imageKey": "sb-ao-khoac-gio",
+          "colors": [
+            "Đen",
+            "Beige"
+          ],
+          "styleTag": "Streetwear",
+          "occasionTag": "Dạo phố",
+          "sponsored": false
+        },
+        {
+          "name": "Sneaker chunky đế cao",
+          "description": "Đế 4cm trend dad shoe, upper pha da & mesh. Điểm nhấn cho outfit basic.",
+          "category": "Giày",
+          "price": 559000,
+          "material": "Da PU",
+          "fitType": "REGULAR",
+          "imageKey": "sb-sneaker-chunky",
+          "colors": [
+            "Trắng",
+            "Beige"
+          ],
+          "styleTag": "Streetwear",
+          "occasionTag": "Dạo phố",
+          "sponsored": false
+        },
+        {
+          "name": "Giày slip-on canvas",
+          "description": "Slip-on tiện lợi, đế cao su bền. Mang nhanh cho ngày bận rộn.",
+          "category": "Giày",
+          "price": 329000,
+          "material": "Canvas",
+          "fitType": "REGULAR",
+          "imageKey": "sb-giay-slipon-canvas",
+          "colors": [
+            "Đen",
+            "Trắng"
+          ],
+          "styleTag": "Korean Casual",
+          "occasionTag": "Đi cafe",
+          "sponsored": false
+        },
+        {
+          "name": "Balo mini nylon",
+          "description": "Balo size mini, nhiều ngăn. Phong cách học sinh đại học Seoul.",
+          "category": "Phụ kiện",
+          "price": 359000,
+          "material": "Nylon",
+          "fitType": "REGULAR",
+          "imageKey": "sb-balo-mini-nylon",
+          "colors": [
+            "Đen",
+            "Navy"
+          ],
+          "styleTag": "Streetwear",
+          "occasionTag": "Dạo phố",
+          "sponsored": false
+        },
+        {
+          "name": "Mũ bucket reversible",
+          "description": "Bucket hai mặt màu, cotton canvas. Phụ kiện streetwear giá học sinh.",
+          "category": "Phụ kiện",
+          "price": 179000,
+          "material": "Canvas",
+          "fitType": "REGULAR",
+          "imageKey": "sb-mu-bucket",
+          "colors": [
+            "Beige",
+            "Đen"
+          ],
+          "styleTag": "Streetwear",
+          "occasionTag": "Dạo phố",
+          "sponsored": false
+        }
+      ]
+    }
+  ]
+}

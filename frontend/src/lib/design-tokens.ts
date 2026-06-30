@@ -16,3 +16,13 @@ export const catalogProductRowItemClass =
   "w-[10.75rem] shrink-0 snap-start sm:w-48 md:w-[14.25rem] lg:w-[15rem]";
 /** Vertical padding aligned with discover / try-on catalog pages */
 export const consumerPageShellClass = "py-3 sm:py-5";
+
+/** Brand / admin portal shell */
+export const portalContentClass = "min-w-0 flex-1 space-y-6";
+export const portalTableShellClass =
+  "hidden overflow-x-auto rounded-2xl border border-border/60 bg-card md:block";
+export const portalCardListClass = "space-y-3 md:hidden";
+export const portalCardClass =
+  "rounded-2xl border border-border/60 bg-card p-4 shadow-sm";
+export const portalCardRowClass = "flex items-start justify-between gap-3";
+export const portalCardActionsClass = "mt-3 flex flex-wrap gap-2";

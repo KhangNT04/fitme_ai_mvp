@@ -12,7 +12,7 @@ describe("useAuthStore", () => {
   });
 
   it("setAuth stores user and tokens", () => {
-    const user = { id: "u1", email: "a@b.com", displayName: "A", role: "USER" as const, emailVerified: true };
+    const user = { id: "u1", email: "a@b.com", fullName: "A", role: "USER" as const, emailVerified: true };
     useAuthStore.getState().setAuth(user, "access", "refresh");
     const state = useAuthStore.getState();
     expect(state.user?.email).toBe("a@b.com");
@@ -21,7 +21,7 @@ describe("useAuthStore", () => {
   });
 
   it("clearAuth resets state", () => {
-    const user = { id: "u1", email: "a@b.com", displayName: "A", role: "USER" as const, emailVerified: true };
+    const user = { id: "u1", email: "a@b.com", fullName: "A", role: "USER" as const, emailVerified: true };
     useAuthStore.getState().setAuth(user, "access", "refresh");
     useAuthStore.getState().clearAuth();
     expect(useAuthStore.getState().isAuthenticated()).toBe(false);
@@ -29,7 +29,7 @@ describe("useAuthStore", () => {
 
   it("isBrand and isAdmin reflect role", () => {
     useAuthStore.getState().setAuth(
-      { id: "b1", email: "b@b.com", displayName: "B", role: "BRAND", emailVerified: true },
+      { id: "b1", email: "b@b.com", fullName: "B", role: "BRAND", emailVerified: true },
       "t",
       "r"
     );

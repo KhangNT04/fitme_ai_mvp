@@ -1,12 +1,21 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
+import { resolvePortalRole } from "@/lib/portal-auth";
 
 const PUBLIC_BRAND_PATHS = ["/brand/login", "/brand/onboarding", "/brand/pending"];
 const PUBLIC_ADMIN_PATHS = ["/admin/login"];
 
-export function middleware(request: NextRequest) {
+export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
-  const role = request.cookies.get("fitme-role")?.value;
+  const role = await resolvePortalRole(request);
+
+  if (pathname === "/admin/login" && role === "ADMIN") {
+    return NextResponse.redirect(new URL("/admin/dashboard", request.url));
+  }
+
+  if (pathname === "/brand/login" && role === "BRAND") {
+    return NextResponse.redirect(new URL("/brand/dashboard", request.url));
+  }
 
   if (pathname.startsWith("/admin") && !PUBLIC_ADMIN_PATHS.includes(pathname)) {
     if (role !== "ADMIN") {

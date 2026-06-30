@@ -1,8 +1,8 @@
 import { type Page } from "@playwright/test";
 
 const SAMPLE_IMAGES = [
-  "https://picsum.photos/seed/fitme-e2e-main/400/500",
-  "https://picsum.photos/seed/fitme-e2e-detail/400/500",
+  "https://images.unsplash.com/photo-1594938298603-c8148c4dae35?auto=format&fit=crop&w=800&h=1000&q=80",
+  "https://images.unsplash.com/photo-1620799140408-edc6dcb6d633?auto=format&fit=crop&w=800&h=1000&q=80",
 ].join("\n");
 
 export async function fillBrandProductForm(

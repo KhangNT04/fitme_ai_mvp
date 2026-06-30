@@ -38,20 +38,20 @@ const features = [
 
 const MARQUEE_ITEMS = [
   "K-Fashion",
-  "Smart Fit",
+  "Linen Muse",
+  "Seoul Basic",
   "AI Styling",
   "Try Before Buy",
-  "Size Perfect",
   "New Season",
-  "Editorial Look",
-  "Wardrobe Mix",
+  "Office Chic",
+  "Weekend Edit",
 ];
 
 const LOOKBOOK = [
   {
     label: "Office Chic",
     image: "/collections/office-chic.jpg",
-    imageAlt: "Office Chic — phong cách công sở thanh lịch",
+    imageAlt: "Office Chic — blazer linen và quần tây thanh lịch",
     gradient: "from-slate-900/40 via-violet-950/20 to-fuchsia-900/30",
     rotate: "-rotate-3",
     z: "z-10",
@@ -60,7 +60,7 @@ const LOOKBOOK = [
   {
     label: "Weekend Casual",
     image: "/collections/weekend-casual.jpg",
-    imageAlt: "Weekend Casual — phong cách cuối tuần thoải mái",
+    imageAlt: "Weekend Casual — street style cuối tuần",
     gradient: "from-rose-900/35 via-pink-900/15 to-violet-900/25",
     rotate: "rotate-2",
     z: "z-20 -mt-16 ml-8",
@@ -69,7 +69,7 @@ const LOOKBOOK = [
   {
     label: "Evening Edit",
     image: "/collections/evening-edit.jpg",
-    imageAlt: "Evening Edit — phong cách buổi tối sang trọng",
+    imageAlt: "Evening Edit — váy tối và phụ kiện sang trọng",
     gradient: "from-indigo-950/50 via-purple-900/30 to-rose-900/35",
     rotate: "rotate-6",
     z: "z-30 -mt-20 ml-4",
@@ -90,7 +90,16 @@ export default function HomePage() {
     <div className="overflow-hidden">
       {/* Hero — editorial split */}
       <section className="editorial-hero relative min-h-[70vh] sm:min-h-[88vh] lg:min-h-[92vh]">
-        <div className="absolute inset-0 bg-gradient-to-br from-violet-100/40 via-transparent to-pink-100/30" />
+        <Image
+          src="/home-hero-bg.jpg"
+          alt=""
+          fill
+          priority
+          className="object-cover object-top"
+          sizes="100vw"
+        />
+        <div className="absolute inset-0 bg-gradient-to-br from-white/90 via-white/75 to-violet-100/60" />
+        <div className="absolute inset-0 bg-gradient-to-t from-white/40 via-transparent to-white/20" />
         <div className="relative mx-auto grid max-w-7xl items-center gap-12 px-4 py-16 sm:px-6 lg:grid-cols-2 lg:py-24">
           <div className="relative z-10">
             <Badge variant="ai" className="animate-fade-up mb-5 shadow-md">

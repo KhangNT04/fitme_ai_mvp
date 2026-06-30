@@ -30,7 +30,7 @@ function startsWithAny(pathname: string, prefixes: string[]): boolean {
   return prefixes.some((p) => pathname === p || pathname.startsWith(p + "/"));
 }
 
-function isPortalRoute(pathname: string): boolean {
+export function isPortalRoute(pathname: string): boolean {
   return PORTAL_PREFIXES.some((p) => pathname.startsWith(p));
 }
 

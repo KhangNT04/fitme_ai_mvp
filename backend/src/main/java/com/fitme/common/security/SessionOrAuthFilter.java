@@ -34,13 +34,16 @@ public class SessionOrAuthFilter extends OncePerRequestFilter {
             Pattern.compile("^/api/v1/redirects(/.*)?$"),
             Pattern.compile("^/api/v1/sessions/link-to-user$")
     );
+    private static final List<Pattern> PROTECTED_READ_PATTERNS = List.of(
+            Pattern.compile("^/api/v1/redirects/[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$")
+    );
 
     private final ObjectMapper objectMapper;
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
-        if (!WRITE_METHODS.contains(request.getMethod()) || !requiresProtection(request.getRequestURI())) {
+        if (!requiresAuth(request.getMethod(), request.getRequestURI())) {
             filterChain.doFilter(request, response);
             return;
         }
@@ -56,8 +59,14 @@ public class SessionOrAuthFilter extends OncePerRequestFilter {
                 ApiResponse.fail("Yêu cầu đăng nhập hoặc session ẩn danh")));
     }
 
-    private boolean requiresProtection(String uri) {
-        return PROTECTED_WRITE_PATTERNS.stream().anyMatch(p -> p.matcher(uri).matches());
+    private boolean requiresAuth(String method, String uri) {
+        if (WRITE_METHODS.contains(method)) {
+            return PROTECTED_WRITE_PATTERNS.stream().anyMatch(p -> p.matcher(uri).matches());
+        }
+        if ("GET".equals(method)) {
+            return PROTECTED_READ_PATTERNS.stream().anyMatch(p -> p.matcher(uri).matches());
+        }
+        return false;
     }
 
     private boolean hasAuthenticatedUser() {

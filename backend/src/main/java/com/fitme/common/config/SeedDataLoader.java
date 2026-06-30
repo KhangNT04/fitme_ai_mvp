@@ -9,8 +9,8 @@ import com.fitme.auth.repository.UserAccountRepository;
 import com.fitme.brand.entity.Brand;
 import com.fitme.brand.repository.BrandRepository;
 import com.fitme.common.enums.*;
-import com.fitme.product.entity.*;
-import com.fitme.product.repository.*;
+import com.fitme.product.entity.Product;
+import com.fitme.product.repository.ProductRepository;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -21,7 +21,6 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -32,26 +31,16 @@ import java.util.UUID;
 public class SeedDataLoader implements CommandLineRunner {
 
     private static final Logger log = LoggerFactory.getLogger(SeedDataLoader.class);
-    private static final String DEMO_PRODUCT_PREFIX = "Sản phẩm demo ";
-
-    private static final String[] CATEGORIES = {
-            "Áo", "Áo", "Quần", "Quần", "Váy", "Áo khoác", "Giày", "Phụ kiện"
-    };
-    private static final String[] STYLES = {"Korean Casual", "Minimal", "Streetwear", "Office", "Vintage"};
-    private static final String[] OCCASIONS = {"Đi cafe", "Đi làm", "Dạo phố", "Hẹn hò", "Dự tiệc"};
-    private static final String[] COLORS = {"Đen", "Trắng", "Navy", "Beige", "Olive"};
-    private static final String[] SIZES = {"S", "M", "L", "XL"};
+    private static final String LEGACY_DEMO_PREFIX = "Sản phẩm demo ";
 
     private final UserAccountRepository userRepository;
     private final BrandRepository brandRepository;
     private final ProductRepository productRepository;
-    private final ProductImageRepository imageRepository;
-    private final ProductVariantRepository variantRepository;
-    private final ProductTagRepository tagRepository;
-    private final SizeChartRepository sizeChartRepository;
     private final StyleRuleRepository styleRuleRepository;
     private final OccasionRuleRepository occasionRuleRepository;
     private final PasswordEncoder passwordEncoder;
+    private final FashionCatalogLoader fashionCatalogLoader;
+    private final FashionCatalogSeeder fashionCatalogSeeder;
 
     @Value("${fitme.seed.admin-email:admin@fitme.ai}")
     private String adminEmail;
@@ -71,11 +60,8 @@ public class SeedDataLoader implements CommandLineRunner {
     @Value("${fitme.seed.top-up-enabled:true}")
     private boolean topUpEnabled;
 
-    @Value("${fitme.seed.products-per-brand:18}")
-    private int productsPerBrand;
-
-    @Value("${fitme.seed.min-active-products:36}")
-    private int minActiveProducts;
+    @Value("${fitme.seed.fashion-catalog-refresh:true}")
+    private boolean fashionCatalogRefresh;
 
     @Override
     @Transactional
@@ -96,7 +82,7 @@ public class SeedDataLoader implements CommandLineRunner {
     }
 
     private void seedFreshDatabase() {
-        log.info("Seeding FitMe AI demo data (fresh database)...");
+        log.info("Seeding FitMe fashion catalog (fresh database)...");
 
         userRepository.save(UserAccount.builder()
                 .email(adminEmail)
@@ -110,7 +96,7 @@ public class SeedDataLoader implements CommandLineRunner {
         UserAccount brandOwner = userRepository.save(UserAccount.builder()
                 .email(brandEmail)
                 .passwordHash(passwordEncoder.encode(seedPassword))
-                .displayName("Brand Owner")
+                .displayName("FitMe Editorial")
                 .role(UserRole.BRAND_OWNER)
                 .emailVerified(true)
                 .status(UserStatus.ACTIVE)
@@ -119,91 +105,66 @@ public class SeedDataLoader implements CommandLineRunner {
         userRepository.save(UserAccount.builder()
                 .email(userEmail)
                 .passwordHash(passwordEncoder.encode(seedPassword))
-                .displayName("Demo User")
+                .displayName("Minh Anh")
                 .role(UserRole.USER)
                 .emailVerified(true)
                 .status(UserStatus.ACTIVE)
                 .build());
 
-        Brand kStyle = ensureApprovedBrand(
-                brandOwner.getId(),
-                "K-Style House",
-                "Thương hiệu thời trang Korean casual",
-                "brand-kstyle",
-                "hello@kstyle.vn");
-        Brand linenMuse = ensureApprovedBrand(
-                brandOwner.getId(),
-                "Linen Muse",
-                "Minimal linen & neutral tones",
-                "brand-linen",
-                "hello@linenmuse.vn");
-        Brand seoulBasic = ensureApprovedBrand(
-                brandOwner.getId(),
-                "Seoul Basic",
-                "Basics Hàn Quốc giá tốt",
-                "brand-seoul",
-                "hello@seoulbasic.vn");
+        int totalProducts = 0;
+        for (FashionCatalogLoader.BrandEntry entry : fashionCatalogLoader.load().brands) {
+            Brand brand = ensureApprovedBrand(brandOwner.getId(), entry);
+            totalProducts += fashionCatalogSeeder.seedBrandCatalog(brand, entry);
+        }
 
         brandRepository.save(Brand.builder()
                 .name("Urban Threads")
-                .description("Streetwear đang chờ duyệt")
+                .description("Streetwear đường phố — đang chờ duyệt từ ban biên tập FitMe.")
+                .logoUrl("https://images.unsplash.com/photo-1556821840-3a63f95609a7?auto=format&fit=crop&w=200&h=200&q=80")
                 .status(BrandStatus.PENDING)
                 .contactEmail("pending@urban.vn")
                 .build());
 
-        int seq = 1;
-        seq = seedProductsForBrand(kStyle, seq, 0);
-        seq = seedProductsForBrand(linenMuse, seq, 5);
-        seq = seedProductsForBrand(seoulBasic, seq, 11);
-
         seedRulesIfEmpty();
 
         log.info(
-                "Seed complete: {} demo products across 3 brands. Admin: {} / {}",
-                seq - 1,
+                "Seed complete: {} fashion products across {} brands. Admin: {} / {}",
+                totalProducts,
+                fashionCatalogLoader.load().brands.size(),
                 adminEmail,
                 seedPassword);
     }
 
     private void repairAndTopUpCatalog() {
-        reactivateDemoProducts();
-        ensureDemoBrandsExist();
+        reactivateLegacyDemoProducts();
+        ensureFashionBrandsExist();
 
-        List<Brand> approvedBrands = brandRepository.findByStatus(BrandStatus.APPROVED);
-        if (approvedBrands.isEmpty()) {
-            log.warn("No approved brands — skip catalog top-up");
-            return;
+        if (fashionCatalogRefresh) {
+            refreshFashionCatalog();
         }
 
         int activeCount = productRepository.findByStatus(ProductStatus.ACTIVE).size();
-        if (activeCount >= minActiveProducts) {
-            log.debug("Catalog OK: {} active products (min {})", activeCount, minActiveProducts);
-            return;
-        }
-
-        log.info("Top-up demo catalog: {} active products, target at least {}", activeCount, minActiveProducts);
-
-        int seq = (int) productRepository.count() + 1;
-        int brandIndex = 0;
-        for (Brand brand : approvedBrands) {
-            long activeForBrand = productRepository.findByBrandIdAndStatus(brand.getId(), ProductStatus.ACTIVE).size();
-            int need = Math.max(0, productsPerBrand - (int) activeForBrand);
-            if (need > 0) {
-                log.info("Adding {} products for brand {}", need, brand.getName());
-                seq = seedProductsForBrand(brand, seq, brandIndex * 3, need);
-            }
-            brandIndex++;
-        }
-
-        int after = productRepository.findByStatus(ProductStatus.ACTIVE).size();
-        log.info("Catalog top-up done: {} active products", after);
+        log.info("Catalog status: {} active products", activeCount);
     }
 
-    private void reactivateDemoProducts() {
+    private void refreshFashionCatalog() {
+        FashionCatalogLoader.FashionCatalog catalog = fashionCatalogLoader.load();
+        userRepository.findByEmail(brandEmail).ifPresent(owner -> {
+            for (FashionCatalogLoader.BrandEntry entry : catalog.brands) {
+                Brand brand = ensureApprovedBrand(owner.getId(), entry);
+                if (fashionCatalogSeeder.needsFashionRefresh(brand, entry)) {
+                    log.info("Refreshing fashion catalog for brand {}", brand.getName());
+                    fashionCatalogSeeder.syncBrandCatalog(brand, entry);
+                }
+            }
+        });
+    }
+
+    private void reactivateLegacyDemoProducts() {
         int reactivated = 0;
         for (ProductStatus status : List.of(ProductStatus.PENDING_REVIEW, ProductStatus.DRAFT, ProductStatus.INACTIVE)) {
             for (Product product : productRepository.findByStatus(status)) {
-                if (!product.getName().startsWith(DEMO_PRODUCT_PREFIX)) {
+                if (!product.getName().startsWith(LEGACY_DEMO_PREFIX)) {
                     continue;
                 }
                 if (!isApprovedBrand(product.getBrandId())) {
@@ -216,30 +177,15 @@ public class SeedDataLoader implements CommandLineRunner {
             }
         }
         if (reactivated > 0) {
-            log.info("Reactivated {} demo products", reactivated);
+            log.info("Reactivated {} legacy demo products (will be replaced on fashion refresh)", reactivated);
         }
     }
 
-    private void ensureDemoBrandsExist() {
+    private void ensureFashionBrandsExist() {
         userRepository.findByEmail(brandEmail).ifPresent(owner -> {
-            ensureApprovedBrand(
-                    owner.getId(),
-                    "K-Style House",
-                    "Thương hiệu thời trang Korean casual",
-                    "brand-kstyle",
-                    "hello@kstyle.vn");
-            ensureApprovedBrand(
-                    owner.getId(),
-                    "Linen Muse",
-                    "Minimal linen & neutral tones",
-                    "brand-linen",
-                    "hello@linenmuse.vn");
-            ensureApprovedBrand(
-                    owner.getId(),
-                    "Seoul Basic",
-                    "Basics Hàn Quốc giá tốt",
-                    "brand-seoul",
-                    "hello@seoulbasic.vn");
+            for (FashionCatalogLoader.BrandEntry entry : fashionCatalogLoader.load().brands) {
+                ensureApprovedBrand(owner.getId(), entry);
+            }
         });
     }
 
@@ -249,137 +195,53 @@ public class SeedDataLoader implements CommandLineRunner {
                 .orElse(false);
     }
 
-    private Brand ensureApprovedBrand(
-            UUID ownerUserId, String name, String description, String logoSeed, String contactEmail) {
-        Optional<Brand> existing = brandRepository.findByName(name);
+    private Brand ensureApprovedBrand(UUID ownerUserId, FashionCatalogLoader.BrandEntry entry) {
+        Optional<Brand> existing = brandRepository.findByName(entry.name);
         if (existing.isPresent()) {
             Brand brand = existing.get();
+            brand.setDescription(entry.description);
+            brand.setLogoUrl(entry.logoUrl);
+            brand.setWebsiteUrl(entry.websiteUrl);
+            brand.setShopeeUrl(entry.shopeeUrl);
+            brand.setContactEmail(entry.contactEmail);
             if (brand.getStatus() != BrandStatus.APPROVED) {
                 brand.setStatus(BrandStatus.APPROVED);
-                brand.setOwnerUserId(ownerUserId);
-                return brandRepository.save(brand);
             }
-            return brand;
+            if (brand.getOwnerUserId() == null) {
+                brand.setOwnerUserId(ownerUserId);
+            }
+            return brandRepository.save(brand);
         }
         return brandRepository.save(Brand.builder()
                 .ownerUserId(ownerUserId)
-                .name(name)
-                .description(description)
-                .logoUrl("https://picsum.photos/seed/" + logoSeed + "/200/200")
-                .websiteUrl("https://example.com/" + logoSeed)
-                .shopeeUrl("https://shopee.vn/" + logoSeed)
+                .name(entry.name)
+                .description(entry.description)
+                .logoUrl(entry.logoUrl)
+                .websiteUrl(entry.websiteUrl)
+                .shopeeUrl(entry.shopeeUrl)
                 .status(BrandStatus.APPROVED)
-                .contactEmail(contactEmail)
+                .contactEmail(entry.contactEmail)
                 .build());
-    }
-
-    private int seedProductsForBrand(Brand brand, int startSeq, int categoryOffset) {
-        return seedProductsForBrand(brand, startSeq, categoryOffset, productsPerBrand);
-    }
-
-    private int seedProductsForBrand(Brand brand, int startSeq, int categoryOffset, int count) {
-        int seq = startSeq;
-        for (int i = 0; i < count; i++) {
-            createDemoProduct(brand, seq, categoryOffset + i);
-            seq++;
-        }
-        return seq;
-    }
-
-    private void createDemoProduct(Brand brand, int seq, int categoryIndex) {
-        String category = CATEGORIES[categoryIndex % CATEGORIES.length];
-        Product product = productRepository.save(Product.builder()
-                .brandId(brand.getId())
-                .name(DEMO_PRODUCT_PREFIX + seq + " - " + category)
-                .description("Mô tả sản phẩm demo số " + seq + " — " + brand.getName())
-                .category(category)
-                .price(BigDecimal.valueOf(150000 + (long) seq * 25000L))
-                .material("Cotton")
-                .fitType(FitPreference.REGULAR)
-                .purchaseUrl("https://shopee.vn/demo-product-" + seq)
-                .purchaseChannel(PurchaseChannel.SHOPEE)
-                .stockStatus(StockStatus.IN_STOCK)
-                .status(ProductStatus.ACTIVE)
-                .isSponsored(seq % 5 == 0)
-                .aiTryOnEligible(true)
-                .build());
-
-        String imageSeed = product.getId().toString();
-        imageRepository.save(ProductImage.builder()
-                .productId(product.getId())
-                .imageUrl("https://picsum.photos/seed/" + imageSeed + "-main/400/500")
-                .imageType("MAIN")
-                .sortOrder(0)
-                .build());
-        imageRepository.save(ProductImage.builder()
-                .productId(product.getId())
-                .imageUrl("https://picsum.photos/seed/" + imageSeed + "-detail1/400/500")
-                .imageType("DETAIL")
-                .sortOrder(1)
-                .build());
-        imageRepository.save(ProductImage.builder()
-                .productId(product.getId())
-                .imageUrl("https://picsum.photos/seed/" + imageSeed + "-detail2/400/500")
-                .imageType("DETAIL")
-                .sortOrder(2)
-                .build());
-
-        for (String size : SIZES) {
-            for (String color : new String[]{COLORS[seq % COLORS.length], COLORS[(seq + 1) % COLORS.length]}) {
-                variantRepository.save(ProductVariant.builder()
-                        .productId(product.getId())
-                        .colorName(color)
-                        .colorHex("#333333")
-                        .sizeLabel(size)
-                        .sku("SKU-" + seq + "-" + size + "-" + color.charAt(0))
-                        .stockStatus(StockStatus.IN_STOCK)
-                        .build());
-            }
-        }
-
-        tagRepository.save(ProductTag.builder()
-                .productId(product.getId())
-                .tagType("STYLE")
-                .tagValue(STYLES[seq % STYLES.length])
-                .build());
-        tagRepository.save(ProductTag.builder()
-                .productId(product.getId())
-                .tagType("OCCASION")
-                .tagValue(OCCASIONS[seq % OCCASIONS.length])
-                .build());
-        tagRepository.save(ProductTag.builder()
-                .productId(product.getId())
-                .tagType("COLOR")
-                .tagValue(COLORS[seq % COLORS.length])
-                .build());
-
-        for (String size : SIZES) {
-            sizeChartRepository.save(SizeChart.builder()
-                    .productId(product.getId())
-                    .sizeLabel(size)
-                    .chestCm(BigDecimal.valueOf(90 + SIZES.length))
-                    .waistCm(BigDecimal.valueOf(70 + SIZES.length))
-                    .hipCm(BigDecimal.valueOf(92 + SIZES.length))
-                    .heightMinCm(155)
-                    .heightMaxCm(185)
-                    .weightMinKg(BigDecimal.valueOf(45))
-                    .weightMaxKg(BigDecimal.valueOf(85))
-                    .build());
-        }
     }
 
     private void seedRulesIfEmpty() {
         if (styleRuleRepository.count() == 0) {
             styleRuleRepository.save(StyleRule.builder()
                     .name("Korean Casual")
-                    .description("Phong cách Hàn Quốc nhẹ nhàng")
-                    .keywords(List.of("korean", "casual", "minimal"))
+                    .description("Phong cách Hàn Quốc nhẹ nhàng, layer thoải mái")
+                    .keywords(List.of("korean", "casual", "minimal", "oversized"))
                     .active(true)
                     .build());
             styleRuleRepository.save(StyleRule.builder()
                     .name("Streetwear")
-                    .description("Đường phố năng động")
-                    .keywords(List.of("street", "oversize", "bold"))
+                    .description("Đường phố năng động, sneaker và hoodie")
+                    .keywords(List.of("street", "oversize", "bold", "chunky"))
+                    .active(true)
+                    .build());
+            styleRuleRepository.save(StyleRule.builder()
+                    .name("Minimal")
+                    .description("Tối giản, neutral tone và chất liệu tự nhiên")
+                    .keywords(List.of("minimal", "linen", "neutral", "quiet"))
                     .active(true)
                     .build());
         }
@@ -387,14 +249,20 @@ public class SeedDataLoader implements CommandLineRunner {
         if (occasionRuleRepository.count() == 0) {
             occasionRuleRepository.save(OccasionRule.builder()
                     .name("Đi cafe")
-                    .description("Outfit thoải mái cho cafe")
-                    .keywords(List.of("cafe", "casual", "nhẹ"))
+                    .description("Outfit thoải mái cho cafe và brunch")
+                    .keywords(List.of("cafe", "casual", "nhẹ", "brunch"))
                     .active(true)
                     .build());
             occasionRuleRepository.save(OccasionRule.builder()
                     .name("Đi làm")
-                    .description("Trang phục công sở")
-                    .keywords(List.of("office", "formal", "gọn"))
+                    .description("Smart casual và công sở thanh lịch")
+                    .keywords(List.of("office", "formal", "gọn", "blazer"))
+                    .active(true)
+                    .build());
+            occasionRuleRepository.save(OccasionRule.builder()
+                    .name("Dự tiệc")
+                    .description("Tối sang trọng, satin và phụ kiện tinh tế")
+                    .keywords(List.of("party", "evening", "dress", "satin"))
                     .active(true)
                     .build());
         }

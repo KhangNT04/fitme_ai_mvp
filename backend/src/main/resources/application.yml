@@ -39,6 +39,7 @@ fitme:
     top-up-enabled: ${FITME_SEED_TOP_UP:true}
     products-per-brand: ${FITME_SEED_PRODUCTS_PER_BRAND:18}
     min-active-products: ${FITME_SEED_MIN_ACTIVE_PRODUCTS:36}
+    fashion-catalog-refresh: ${FITME_SEED_FASHION_REFRESH:true}
   privacy:
     version: "2026-01"
   exception:
@@ -51,6 +52,15 @@ springdoc:
     path: /api-docs
   swagger-ui:
     path: /swagger-ui.html
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health
+  endpoint:
+    health:
+      show-details: never
 
 logging:
   level:

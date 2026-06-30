@@ -147,7 +147,7 @@ export default function DiscoverBrandPage() {
           )}
           {aiOnly && <Badge variant="secondary">Thử AI</Badge>}
           {search.trim() && <Badge variant="secondary">&quot;{search.trim()}&quot;</Badge>}
-          <Button type="button" variant="link" className="h-auto px-0 text-xs" onClick={clearFilters}>
+          <Button type="button" variant="ghost" className="h-auto px-0 text-xs" onClick={clearFilters}>
             Xóa tất cả
           </Button>
         </div>

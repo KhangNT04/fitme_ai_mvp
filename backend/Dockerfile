@@ -6,6 +6,7 @@ RUN mvn -q -DskipTests package
 
 FROM eclipse-temurin:21-jre-alpine
 WORKDIR /app
+RUN apk add --no-cache wget
 COPY --from=build /app/target/*.jar app.jar
 RUN mkdir -p /app/uploads
 EXPOSE 8080

@@ -28,12 +28,11 @@ describe("bodyProfileSchema", () => {
     ).toBe(true);
   });
 
-  it("accepts partial detailed measurements with empty fields as NaN", () => {
+  it("accepts partial detailed measurements with omitted optional fields", () => {
     expect(
       bodyProfileSchema.safeParse({
         ...validBodyProfile,
         chestCm: 90,
-        waistCm: NaN,
         hipCm: undefined,
       }).success,
     ).toBe(true);

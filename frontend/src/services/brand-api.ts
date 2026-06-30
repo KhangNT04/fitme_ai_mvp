@@ -1,4 +1,5 @@
 import apiClient, { unwrap } from "./api-client";
+import { uploadMultipartFile } from "@/lib/upload-file";
 import { mapProduct, toBackendProductRequest } from "./product-mapper";
 import type {
   Brand,
@@ -42,6 +43,13 @@ export const brandApi = {
   updateMe: async (data: Partial<BrandOnboardingRequest>): Promise<Brand> => {
     const res = await apiClient.put("/brand/me", data);
     return unwrap(res);
+  },
+  uploadLogo: async (file: File): Promise<Brand> => {
+    return uploadMultipartFile<Brand>("/brand/me/logo", file);
+  },
+  uploadProductImage: async (file: File): Promise<string> => {
+    const data = await uploadMultipartFile<{ url: string }>("/brand/media/images", file);
+    return data.url;
   },
   getProducts: async (): Promise<Product[]> => {
     const res = await apiClient.get("/brand/products");

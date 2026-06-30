@@ -5,6 +5,7 @@ import com.fitme.common.enums.FlaggedLinkReason;
 import com.fitme.common.enums.FlaggedLinkStatus;
 import com.fitme.common.exception.BusinessException;
 import com.fitme.common.exception.NotFoundException;
+import com.fitme.common.security.OwnershipChecker;
 import com.fitme.common.security.RequestContext;
 import com.fitme.product.entity.Product;
 import com.fitme.product.service.ProductEligibilityService;
@@ -82,6 +83,7 @@ public class RedirectService {
     public BuyClickResponse getEvent(UUID eventId) {
         BuyClickEvent event = buyClickEventRepository.findById(eventId)
                 .orElseThrow(() -> new NotFoundException("Sự kiện không tồn tại"));
+        OwnershipChecker.verify(event.getUserId(), event.getSessionId());
         return BuyClickResponse.builder()
                 .eventId(event.getId())
                 .redirectUrl(event.getPurchaseUrl())

@@ -3,6 +3,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { brandApi } from "@/services/brand-api";
 import { PortalLayout, brandNav } from "@/components/layout/PortalLayout";
+import { PortalPageHeader } from "@/components/portal/PortalPageHeader";
 import { AnalyticsChart } from "@/components/common/AnalyticsChart";
 
 export default function BrandAnalyticsHesitationPage() {
@@ -13,10 +14,18 @@ export default function BrandAnalyticsHesitationPage() {
 
   return (
     <PortalLayout title="Brand" nav={brandNav}>
-      <h1 className="font-display text-2xl font-bold tracking-tight text-foreground">Phân tích do dự</h1>
-      <div className="mt-8">
-        <AnalyticsChart title="Sản phẩm gây do dự" data={data?.hesitationItems || []} type="bar" />
-      </div>
+      <PortalPageHeader
+        title="Phân tích do dự"
+        description="Sản phẩm xem nhiều nhưng ít chuyển đổi."
+      />
+      <AnalyticsChart
+        title="Sản phẩm gây do dự"
+        description="Xếp hạng theo mức độ do dự của người mua"
+        data={data?.hesitationItems || []}
+        barLabel="Lượt do dự"
+        lineLabel="% tổng"
+        layout="horizontal"
+      />
     </PortalLayout>
   );
 }

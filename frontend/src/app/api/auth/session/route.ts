@@ -1,23 +1,41 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
+import {
+  PORTAL_ACCESS_COOKIE,
+  PORTAL_ROLE_COOKIE,
+  portalCookieOptions,
+  portalRoleFromJwtRole,
+  verifyAccessToken,
+} from "@/lib/portal-auth";
 
-/** Sync role cookie from access token payload (client-side decode, MVP guard only). */
+/** Set httpOnly portal cookies after JWT signature verification. */
 export async function POST(request: NextRequest) {
   try {
     const { accessToken } = await request.json();
     if (!accessToken || typeof accessToken !== "string") {
       return NextResponse.json({ error: "Missing token" }, { status: 400 });
     }
-    const parts = accessToken.split(".");
-    if (parts.length !== 3) {
-      return NextResponse.json({ error: "Invalid token" }, { status: 400 });
+
+    const role = await verifyAccessToken(accessToken);
+    if (!role) {
+      return NextResponse.json({ error: "Invalid token" }, { status: 401 });
     }
-    const payload = JSON.parse(Buffer.from(parts[1], "base64url").toString("utf8"));
-    const role = payload.role === "BRAND_OWNER" ? "BRAND" : payload.role === "ADMIN" ? "ADMIN" : "USER";
+
     const response = NextResponse.json({ role });
-    response.cookies.set("fitme-role", role, { path: "/", maxAge: 86400, sameSite: "lax" });
+    const options = portalCookieOptions();
+    response.cookies.set(PORTAL_ACCESS_COOKIE, accessToken, options);
+    response.cookies.set(PORTAL_ROLE_COOKIE, role, options);
     return response;
   } catch {
     return NextResponse.json({ error: "Invalid token" }, { status: 400 });
   }
+}
+
+/** Clear portal cookies on logout. */
+export async function DELETE() {
+  const response = NextResponse.json({ ok: true });
+  const clear = { path: "/", maxAge: 0 };
+  response.cookies.set(PORTAL_ACCESS_COOKIE, "", clear);
+  response.cookies.set(PORTAL_ROLE_COOKIE, "", clear);
+  return response;
 }

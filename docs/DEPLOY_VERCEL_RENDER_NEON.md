@@ -72,14 +72,16 @@ Giữ `DB_USERNAME` và `DB_PASSWORD` riêng (không nhét vào URL).
 | `DB_USERNAME` | user Neon |
 | `DB_PASSWORD` | password Neon |
 | `JWT_SECRET` | chuỗi random ≥32 ký tự |
+| `SPRING_PROFILES_ACTIVE` | `prod` *(tắt Swagger, seed mặc định off trong profile)* |
 | `CORS_ORIGINS` | `https://PLACEHOLDER.vercel.app` *(sửa sau bước 3)* |
-| `FITME_SEED_ENABLED` | `true` |
-| `FITME_SEED_PASSWORD` | `fitme123` |
+| `FITME_SEED_ENABLED` | `false` *(prod; xem mục "Bật lại seed demo" nếu cần)* |
+| `FITME_SEED_PASSWORD` | chỉ khi bật seed — dùng mật khẩu mạnh |
 | `UPLOAD_DIR` | `/tmp/uploads` |
 
 5. **Create Web Service** — đợi build ~5–10 phút.
 6. Lấy URL backend, ví dụ: `https://fitme-api.onrender.com`
-7. Kiểm tra: mở `https://fitme-api.onrender.com/api/v1/products` → JSON `success: true`.
+7. Kiểm tra health: `https://fitme-api.onrender.com/actuator/health` → `{"status":"UP"}`
+8. Kiểm tra API: `https://fitme-api.onrender.com/api/v1/products` → JSON `success: true`.
 
 **Blueprint (tùy chọn):** repo có `render.yaml` → Render → **New Blueprint** → connect repo.
 
@@ -103,6 +105,7 @@ Giữ `DB_USERNAME` và `DB_PASSWORD` riêng (không nhét vào URL).
 |-----|--------|
 | `NEXT_PUBLIC_API_URL` | `/api/v1` |
 | `BACKEND_INTERNAL_URL` | `https://fitme-api.onrender.com` *(URL Render, không slash cuối)* |
+| `JWT_SECRET` | **cùng giá trị với Render** *(portal middleware verify JWT; không dùng `NEXT_PUBLIC_`)* |
 
 4. **Deploy** → nhận URL ví dụ `https://fitme-ai-mvp.vercel.app`.
 
@@ -122,16 +125,17 @@ https://fitme-ai-mvp.vercel.app
 
 | Check | URL / cách |
 |-------|------------|
+| Backend health | `https://fitme-api.onrender.com/actuator/health` |
 | API trực tiếp | `https://fitme-api.onrender.com/api/v1/products` |
 | API qua Vercel proxy | `https://YOUR.vercel.app/api/v1/products` |
 | Trang chủ | `https://YOUR.vercel.app` |
-| Brand login | `/brand/login` — `brand@fitme.ai` / `fitme123` |
+| Brand login | `/brand/login` — chỉ khi `FITME_SEED_ENABLED=true` và DB đã seed |
 
 ---
 
 ## Demo accounts (seed)
 
-Chỉ tạo khi DB Neon **trống** lần đầu backend chạy:
+Chỉ tạo khi `FITME_SEED_ENABLED=true` **và** DB Neon **trống** lần đầu backend chạy (mặc định prod profile: seed **tắt**):
 
 | Email | Vai trò |
 |-------|---------|
@@ -139,7 +143,20 @@ Chỉ tạo khi DB Neon **trống** lần đầu backend chạy:
 | brand@fitme.ai | Brand |
 | user@fitme.ai | User |
 
-Mật khẩu: `FITME_SEED_PASSWORD` (mặc định `fitme123`).
+Mật khẩu: `FITME_SEED_PASSWORD` (nếu bật seed).
+
+### Bật lại seed demo
+
+Trên **Render** dashboard:
+
+```
+FITME_SEED_ENABLED=true
+FITME_SEED_PASSWORD=<mật-khẩu-mạnh>
+```
+
+Save → redeploy. Tài khoản chỉ được tạo khi DB chưa có user seed (hoặc theo logic top-up trong `SeedDataLoader`).
+
+Để tắt lại: `FITME_SEED_ENABLED=false` (khuyến nghị cho môi trường shared sau khi đã tạo tài khoản thật).
 
 ---
 
@@ -199,17 +216,13 @@ Xem template: [`.env.cloud.example`](../.env.cloud.example)
 | Nơi | Biến quan trọng |
 |-----|-----------------|
 | Neon | JDBC URL, user, password |
-| Render | `DB_*`, `JWT_SECRET`, `CORS_ORIGINS`, `FITME_SEED_*` |
-| Vercel | `NEXT_PUBLIC_API_URL=/api/v1`, `BACKEND_INTERNAL_URL` |
+| Render | `SPRING_PROFILES_ACTIVE=prod`, `DB_*`, `JWT_SECRET`, `CORS_ORIGINS`, `FITME_SEED_*` |
+| Vercel | `NEXT_PUBLIC_API_URL=/api/v1`, `BACKEND_INTERNAL_URL`, **`JWT_SECRET` (cùng Render)** |
 
 ---
 
-## Tắt seed trên môi trường shared
+## Sau khi merge bản cập nhật bảo mật
 
-Khi không muốn tài khoản demo `fitme123` trên server public:
-
-```
-FITME_SEED_ENABLED=false
-```
-
-trên Render (sau khi đã tạo tài khoản riêng).
+1. **Render:** thêm `SPRING_PROFILES_ACTIVE=prod`; health check → `/actuator/health`; `FITME_SEED_ENABLED=false` (hoặc bật seed theo mục trên).
+2. **Vercel:** thêm `JWT_SECRET` trùng Render → **Redeploy**.
+3. Kiểm tra portal: login brand/admin — cookie `fitme-access` httpOnly; không thể vào dashboard chỉ bằng cách sửa cookie `fitme-role` thủ công.

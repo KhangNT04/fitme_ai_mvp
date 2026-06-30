@@ -5,33 +5,74 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { brandApi } from "@/services/brand-api";
 import { PortalLayout, brandNav } from "@/components/layout/PortalLayout";
+import { PortalPageHeader } from "@/components/portal/PortalPageHeader";
+import { BrandImageUpload } from "@/components/brand/BrandImageUpload";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { LoadingSkeleton } from "@/components/common/LoadingSkeleton";
+import { ErrorState } from "@/components/common/ErrorState";
 import type { BrandOnboardingRequest } from "@/types/brand";
+
+function brandStatusLabel(status: string): string {
+  switch (status) {
+    case "APPROVED":
+      return "Đã duyệt";
+    case "PENDING":
+      return "Chờ duyệt";
+    case "REJECTED":
+      return "Từ chối";
+    case "SUSPENDED":
+      return "Tạm ngưng";
+    default:
+      return status;
+  }
+}
+
+function InfoRow({ label, children }: { label: string; children: React.ReactNode }) {
+  return (
+    <div className="flex flex-col gap-1 border-b border-border/40 py-3 last:border-0 sm:flex-row sm:items-center sm:justify-between">
+      <span className="text-sm font-medium text-muted-foreground">{label}</span>
+      <div className="text-sm text-foreground">{children}</div>
+    </div>
+  );
+}
 
 export default function BrandSettingsPage() {
   const queryClient = useQueryClient();
-  const { data, isLoading } = useQuery({
+  const { data, isLoading, error, refetch } = useQuery({
     queryKey: ["brand-me"],
     queryFn: () => brandApi.getMe(),
   });
   const [editing, setEditing] = useState(false);
+  const [logoUrl, setLogoUrl] = useState<string>("");
   const { register, handleSubmit, reset } = useForm<BrandOnboardingRequest>();
 
   const update = useMutation({
-    mutationFn: (payload: BrandOnboardingRequest) => brandApi.updateMe(payload),
+    mutationFn: (payload: BrandOnboardingRequest) =>
+      brandApi.updateMe({
+        ...payload,
+        logoUrl: logoUrl || data?.logoUrl,
+      }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["brand-me"] });
       setEditing(false);
     },
   });
 
+  const uploadLogo = useMutation({
+    mutationFn: (file: File) => brandApi.uploadLogo(file),
+    onSuccess: (brand) => {
+      setLogoUrl(brand.logoUrl ?? "");
+      queryClient.invalidateQueries({ queryKey: ["brand-me"] });
+    },
+  });
+
   const startEdit = () => {
     if (data) {
+      setLogoUrl(data.logoUrl ?? "");
       reset({
         name: data.name,
         contactEmail: data.contactEmail ?? "",
@@ -44,20 +85,39 @@ export default function BrandSettingsPage() {
     }
   };
 
+  const currentLogo = editing ? logoUrl : data?.logoUrl;
+
   return (
     <PortalLayout title="Brand" nav={brandNav}>
-      <div className="flex items-center justify-between">
-        <h1 className="font-display text-2xl font-bold tracking-tight text-foreground">Cài đặt thương hiệu</h1>
-        {data && !editing && (
-          <Button variant="outline" onClick={startEdit}>Chỉnh sửa</Button>
-        )}
-      </div>
-      {isLoading ? <LoadingSkeleton count={1} /> : data && (
-        <Card className="mt-8">
-          <CardHeader><CardTitle>{data.name}</CardTitle></CardHeader>
+      <PortalPageHeader
+        title="Cài đặt thương hiệu"
+        description="Logo, thông tin liên hệ và liên kết cửa hàng."
+      >
+        {data && !editing && <Button variant="outline" onClick={startEdit}>Chỉnh sửa</Button>}
+      </PortalPageHeader>
+
+      {isLoading && <LoadingSkeleton count={1} />}
+      {error && <ErrorState onRetry={() => refetch()} />}
+      {data && (
+        <Card>
+          <CardHeader>
+            <CardTitle>{data.name}</CardTitle>
+          </CardHeader>
           <CardContent>
             {editing ? (
-              <form onSubmit={handleSubmit((d) => update.mutate(d))} className="space-y-4">
+              <form onSubmit={handleSubmit((d) => update.mutate(d))} className="space-y-5">
+                <BrandImageUpload
+                  label="Logo thương hiệu"
+                  hint="Ảnh vuông, hiển thị trên Khám phá và trang brand."
+                  value={currentLogo}
+                  onChange={setLogoUrl}
+                  onUpload={async (file) => {
+                    const brand = await uploadLogo.mutateAsync(file);
+                    return brand.logoUrl ?? "";
+                  }}
+                  disabled={uploadLogo.isPending || update.isPending}
+                />
+
                 <div>
                   <Label>Tên thương hiệu</Label>
                   <Input {...register("name")} className="mt-1" />
@@ -82,19 +142,35 @@ export default function BrandSettingsPage() {
                   <Label>Mô tả</Label>
                   <Input {...register("description")} className="mt-1" />
                 </div>
-                <div className="flex gap-2">
-                  <Button type="submit" disabled={update.isPending}>Lưu</Button>
+                <div className="flex flex-wrap gap-2">
+                  <Button type="submit" disabled={update.isPending || uploadLogo.isPending}>
+                    {update.isPending ? "Đang lưu..." : "Lưu"}
+                  </Button>
                   <Button type="button" variant="outline" onClick={() => setEditing(false)}>Hủy</Button>
                 </div>
               </form>
             ) : (
-              <div className="space-y-2 text-sm">
-                <p><strong>Email liên hệ:</strong> {data.contactEmail ?? "—"}</p>
-                <p><strong>Điện thoại:</strong> {data.contactPhone ?? "—"}</p>
-                <p><strong>Trạng thái:</strong> <Badge>{data.status}</Badge></p>
-                {data.websiteUrl && <p><strong>Website:</strong> {data.websiteUrl}</p>}
-                {data.shopeeUrl && <p><strong>Shopee:</strong> {data.shopeeUrl}</p>}
-                {data.description && <p><strong>Mô tả:</strong> {data.description}</p>}
+              <div className="space-y-5">
+                <BrandImageUpload
+                  label="Logo thương hiệu"
+                  value={data.logoUrl}
+                  onUpload={async (file) => {
+                    const brand = await uploadLogo.mutateAsync(file);
+                    return brand.logoUrl ?? "";
+                  }}
+                  disabled={uploadLogo.isPending}
+                />
+
+                <div className="rounded-2xl border border-border/60 bg-muted/20 px-4">
+                  <InfoRow label="Email liên hệ">{data.contactEmail ?? "—"}</InfoRow>
+                  <InfoRow label="Điện thoại">{data.contactPhone ?? "—"}</InfoRow>
+                  <InfoRow label="Trạng thái">
+                    <Badge variant="outline">{brandStatusLabel(data.status)}</Badge>
+                  </InfoRow>
+                  {data.websiteUrl && <InfoRow label="Website">{data.websiteUrl}</InfoRow>}
+                  {data.shopeeUrl && <InfoRow label="Shopee">{data.shopeeUrl}</InfoRow>}
+                  {data.description && <InfoRow label="Mô tả">{data.description}</InfoRow>}
+                </div>
               </div>
             )}
           </CardContent>

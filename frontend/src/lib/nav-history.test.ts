@@ -15,7 +15,7 @@ describe("nav-history", () => {
 
   it("labels known routes in Vietnamese", () => {
     expect(labelForHref("/discover")).toBe("Khám phá sản phẩm");
-    expect(labelForHref("/try-on")).toBe("Thử mặc bằng AI");
+    expect(labelForHref("/try-on")).toBe("Thử mặc AI");
     expect(labelForHref("/try-on/input")).toBe("Thông tin thử mặc");
     expect(labelForHref("/products/abc")).toBe("Thông tin sản phẩm");
   });

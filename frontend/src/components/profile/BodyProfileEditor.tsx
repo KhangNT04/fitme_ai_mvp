@@ -87,7 +87,7 @@ export function BodyProfileEditor({
   saving,
 }: BodyProfileEditorProps) {
   const formValues = useMemo((): BodyProfileForm => {
-    if (!initial) return { goals: [] };
+    if (!initial) return { heightCm: 165, weightKg: 55, goals: [] };
     return bodyProfileToForm(initial);
   }, [initial ? profileSnapshotKey(bodyProfileToForm(initial)) : "empty"]);
 

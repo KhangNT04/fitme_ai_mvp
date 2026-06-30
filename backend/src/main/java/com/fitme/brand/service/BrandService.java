@@ -11,10 +11,14 @@ import com.fitme.common.enums.BrandStatus;
 import com.fitme.common.enums.UserRole;
 import com.fitme.common.exception.BusinessException;
 import com.fitme.common.exception.NotFoundException;
+import com.fitme.brand.dto.MediaUploadResponse;
+import com.fitme.storage.StorageService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.UUID;
 
@@ -24,6 +28,7 @@ public class BrandService {
 
     private final BrandRepository brandRepository;
     private final UserAccountRepository userAccountRepository;
+    private final StorageService storageService;
 
     @Transactional
     public BrandResponse applyForBrand(UUID userId, BrandOnboardingRequest request) {
@@ -113,7 +118,9 @@ public class BrandService {
         Brand brand = getBrandForOwner(ownerUserId);
         brand.setName(request.getName());
         brand.setDescription(request.getDescription());
-        brand.setLogoUrl(request.getLogoUrl());
+        if (request.getLogoUrl() != null) {
+            brand.setLogoUrl(request.getLogoUrl());
+        }
         brand.setWebsiteUrl(request.getWebsiteUrl());
         brand.setShopeeUrl(request.getShopeeUrl());
         brand.setTiktokShopUrl(request.getTiktokShopUrl());
@@ -132,6 +139,25 @@ public class BrandService {
             throw new BusinessException("Brand chưa được duyệt. Trạng thái: " + brand.getStatus().name());
         }
         return brand;
+    }
+
+    @Transactional
+    public BrandResponse uploadLogo(UUID ownerUserId, MultipartFile file) throws IOException {
+        Brand brand = getBrandForOwner(ownerUserId);
+        String previousPath = brand.getLogoUrl();
+        String path = storageService.store("brands/logos", brand.getId() + "-" + file.getOriginalFilename(), file);
+        brand.setLogoUrl(path);
+        Brand saved = brandRepository.save(brand);
+        if (previousPath != null && !previousPath.equals(path) && previousPath.startsWith("/uploads/")) {
+            storageService.delete(previousPath);
+        }
+        return toResponse(saved);
+    }
+
+    public MediaUploadResponse uploadProductImage(UUID ownerUserId, MultipartFile file) throws IOException {
+        Brand brand = getBrandForOwner(ownerUserId);
+        String path = storageService.store("brands/products", brand.getId() + "-" + file.getOriginalFilename(), file);
+        return MediaUploadResponse.builder().url(path).build();
     }
 
     public Brand getBrandEntityForOwner(UUID ownerUserId) {

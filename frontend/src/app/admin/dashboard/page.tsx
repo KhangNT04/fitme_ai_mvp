@@ -1,29 +1,38 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
+import { Building2, Flag, Package, Shirt, Sparkles, Users } from "lucide-react";
 import { adminApi } from "@/services/admin-api";
 import { PortalLayout, adminNav } from "@/components/layout/PortalLayout";
-import { StatCard } from "@/components/common/AnalyticsChart";
+import { PortalPageHeader } from "@/components/portal/PortalPageHeader";
+import { StatCard, StatCardGrid } from "@/components/common/AnalyticsChart";
 import { LoadingSkeleton } from "@/components/common/LoadingSkeleton";
+import { ErrorState } from "@/components/common/ErrorState";
 
 export default function AdminDashboardPage() {
-  const { data, isLoading } = useQuery({
+  const { data, isLoading, error, refetch } = useQuery({
     queryKey: ["admin-dashboard"],
     queryFn: () => adminApi.getDashboard(),
   });
 
   return (
     <PortalLayout title="Admin" nav={adminNav}>
-      <h1 className="font-display text-2xl font-bold tracking-tight text-foreground">Tổng quan hệ thống</h1>
-      {isLoading ? <LoadingSkeleton count={4} /> : data && (
-        <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          <StatCard label="Tổng brand" value={data.totalBrands} sub={`${data.pendingBrands} chờ duyệt`} />
-          <StatCard label="Tổng sản phẩm" value={data.totalProducts} sub={`${data.pendingProducts} chờ duyệt`} />
-          <StatCard label="Link lỗi" value={data.flaggedLinks} />
-          <StatCard label="Người dùng" value={data.activeUsers} />
-          <StatCard label="Tư vấn AI" value={data.totalRecommendations} />
-          <StatCard label="Thử mặc AI" value={data.totalTryOns} />
-        </div>
+      <PortalPageHeader
+        title="Tổng quan hệ thống"
+        description="Theo dõi brand, sản phẩm chờ duyệt và hoạt động AI trên nền tảng."
+      />
+
+      {isLoading && <LoadingSkeleton count={4} />}
+      {error && <ErrorState onRetry={() => refetch()} />}
+      {data && (
+        <StatCardGrid>
+          <StatCard label="Tổng brand" value={data.totalBrands} sub={`${data.pendingBrands} chờ duyệt`} icon={<Building2 className="h-5 w-5" />} tone="violet" />
+          <StatCard label="Tổng sản phẩm" value={data.totalProducts} sub={`${data.pendingProducts} chờ duyệt`} icon={<Package className="h-5 w-5" />} tone="sky" />
+          <StatCard label="Link lỗi" value={data.flaggedLinks} icon={<Flag className="h-5 w-5" />} tone="rose" />
+          <StatCard label="Người dùng" value={data.activeUsers} icon={<Users className="h-5 w-5" />} tone="emerald" />
+          <StatCard label="Tư vấn AI" value={data.totalRecommendations} icon={<Sparkles className="h-5 w-5" />} tone="indigo" />
+          <StatCard label="Thử mặc AI" value={data.totalTryOns} icon={<Shirt className="h-5 w-5" />} tone="amber" />
+        </StatCardGrid>
       )}
     </PortalLayout>
   );

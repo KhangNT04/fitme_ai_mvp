@@ -41,9 +41,64 @@ class RedirectControllerTest extends AbstractIntegrationTest {
 
         String eventId = objectMapper.readTree(response).get("data").get("eventId").asText();
 
-        mockMvc.perform(get("/api/v1/redirects/{eventId}", eventId))
+        mockMvc.perform(get("/api/v1/redirects/{eventId}", eventId)
+                        .header(SESSION_HEADER, sessionToken))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.redirectUrl").value("https://shopee.vn/test-product"));
+    }
+
+    @Test
+    void getEvent_withoutSession_returnsUnauthorized() throws Exception {
+        Product product = testDataHelper.createEligibleProduct("No session product", "Áo thun");
+        String sessionToken = createAnonymousSessionToken();
+
+        String response = mockMvc.perform(post("/api/v1/redirects/buy-click")
+                        .header(SESSION_HEADER, sessionToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "productId": "%s",
+                                  "sourcePage": "recommendation"
+                                }
+                                """.formatted(product.getId())))
+                .andExpect(status().isOk())
+                .andReturn()
+                .getResponse()
+                .getContentAsString();
+
+        String eventId = objectMapper.readTree(response).get("data").get("eventId").asText();
+
+        mockMvc.perform(get("/api/v1/redirects/{eventId}", eventId))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.success").value(false));
+    }
+
+    @Test
+    void getEvent_withDifferentSession_returnsForbidden() throws Exception {
+        Product product = testDataHelper.createEligibleProduct("IDOR product", "Áo thun");
+        String sessionA = createAnonymousSessionToken();
+        String sessionB = createAnonymousSessionToken();
+
+        String response = mockMvc.perform(post("/api/v1/redirects/buy-click")
+                        .header(SESSION_HEADER, sessionA)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "productId": "%s",
+                                  "sourcePage": "recommendation"
+                                }
+                                """.formatted(product.getId())))
+                .andExpect(status().isOk())
+                .andReturn()
+                .getResponse()
+                .getContentAsString();
+
+        String eventId = objectMapper.readTree(response).get("data").get("eventId").asText();
+
+        mockMvc.perform(get("/api/v1/redirects/{eventId}", eventId)
+                        .header(SESSION_HEADER, sessionB))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.success").value(false));
     }
 
     @Test

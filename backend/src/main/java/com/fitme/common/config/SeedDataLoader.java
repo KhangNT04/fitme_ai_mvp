@@ -67,7 +67,12 @@ public class SeedDataLoader implements CommandLineRunner {
     @Transactional
     public void run(String... args) {
         if (!seedEnabled) {
-            log.info("FitMe seed disabled (fitme.seed.enabled=false)");
+            if (fashionCatalogRefresh) {
+                log.info("FitMe seed disabled; running fashion catalog refresh only");
+                refreshFashionCatalogData();
+            } else {
+                log.info("FitMe seed disabled (fitme.seed.enabled=false)");
+            }
             return;
         }
 
@@ -77,7 +82,7 @@ public class SeedDataLoader implements CommandLineRunner {
         }
 
         if (topUpEnabled) {
-            repairAndTopUpCatalog();
+            refreshFashionCatalogData();
         }
     }
 
@@ -135,49 +140,57 @@ public class SeedDataLoader implements CommandLineRunner {
                 seedPassword);
     }
 
-    private void repairAndTopUpCatalog() {
-        reactivateLegacyDemoProducts();
+    /** Refresh fashion catalog on existing DB (local, staging, or prod with seed off). */
+    private void refreshFashionCatalogData() {
+        deactivateOrphanLegacyDemoProducts();
         ensureFashionBrandsExist();
 
         if (fashionCatalogRefresh) {
             refreshFashionCatalog();
         }
 
+        seedRulesIfEmpty();
+
         int activeCount = productRepository.findByStatus(ProductStatus.ACTIVE).size();
         log.info("Catalog status: {} active products", activeCount);
     }
 
-    private void refreshFashionCatalog() {
+    private void deactivateOrphanLegacyDemoProducts() {
+        List<Product> legacy = productRepository.findByNameStartingWith(LEGACY_DEMO_PREFIX);
         FashionCatalogLoader.FashionCatalog catalog = fashionCatalogLoader.load();
-        userRepository.findByEmail(brandEmail).ifPresent(owner -> {
-            for (FashionCatalogLoader.BrandEntry entry : catalog.brands) {
-                Brand brand = ensureApprovedBrand(owner.getId(), entry);
-                if (fashionCatalogSeeder.needsFashionRefresh(brand, entry)) {
-                    log.info("Refreshing fashion catalog for brand {}", brand.getName());
-                    fashionCatalogSeeder.syncBrandCatalog(brand, entry);
-                }
+        var fashionBrandIds = catalog.brands.stream()
+                .map(entry -> brandRepository.findByName(entry.name).map(Brand::getId))
+                .flatMap(Optional::stream)
+                .collect(java.util.stream.Collectors.toSet());
+
+        int deactivated = 0;
+        for (Product product : legacy) {
+            if (fashionBrandIds.contains(product.getBrandId())) {
+                continue;
             }
-        });
+            product.setStatus(ProductStatus.INACTIVE);
+            productRepository.save(product);
+            deactivated++;
+        }
+        if (deactivated > 0) {
+            log.info("Deactivated {} orphan legacy demo products outside fashion brands", deactivated);
+        }
     }
 
-    private void reactivateLegacyDemoProducts() {
-        int reactivated = 0;
-        for (ProductStatus status : List.of(ProductStatus.PENDING_REVIEW, ProductStatus.DRAFT, ProductStatus.INACTIVE)) {
-            for (Product product : productRepository.findByStatus(status)) {
-                if (!product.getName().startsWith(LEGACY_DEMO_PREFIX)) {
-                    continue;
-                }
-                if (!isApprovedBrand(product.getBrandId())) {
-                    continue;
-                }
-                product.setStatus(ProductStatus.ACTIVE);
-                product.setAiTryOnEligible(true);
-                productRepository.save(product);
-                reactivated++;
-            }
+    private void refreshFashionCatalog() {
+        FashionCatalogLoader.FashionCatalog catalog = fashionCatalogLoader.load();
+        Optional<UserAccount> brandOwner = userRepository.findByEmail(brandEmail);
+        if (brandOwner.isEmpty()) {
+            log.warn("Fashion catalog refresh skipped: brand owner {} not found", brandEmail);
+            return;
         }
-        if (reactivated > 0) {
-            log.info("Reactivated {} legacy demo products (will be replaced on fashion refresh)", reactivated);
+        UserAccount owner = brandOwner.get();
+        for (FashionCatalogLoader.BrandEntry entry : catalog.brands) {
+            Brand brand = ensureApprovedBrand(owner.getId(), entry);
+            if (fashionCatalogSeeder.needsFashionRefresh(brand, entry)) {
+                log.info("Refreshing fashion catalog for brand {}", brand.getName());
+                fashionCatalogSeeder.syncBrandCatalog(brand, entry);
+            }
         }
     }
 

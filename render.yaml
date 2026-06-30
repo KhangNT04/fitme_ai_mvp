@@ -26,6 +26,8 @@ services:
         sync: false
       - key: FITME_SEED_ENABLED
         value: "false"
+      - key: FITME_SEED_FASHION_REFRESH
+        value: "true"
       - key: FITME_SEED_PASSWORD
         value: fitme123
       - key: UPLOAD_DIR

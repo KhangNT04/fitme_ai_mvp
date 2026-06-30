@@ -74,7 +74,8 @@ Giữ `DB_USERNAME` và `DB_PASSWORD` riêng (không nhét vào URL).
 | `JWT_SECRET` | chuỗi random ≥32 ký tự |
 | `SPRING_PROFILES_ACTIVE` | `prod` *(tắt Swagger, seed mặc định off trong profile)* |
 | `CORS_ORIGINS` | `https://PLACEHOLDER.vercel.app` *(sửa sau bước 3)* |
-| `FITME_SEED_ENABLED` | `false` *(prod; xem mục "Bật lại seed demo" nếu cần)* |
+| `FITME_SEED_ENABLED` | `false` *(prod; không tạo user mới)* |
+| `FITME_SEED_FASHION_REFRESH` | `true` *(mặc định prod — đồng bộ catalog thời trang khi backend khởi động)* |
 | `FITME_SEED_PASSWORD` | chỉ khi bật seed — dùng mật khẩu mạnh |
 | `UPLOAD_DIR` | `/tmp/uploads` |
 
@@ -157,6 +158,17 @@ FITME_SEED_PASSWORD=<mật-khẩu-mạnh>
 Save → redeploy. Tài khoản chỉ được tạo khi DB chưa có user seed (hoặc theo logic top-up trong `SeedDataLoader`).
 
 Để tắt lại: `FITME_SEED_ENABLED=false` (khuyến nghị cho môi trường shared sau khi đã tạo tài khoản thật).
+
+### Catalog thời trang trên DB đã có dữ liệu cũ
+
+Nếu trang **Khám phá** vẫn hiện `Sản phẩm demo 1 - Áo sơ mi` và ảnh phong cảnh Unsplash (seed cũ), backend sẽ **tự sửa** khi:
+
+- `FITME_SEED_FASHION_REFRESH=true` (mặc định trong `application-prod.yml` và `render.yaml`)
+- Backend redeploy / restart
+
+Logic: cập nhật sản phẩm tại chỗ thành catalog `fashion-catalog.json` v4 (36 sản phẩm, 3 thương hiệu) với ảnh `/catalog/products/*.jpg` phục vụ từ Vercel. Không cần bật `FITME_SEED_ENABLED=true` hay xóa DB Neon.
+
+Sau khi deploy xong, kiểm tra log Render có dòng `Refreshing fashion catalog for brand K-Style House` và API `/api/v1/products` trả tên sản phẩm thời trang (ví dụ `Áo thun cotton oversize`).
 
 ---
 

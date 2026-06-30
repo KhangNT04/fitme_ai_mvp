@@ -1,6 +1,8 @@
 fitme:
   seed:
     enabled: false
+    fashion-catalog-refresh: true
+    top-up-enabled: true
   test:
     expose-reset-tokens: false
 

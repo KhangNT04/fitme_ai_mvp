@@ -1,4 +1,5 @@
 import { Skeleton } from "@/components/ui/skeleton";
+import { catalogProductGridClass } from "@/lib/design-tokens";
 
 interface LoadingSkeletonProps {
   count?: number;
@@ -28,12 +29,12 @@ export function LoadingSkeleton({ count = 6, type = "card" }: LoadingSkeletonPro
   }
 
   return (
-    <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+    <div className={catalogProductGridClass}>
       {Array.from({ length: count }).map((_, i) => (
-        <div key={i} className="space-y-3">
-          <Skeleton className="h-48 w-full rounded-2xl" />
-          <Skeleton className="h-4 w-3/4" />
-          <Skeleton className="h-4 w-1/2" />
+        <div key={i} className="space-y-2">
+          <Skeleton className="aspect-[4/5] w-full rounded-xl" />
+          <Skeleton className="h-3 w-3/4" />
+          <Skeleton className="h-3 w-1/2" />
         </div>
       ))}
     </div>

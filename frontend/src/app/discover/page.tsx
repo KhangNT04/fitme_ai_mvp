@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState, useEffect, useRef, useCallback } from "react";
-import Image from "next/image";
+import { useRouter } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import { productApi } from "@/services/product-api";
 import { publicBrandApi } from "@/services/brand-api";
@@ -17,14 +17,14 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { SlidersHorizontal } from "lucide-react";
-import { ProductCard } from "@/components/common/ProductCard";
+import { BrandDiscoverSection } from "@/components/discover/BrandDiscoverSection";
 import { LoadingSkeleton } from "@/components/common/LoadingSkeleton";
 import { EmptyState } from "@/components/common/EmptyState";
 import { ErrorState } from "@/components/common/ErrorState";
 import { PageShell } from "@/components/layout/PageShell";
 import { CollapsingPageHeader } from "@/components/layout/CollapsingPageHeader";
 import { PRODUCT_CATEGORIES } from "@/utils/constants";
-import { catalogProductGridClass, consumerPageShellClass } from "@/lib/design-tokens";
+import { consumerPageShellClass } from "@/lib/design-tokens";
 import {
   DISCOVER_SEARCH_FOCUS_EVENT,
   DISCOVER_SEARCH_HASH,
@@ -33,61 +33,17 @@ import {
   openDiscoverSearch,
 } from "@/lib/discover-search";
 import { categoryFilterLabel, filterProductsByCategory } from "@/lib/product-category";
+import { discoverBrandPath } from "@/lib/discover-brand";
+import { groupProductsByBrand } from "@/lib/group-products-by-brand";
 import { cn } from "@/lib/utils";
-import type { Product } from "@/types/product";
-import type { Brand } from "@/types/brand";
 
 const ALL_BRANDS = "all";
 const ALL_CATEGORIES = "all";
 
-function groupProductsByBrand(items: Product[]): Map<string, Product[]> {
-  const groups = new Map<string, Product[]>();
-  for (const product of items) {
-    const existing = groups.get(product.brandId);
-    if (existing) {
-      existing.push(product);
-    } else {
-      groups.set(product.brandId, [product]);
-    }
-  }
-  return groups;
-}
-
-function BrandSectionHeader({ brand, count }: { brand?: Brand; count: number }) {
-  const name = brand?.name ?? "Thương hiệu";
-  return (
-    <div className="mb-2 flex items-center gap-2 border-b border-border/40 pb-1.5 sm:mb-2.5 sm:gap-2.5 sm:pb-2">
-      {brand?.logoUrl ? (
-        <div className="relative h-8 w-8 shrink-0 overflow-hidden rounded-full border border-border/50 bg-white">
-          <Image src={brand.logoUrl} alt="" fill className="object-cover" sizes="40px" unoptimized />
-        </div>
-      ) : (
-        <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary/10 text-xs font-bold text-primary">
-          {name.charAt(0).toUpperCase()}
-        </div>
-      )}
-      <div className="min-w-0">
-        <h2 className="truncate font-display text-base font-bold text-foreground">{name}</h2>
-        <p className="text-xs text-muted-foreground">{count} sản phẩm</p>
-      </div>
-    </div>
-  );
-}
-
-function ProductGrid({ products }: { products: Product[] }) {
-  return (
-    <div className={catalogProductGridClass}>
-      {products.map((p) => (
-        <ProductCard key={p.id} product={p} size="catalog" />
-      ))}
-    </div>
-  );
-}
-
 export default function DiscoverPage() {
+  const router = useRouter();
   const [search, setSearch] = useState("");
   const [category, setCategory] = useState(ALL_CATEGORIES);
-  const [brandId, setBrandId] = useState(ALL_BRANDS);
   const [aiOnly, setAiOnly] = useState(false);
   const searchRef = useRef<HTMLInputElement>(null);
 
@@ -114,11 +70,10 @@ export default function DiscoverPage() {
   const brandMap = useMemo(() => new Map(brands.map((b) => [b.id, b])), [brands]);
 
   const { data: rawData, isLoading, error, refetch } = useQuery({
-    queryKey: ["products", search, brandId, aiOnly],
+    queryKey: ["products", search, aiOnly],
     queryFn: () =>
       productApi.list({
         search: search || undefined,
-        brandId: brandId !== ALL_BRANDS ? brandId : undefined,
         aiTryOnEligible: aiOnly || undefined,
       }),
   });
@@ -131,9 +86,9 @@ export default function DiscoverPage() {
   }, [rawData, category]);
 
   const groupedByBrand = useMemo(() => {
-    if (!data?.items.length || brandId !== ALL_BRANDS) return null;
+    if (!data?.items.length) return null;
     return groupProductsByBrand(data.items);
-  }, [data?.items, brandId]);
+  }, [data?.items]);
 
   const sortedBrandGroups = useMemo(() => {
     if (!groupedByBrand) return [];
@@ -143,6 +98,13 @@ export default function DiscoverPage() {
       return nameA.localeCompare(nameB, "vi");
     });
   }, [groupedByBrand, brandMap]);
+
+  const goToBrand = useCallback(
+    (id: string) => {
+      if (id !== ALL_BRANDS) router.push(discoverBrandPath(id));
+    },
+    [router],
+  );
 
   useEffect(() => {
     const activateSearch = () => {
@@ -166,11 +128,10 @@ export default function DiscoverPage() {
     };
   }, [focusSearchField]);
 
-  const hasActiveFilters = brandId !== ALL_BRANDS || category !== ALL_CATEGORIES || aiOnly;
+  const hasActiveFilters = category !== ALL_CATEGORIES || aiOnly;
 
   const clearFilters = () => {
     setSearch("");
-    setBrandId(ALL_BRANDS);
     setCategory(ALL_CATEGORIES);
     setAiOnly(false);
   };
@@ -206,7 +167,7 @@ export default function DiscoverPage() {
         <div className="space-y-4 pt-2">
           <div className="space-y-2">
             <label className="text-sm font-medium">Thương hiệu</label>
-            <Select value={brandId} onValueChange={setBrandId}>
+            <Select value={ALL_BRANDS} onValueChange={goToBrand}>
               <SelectTrigger className="h-11 w-full rounded-xl">
                 <SelectValue placeholder="Thương hiệu" />
               </SelectTrigger>
@@ -272,7 +233,7 @@ export default function DiscoverPage() {
               className="h-8 min-w-0 flex-1 rounded-full border-border/60 bg-white px-2.5 text-xs sm:h-9 sm:w-36 sm:flex-none sm:px-3 sm:text-sm"
             />
             <div className="hidden items-center gap-1 sm:flex">
-              <Select value={brandId} onValueChange={setBrandId}>
+              <Select value={ALL_BRANDS} onValueChange={goToBrand}>
                 <SelectTrigger className="h-8 w-auto min-w-[9.25rem] max-w-[11rem] shrink-0 rounded-full border-border/60 bg-white px-2.5 text-xs whitespace-nowrap sm:h-9 sm:min-w-[10.5rem] sm:px-3 sm:text-sm [&>span]:line-clamp-1 [&>span]:truncate">
                   <SelectValue placeholder="Thương hiệu" />
                 </SelectTrigger>
@@ -320,9 +281,6 @@ export default function DiscoverPage() {
           {category !== ALL_CATEGORIES && (
             <Badge variant="secondary">{categoryFilterLabel(category, ALL_CATEGORIES)}</Badge>
           )}
-          {brandId !== ALL_BRANDS && (
-            <Badge variant="secondary">{brandMap.get(brandId)?.name ?? "Thương hiệu"}</Badge>
-          )}
           {aiOnly && <Badge variant="secondary">Thử AI</Badge>}
           {search.trim() && <Badge variant="secondary">&quot;{search.trim()}&quot;</Badge>}
           <Button type="button" variant="link" className="h-auto px-0 text-xs" onClick={clearFilters}>
@@ -343,18 +301,9 @@ export default function DiscoverPage() {
         {sortedBrandGroups.length > 0 && (
           <div className="space-y-10">
             {sortedBrandGroups.map(([id, products]) => (
-              <section key={id}>
-                <BrandSectionHeader brand={brandMap.get(id)} count={products.length} />
-                <ProductGrid products={products} />
-              </section>
+              <BrandDiscoverSection key={id} brand={brandMap.get(id)} products={products} />
             ))}
           </div>
-        )}
-        {data && data.items.length > 0 && brandId !== ALL_BRANDS && (
-          <>
-            <BrandSectionHeader brand={brandMap.get(brandId)} count={data.items.length} />
-            <ProductGrid products={data.items} />
-          </>
         )}
       </div>
     </PageShell>

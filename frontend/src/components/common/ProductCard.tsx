@@ -34,7 +34,7 @@ interface ProductCardProps {
 const imageSizeClass: Record<"default" | "compact" | "catalog", string> = {
   default: "aspect-[3/4]",
   compact: "aspect-square sm:aspect-[4/5]",
-  catalog: "aspect-square sm:aspect-[4/5]",
+  catalog: "aspect-[4/5]",
 };
 
 export function ProductCard({
@@ -78,7 +78,7 @@ export function ProductCard({
             className="object-cover transition-transform duration-500 ease-out group-hover:scale-105"
             sizes={
               cardSize === "catalog"
-                ? "(max-width: 768px) 50vw, 33vw"
+                ? "(max-width: 768px) 50vw, 25vw"
                 : cardSize === "compact"
                   ? "(max-width: 768px) 50vw, 25vw"
                   : "(max-width: 768px) 100vw, 33vw"
@@ -104,7 +104,8 @@ export function ProductCard({
       </Link>
       <CardContent
         className={cn(
-          (cardSize === "compact" || cardSize === "catalog") && "p-2 sm:p-3",
+          cardSize === "catalog" && "p-1.5 sm:p-2",
+          cardSize === "compact" && "p-2 sm:p-3",
           cardSize === "default" && "p-4"
         )}
       >
@@ -150,9 +151,9 @@ export function ProductCard({
         )}
         <div
           className={cn(
-            "flex gap-1.5 sm:gap-2",
+            "flex gap-1 sm:gap-1.5",
             cardSize === "compact" && "mt-1.5 sm:mt-2",
-            cardSize === "catalog" && "mt-1.5 sm:mt-2",
+            cardSize === "catalog" && "mt-1 sm:mt-1.5",
             cardSize === "default" && "mt-3"
           )}
         >
@@ -162,7 +163,7 @@ export function ProductCard({
             className={cn(
               "flex-1",
               (cardSize === "compact" || cardSize === "catalog") &&
-                "h-7 px-2 text-[10px] sm:h-8 sm:px-3 sm:text-xs"
+                "h-7 px-1.5 text-[9px] sm:h-7 sm:px-2 sm:text-[10px] md:text-xs"
             )}
             asChild
           >
@@ -175,7 +176,7 @@ export function ProductCard({
               className={cn(
                 "btn-shimmer flex-1",
                 (cardSize === "compact" || cardSize === "catalog") &&
-                  "h-7 px-2 text-[10px] sm:h-8 sm:px-3 sm:text-xs"
+                  "h-7 px-1.5 text-[9px] sm:h-7 sm:px-2 sm:text-[10px] md:text-xs"
               )}
               asChild
             >

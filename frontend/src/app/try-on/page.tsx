@@ -1,20 +1,22 @@
 "use client";
 
-import { useEffect } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useEffect, useMemo } from "react";
+import { useSearchParams } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import { productApi } from "@/services/product-api";
-import { ProductCard } from "@/components/common/ProductCard";
-import { LoadingSkeleton } from "@/components/common/LoadingSkeleton";
-import { Button } from "@/components/ui/button";
+import { publicBrandApi } from "@/services/brand-api";
 import { Badge } from "@/components/ui/badge";
+import { LoadingSkeleton } from "@/components/common/LoadingSkeleton";
+import { BrandTryOnSection } from "@/components/tryon/BrandTryOnSection";
+import { TryOnSelectionBar } from "@/components/tryon/TryOnSelectionBar";
 import { useTryOnStore } from "@/stores/tryon-store";
 import { TRY_ON_CATEGORIES } from "@/utils/constants";
 import { PageShell } from "@/components/layout/PageShell";
 import { FlowWizardToolbar } from "@/components/layout/FlowWizardToolbar";
 import { TRYON_FLOW_STEPS } from "@/components/layout/FlowStepper";
 import { PageSuspense } from "@/components/common/PageSuspense";
-import { catalogProductGridClass, consumerPageShellClass } from "@/lib/design-tokens";
+import { consumerPageShellClass } from "@/lib/design-tokens";
+import { groupProductsByBrand } from "@/lib/group-products-by-brand";
 
 export default function TryOnPage() {
   return (
@@ -25,15 +27,31 @@ export default function TryOnPage() {
 }
 
 function TryOnContent() {
-  const router = useRouter();
   const searchParams = useSearchParams();
   const productId = searchParams.get("product");
-  const { selectedItems, addItem, removeItem } = useTryOnStore();
+  const { addItem } = useTryOnStore();
+
+  const { data: brands = [] } = useQuery({
+    queryKey: ["brands", "public"],
+    queryFn: () => publicBrandApi.list(),
+  });
+
+  const brandMap = useMemo(() => new Map(brands.map((b) => [b.id, b])), [brands]);
 
   const { data, isLoading } = useQuery({
     queryKey: ["products-tryon"],
     queryFn: () => productApi.list({ aiTryOnEligible: true }),
   });
+
+  const sortedBrandGroups = useMemo(() => {
+    if (!data?.items.length) return [];
+    const groups = groupProductsByBrand(data.items);
+    return [...groups.entries()].sort((a, b) => {
+      const nameA = brandMap.get(a[0])?.name ?? a[1][0]?.brandName ?? "";
+      const nameB = brandMap.get(b[0])?.name ?? b[1][0]?.brandName ?? "";
+      return nameA.localeCompare(nameB, "vi");
+    });
+  }, [data?.items, brandMap]);
 
   useEffect(() => {
     if (productId && data?.items) {
@@ -61,21 +79,7 @@ function TryOnContent() {
         backLabel="Khám phá"
       />
 
-      {selectedItems.length > 0 && (
-        <div className="mb-4 rounded-xl border border-border/60 bg-muted/80 p-3 shadow-sm sm:mb-6 sm:rounded-2xl sm:p-4">
-          <p className="text-sm font-medium">Đã chọn ({selectedItems.length})</p>
-          <div className="mt-2 flex flex-wrap gap-2">
-            {selectedItems.map((item) => (
-              <Badge key={item.productId} variant="secondary" className="cursor-pointer" onClick={() => removeItem(item.productId)}>
-                {item.name} ×
-              </Badge>
-            ))}
-          </div>
-          <Button className="mt-4 min-h-11 w-full sm:w-auto" onClick={() => router.push("/try-on/selected")}>
-            Tiếp tục thử outfit
-          </Button>
-        </div>
-      )}
+      <TryOnSelectionBar />
 
       <div className="mt-3 flex flex-wrap gap-1.5 sm:mt-4 sm:gap-2">
         {TRY_ON_CATEGORIES.map((c) => (
@@ -85,26 +89,18 @@ function TryOnContent() {
         ))}
       </div>
 
-      <div className="mt-4 sm:mt-6">
-        {isLoading ? <LoadingSkeleton /> : (
-          <div className={catalogProductGridClass}>
-            {data?.items.map((p) => (
-              <div
-                key={p.id}
-                className="cursor-pointer"
-                onClick={() =>
-                  addItem({
-                    productId: p.id,
-                    category: p.category,
-                    name: p.name,
-                    imageUrl: p.images[0],
-                  })
-                }
-              >
-                <ProductCard product={p} showTryOn={false} size="catalog" detailContext="tryon" />
-              </div>
-            ))}
-          </div>
+      <div className="mt-4 space-y-10 sm:mt-6">
+        {isLoading ? (
+          <LoadingSkeleton />
+        ) : (
+          sortedBrandGroups.map(([id, products]) => (
+            <BrandTryOnSection
+              key={id}
+              brand={brandMap.get(id)}
+              products={products}
+              onSelectProduct={addItem}
+            />
+          ))
         )}
       </div>
     </PageShell>

@@ -101,7 +101,7 @@ export function getActiveMobileNavTab(
     return "discover";
   }
   if (pathname === "/ai/start" || pathname.startsWith("/ai/start/")) return "ai";
-  if (pathname === "/try-on") return "tryon";
+  if (pathname === "/try-on" || pathname.startsWith("/try-on/brand/")) return "tryon";
   if (
     pathname === "/profile" ||
     pathname.startsWith("/profile/") ||

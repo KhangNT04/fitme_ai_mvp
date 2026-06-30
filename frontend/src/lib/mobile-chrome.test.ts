@@ -13,6 +13,7 @@ describe("mobile-chrome", () => {
       expect(shouldShowBottomNav("/")).toBe(true);
       expect(shouldShowBottomNav("/discover")).toBe(true);
       expect(shouldShowBottomNav("/try-on")).toBe(true);
+      expect(shouldShowBottomNav("/try-on/brand/abc")).toBe(true);
       expect(shouldShowBottomNav("/ai/start")).toBe(true);
       expect(shouldShowBottomNav("/profile")).toBe(true);
       expect(shouldShowBottomNav("/products/abc")).toBe(true);
@@ -45,6 +46,8 @@ describe("mobile-chrome", () => {
       expect(getActiveMobileNavTab("/products/x", { preferTryOn: true })).toBe("tryon");
       expect(getActiveMobileNavTab("/ai/start")).toBe("ai");
       expect(getActiveMobileNavTab("/try-on")).toBe("tryon");
+      expect(getActiveMobileNavTab("/try-on/brand/abc")).toBe("tryon");
+      expect(getActiveMobileNavTab("/discover/brand/abc")).toBe("discover");
       expect(getActiveMobileNavTab("/wardrobe")).toBe("profile");
       expect(getActiveMobileNavTab("/saved-outfits")).toBe("profile");
     });

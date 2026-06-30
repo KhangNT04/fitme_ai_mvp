@@ -13,9 +13,13 @@ import { ProductImageGallery } from "@/components/product/ProductImageGallery";
 import { formatPrice } from "@/utils/format-price";
 import { useConsultationStore } from "@/stores/consultation-store";
 import { useEnsureSession } from "@/hooks/use-ensure-session";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
+import { recommendationApi } from "@/services/recommendation-api";
+import { OutfitAiExplanationCard } from "@/components/ai/OutfitAiExplanationCard";
+import { AI_RESULT_FROM_PARAM, RECOMMENDATION_PARAM } from "@/lib/nav-context";
 import { PageShell } from "@/components/layout/PageShell";
-import { BackLink } from "@/components/layout/BackLink";
+import { ProductPageBackLink } from "@/components/layout/ProductPageBackLink";
+import { PageSuspense } from "@/components/common/PageSuspense";
 import { pageTitle } from "@/lib/design-tokens";
 
 export default function ProductDetailPage({
@@ -23,14 +27,35 @@ export default function ProductDetailPage({
 }: {
   params: Promise<{ id: string }>;
 }) {
+  return (
+    <PageSuspense>
+      <ProductDetailContent params={params} />
+    </PageSuspense>
+  );
+}
+
+function ProductDetailContent({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
   const { id } = use(params);
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const fromAiResult = searchParams.get("from") === AI_RESULT_FROM_PARAM;
+  const recommendationId = searchParams.get(RECOMMENDATION_PARAM);
   const { setSelectedProductId } = useConsultationStore();
   const { ensureSession } = useEnsureSession();
 
   const { data: product, isLoading, error, refetch } = useQuery({
     queryKey: ["product", id],
     queryFn: () => productApi.getById(id),
+  });
+
+  const { data: recommendation } = useQuery({
+    queryKey: ["recommendation", recommendationId],
+    queryFn: () => recommendationApi.getById(recommendationId!),
+    enabled: fromAiResult && !!recommendationId,
   });
 
   const handleConsult = async () => {
@@ -57,7 +82,7 @@ export default function ProductDetailPage({
 
   return (
     <PageShell width="full">
-      <BackLink href="/discover" label="Khám phá sản phẩm" className="mb-6" />
+      <ProductPageBackLink className="mb-3 sm:mb-4" />
       <div className="grid gap-8 lg:grid-cols-2">
         <ProductImageGallery
           images={product.images}
@@ -142,6 +167,14 @@ export default function ProductDetailPage({
               <Link href={`/redirect/confirm/${product.id}`}>Mua ngay</Link>
             </Button>
           </div>
+
+          {fromAiResult && recommendation && (
+            <OutfitAiExplanationCard
+              recommendation={recommendation}
+              productId={product.id}
+              className="mt-6"
+            />
+          )}
         </div>
       </div>
     </PageShell>

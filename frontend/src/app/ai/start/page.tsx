@@ -6,10 +6,13 @@ import { ArrowRight, User, Palette, Calendar } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { useEnsureSession } from "@/hooks/use-ensure-session";
+import { useHydrateConsultationProfiles } from "@/hooks/use-hydrate-consultation-profiles";
 import { useConsultationStore } from "@/stores/consultation-store";
 import { useEffect, useState } from "react";
 import { PageShell } from "@/components/layout/PageShell";
-import { PageHeader } from "@/components/layout/PageHeader";
+import { FlowWizardToolbar } from "@/components/layout/FlowWizardToolbar";
+import { AI_FLOW_STEPS } from "@/components/layout/FlowStepper";
+import { consumerPageShellClass } from "@/lib/design-tokens";
 
 const steps = [
   { icon: User, title: "Thông tin cơ thể", desc: "Chiều cao, cân nặng, gu mặc", href: "/ai/body-profile" },
@@ -22,6 +25,7 @@ export default function AiStartPage() {
   const { ensureSession } = useEnsureSession();
   const selectedProductId = useConsultationStore((s) => s.draft.selectedProductId);
   const [mounted, setMounted] = useState(false);
+  useHydrateConsultationProfiles();
 
   useEffect(() => {
     setMounted(true);
@@ -29,42 +33,46 @@ export default function AiStartPage() {
   }, [ensureSession]);
 
   return (
-    <PageShell width="medium">
-      <PageHeader
+    <PageShell width="full" className={consumerPageShellClass}>
+      <FlowWizardToolbar
+        steps={AI_FLOW_STEPS}
+        currentStep={1}
         title="Bắt đầu tư vấn AI"
         subtitle="Hoàn thành 3 bước để nhận gợi ý outfit phù hợp với bạn."
         showAiBadge
-        backHref="/"
-        backLabel="Trang chủ"
+        backHref="/discover"
+        backLabel="Khám phá"
       />
 
       {mounted && selectedProductId && (
-        <div className="mb-6 rounded-2xl bg-accent/80 p-4 text-sm text-accent-foreground">
+        <div className="mb-4 rounded-xl border border-border/60 bg-muted/80 p-3 text-sm shadow-sm sm:mb-6 sm:rounded-2xl sm:p-4">
           Đang tư vấn cho sản phẩm đã chọn
         </div>
       )}
 
-      <div className="space-y-4">
+      <div className="space-y-2 sm:space-y-3">
         {steps.map((step, i) => (
-          <Card key={step.href}>
-            <CardContent className="flex items-center gap-4 p-6">
-              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary text-white text-sm font-bold">
+          <Card key={step.href} className="overflow-hidden">
+            <CardContent className="flex items-center gap-2.5 p-3 sm:gap-4 sm:p-4">
+              <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary text-xs font-bold text-white sm:h-9 sm:w-9 sm:text-sm">
                 {i + 1}
               </div>
-              <step.icon className="h-6 w-6 text-muted-foreground" />
-              <div className="flex-1">
-                <h3 className="font-semibold text-foreground">{step.title}</h3>
-                <p className="text-sm text-muted-foreground">{step.desc}</p>
+              <step.icon className="hidden h-5 w-5 shrink-0 text-muted-foreground sm:block" aria-hidden="true" />
+              <div className="min-w-0 flex-1">
+                <h3 className="truncate text-sm font-semibold text-foreground">{step.title}</h3>
+                <p className="truncate text-xs text-muted-foreground">{step.desc}</p>
               </div>
-              <Button variant="ghost" size="icon" asChild>
-                <Link href={step.href}><ArrowRight className="h-4 w-4" /></Link>
+              <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0" asChild>
+                <Link href={step.href} aria-label={step.title}>
+                  <ArrowRight className="h-4 w-4" />
+                </Link>
               </Button>
             </CardContent>
           </Card>
         ))}
       </div>
 
-      <Button className="mt-8 w-full" size="lg" variant="ai" onClick={() => router.push("/ai/body-profile")}>
+      <Button className="mt-6 min-h-11 w-full sm:mt-8" size="lg" variant="ai" onClick={() => router.push("/ai/body-profile")}>
         Bắt đầu nhập thông tin
       </Button>
     </PageShell>

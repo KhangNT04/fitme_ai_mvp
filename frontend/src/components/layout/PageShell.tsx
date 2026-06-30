@@ -22,5 +22,5 @@ interface PageShellProps {
 }
 
 export function PageShell({ children, width = "narrow", className }: PageShellProps) {
-  return <div className={cn(widthClass[width], className)}>{children}</div>;
+  return <div className={cn(widthClass[width], "overflow-visible", className)}>{children}</div>;
 }

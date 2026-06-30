@@ -13,7 +13,6 @@ public class WardrobeItemRequest {
     private String itemType;
     @NotBlank
     private String category;
-    @NotBlank
     private String color;
     private String material;
     private String fitType;

@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { AuthCardShell } from "@/components/layout/AuthCardShell";
+import { getUserErrorMessage } from "@/lib/user-error-message";
 
 export default function VerifyEmailPage() {
   const router = useRouter();
@@ -24,7 +25,7 @@ export default function VerifyEmailPage() {
       await authApi.verifyEmail({ email: user.email, code });
       router.push("/profile");
     } catch (e: unknown) {
-      setError((e as { message?: string })?.message || "Mã xác minh không hợp lệ");
+      setError(getUserErrorMessage(e, "Mã xác minh không hợp lệ"));
     } finally {
       setLoading(false);
     }

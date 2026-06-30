@@ -139,4 +139,4 @@ sequenceDiagram
 3. **frontend-build** — `npm run build`
 4. **e2e** — Postgres service + Spring Boot + Playwright (`smoke-routes` + `role-flows`)
 
-See also: [`API_CONTRACT.md`](API_CONTRACT.md), [`QA_REPORT.md`](QA_REPORT.md).
+See also: [`API_CONTRACT.md`](API_CONTRACT.md), [`QA_REPORT.md`](QA_REPORT.md), [`USER_GUIDE.md`](USER_GUIDE.md), [`DEVELOPER_GUIDE.md`](DEVELOPER_GUIDE.md).

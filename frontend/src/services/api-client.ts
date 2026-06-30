@@ -1,4 +1,5 @@
 import axios, { type AxiosError, type InternalAxiosRequestConfig } from "axios";
+import { formatUserErrorMessage } from "@/lib/user-error-message";
 import { API_URL, SESSION_STORAGE_KEY, AUTH_TOKEN_KEY, AUTH_REFRESH_KEY } from "@/utils/constants";
 
 export interface ApiError {
@@ -95,12 +96,13 @@ apiClient.interceptors.response.use(
       }
     }
 
-    const message =
+    const status = error.response?.status;
+    const rawMessage =
       (error.response?.data as ApiResponse<unknown>)?.error ||
       error.response?.data?.message ||
-      error.message ||
-      "Đã xảy ra lỗi. Vui lòng thử lại.";
-    return Promise.reject({ message, status: error.response?.status } as ApiError);
+      error.message;
+    const message = formatUserErrorMessage(rawMessage, status);
+    return Promise.reject({ message, status } as ApiError);
   }
 );
 

@@ -1,9 +1,10 @@
 "use client";
 
 import { PageShell } from "@/components/layout/PageShell";
-import { PageHeader } from "@/components/layout/PageHeader";
+import { FlowWizardToolbar } from "@/components/layout/FlowWizardToolbar";
 import { TRYON_FLOW_STEPS } from "@/components/layout/FlowStepper";
 import { Disclaimer } from "@/components/layout/Disclaimer";
+import { consumerPageShellClass } from "@/lib/design-tokens";
 import { Chip } from "@/components/ui/chip";
 import { Button } from "@/components/ui/button";
 
@@ -37,8 +38,8 @@ export function TryOnVariantShell({
   backLabel = "Kết quả thử mặc",
 }: TryOnVariantShellProps) {
   return (
-    <PageShell>
-      <PageHeader
+    <PageShell width="full" className={consumerPageShellClass}>
+      <FlowWizardToolbar
         steps={TRYON_FLOW_STEPS}
         currentStep={stepperStep}
         title={title}

@@ -58,6 +58,8 @@ async function linkAnonymousSession() {
   }
 }
 
+export { linkAnonymousSession };
+
 export const authApi = {
   login: async (data: LoginRequest): Promise<AuthResponse> => {
     const res = await apiClient.post("/auth/login", data);

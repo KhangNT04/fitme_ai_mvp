@@ -13,6 +13,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent } from "@/components/ui/card";
 import { PageShell } from "@/components/layout/PageShell";
 import { PageHeader } from "@/components/layout/PageHeader";
+import { getUserErrorMessage } from "@/lib/user-error-message";
 import { brandOnboardingSchema, type BrandOnboardingForm } from "@/utils/validators";
 
 export default function BrandOnboardingPage() {
@@ -43,7 +44,7 @@ export default function BrandOnboardingPage() {
       });
       router.push("/brand/pending");
     } catch (e: unknown) {
-      setError((e as { message?: string })?.message || "Gửi đơn thất bại");
+      setError(getUserErrorMessage(e, "Gửi đơn thất bại"));
     }
   };
 

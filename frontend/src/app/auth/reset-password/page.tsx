@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { AuthCardShell } from "@/components/layout/AuthCardShell";
+import { getUserErrorMessage } from "@/lib/user-error-message";
 import { resetPasswordSchema, type ResetPasswordForm } from "@/utils/validators";
 
 export default function ResetPasswordPage() {
@@ -37,7 +38,7 @@ function ResetPasswordForm() {
       setSuccess(true);
       setTimeout(() => router.push("/auth/login"), 2000);
     } catch (e: unknown) {
-      setError((e as { message?: string })?.message || "Đặt lại mật khẩu thất bại");
+      setError(getUserErrorMessage(e, "Đặt lại mật khẩu thất bại"));
     }
   };
 

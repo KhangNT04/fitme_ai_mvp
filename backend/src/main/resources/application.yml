@@ -36,6 +36,9 @@ fitme:
   seed:
     enabled: ${FITME_SEED_ENABLED:true}
     password: ${FITME_SEED_PASSWORD:fitme123}
+    top-up-enabled: ${FITME_SEED_TOP_UP:true}
+    products-per-brand: ${FITME_SEED_PRODUCTS_PER_BRAND:18}
+    min-active-products: ${FITME_SEED_MIN_ACTIVE_PRODUCTS:36}
   privacy:
     version: "2026-01"
   exception:

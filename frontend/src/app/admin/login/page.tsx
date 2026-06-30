@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { PortalLoginShell } from "@/components/layout/PortalLoginShell";
+import { getUserErrorMessage } from "@/lib/user-error-message";
 import { loginSchema, type LoginForm } from "@/utils/validators";
 
 export default function AdminLoginPage() {
@@ -30,7 +31,7 @@ export default function AdminLoginPage() {
       setAuth(res.user, res.accessToken, res.refreshToken);
       router.push("/admin/dashboard");
     } catch (e: unknown) {
-      setError((e as { message?: string })?.message || "Đăng nhập thất bại");
+      setError(getUserErrorMessage(e, { fallback: "Đăng nhập thất bại", context: "admin-auth" }));
     }
   };
 

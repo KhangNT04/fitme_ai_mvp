@@ -1,6 +1,8 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
+import { hasOutfitItem, outfitItemKey } from "@/lib/outfit-item-utils";
 import type { ConsultationDraft } from "@/types/session";
+import type { OutfitItem } from "@/types/outfit";
 import type { BodyProfile, StyleProfile, OccasionRequest, WardrobeMode } from "@/types/user";
 
 interface ConsultationState {
@@ -13,6 +15,9 @@ interface ConsultationState {
   setWardrobeMode: (mode: WardrobeMode) => void;
   setPhotoUploadId: (id: string) => void;
   setRecommendationId: (id: string) => void;
+  initPreviewOutfit: (recommendationId: string, items: OutfitItem[]) => void;
+  addPreviewOutfitItem: (item: OutfitItem) => void;
+  removePreviewOutfitItem: (key: string) => void;
   reset: () => void;
 }
 
@@ -45,6 +50,43 @@ export const useConsultationStore = create<ConsultationState>()(
         set((s) => ({ draft: { ...s.draft, photoUploadId: id } })),
       setRecommendationId: (id) =>
         set((s) => ({ draft: { ...s.draft, recommendationId: id } })),
+      initPreviewOutfit: (recommendationId, items) =>
+        set((s) => {
+          const keepExisting =
+            s.draft.previewOutfitSourceId === recommendationId &&
+            (s.draft.previewOutfitItems?.length ?? 0) > 0;
+          if (keepExisting) {
+            return { draft: { ...s.draft, recommendationId } };
+          }
+          return {
+            draft: {
+              ...s.draft,
+              recommendationId,
+              previewOutfitSourceId: recommendationId,
+              previewOutfitItems: items,
+            },
+          };
+        }),
+      addPreviewOutfitItem: (item) =>
+        set((s) => {
+          const current = s.draft.previewOutfitItems ?? [];
+          if (hasOutfitItem(current, item)) return s;
+          return {
+            draft: {
+              ...s.draft,
+              previewOutfitItems: [...current, item],
+            },
+          };
+        }),
+      removePreviewOutfitItem: (key) =>
+        set((s) => ({
+          draft: {
+            ...s.draft,
+            previewOutfitItems: (s.draft.previewOutfitItems ?? []).filter(
+              (item) => outfitItemKey(item) !== key,
+            ),
+          },
+        })),
       reset: () => set({ draft: initialDraft }),
     }),
     { name: "fitme-consultation", skipHydration: true }

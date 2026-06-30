@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { Sparkles } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { BackLink } from "@/components/layout/BackLink";
+import { PinnedBackLink } from "@/components/layout/PinnedBackLink";
 
 interface PortalLoginShellProps {
   title: string;
@@ -21,7 +21,7 @@ export function PortalLoginShell({
   return (
     <div className="flex min-h-[80vh] items-center justify-center px-4">
       <div className="w-full max-w-md">
-        {backHref && <BackLink href={backHref} label={backLabel} className="mb-4" />}
+        {backHref && <PinnedBackLink href={backHref} label={backLabel} className="mb-4" />}
         <div className="mb-6 flex flex-col items-center gap-2">
           <div className="gradient-ai flex h-12 w-12 items-center justify-center rounded-2xl shadow-sm">
             <Sparkles className="h-6 w-6 text-white" />

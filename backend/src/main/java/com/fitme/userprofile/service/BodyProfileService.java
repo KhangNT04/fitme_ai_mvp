@@ -1,7 +1,5 @@
 package com.fitme.userprofile.service;
 
-import com.fitme.common.enums.FitPreference;
-import com.fitme.common.enums.SkinTone;
 import com.fitme.common.exception.NotFoundException;
 import com.fitme.common.security.RequestContext;
 import com.fitme.userprofile.dto.BodyProfileRequest;
@@ -70,17 +68,39 @@ public class BodyProfileService {
     private void applyRequest(BodyProfile profile, BodyProfileRequest request) {
         profile.setHeightCm(request.getHeightCm());
         profile.setWeightKg(request.getWeightKg());
-        profile.setFitPreference(request.getFitPreference() != null ? request.getFitPreference() : FitPreference.REGULAR);
-        profile.setSkinTone(request.getSkinTone() != null ? request.getSkinTone() : SkinTone.UNSURE);
-        profile.setGoals(request.getGoals());
-        profile.setShoulderWidthCm(request.getShoulderWidthCm());
-        profile.setChestCm(request.getChestCm());
-        profile.setWaistCm(request.getWaistCm());
-        profile.setAbdomenCm(request.getAbdomenCm());
-        profile.setHipCm(request.getHipCm());
-        profile.setThighCm(request.getThighCm());
-        profile.setInseamCm(request.getInseamCm());
-        profile.setArmLengthCm(request.getArmLengthCm());
+        if (request.getFitPreference() != null) {
+            profile.setFitPreference(request.getFitPreference());
+        }
+        if (request.getSkinTone() != null) {
+            profile.setSkinTone(request.getSkinTone());
+        }
+        if (request.getGoals() != null) {
+            profile.setGoals(request.getGoals());
+        }
+        if (request.getShoulderWidthCm() != null) {
+            profile.setShoulderWidthCm(request.getShoulderWidthCm());
+        }
+        if (request.getChestCm() != null) {
+            profile.setChestCm(request.getChestCm());
+        }
+        if (request.getWaistCm() != null) {
+            profile.setWaistCm(request.getWaistCm());
+        }
+        if (request.getAbdomenCm() != null) {
+            profile.setAbdomenCm(request.getAbdomenCm());
+        }
+        if (request.getHipCm() != null) {
+            profile.setHipCm(request.getHipCm());
+        }
+        if (request.getThighCm() != null) {
+            profile.setThighCm(request.getThighCm());
+        }
+        if (request.getInseamCm() != null) {
+            profile.setInseamCm(request.getInseamCm());
+        }
+        if (request.getArmLengthCm() != null) {
+            profile.setArmLengthCm(request.getArmLengthCm());
+        }
         if (profile.getUserId() == null) {
             RequestContext.getCurrentUserId().ifPresent(profile::setUserId);
         }

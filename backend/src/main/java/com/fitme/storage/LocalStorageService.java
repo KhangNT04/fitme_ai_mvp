@@ -10,7 +10,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
-import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -20,13 +19,19 @@ public class LocalStorageService implements StorageService {
 
     @Override
     public String store(String folder, String filename, MultipartFile file) throws IOException {
+        ImageUploadValidator.validate(file);
         Path baseDir = Paths.get(properties.getUpload().getDir()).toAbsolutePath().normalize();
         Path targetDir = baseDir.resolve(folder);
         Files.createDirectories(targetDir);
-        String safeName = filename != null && !filename.isBlank() ? filename : UUID.randomUUID() + getExtension(file);
+        String safeName = MediaPaths.sanitizeFilename(filename != null && !filename.isBlank() ? filename : file.getOriginalFilename());
+        if (!safeName.contains(".") && file.getOriginalFilename() != null && file.getOriginalFilename().contains(".")) {
+            safeName = safeName + getExtension(file);
+        } else if (!safeName.contains(".")) {
+            safeName = safeName + defaultExtension(file.getContentType());
+        }
         Path target = targetDir.resolve(safeName);
         Files.copy(file.getInputStream(), target, StandardCopyOption.REPLACE_EXISTING);
-        return "/uploads/" + folder + "/" + safeName;
+        return MediaPaths.buildStoredPath(folder, safeName);
     }
 
     @Override
@@ -44,6 +49,15 @@ public class LocalStorageService implements StorageService {
         if (original != null && original.contains(".")) {
             return original.substring(original.lastIndexOf('.'));
         }
-        return "";
+        return defaultExtension(file.getContentType());
+    }
+
+    private String defaultExtension(String contentType) {
+        if (contentType == null) return ".jpg";
+        return switch (contentType.toLowerCase()) {
+            case "image/png" -> ".png";
+            case "image/webp" -> ".webp";
+            default -> ".jpg";
+        };
     }
 }

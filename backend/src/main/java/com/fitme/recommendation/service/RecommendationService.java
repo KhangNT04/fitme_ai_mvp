@@ -164,13 +164,14 @@ public class RecommendationService {
     public List<RecommendationResponse> getSaved() {
         UUID userId = RequestContext.getCurrentUserId().orElse(null);
         UUID sessionId = RequestContext.getSessionId().orElse(null);
+        if (userId == null && sessionId == null) {
+            return List.of();
+        }
         List<Recommendation> saved;
         if (userId != null) {
             saved = recommendationRepository.findByUserIdAndSavedTrue(userId);
-        } else if (sessionId != null) {
-            saved = recommendationRepository.findBySessionIdAndSavedTrue(sessionId);
         } else {
-            throw new BusinessException("Yêu cầu đăng nhập hoặc session ẩn danh");
+            saved = recommendationRepository.findBySessionIdAndSavedTrue(sessionId);
         }
         return saved.stream().map(r -> getById(r.getId())).toList();
     }
@@ -187,6 +188,7 @@ public class RecommendationService {
                         .displayName(p.getName())
                         .price(p.getPrice())
                         .canBuy(eligibilityService.canShowBuyButton(p))
+                        .imageUrl(outfitCompositionService.resolveProductImageUrl(p.getId()))
                         .build())
                 .toList();
     }

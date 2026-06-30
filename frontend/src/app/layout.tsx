@@ -1,9 +1,8 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono, Plus_Jakarta_Sans } from "next/font/google";
 import "./globals.css";
 import { Providers } from "@/providers";
-import { Header } from "@/components/layout/Header";
-import { Footer } from "@/components/layout/Footer";
+import { ConsumerChrome } from "@/components/layout/ConsumerChrome";
 import { FashionAmbient } from "@/components/layout/FashionAmbient";
 
 const geistSans = Geist({
@@ -27,6 +26,12 @@ export const metadata: Metadata = {
   description: "Tư vấn size, phối đồ và preview outfit 2D bằng AI. Thử mặc minh họa thông minh.",
 };
 
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  viewportFit: "cover",
+};
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -37,11 +42,7 @@ export default function RootLayout({
       <body className="min-h-full flex flex-col bg-background text-foreground antialiased">
         <Providers>
           <FashionAmbient />
-          <div className="relative z-10 flex min-h-full flex-col">
-            <Header />
-            <main className="flex-1">{children}</main>
-            <Footer />
-          </div>
+          <ConsumerChrome>{children}</ConsumerChrome>
         </Providers>
       </body>
     </html>

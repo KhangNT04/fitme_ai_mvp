@@ -5,7 +5,9 @@ import com.fitme.common.enums.ItemRole;
 import com.fitme.common.enums.SourceType;
 import com.fitme.common.enums.WardrobeMode;
 import com.fitme.product.entity.Product;
+import com.fitme.product.entity.ProductImage;
 import com.fitme.product.entity.ProductVariant;
+import com.fitme.product.repository.ProductImageRepository;
 import com.fitme.product.repository.ProductVariantRepository;
 import com.fitme.product.service.ProductEligibilityService;
 import com.fitme.recommendation.dto.RecommendationResponse;
@@ -14,6 +16,7 @@ import com.fitme.recommendation.entity.RecommendationItem;
 import com.fitme.userprofile.entity.BodyProfile;
 import com.fitme.userprofile.entity.StyleProfile;
 import com.fitme.wardrobe.entity.WardrobeItem;
+import com.fitme.wardrobe.repository.WardrobeItemRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -24,6 +27,8 @@ import java.util.*;
 public class OutfitCompositionService {
 
     private final ProductVariantRepository variantRepository;
+    private final ProductImageRepository imageRepository;
+    private final WardrobeItemRepository wardrobeItemRepository;
     private final ProductEligibilityService eligibilityService;
     private final SizeResolutionService sizeResolutionService;
 
@@ -69,6 +74,7 @@ public class OutfitCompositionService {
                     .sourceType(SourceType.USER_WARDROBE)
                     .displayName(w.getName())
                     .selectedColor(w.getColor())
+                    .imageUrl(w.getImageUrl())
                     .canBuy(false)
                     .build());
         }
@@ -88,7 +94,31 @@ public class OutfitCompositionService {
                 .selectedColor(color)
                 .price(p.getPrice())
                 .canBuy(eligibilityService.canShowBuyButton(p))
+                .imageUrl(primaryProductImageUrl(p.getId()))
                 .build();
+    }
+
+    public String resolveProductImageUrl(UUID productId) {
+        return primaryProductImageUrl(productId);
+    }
+
+    private String primaryProductImageUrl(UUID productId) {
+        return imageRepository.findByProductIdOrderBySortOrderAsc(productId).stream()
+                .findFirst()
+                .map(ProductImage::getImageUrl)
+                .orElse(null);
+    }
+
+    private String resolveStoredItemImageUrl(UUID productId, UUID wardrobeItemId, SourceType sourceType) {
+        if (sourceType == SourceType.USER_WARDROBE && wardrobeItemId != null) {
+            return wardrobeItemRepository.findById(wardrobeItemId)
+                    .map(WardrobeItem::getImageUrl)
+                    .orElse(null);
+        }
+        if (productId != null) {
+            return primaryProductImageUrl(productId);
+        }
+        return null;
     }
 
     public ItemRole guessRole(String category) {
@@ -129,6 +159,7 @@ public class OutfitCompositionService {
                 .selectedColor(item.getSelectedColor())
                 .price(item.getPrice())
                 .canBuy(canBuy)
+                .imageUrl(resolveStoredItemImageUrl(item.getProductId(), item.getWardrobeItemId(), item.getSourceType()))
                 .build();
     }
 

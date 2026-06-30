@@ -37,7 +37,7 @@ public class WardrobeController {
     }
 
     @DeleteMapping("/items/{id}")
-    public ApiResponse<Void> delete(@PathVariable UUID id) {
+    public ApiResponse<Void> delete(@PathVariable UUID id) throws IOException {
         wardrobeService.delete(id);
         return ApiResponse.ok(null);
     }

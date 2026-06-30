@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { Sparkles, Shirt, Palette, Camera, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -47,9 +48,33 @@ const MARQUEE_ITEMS = [
 ];
 
 const LOOKBOOK = [
-  { label: "Office Chic", gradient: "from-slate-700 via-violet-900 to-fuchsia-800", rotate: "-rotate-3", z: "z-10", size: "h-72 w-52" },
-  { label: "Weekend Casual", gradient: "from-rose-400 via-pink-500 to-violet-600", rotate: "rotate-2", z: "z-20 -mt-16 ml-8", size: "h-80 w-56" },
-  { label: "Evening Edit", gradient: "from-indigo-900 via-purple-800 to-rose-700", rotate: "rotate-6", z: "z-30 -mt-20 ml-4", size: "h-64 w-48" },
+  {
+    label: "Office Chic",
+    image: "/collections/office-chic.jpg",
+    imageAlt: "Office Chic — phong cách công sở thanh lịch",
+    gradient: "from-slate-900/40 via-violet-950/20 to-fuchsia-900/30",
+    rotate: "-rotate-3",
+    z: "z-10",
+    size: "h-72 w-52",
+  },
+  {
+    label: "Weekend Casual",
+    image: "/collections/weekend-casual.jpg",
+    imageAlt: "Weekend Casual — phong cách cuối tuần thoải mái",
+    gradient: "from-rose-900/35 via-pink-900/15 to-violet-900/25",
+    rotate: "rotate-2",
+    z: "z-20 -mt-16 ml-8",
+    size: "h-80 w-56",
+  },
+  {
+    label: "Evening Edit",
+    image: "/collections/evening-edit.jpg",
+    imageAlt: "Evening Edit — phong cách buổi tối sang trọng",
+    gradient: "from-indigo-950/50 via-purple-900/30 to-rose-900/35",
+    rotate: "rotate-6",
+    z: "z-30 -mt-20 ml-4",
+    size: "h-64 w-48",
+  },
 ];
 
 export default function HomePage() {
@@ -64,26 +89,26 @@ export default function HomePage() {
   return (
     <div className="overflow-hidden">
       {/* Hero — editorial split */}
-      <section className="editorial-hero relative min-h-[88vh] lg:min-h-[92vh]">
+      <section className="editorial-hero relative min-h-[70vh] sm:min-h-[88vh] lg:min-h-[92vh]">
         <div className="absolute inset-0 bg-gradient-to-br from-violet-100/40 via-transparent to-pink-100/30" />
         <div className="relative mx-auto grid max-w-7xl items-center gap-12 px-4 py-16 sm:px-6 lg:grid-cols-2 lg:py-24">
           <div className="relative z-10">
             <Badge variant="ai" className="animate-fade-up mb-5 shadow-md">
               Styling powered by AI
             </Badge>
-            <h1 className="animate-fade-up animate-fade-up-delay-1 font-display text-4xl font-extrabold leading-[1.1] tracking-tight text-foreground sm:text-5xl lg:text-6xl">
+            <h1 className="animate-fade-up animate-fade-up-delay-1 font-display text-3xl font-extrabold leading-[1.1] tracking-tight text-foreground sm:text-5xl lg:text-6xl">
               Đúng size, hợp dáng, chuẩn màu — thử trước khi mua.
             </h1>
             <p className="animate-fade-up animate-fade-up-delay-2 mt-6 max-w-lg text-lg leading-relaxed text-muted-foreground">
               FitMe AI giúp bạn tư vấn size, phối đồ và xem preview outfit 2D minh họa.
               Không cần đăng nhập để bắt đầu.
             </p>
-            <div className="animate-fade-up animate-fade-up-delay-3 mt-10 flex flex-wrap gap-4">
-              <Button size="lg" variant="ai" className="btn-shimmer h-12 px-8 text-base" onClick={handleStartConsultation}>
+            <div className="animate-fade-up animate-fade-up-delay-3 mt-10 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:gap-4">
+              <Button size="lg" variant="ai" className="btn-shimmer h-12 min-h-11 w-full px-8 text-base sm:w-auto" onClick={handleStartConsultation}>
                 <Sparkles className="h-4 w-4" />
                 Bắt đầu tư vấn outfit
               </Button>
-              <Button size="lg" variant="outline" className="glass-panel h-12 border-white/80 px-8 text-base" asChild>
+              <Button size="lg" variant="outline" className="glass-panel h-12 min-h-11 w-full border-white/80 px-8 text-base sm:w-auto" asChild>
                 <Link href="/discover">
                   Khám phá sản phẩm
                   <ArrowRight className="h-4 w-4" />
@@ -112,9 +137,18 @@ export default function HomePage() {
               {LOOKBOOK.map((item) => (
                 <div
                   key={item.label}
-                  className={`lookbook-card absolute right-0 ${item.size} ${item.rotate} ${item.z} bg-gradient-to-br ${item.gradient}`}
+                  className={`lookbook-card absolute right-0 ${item.size} ${item.rotate} ${item.z}`}
                 >
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-white/10" />
+                  <Image
+                    src={item.image}
+                    alt={item.imageAlt}
+                    fill
+                    sizes="(min-width: 1024px) 224px"
+                    className="object-cover object-center"
+                    priority
+                  />
+                  <div className={`absolute inset-0 bg-gradient-to-br ${item.gradient}`} />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-white/5" />
                   <div className="absolute bottom-0 left-0 right-0 p-4">
                     <p className="text-[10px] font-medium uppercase tracking-[0.2em] text-white/70">Collection</p>
                     <p className="font-display text-sm font-semibold text-white">{item.label}</p>
@@ -166,7 +200,7 @@ export default function HomePage() {
       </section>
 
       {/* CTA band */}
-      <section className="relative overflow-hidden">
+      <section className="relative overflow-hidden pb-mobile-nav md:pb-0">
         <div className="gradient-fashion absolute inset-0" />
         <div className="absolute inset-0 opacity-30">
           <div className="fashion-grain h-full w-full opacity-100" />

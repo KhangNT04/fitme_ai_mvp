@@ -1,21 +1,39 @@
 "use client";
 
-import { useMemo, useState, useEffect } from "react";
+import { useMemo, useState, useEffect, useRef, useCallback } from "react";
 import Image from "next/image";
 import { useQuery } from "@tanstack/react-query";
 import { productApi } from "@/services/product-api";
 import { publicBrandApi } from "@/services/brand-api";
 import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { SlidersHorizontal } from "lucide-react";
 import { ProductCard } from "@/components/common/ProductCard";
 import { LoadingSkeleton } from "@/components/common/LoadingSkeleton";
 import { EmptyState } from "@/components/common/EmptyState";
 import { ErrorState } from "@/components/common/ErrorState";
 import { PageShell } from "@/components/layout/PageShell";
-import { PageHeader } from "@/components/layout/PageHeader";
-import { StickyToolbar, StickyToolbarSection } from "@/components/layout/StickyToolbar";
+import { CollapsingPageHeader } from "@/components/layout/CollapsingPageHeader";
 import { PRODUCT_CATEGORIES } from "@/utils/constants";
+import { catalogProductGridClass, consumerPageShellClass } from "@/lib/design-tokens";
+import {
+  DISCOVER_SEARCH_FOCUS_EVENT,
+  DISCOVER_SEARCH_HASH,
+  focusDiscoverSearchInput,
+  isDiscoverSearchInputVisible,
+  openDiscoverSearch,
+} from "@/lib/discover-search";
+import { categoryFilterLabel, filterProductsByCategory } from "@/lib/product-category";
+import { cn } from "@/lib/utils";
 import type { Product } from "@/types/product";
 import type { Brand } from "@/types/brand";
 
@@ -38,7 +56,7 @@ function groupProductsByBrand(items: Product[]): Map<string, Product[]> {
 function BrandSectionHeader({ brand, count }: { brand?: Brand; count: number }) {
   const name = brand?.name ?? "Thương hiệu";
   return (
-    <div className="mb-2.5 flex items-center gap-2.5 border-b border-border/40 pb-2">
+    <div className="mb-2 flex items-center gap-2 border-b border-border/40 pb-1.5 sm:mb-2.5 sm:gap-2.5 sm:pb-2">
       {brand?.logoUrl ? (
         <div className="relative h-8 w-8 shrink-0 overflow-hidden rounded-full border border-border/50 bg-white">
           <Image src={brand.logoUrl} alt="" fill className="object-cover" sizes="40px" unoptimized />
@@ -58,7 +76,7 @@ function BrandSectionHeader({ brand, count }: { brand?: Brand; count: number }) 
 
 function ProductGrid({ products }: { products: Product[] }) {
   return (
-    <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-3 lg:gap-5">
+    <div className={catalogProductGridClass}>
       {products.map((p) => (
         <ProductCard key={p.id} product={p} size="catalog" />
       ))}
@@ -71,6 +89,22 @@ export default function DiscoverPage() {
   const [category, setCategory] = useState(ALL_CATEGORIES);
   const [brandId, setBrandId] = useState(ALL_BRANDS);
   const [aiOnly, setAiOnly] = useState(false);
+  const searchRef = useRef<HTMLInputElement>(null);
+
+  const focusSearchField = useCallback(() => {
+    const candidates = [
+      searchRef.current,
+      ...document.querySelectorAll<HTMLInputElement>("[data-discover-search]"),
+    ].filter(Boolean) as HTMLInputElement[];
+
+    for (const input of candidates) {
+      if (isDiscoverSearchInputVisible(input)) {
+        input.focus({ preventScroll: true });
+        if (document.activeElement === input) return true;
+      }
+    }
+    return focusDiscoverSearchInput();
+  }, []);
 
   const { data: brands = [] } = useQuery({
     queryKey: ["brands", "public"],
@@ -79,22 +113,22 @@ export default function DiscoverPage() {
 
   const brandMap = useMemo(() => new Map(brands.map((b) => [b.id, b])), [brands]);
 
-  const filteredBrands = useMemo(() => {
-    const q = search.trim().toLowerCase();
-    if (!q) return brands;
-    return brands.filter((b) => b.name.toLowerCase().includes(q));
-  }, [brands, search]);
-
-  const { data, isLoading, error, refetch } = useQuery({
-    queryKey: ["products", search, category, brandId, aiOnly],
+  const { data: rawData, isLoading, error, refetch } = useQuery({
+    queryKey: ["products", search, brandId, aiOnly],
     queryFn: () =>
       productApi.list({
         search: search || undefined,
-        category: category !== ALL_CATEGORIES ? category : undefined,
         brandId: brandId !== ALL_BRANDS ? brandId : undefined,
         aiTryOnEligible: aiOnly || undefined,
       }),
   });
+
+  const data = useMemo(() => {
+    if (!rawData) return rawData;
+    const items = filterProductsByCategory(rawData.items, category, ALL_CATEGORIES);
+    if (items.length === rawData.items.length) return rawData;
+    return { ...rawData, items, total: items.length };
+  }, [rawData, category]);
 
   const groupedByBrand = useMemo(() => {
     if (!data?.items.length || brandId !== ALL_BRANDS) return null;
@@ -111,55 +145,85 @@ export default function DiscoverPage() {
   }, [groupedByBrand, brandMap]);
 
   useEffect(() => {
-    const focusSearch = () => {
-      if (window.location.hash !== "#discover-search") return;
-      const input = document.getElementById("discover-search");
-      input?.focus({ preventScroll: true });
-      input?.scrollIntoView({ behavior: "smooth", block: "center" });
+    const activateSearch = () => {
+      if (window.location.hash !== DISCOVER_SEARCH_HASH) return;
+      openDiscoverSearch();
     };
-    focusSearch();
-    window.addEventListener("hashchange", focusSearch);
-    return () => window.removeEventListener("hashchange", focusSearch);
-  }, []);
 
-  return (
-    <PageShell width="full" className="py-4 sm:py-5">
-      <StickyToolbar>
-        <StickyToolbarSection>
-          <PageHeader
-            title="Khám phá sản phẩm"
-            subtitle="Lọc theo thương hiệu, tìm sản phẩm phù hợp và tư vấn size bằng AI."
-            backHref="/"
-            backLabel="Trang chủ"
-            sticky={false}
-            dense
-            solidBackLink
-          />
-        </StickyToolbarSection>
+    const onFocusRequest = () => {
+      focusSearchField();
+      window.setTimeout(focusSearchField, 200);
+      window.setTimeout(focusSearchField, 450);
+      window.setTimeout(focusSearchField, 750);
+    };
 
-        <StickyToolbarSection filters>
-            <Input
-              id="discover-search"
-              placeholder="Tìm kiếm sản phẩm hoặc thương hiệu..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="h-9 min-w-[160px] max-w-xs flex-1 rounded-full border-border/60 bg-white px-4"
+    activateSearch();
+    window.addEventListener("hashchange", activateSearch);
+    window.addEventListener(DISCOVER_SEARCH_FOCUS_EVENT, onFocusRequest);
+    return () => {
+      window.removeEventListener("hashchange", activateSearch);
+      window.removeEventListener(DISCOVER_SEARCH_FOCUS_EVENT, onFocusRequest);
+    };
+  }, [focusSearchField]);
+
+  const hasActiveFilters = brandId !== ALL_BRANDS || category !== ALL_CATEGORIES || aiOnly;
+
+  const clearFilters = () => {
+    setSearch("");
+    setBrandId(ALL_BRANDS);
+    setCategory(ALL_CATEGORIES);
+    setAiOnly(false);
+  };
+
+  const filterDialog = (iconOnly: boolean) => (
+    <Dialog>
+      <DialogTrigger asChild>
+        <Button
+          variant="outline"
+          className={cn(
+            "relative shrink-0 rounded-full",
+            iconOnly ? "h-8 w-8 px-0 sm:h-9 sm:w-9" : "h-11 w-full gap-2 sm:h-9 sm:w-auto sm:px-4",
+          )}
+          aria-label="Bộ lọc"
+        >
+          <SlidersHorizontal className="h-4 w-4" aria-hidden="true" />
+          {!iconOnly && <span className="sm:inline">Bộ lọc</span>}
+          {hasActiveFilters && (
+            <span
+              className={cn(
+                "rounded-full bg-primary",
+                iconOnly ? "absolute right-1 top-1 h-2 w-2" : "ml-1 h-2 w-2",
+              )}
+              aria-label="Đang lọc"
             />
+          )}
+        </Button>
+      </DialogTrigger>
+      <DialogContent className="max-h-[85vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle>Bộ lọc sản phẩm</DialogTitle>
+        </DialogHeader>
+        <div className="space-y-4 pt-2">
+          <div className="space-y-2">
+            <label className="text-sm font-medium">Thương hiệu</label>
             <Select value={brandId} onValueChange={setBrandId}>
-              <SelectTrigger className="h-9 w-40 rounded-full border-border/60 bg-white sm:w-44">
+              <SelectTrigger className="h-11 w-full rounded-xl">
                 <SelectValue placeholder="Thương hiệu" />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value={ALL_BRANDS}>Tất cả thương hiệu</SelectItem>
-                {filteredBrands.map((b) => (
+                {brands.map((b) => (
                   <SelectItem key={b.id} value={b.id}>
                     {b.name}
                   </SelectItem>
                 ))}
               </SelectContent>
             </Select>
+          </div>
+          <div className="space-y-2">
+            <label className="text-sm font-medium">Danh mục</label>
             <Select value={category} onValueChange={setCategory}>
-              <SelectTrigger className="h-9 w-32 rounded-full border-border/60 bg-white sm:w-36">
+              <SelectTrigger className="h-11 w-full rounded-xl">
                 <SelectValue placeholder="Danh mục" />
               </SelectTrigger>
               <SelectContent>
@@ -171,16 +235,101 @@ export default function DiscoverPage() {
                 ))}
               </SelectContent>
             </Select>
-            <Button
-              size="sm"
-              variant={aiOnly ? "default" : "outline"}
-              className="h-9 rounded-full px-4"
-              onClick={() => setAiOnly(!aiOnly)}
-            >
-              Chỉ sản phẩm thử AI
+          </div>
+          <Button
+            variant={aiOnly ? "default" : "outline"}
+            className="h-11 w-full rounded-xl"
+            onClick={() => setAiOnly(!aiOnly)}
+          >
+            Chỉ sản phẩm thử AI
+          </Button>
+          {hasActiveFilters && (
+            <Button type="button" variant="ghost" className="h-11 w-full rounded-xl" onClick={clearFilters}>
+              Xóa bộ lọc
             </Button>
-        </StickyToolbarSection>
-      </StickyToolbar>
+          )}
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+
+  return (
+    <PageShell width="full" className={consumerPageShellClass}>
+      <CollapsingPageHeader
+        title="Khám phá sản phẩm"
+        subtitle="Lọc theo thương hiệu, tìm sản phẩm phù hợp và tư vấn size bằng AI."
+        backHref="/"
+        backLabel="Trang chủ"
+        trailing={
+          <>
+            <span id="discover-search" className="sr-only" aria-hidden="true" />
+            <Input
+              ref={searchRef}
+              data-discover-search
+              placeholder="Tìm kiếm..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="h-8 min-w-0 flex-1 rounded-full border-border/60 bg-white px-2.5 text-xs sm:h-9 sm:w-36 sm:flex-none sm:px-3 sm:text-sm"
+            />
+            <div className="hidden items-center gap-1 sm:flex">
+              <Select value={brandId} onValueChange={setBrandId}>
+                <SelectTrigger className="h-8 w-auto min-w-[9.25rem] max-w-[11rem] shrink-0 rounded-full border-border/60 bg-white px-2.5 text-xs whitespace-nowrap sm:h-9 sm:min-w-[10.5rem] sm:px-3 sm:text-sm [&>span]:line-clamp-1 [&>span]:truncate">
+                  <SelectValue placeholder="Thương hiệu" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value={ALL_BRANDS}>Tất cả thương hiệu</SelectItem>
+                  {brands.map((b) => (
+                    <SelectItem key={b.id} value={b.id}>
+                      {b.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <Select value={category} onValueChange={setCategory}>
+                <SelectTrigger className="h-8 min-w-[6.5rem] rounded-full border-border/60 bg-white px-2.5 text-xs sm:h-9 sm:min-w-[7.5rem] sm:text-sm">
+                  <SelectValue placeholder="Danh mục">
+                    {categoryFilterLabel(category, ALL_CATEGORIES)}
+                  </SelectValue>
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value={ALL_CATEGORIES}>Tất cả</SelectItem>
+                  {PRODUCT_CATEGORIES.map((c) => (
+                    <SelectItem key={c} value={c}>
+                      {c}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <Button
+                size="sm"
+                variant={aiOnly ? "default" : "outline"}
+                className="h-8 rounded-full px-2.5 text-[10px] sm:h-9 sm:px-3 sm:text-xs"
+                onClick={() => setAiOnly(!aiOnly)}
+              >
+                Thử AI
+              </Button>
+            </div>
+            <div className="sm:hidden">{filterDialog(true)}</div>
+          </>
+        }
+      />
+
+      {hasActiveFilters && (
+        <div className="mb-4 flex flex-wrap items-center gap-2 text-sm">
+          <span className="text-muted-foreground">Đang lọc:</span>
+          {category !== ALL_CATEGORIES && (
+            <Badge variant="secondary">{categoryFilterLabel(category, ALL_CATEGORIES)}</Badge>
+          )}
+          {brandId !== ALL_BRANDS && (
+            <Badge variant="secondary">{brandMap.get(brandId)?.name ?? "Thương hiệu"}</Badge>
+          )}
+          {aiOnly && <Badge variant="secondary">Thử AI</Badge>}
+          {search.trim() && <Badge variant="secondary">&quot;{search.trim()}&quot;</Badge>}
+          <Button type="button" variant="link" className="h-auto px-0 text-xs" onClick={clearFilters}>
+            Xóa tất cả
+          </Button>
+        </div>
+      )}
 
       <div>
         {isLoading && <LoadingSkeleton />}

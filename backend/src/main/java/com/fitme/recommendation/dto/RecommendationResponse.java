@@ -36,6 +36,7 @@ public class RecommendationResponse {
         private String selectedColor;
         private BigDecimal price;
         private boolean canBuy;
+        private String imageUrl;
     }
 
     @Data

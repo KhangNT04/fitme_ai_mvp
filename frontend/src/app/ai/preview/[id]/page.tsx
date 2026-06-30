@@ -1,7 +1,7 @@
 "use client";
 
 import { use } from "react";
-import Image from "next/image";
+import { AppImage } from "@/components/common/AppImage";
 import { useQuery } from "@tanstack/react-query";
 import { previewApi } from "@/services/upload-api";
 import { LoadingSkeleton } from "@/components/common/LoadingSkeleton";
@@ -10,8 +10,11 @@ import { Disclaimer } from "@/components/layout/Disclaimer";
 import { Button } from "@/components/ui/button";
 import { Trash2 } from "lucide-react";
 import { PageShell } from "@/components/layout/PageShell";
-import { PageHeader } from "@/components/layout/PageHeader";
+import { FlowWizardToolbar } from "@/components/layout/FlowWizardToolbar";
 import { AI_FLOW_STEPS } from "@/components/layout/FlowStepper";
+import { consumerPageShellClass } from "@/lib/design-tokens";
+import { PreviewOutfitTray } from "@/components/ai/PreviewOutfitTray";
+import { useConsultationStore } from "@/stores/consultation-store";
 
 export default function AiPreviewPage({
   params,
@@ -19,6 +22,8 @@ export default function AiPreviewPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = use(params);
+  const { draft } = useConsultationStore();
+  const previewItems = draft.previewOutfitItems ?? [];
 
   const { data, isLoading, error, refetch } = useQuery({
     queryKey: ["preview", id],
@@ -27,22 +32,22 @@ export default function AiPreviewPage({
 
   if (isLoading) {
     return (
-      <PageShell width="medium">
+      <PageShell width="full" className={consumerPageShellClass}>
         <LoadingSkeleton type="detail" />
       </PageShell>
     );
   }
   if (error || !data) {
     return (
-      <PageShell width="medium">
+      <PageShell width="full" className={consumerPageShellClass}>
         <ErrorState onRetry={() => refetch()} />
       </PageShell>
     );
   }
 
   return (
-    <PageShell width="medium">
-      <PageHeader
+    <PageShell width="full" className={consumerPageShellClass}>
+      <FlowWizardToolbar
         steps={AI_FLOW_STEPS}
         currentStep={4}
         title="Preview outfit 2D"
@@ -54,7 +59,7 @@ export default function AiPreviewPage({
 
       <div className="relative aspect-[3/4] overflow-hidden rounded-xl bg-muted">
         {data.imageUrl ? (
-          <Image src={data.imageUrl} alt="Preview 2D" fill className="object-cover" unoptimized />
+          <AppImage src={data.imageUrl} alt="Preview 2D" fill className="object-cover" />
         ) : (
           <div className="flex h-full items-center justify-center text-muted-foreground/70">
             {data.status === "PROCESSING" ? "Đang tạo preview..." : "Không có ảnh preview"}
@@ -63,6 +68,15 @@ export default function AiPreviewPage({
       </div>
 
       <Disclaimer className="mt-6" />
+
+      {previewItems.length > 0 && (
+        <section className="mt-6">
+          <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+            Set đã dùng cho preview ({previewItems.length})
+          </p>
+          <PreviewOutfitTray items={previewItems} />
+        </section>
+      )}
 
       <Button
         variant="outline"

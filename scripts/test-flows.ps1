@@ -67,6 +67,7 @@ if (-not $SkipE2e) {
         $e2eFlows = @(
             @{ File = "smoke-routes.spec.ts";       Label = "Smoke public routes per screen" }
             @{ File = "navigation.spec.ts";         Label = "Navigation header footer" }
+            @{ File = "mobile-nav.spec.ts";       Label = "Mobile bottom navigation"; Project = "mobile-chrome" }
             @{ File = "auth-pages.spec.ts";         Label = "Auth pages load" }
             @{ File = "auth-flow.spec.ts";          Label = "Auth login logout forgot" }
             @{ File = "rbac.spec.ts";               Label = "RBAC role guards" }
@@ -95,8 +96,9 @@ if (-not $SkipE2e) {
         foreach ($flow in $e2eFlows) {
             $spec = "e2e/$($flow.File)"
             $workers = if ($flow.Workers) { $flow.Workers } else { 2 }
+            $projectArg = if ($flow.Project) { "--project=$($flow.Project)" } else { "" }
             Write-Host "  -> $($flow.Label) [$spec]" -ForegroundColor DarkGray
-            $out = npx playwright test $spec --workers=$workers 2>&1 | Out-String
+            $out = npx playwright test $spec --workers=$workers $projectArg 2>&1 | Out-String
             $ok = $LASTEXITCODE -eq 0
             if (-not $ok) {
                 Write-Host $out -ForegroundColor Red

@@ -2,11 +2,14 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Sparkles, Menu, X, Search } from "lucide-react";
-import { useState } from "react";
+import { Sparkles, Search, Bookmark } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { NavScrollLink } from "@/components/layout/NavScrollLink";
+import { openDiscoverSearch } from "@/lib/discover-search";
+import { normalizeNavPath } from "@/lib/scroll-to-top";
 import { useAuthStore } from "@/stores/auth-store";
 import { cn } from "@/lib/utils";
+import { isCompactHeader } from "@/lib/mobile-chrome";
 
 const navLinks = [
   { href: "/discover", label: "Khám phá" },
@@ -15,14 +18,43 @@ const navLinks = [
   { href: "/saved-outfits", label: "Đã lưu" },
 ];
 
+const navIconButtonClass =
+  "inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-muted hover:text-foreground";
+
+function NavQuickSaved({ className }: { className?: string }) {
+  const pathname = usePathname() ?? "/";
+  const active =
+    pathname === "/saved-outfits" || pathname.startsWith("/saved-outfits/");
+
+  return (
+    <NavScrollLink
+      href="/saved-outfits"
+      className={cn(
+        navIconButtonClass,
+        active && "bg-primary/10 text-primary hover:bg-primary/15 hover:text-primary",
+        className,
+      )}
+      aria-label="Gợi ý đã lưu"
+      title="Đã lưu"
+    >
+      <Bookmark className="h-[18px] w-[18px]" aria-hidden="true" />
+    </NavScrollLink>
+  );
+}
+
 function NavQuickSearch({ className }: { className?: string }) {
+  const pathname = usePathname() ?? "/";
+
   return (
     <Link
       href="/discover#discover-search"
-      className={cn(
-        "inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-muted hover:text-foreground",
-        className
-      )}
+      onClick={(e) => {
+        if (normalizeNavPath(pathname) === "/discover") {
+          e.preventDefault();
+          openDiscoverSearch("auto");
+        }
+      }}
+      className={cn(navIconButtonClass, className)}
       aria-label="Tìm kiếm nhanh"
       title="Tìm kiếm nhanh"
     >
@@ -33,30 +65,30 @@ function NavQuickSearch({ className }: { className?: string }) {
 
 export function Header() {
   const pathname = usePathname();
-  const [mobileOpen, setMobileOpen] = useState(false);
   const user = useAuthStore((s) => s.user);
   const accessToken = useAuthStore((s) => s.accessToken);
   const isAuthed = !!accessToken;
 
   const isPortal = pathname.startsWith("/brand") || pathname.startsWith("/admin");
+  const compactMobile = isCompactHeader(pathname);
 
   if (isPortal) return null;
 
   return (
-    <header className="glass-nav sticky top-0 z-40">
+    <header className="glass-nav sticky top-0 z-40 bg-white">
       <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6">
-        <Link href="/" className="group flex items-center gap-2.5 font-display font-bold text-foreground">
+        <NavScrollLink href="/" className="group flex items-center gap-2.5 font-display font-bold text-foreground">
           <span className="flex h-9 w-9 items-center justify-center rounded-xl gradient-ai text-white shadow-md transition-transform duration-300 group-hover:scale-105">
             <Sparkles className="h-4 w-4" />
           </span>
           <span className="tracking-tight">FitMe AI</span>
-        </Link>
+        </NavScrollLink>
 
         <nav className="hidden items-center gap-1 md:flex">
           {navLinks.map((link) => {
             const active = pathname === link.href || pathname.startsWith(link.href + "/");
             return (
-              <Link
+              <NavScrollLink
                 key={link.href}
                 href={link.href}
                 className={cn(
@@ -67,7 +99,7 @@ export function Header() {
                 )}
               >
                 {link.label}
-              </Link>
+              </NavScrollLink>
             );
           })}
         </nav>
@@ -76,7 +108,7 @@ export function Header() {
           <NavQuickSearch />
           {isAuthed ? (
             <Button variant="outline" size="sm" asChild>
-              <Link href="/profile">{user?.fullName || "Hồ sơ"}</Link>
+              <NavScrollLink href="/profile">{user?.fullName || "Hồ sơ"}</NavScrollLink>
             </Button>
           ) : (
             <>
@@ -84,48 +116,21 @@ export function Header() {
                 <Link href="/auth/login">Đăng nhập</Link>
               </Button>
               <Button variant="ai" size="sm" asChild>
-                <Link href="/ai/start">Tư vấn AI</Link>
+                <NavScrollLink href="/ai/start">Tư vấn AI</NavScrollLink>
               </Button>
             </>
           )}
         </div>
 
-        <button
-          className="rounded-lg p-2 text-foreground md:hidden"
-          onClick={() => setMobileOpen(!mobileOpen)}
-          aria-label="Menu"
-        >
-          {mobileOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
-        </button>
+        {compactMobile ? (
+          <div className="flex items-center gap-0.5 md:hidden">
+            <NavQuickSaved />
+            <NavQuickSearch />
+          </div>
+        ) : (
+          <div className="w-9 md:hidden" aria-hidden="true" />
+        )}
       </div>
-
-      {mobileOpen && (
-        <div className="border-t border-border bg-background px-4 py-4 md:hidden">
-          <nav className="flex flex-col gap-1">
-            <Link
-              href="/discover#discover-search"
-              className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-foreground hover:bg-muted"
-              onClick={() => setMobileOpen(false)}
-            >
-              <Search className="h-4 w-4" aria-hidden="true" />
-              Tìm kiếm nhanh
-            </Link>
-            {navLinks.map((link) => (
-              <Link
-                key={link.href}
-                href={link.href}
-                className="rounded-lg px-3 py-2 text-sm font-medium text-foreground hover:bg-muted"
-                onClick={() => setMobileOpen(false)}
-              >
-                {link.label}
-              </Link>
-            ))}
-            <Link href="/auth/login" className="rounded-lg px-3 py-2 text-sm font-medium text-foreground hover:bg-muted">
-              Đăng nhập
-            </Link>
-          </nav>
-        </div>
-      )}
     </header>
   );
 }

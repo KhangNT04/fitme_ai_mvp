@@ -145,6 +145,7 @@ jobs:
           CI: "true"
         run: |
           npx playwright test e2e/smoke-routes.spec.ts e2e/role-flows.spec.ts --workers=1 --retries=2
+          npx playwright test e2e/mobile-nav.spec.ts --project=mobile-chrome --workers=1 --retries=2
 
       - name: Stop backend
         if: always()

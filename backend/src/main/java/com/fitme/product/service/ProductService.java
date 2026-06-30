@@ -13,6 +13,7 @@ import com.fitme.product.entity.ProductTag;
 import com.fitme.product.entity.ProductVariant;
 import com.fitme.product.entity.SizeChart;
 import com.fitme.product.repository.*;
+import com.fitme.product.util.ProductCategoryGroups;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -56,7 +57,7 @@ public class ProductService {
         return productRepository.findByStatus(ProductStatus.ACTIVE).stream()
                 .filter(p -> !p.getId().equals(id))
                 .filter(p -> isBrandApproved(p.getBrandId()))
-                .filter(p -> product.getCategory() != null && product.getCategory().equals(p.getCategory()))
+                .filter(p -> ProductCategoryGroups.sameGroup(p.getCategory(), product.getCategory()))
                 .limit(8)
                 .map(this::toResponse)
                 .toList();
@@ -250,7 +251,9 @@ public class ProductService {
     private boolean matchesFilter(Product p, ProductFilter filter) {
         if (filter == null) return true;
         if (filter.getBrandId() != null && !filter.getBrandId().equals(p.getBrandId())) return false;
-        if (filter.getCategory() != null && !filter.getCategory().equalsIgnoreCase(p.getCategory())) return false;
+        if (filter.getCategory() != null && !ProductCategoryGroups.matchesGroup(p.getCategory(), filter.getCategory())) {
+            return false;
+        }
         if (filter.getPriceMin() != null && p.getPrice() != null && p.getPrice().compareTo(filter.getPriceMin()) < 0) return false;
         if (filter.getPriceMax() != null && p.getPrice() != null && p.getPrice().compareTo(filter.getPriceMax()) > 0) return false;
         if (filter.getFitType() != null && p.getFitType() != filter.getFitType()) return false;

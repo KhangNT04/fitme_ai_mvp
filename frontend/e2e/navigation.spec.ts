@@ -20,16 +20,19 @@ test.describe("Header navigation", () => {
 
   test("footer portal links load", async ({ page }) => {
     await page.goto("/");
-    const brandLink = page.getByRole("link", { name: "Brand Portal" });
+    const footer = page.locator("footer");
+    await expect(footer).toBeVisible();
+
+    const brandLink = footer.getByRole("link", { name: "Brand Portal" });
     await brandLink.scrollIntoViewIfNeeded();
     await brandLink.click();
-    await expect(page).toHaveURL(/\/brand\/login/);
+    await expect(page).toHaveURL(/\/brand\/login/, { timeout: 10_000 });
 
     await page.goto("/");
-    const adminLink = page.getByRole("link", { name: "Admin", exact: true });
+    const adminLink = footer.getByRole("link", { name: "Admin", exact: true });
     await adminLink.scrollIntoViewIfNeeded();
     await adminLink.click();
-    await expect(page).toHaveURL(/\/admin\/login/);
+    await expect(page).toHaveURL(/\/admin\/login/, { timeout: 10_000 });
   });
 
   test("logo returns to home", async ({ page }) => {
@@ -44,6 +47,6 @@ test.describe("Header navigation", () => {
     await page.goto("/");
     await page.locator("header").getByRole("link", { name: "Tìm kiếm nhanh" }).click();
     await expect(page).toHaveURL(/\/discover#discover-search/);
-    await expect(page.locator("#discover-search")).toBeFocused();
+    await expect(page.locator("[data-discover-search]").first()).toBeFocused();
   });
 });

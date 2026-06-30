@@ -5,15 +5,31 @@ const replaceMock = vi.fn();
 const saveBodyProfileMock = vi.fn();
 const saveStyleProfileMock = vi.fn();
 const createRecommendationMock = vi.fn();
+const getBodyProfileMock = vi.fn();
+const getStyleProfileMock = vi.fn();
+
+vi.mock("@/components/common/PageSuspense", () => ({
+  PageSuspense: ({ children }: { children: React.ReactNode }) => children,
+}));
+
+vi.mock("@tanstack/react-query", () => ({
+  useQueryClient: () => ({
+    invalidateQueries: vi.fn().mockResolvedValue(undefined),
+  }),
+}));
 
 vi.mock("next/navigation", () => ({
   useRouter: () => ({ replace: replaceMock, push: vi.fn() }),
+  usePathname: () => "/ai/processing",
+  useSearchParams: () => new URLSearchParams(),
 }));
 
 vi.mock("@/services/profile-api", () => ({
   profileApi: {
     saveBodyProfile: (...args: unknown[]) => saveBodyProfileMock(...args),
     saveStyleProfile: (...args: unknown[]) => saveStyleProfileMock(...args),
+    getBodyProfile: (...args: unknown[]) => getBodyProfileMock(...args),
+    getStyleProfile: (...args: unknown[]) => getStyleProfileMock(...args),
   },
 }));
 
@@ -62,9 +78,13 @@ describe("AiProcessingPage", () => {
     saveBodyProfileMock.mockReset();
     saveStyleProfileMock.mockReset();
     createRecommendationMock.mockReset();
+    getBodyProfileMock.mockReset();
+    getStyleProfileMock.mockReset();
     saveBodyProfileMock.mockResolvedValue(undefined);
     saveStyleProfileMock.mockResolvedValue(undefined);
     createRecommendationMock.mockResolvedValue({ id: "rec-123" });
+    getBodyProfileMock.mockResolvedValue(null);
+    getStyleProfileMock.mockResolvedValue(null);
   });
 
   it("saves profiles before creating recommendation", async () => {

@@ -1,4 +1,5 @@
 import apiClient, { unwrap } from "./api-client";
+import { resolveOptionalImageSrc } from "@/lib/media-url";
 import type { TryOnResult, TryOnInput } from "@/types/tryon";
 
 function mapCategoryToRole(category: string): string {
@@ -13,10 +14,10 @@ function mapCategoryToRole(category: string): string {
 interface CreateTryOnPayload {
   heightCm: number;
   weightKg: number;
-  fitPreference: string;
-  skinTone: string;
-  occasion: string;
-  desiredVibe: string;
+  fitPreference?: string;
+  skinTone?: string;
+  occasion?: string;
+  desiredVibe?: string;
 }
 
 export const tryonApi = {
@@ -24,10 +25,10 @@ export const tryonApi = {
     const res = await apiClient.post("/try-on/requests", {
       heightCm: data.heightCm,
       weightKg: data.weightKg,
-      preferredFit: data.fitPreference,
-      skinTone: data.skinTone,
-      occasion: data.occasion,
-      desiredVibe: data.desiredVibe,
+      ...(data.fitPreference ? { preferredFit: data.fitPreference } : {}),
+      ...(data.skinTone ? { skinTone: data.skinTone } : {}),
+      ...(data.occasion ? { occasion: data.occasion } : {}),
+      ...(data.desiredVibe ? { desiredVibe: data.desiredVibe } : {}),
     });
     const body = unwrap(res) as { id: string };
     return { id: body.id };
@@ -58,7 +59,7 @@ export const tryonApi = {
     return {
       id: data.id,
       status: data.status,
-      previewImageUrl: data.previewImageUrl,
+      previewImageUrl: resolveOptionalImageSrc(data.previewImageUrl),
       disclaimer: data.disclaimer || "",
       items: data.items || [],
       improvementSuggestions: [],

@@ -11,6 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { AuthCardShell } from "@/components/layout/AuthCardShell";
 import { useAuthRedirect } from "@/hooks/use-auth-redirect";
+import { getUserErrorMessage } from "@/lib/user-error-message";
 import { registerSchema, type RegisterForm } from "@/utils/validators";
 
 export default function RegisterPage() {
@@ -40,7 +41,7 @@ function RegisterForm() {
       setAuth(res.user, res.accessToken, res.refreshToken);
       goAfterAuth();
     } catch (e: unknown) {
-      setError((e as { message?: string })?.message || "Đăng ký thất bại");
+      setError(getUserErrorMessage(e, "Đăng ký thất bại"));
     }
   };
 

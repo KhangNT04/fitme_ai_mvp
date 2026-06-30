@@ -6,9 +6,10 @@ import { Loader2 } from "lucide-react";
 import { tryonApi } from "@/services/tryon-api";
 import { useTryOnStore } from "@/stores/tryon-store";
 import { Disclaimer } from "@/components/layout/Disclaimer";
-import { PageHeader } from "@/components/layout/PageHeader";
+import { FlowWizardToolbar } from "@/components/layout/FlowWizardToolbar";
 import { PageShell } from "@/components/layout/PageShell";
 import { TRYON_FLOW_STEPS } from "@/components/layout/FlowStepper";
+import { consumerPageShellClass } from "@/lib/design-tokens";
 
 export default function TryOnProcessingPage() {
   const router = useRouter();
@@ -33,8 +34,8 @@ export default function TryOnProcessingPage() {
   }, [requestId, input, router]);
 
   return (
-    <PageShell width="narrow">
-      <PageHeader
+    <PageShell width="full" className={consumerPageShellClass}>
+      <FlowWizardToolbar
         steps={TRYON_FLOW_STEPS}
         currentStep={3}
         title="Đang tạo preview thử mặc..."

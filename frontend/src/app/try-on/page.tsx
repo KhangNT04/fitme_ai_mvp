@@ -11,9 +11,10 @@ import { Badge } from "@/components/ui/badge";
 import { useTryOnStore } from "@/stores/tryon-store";
 import { TRY_ON_CATEGORIES } from "@/utils/constants";
 import { PageShell } from "@/components/layout/PageShell";
-import { PageHeader } from "@/components/layout/PageHeader";
+import { FlowWizardToolbar } from "@/components/layout/FlowWizardToolbar";
 import { TRYON_FLOW_STEPS } from "@/components/layout/FlowStepper";
 import { PageSuspense } from "@/components/common/PageSuspense";
+import { catalogProductGridClass, consumerPageShellClass } from "@/lib/design-tokens";
 
 export default function TryOnPage() {
   return (
@@ -49,19 +50,19 @@ function TryOnContent() {
   }, [productId, data, addItem]);
 
   return (
-    <PageShell width="full">
-      <PageHeader
+    <PageShell width="full" className={consumerPageShellClass}>
+      <FlowWizardToolbar
         steps={TRYON_FLOW_STEPS}
         currentStep={1}
         title="Thử mặc bằng AI"
         subtitle="Chọn item để tạo preview thử mặc minh họa 2D"
         showAiBadge
         backHref="/discover"
-        backLabel="Khám phá sản phẩm"
+        backLabel="Khám phá"
       />
 
       {selectedItems.length > 0 && (
-        <div className="mb-6 rounded-2xl border border-border/60 bg-muted/80 p-4 shadow-sm">
+        <div className="mb-4 rounded-xl border border-border/60 bg-muted/80 p-3 shadow-sm sm:mb-6 sm:rounded-2xl sm:p-4">
           <p className="text-sm font-medium">Đã chọn ({selectedItems.length})</p>
           <div className="mt-2 flex flex-wrap gap-2">
             {selectedItems.map((item) => (
@@ -70,29 +71,37 @@ function TryOnContent() {
               </Badge>
             ))}
           </div>
-          <Button className="mt-4" onClick={() => router.push("/try-on/selected")}>
+          <Button className="mt-4 min-h-11 w-full sm:w-auto" onClick={() => router.push("/try-on/selected")}>
             Tiếp tục thử outfit
           </Button>
         </div>
       )}
 
-      <div className="mt-4 flex flex-wrap gap-2">
+      <div className="mt-3 flex flex-wrap gap-1.5 sm:mt-4 sm:gap-2">
         {TRY_ON_CATEGORIES.map((c) => (
-          <Badge key={c.value} variant="outline">{c.label}</Badge>
+          <Badge key={c.value} variant="outline" className="text-[10px] sm:text-xs">
+            {c.label}
+          </Badge>
         ))}
       </div>
 
-      <div className="mt-8">
+      <div className="mt-4 sm:mt-6">
         {isLoading ? <LoadingSkeleton /> : (
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <div className={catalogProductGridClass}>
             {data?.items.map((p) => (
-              <div key={p.id} onClick={() => addItem({
-                productId: p.id,
-                category: p.category,
-                name: p.name,
-                imageUrl: p.images[0],
-              })}>
-                <ProductCard product={p} showTryOn={false} compact />
+              <div
+                key={p.id}
+                className="cursor-pointer"
+                onClick={() =>
+                  addItem({
+                    productId: p.id,
+                    category: p.category,
+                    name: p.name,
+                    imageUrl: p.images[0],
+                  })
+                }
+              >
+                <ProductCard product={p} showTryOn={false} size="catalog" detailContext="tryon" />
               </div>
             ))}
           </div>

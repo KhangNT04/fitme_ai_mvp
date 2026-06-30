@@ -16,8 +16,8 @@ export const privacyApi = {
     const res = await apiClient.post("/privacy/deletion-requests", data);
     return unwrap(res);
   },
-  recordConsent: async (consentType: string, granted: boolean): Promise<unknown> => {
-    const res = await apiClient.post("/privacy/consent", { consentType, granted });
+  recordConsent: async (consentType: string, accepted: boolean): Promise<unknown> => {
+    const res = await apiClient.post("/privacy/consent", { consentType, accepted });
     return unwrap(res);
   },
 };

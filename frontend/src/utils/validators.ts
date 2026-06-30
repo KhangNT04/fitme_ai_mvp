@@ -1,33 +1,56 @@
 import { z } from "zod";
 
+/** Empty number inputs from react-hook-form become NaN — treat as "not filled". */
+function optionalMeasurementField(min: number, max: number) {
+  return z.preprocess(
+    (value) => {
+      if (value === "" || value === null || value === undefined) return undefined;
+      if (typeof value === "number" && Number.isNaN(value)) return undefined;
+      return value;
+    },
+    z.number({ error: "Nhập số hợp lệ" }).min(min).max(max).optional(),
+  );
+}
+
 export const bodyProfileSchema = z.object({
   heightCm: z.number({ error: "Nhập chiều cao" }).min(100, "Chiều cao tối thiểu 100cm").max(230, "Chiều cao tối đa 230cm"),
   weightKg: z.number({ error: "Nhập cân nặng" }).min(25, "Cân nặng tối thiểu 25kg").max(250, "Cân nặng tối đa 250kg"),
-  fitPreference: z.enum(["SLIM", "REGULAR", "RELAXED", "OVERSIZE", "UNSURE"]),
-  skinTone: z.enum(["FAIR", "MEDIUM", "TAN", "DEEP", "UNSURE"]),
-  goals: z.array(z.string()).min(1, "Chọn ít nhất 1 mục tiêu"),
-  shoulderWidthCm: z.number().min(20).max(80).optional(),
-  chestCm: z.number().min(50).max(200).optional(),
-  waistCm: z.number().min(40).max(180).optional(),
-  abdomenCm: z.number().min(40).max(180).optional(),
-  hipCm: z.number().min(50).max(200).optional(),
-  thighCm: z.number().min(30).max(100).optional(),
-  inseamCm: z.number().min(50).max(120).optional(),
-  armLengthCm: z.number().min(40).max(90).optional(),
+  fitPreference: z.enum(["SLIM", "REGULAR", "RELAXED", "OVERSIZE", "UNSURE"]).optional(),
+  skinTone: z.enum(["FAIR", "MEDIUM", "TAN", "DEEP", "UNSURE"]).optional(),
+  goals: z.array(z.string()).optional(),
+  shoulderWidthCm: optionalMeasurementField(20, 80),
+  chestCm: optionalMeasurementField(50, 200),
+  waistCm: optionalMeasurementField(40, 180),
+  abdomenCm: optionalMeasurementField(40, 180),
+  hipCm: optionalMeasurementField(50, 200),
+  thighCm: optionalMeasurementField(30, 100),
+  inseamCm: optionalMeasurementField(50, 120),
+  armLengthCm: optionalMeasurementField(40, 90),
 });
 
 export const styleProfileSchema = z.object({
-  primaryStyle: z.string().min(1, "Chọn phong cách chính"),
-  secondaryStyles: z.array(z.string()),
-  riskLevel: z.enum(["SAFE", "BALANCED", "BOLD", "EXPERIMENTAL"]),
-  artisticMode: z.boolean(),
-  preferredColors: z.array(z.string()).min(1, "Chọn ít nhất 1 màu ưa thích"),
-  avoidedColors: z.array(z.string()),
+  primaryStyle: z.string().optional(),
+  secondaryStyles: z.array(z.string()).optional(),
+  riskLevel: z.enum(["SAFE", "BALANCED", "BOLD", "EXPERIMENTAL"]).optional(),
+  artisticMode: z.boolean().optional(),
+  preferredColors: z.array(z.string()).optional(),
+  avoidedColors: z.array(z.string()).optional(),
 });
 
+/** Treat empty / missing as unset for optional text fields. */
+function optionalTextField() {
+  return z.preprocess(
+    (value) => {
+      if (value === "" || value === null || value === undefined) return undefined;
+      return value;
+    },
+    z.string().min(1).optional(),
+  );
+}
+
 export const occasionSchema = z.object({
-  occasion: z.string().min(1, "Chọn hoàn cảnh"),
-  desiredVibe: z.string().min(1, "Chọn vibe mong muốn"),
+  occasion: optionalTextField(),
+  desiredVibe: optionalTextField(),
   budgetMin: z.number().optional(),
   budgetMax: z.number().optional(),
   wardrobeMode: z.enum(["NEW_ITEMS_ONLY", "MIX_WARDROBE_AND_BRAND", "USE_WARDROBE_FIRST", "NO_WARDROBE_DATA"]),
@@ -60,11 +83,11 @@ export const resetPasswordSchema = z.object({
 export const tryOnInputSchema = z.object({
   heightCm: z.number().min(100).max(250),
   weightKg: z.number().min(30).max(200),
-  fitPreference: z.string().min(1),
-  skinTone: z.string().min(1),
-  occasion: z.string().min(1),
-  desiredVibe: z.string().min(1),
-  usualSize: z.string().min(1, "Nhập size thường mặc"),
+  fitPreference: z.string().min(1).optional(),
+  skinTone: z.string().min(1).optional(),
+  occasion: optionalTextField(),
+  desiredVibe: optionalTextField(),
+  usualSize: optionalTextField(),
   inputMode: z.enum(["USER_PHOTO", "AVATAR", "OUTFIT_BOARD_ONLY"]),
 });
 

@@ -17,6 +17,7 @@
   --fashion-rose: #f472b6;
   --fashion-violet: #8b5cf6;
   --fashion-champagne: #f5ebe0;
+  --mobile-nav-height: 4rem;
 }
 
 @theme inline {
@@ -42,6 +43,20 @@ body {
   background: var(--background);
   color: var(--foreground);
   font-family: var(--font-sans), system-ui, sans-serif;
+}
+
+.pb-mobile-nav {
+  padding-bottom: calc(var(--mobile-nav-height) + env(safe-area-inset-bottom, 0px));
+}
+
+.mobile-bottom-nav-inner {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+@media (min-width: 768px) {
+  .pb-mobile-nav {
+    padding-bottom: 0;
+  }
 }
 
 .font-display {
@@ -86,9 +101,11 @@ body {
 }
 
 .glass-nav {
-  background-color: var(--background);
+  background-color: #ffffff;
   border-bottom: 1px solid rgba(20, 18, 28, 0.1);
   box-shadow: 0 2px 12px rgba(15, 14, 20, 0.06);
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
 }
 
 .page-sticky-toolbar {

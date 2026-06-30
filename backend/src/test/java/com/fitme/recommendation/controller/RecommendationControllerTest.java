@@ -66,4 +66,13 @@ class RecommendationControllerTest extends AbstractIntegrationTest {
                 .andExpect(jsonPath("$.data.length()").value(1))
                 .andExpect(jsonPath("$.data[0].recommendationId").value(recommendationId));
     }
+
+    @Test
+    void getSaved_withoutIdentity_returnsEmptyList() throws Exception {
+        mockMvc.perform(get("/api/v1/recommendations/saved"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.data").isArray())
+                .andExpect(jsonPath("$.data.length()").value(0));
+    }
 }

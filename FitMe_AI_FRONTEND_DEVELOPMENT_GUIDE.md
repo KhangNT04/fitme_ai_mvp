@@ -133,7 +133,7 @@ src/
       privacy/
   components/
     common/
-    layout/
+    layout/          # Header, Footer, ConsumerChrome, MobileBottomNav — xem docs/DEVELOPER_GUIDE.md §3.2
     product/
     outfit/
     ai/

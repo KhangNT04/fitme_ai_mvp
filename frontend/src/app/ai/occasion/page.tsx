@@ -13,9 +13,10 @@ import { occasionSchema, type OccasionForm } from "@/utils/validators";
 import { OCCASION_OPTIONS, VIBE_OPTIONS, WARDROBE_MODES } from "@/utils/constants";
 import { useConsultationStore } from "@/stores/consultation-store";
 import { PageShell } from "@/components/layout/PageShell";
-import { PageHeader } from "@/components/layout/PageHeader";
+import { FlowWizardToolbar } from "@/components/layout/FlowWizardToolbar";
 import { AI_FLOW_STEPS } from "@/components/layout/FlowStepper";
 import { Chip } from "@/components/ui/chip";
+import { consumerPageShellClass } from "@/lib/design-tokens";
 
 export default function OccasionPage() {
   const router = useRouter();
@@ -31,8 +32,8 @@ export default function OccasionPage() {
 
   const onSubmit = (data: OccasionForm) => {
     setOccasionRequest({
-      occasion: data.occasion,
-      desiredVibe: data.desiredVibe,
+      ...(data.occasion ? { occasion: data.occasion } : {}),
+      ...(data.desiredVibe ? { desiredVibe: data.desiredVibe } : {}),
       budgetMin: data.budgetMin,
       budgetMax: data.budgetMax,
     });
@@ -41,8 +42,8 @@ export default function OccasionPage() {
   };
 
   return (
-    <PageShell>
-      <PageHeader
+    <PageShell width="full" className={consumerPageShellClass}>
+      <FlowWizardToolbar
         steps={AI_FLOW_STEPS}
         currentStep={3}
         title="Hoàn cảnh & vibe"
@@ -56,7 +57,7 @@ export default function OccasionPage() {
         <Card>
           <CardContent className="p-6 space-y-4">
             <div>
-              <Label>Hoàn cảnh</Label>
+              <Label>Hoàn cảnh (tùy chọn)</Label>
               <div className="mt-2 flex flex-wrap gap-2">
                 {OCCASION_OPTIONS.map((o) => (
                   <Chip
@@ -72,7 +73,7 @@ export default function OccasionPage() {
             </div>
 
             <div>
-              <Label>Vibe mong muốn</Label>
+              <Label>Vibe mong muốn (tùy chọn)</Label>
               <div className="mt-2 flex flex-wrap gap-2">
                 {VIBE_OPTIONS.map((v) => (
                   <Chip

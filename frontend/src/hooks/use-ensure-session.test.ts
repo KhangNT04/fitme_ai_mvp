@@ -6,6 +6,8 @@ const createAnonymousMock = vi.fn();
 
 vi.mock("next/navigation", () => ({
   useRouter: () => ({ push: pushMock, replace: vi.fn() }),
+  usePathname: () => "/try-on/color/test-id",
+  useSearchParams: () => new URLSearchParams(),
 }));
 
 vi.mock("@/services/session-api", () => ({

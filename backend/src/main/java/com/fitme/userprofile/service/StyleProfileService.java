@@ -1,6 +1,5 @@
 package com.fitme.userprofile.service;
 
-import com.fitme.common.enums.RiskLevel;
 import com.fitme.common.exception.NotFoundException;
 import com.fitme.common.security.RequestContext;
 import com.fitme.userprofile.dto.StyleProfileRequest;
@@ -67,12 +66,26 @@ public class StyleProfileService {
     }
 
     private void applyRequest(StyleProfile profile, StyleProfileRequest request) {
-        profile.setPrimaryStyle(request.getPrimaryStyle());
-        profile.setSecondaryStyles(request.getSecondaryStyles());
-        profile.setRiskLevel(request.getRiskLevel() != null ? request.getRiskLevel() : RiskLevel.BALANCED);
-        profile.setArtisticMode(Boolean.TRUE.equals(request.getArtisticMode()));
-        profile.setPreferredColors(request.getPreferredColors());
-        profile.setAvoidedColors(request.getAvoidedColors());
+        if (request.getPrimaryStyle() != null && !request.getPrimaryStyle().isBlank()) {
+            profile.setPrimaryStyle(request.getPrimaryStyle());
+        } else if (profile.getPrimaryStyle() == null) {
+            profile.setPrimaryStyle("");
+        }
+        if (request.getSecondaryStyles() != null) {
+            profile.setSecondaryStyles(request.getSecondaryStyles());
+        }
+        if (request.getRiskLevel() != null) {
+            profile.setRiskLevel(request.getRiskLevel());
+        }
+        if (request.getArtisticMode() != null) {
+            profile.setArtisticMode(Boolean.TRUE.equals(request.getArtisticMode()));
+        }
+        if (request.getPreferredColors() != null) {
+            profile.setPreferredColors(request.getPreferredColors());
+        }
+        if (request.getAvoidedColors() != null) {
+            profile.setAvoidedColors(request.getAvoidedColors());
+        }
         if (profile.getUserId() == null) {
             RequestContext.getCurrentUserId().ifPresent(profile::setUserId);
         }

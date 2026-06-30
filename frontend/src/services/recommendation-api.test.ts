@@ -48,4 +48,12 @@ describe("recommendationApi mapRecommendation", () => {
     expect(result.title).toBe("Weekend casual");
     expect(result.outfitItems[0].name).toBe("White tee");
   });
+
+  it("returns empty list when saved endpoint rejects missing identity", async () => {
+    mockedGet.mockRejectedValue({ message: "Yêu cầu đăng nhập hoặc session ẩn danh", status: 400 });
+
+    const result = await recommendationApi.getSaved();
+
+    expect(result).toEqual([]);
+  });
 });

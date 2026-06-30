@@ -45,8 +45,8 @@ export interface RecommendationResult {
 export interface CreateRecommendationRequest {
   sessionId: string;
   selectedProductId?: string | null;
-  occasion: string;
-  desiredVibe: string;
+  occasion?: string;
+  desiredVibe?: string;
   wardrobeMode: import("./user").WardrobeMode;
   budgetMin?: number;
   budgetMax?: number;

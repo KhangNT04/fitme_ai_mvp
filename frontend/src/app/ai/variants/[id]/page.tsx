@@ -9,8 +9,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { LoadingSkeleton } from "@/components/common/LoadingSkeleton";
 import { Disclaimer } from "@/components/layout/Disclaimer";
 import { PageShell } from "@/components/layout/PageShell";
-import { PageHeader } from "@/components/layout/PageHeader";
+import { FlowWizardToolbar } from "@/components/layout/FlowWizardToolbar";
 import { AI_FLOW_STEPS } from "@/components/layout/FlowStepper";
+import { consumerPageShellClass } from "@/lib/design-tokens";
 
 export default function AiVariantsPage({
   params,
@@ -26,15 +27,15 @@ export default function AiVariantsPage({
 
   if (isLoading) {
     return (
-      <PageShell>
+      <PageShell width="full" className={consumerPageShellClass}>
         <LoadingSkeleton />
       </PageShell>
     );
   }
 
   return (
-    <PageShell>
-      <PageHeader
+    <PageShell width="full" className={consumerPageShellClass}>
+      <FlowWizardToolbar
         steps={AI_FLOW_STEPS}
         currentStep={4}
         title="Thử biến thể"

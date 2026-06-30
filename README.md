@@ -6,7 +6,7 @@ Web app tư vấn thời trang cá nhân hóa bằng AI — gợi ý outfit, siz
 
 ## Kiến trúc
 
-Chi tiết: [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) · API mapping: [`docs/API_CONTRACT.md`](docs/API_CONTRACT.md)
+Chi tiết: [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) · API: [`docs/API_CONTRACT.md`](docs/API_CONTRACT.md) · Sử dụng: [`docs/USER_GUIDE.md`](docs/USER_GUIDE.md) · Dev: [`docs/DEVELOPER_GUIDE.md`](docs/DEVELOPER_GUIDE.md)
 
 | Thành phần | Công nghệ |
 |------------|-----------|
@@ -69,7 +69,7 @@ cp .env.test.example .env.test   # chỉnh PUBLIC_APP_URL + secrets
 ./scripts/deploy-test.sh
 ```
 
-Chi tiết: [`docs/DEPLOY_TEST.md`](docs/DEPLOY_TEST.md)
+Chi tiết: [`docs/DEPLOY_TEST.md`](docs/DEPLOY_TEST.md) · Hướng dẫn user truy cập URL deploy: [`docs/USER_GUIDE.md`](docs/USER_GUIDE.md#1-truy-cập-app--đường-dẫn-deploy)
 
 ## Deploy free cloud (Vercel + Render + Neon)
 
@@ -81,7 +81,7 @@ Stack **0 đồng**, link public `https://*.vercel.app`:
 | [Render](https://render.com) free | Backend Spring Boot (Docker) |
 | [Neon](https://neon.tech) free | PostgreSQL |
 
-Hướng dẫn từng bước: [`docs/DEPLOY_VERCEL_RENDER_NEON.md`](docs/DEPLOY_VERCEL_RENDER_NEON.md)
+Hướng dẫn từng bước: [`docs/DEPLOY_VERCEL_RENDER_NEON.md`](docs/DEPLOY_VERCEL_RENDER_NEON.md) · User dùng link deploy: [`docs/USER_GUIDE.md`](docs/USER_GUIDE.md#1-truy-cập-app--đường-dẫn-deploy)
 
 Template biến môi trường: [`.env.cloud.example`](.env.cloud.example)
 
@@ -256,7 +256,17 @@ fitme.seed.user-email: user@fitme.ai
 fitme.seed.password: fitme123
 ```
 
-## Tài liệu phát triển
+## Tài liệu
+
+| Tài liệu | Đối tượng |
+|----------|-----------|
+| [Hướng dẫn sử dụng 3 role + test](docs/USER_GUIDE.md) | QA, PM, demo, **người dùng bản deploy** |
+| [Hướng dẫn developer](docs/DEVELOPER_GUIDE.md) | Dev mới onboard |
+| [Kiến trúc](docs/ARCHITECTURE.md) | Overview kỹ thuật |
+| [API contract](docs/API_CONTRACT.md) | Mapping FE ↔ BE |
+| [QA report](docs/QA_REPORT.md) | Kết quả regression |
+
+### Tài liệu phát triển (legacy)
 
 - [Backend Development Guide](FitMe_AI_BACKEND_DEVELOPMENT_GUIDE.md)
 - [Frontend Development Guide](FitMe_AI_FRONTEND_DEVELOPMENT_GUIDE.md)

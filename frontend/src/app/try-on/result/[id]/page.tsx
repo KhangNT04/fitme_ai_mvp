@@ -13,8 +13,9 @@ import { LoadingSkeleton } from "@/components/common/LoadingSkeleton";
 import { ErrorState } from "@/components/common/ErrorState";
 import { Disclaimer } from "@/components/layout/Disclaimer";
 import { PageShell } from "@/components/layout/PageShell";
-import { PageHeader } from "@/components/layout/PageHeader";
+import { FlowWizardToolbar } from "@/components/layout/FlowWizardToolbar";
 import { TRYON_FLOW_STEPS } from "@/components/layout/FlowStepper";
+import { consumerPageShellClass } from "@/lib/design-tokens";
 
 export default function TryOnResultPage({
   params,
@@ -30,22 +31,22 @@ export default function TryOnResultPage({
 
   if (isLoading) {
     return (
-      <PageShell width="medium">
+      <PageShell width="full" className={consumerPageShellClass}>
         <LoadingSkeleton type="detail" />
       </PageShell>
     );
   }
   if (error || !data) {
     return (
-      <PageShell width="medium">
+      <PageShell width="full" className={consumerPageShellClass}>
         <ErrorState onRetry={() => refetch()} />
       </PageShell>
     );
   }
 
   return (
-    <PageShell width="medium">
-      <PageHeader steps={TRYON_FLOW_STEPS} currentStep={3} title="Kết quả thử mặc AI" showAiBadge backHref="/try-on" backLabel="Thử mặc AI" />
+    <PageShell width="full" className={consumerPageShellClass}>
+      <FlowWizardToolbar steps={TRYON_FLOW_STEPS} currentStep={3} title="Kết quả thử mặc AI" showAiBadge backHref="/try-on" backLabel="Thử mặc AI" />
 
       <div className="relative aspect-[3/4] overflow-hidden rounded-xl bg-muted">
         {data.previewImageUrl ? (

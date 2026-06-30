@@ -63,8 +63,10 @@ public class WardrobeService {
     }
 
     @Transactional
-    public void delete(UUID id) {
-        wardrobeItemRepository.delete(getOwned(id));
+    public void delete(UUID id) throws IOException {
+        WardrobeItem item = getOwned(id);
+        storageService.delete(item.getImageUrl());
+        wardrobeItemRepository.delete(item);
     }
 
     @Transactional
@@ -73,9 +75,14 @@ public class WardrobeService {
             throw new BusinessException("Cần đồng ý upload ảnh tủ đồ trước");
         }
         WardrobeItem item = getOwned(id);
+        String previousPath = item.getImageUrl();
         String path = storageService.store("wardrobe", id + "-" + file.getOriginalFilename(), file);
         item.setImageUrl(path);
-        return toResponse(wardrobeItemRepository.save(item));
+        WardrobeItem saved = wardrobeItemRepository.save(item);
+        if (previousPath != null && !previousPath.equals(path)) {
+            storageService.delete(previousPath);
+        }
+        return toResponse(saved);
     }
 
     private List<WardrobeItem> findItems() {

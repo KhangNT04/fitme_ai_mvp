@@ -7,8 +7,9 @@ import { Card, CardContent } from "@/components/ui/card";
 import { useTryOnStore } from "@/stores/tryon-store";
 import { EmptyState } from "@/components/common/EmptyState";
 import { PageShell } from "@/components/layout/PageShell";
-import { PageHeader } from "@/components/layout/PageHeader";
+import { FlowWizardToolbar } from "@/components/layout/FlowWizardToolbar";
 import { TRYON_FLOW_STEPS } from "@/components/layout/FlowStepper";
+import { consumerPageShellClass } from "@/lib/design-tokens";
 
 export default function TryOnSelectedPage() {
   const router = useRouter();
@@ -16,8 +17,8 @@ export default function TryOnSelectedPage() {
 
   if (selectedItems.length === 0) {
     return (
-      <PageShell>
-        <PageHeader steps={TRYON_FLOW_STEPS} currentStep={1} title="Outfit đang chọn" backHref="/try-on" backLabel="Chọn sản phẩm" />
+      <PageShell width="full" className={consumerPageShellClass}>
+        <FlowWizardToolbar steps={TRYON_FLOW_STEPS} currentStep={1} title="Outfit đang chọn" backHref="/try-on" backLabel="Chọn sản phẩm" />
         <EmptyState
           title="Chưa chọn item nào"
           description="Quay lại chọn sản phẩm để thử mặc."
@@ -34,8 +35,8 @@ export default function TryOnSelectedPage() {
   );
 
   return (
-    <PageShell>
-      <PageHeader
+    <PageShell width="full" className={consumerPageShellClass}>
+      <FlowWizardToolbar
         steps={TRYON_FLOW_STEPS}
         currentStep={1}
         title="Outfit đang chọn"

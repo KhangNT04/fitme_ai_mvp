@@ -8,7 +8,7 @@ test.describe("Discover page", () => {
       page.getByRole("heading", { name: "Khám phá sản phẩm" }),
     ).toBeVisible();
     await expect(
-      page.getByPlaceholder("Tìm kiếm sản phẩm hoặc thương hiệu..."),
+      page.locator("[data-discover-search]").filter({ visible: true }),
     ).toBeVisible();
     await expect(page.getByText("Tất cả thương hiệu")).toBeVisible();
   });

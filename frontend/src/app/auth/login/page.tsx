@@ -11,6 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { AuthCardShell } from "@/components/layout/AuthCardShell";
 import { useAuthRedirect } from "@/hooks/use-auth-redirect";
+import { getUserErrorMessage } from "@/lib/user-error-message";
 import { loginSchema, type LoginForm } from "@/utils/validators";
 
 export default function LoginPage() {
@@ -36,7 +37,7 @@ function LoginForm() {
       setAuth(res.user, res.accessToken, res.refreshToken);
       goAfterAuth();
     } catch (e: unknown) {
-      setError((e as { message?: string })?.message || "Đăng nhập thất bại");
+      setError(getUserErrorMessage(e, { fallback: "Đăng nhập thất bại", context: "auth" }));
     }
   };
 

@@ -21,24 +21,24 @@ export interface BodyMeasurements {
 export interface BodyProfile {
   heightCm: number;
   weightKg: number;
-  fitPreference: FitPreference;
-  skinTone: SkinTone;
-  goals: string[];
+  fitPreference?: FitPreference;
+  skinTone?: SkinTone;
+  goals?: string[];
   measurements?: BodyMeasurements;
 }
 
 export interface StyleProfile {
-  primaryStyle: string;
-  secondaryStyles: string[];
-  riskLevel: RiskLevel;
-  artisticMode: boolean;
-  preferredColors: string[];
-  avoidedColors: string[];
+  primaryStyle?: string;
+  secondaryStyles?: string[];
+  riskLevel?: RiskLevel;
+  artisticMode?: boolean;
+  preferredColors?: string[];
+  avoidedColors?: string[];
 }
 
 export interface OccasionRequest {
-  occasion: string;
-  desiredVibe: string;
+  occasion?: string;
+  desiredVibe?: string;
   budgetMin?: number;
   budgetMax?: number;
 }

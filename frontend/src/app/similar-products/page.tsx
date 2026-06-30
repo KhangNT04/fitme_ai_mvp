@@ -10,6 +10,7 @@ import { ErrorState } from "@/components/common/ErrorState";
 import { PageSuspense } from "@/components/common/PageSuspense";
 import { PageShell } from "@/components/layout/PageShell";
 import { PageHeader } from "@/components/layout/PageHeader";
+import { catalogProductGridClass, consumerPageShellClass } from "@/lib/design-tokens";
 
 export default function SimilarProductsPage() {
   return (
@@ -30,7 +31,7 @@ function SimilarProductsContent() {
   });
 
   return (
-    <PageShell width="full">
+    <PageShell width="full" className={consumerPageShellClass}>
       <PageHeader
         title="Sản phẩm tương tự"
         subtitle="Gợi ý sản phẩm phù hợp với outfit của bạn"
@@ -48,7 +49,7 @@ function SimilarProductsContent() {
           <EmptyState title="Không tìm thấy sản phẩm tương tự" />
         )}
         {data && data.length > 0 && (
-          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          <div className={catalogProductGridClass}>
             {data.map((p) => <ProductCard key={p.id} product={p} />)}
           </div>
         )}

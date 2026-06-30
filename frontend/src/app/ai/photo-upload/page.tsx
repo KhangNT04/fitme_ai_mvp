@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Upload, Camera } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -11,8 +11,11 @@ import { uploadApi } from "@/services/upload-api";
 import { useConsultationStore } from "@/stores/consultation-store";
 import { PageSuspense } from "@/components/common/PageSuspense";
 import { PageShell } from "@/components/layout/PageShell";
-import { PageHeader } from "@/components/layout/PageHeader";
+import { FlowWizardToolbar } from "@/components/layout/FlowWizardToolbar";
 import { AI_FLOW_STEPS } from "@/components/layout/FlowStepper";
+import { consumerPageShellClass } from "@/lib/design-tokens";
+import { PreviewOutfitTray } from "@/components/ai/PreviewOutfitTray";
+import { getUserErrorMessage } from "@/lib/user-error-message";
 
 export default function PhotoUploadPage() {
   return (
@@ -30,7 +33,14 @@ function PhotoUploadContent() {
   const [consented, setConsented] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState("");
-  const { setPhotoUploadId } = useConsultationStore();
+  const { setPhotoUploadId, draft } = useConsultationStore();
+  const previewItems = draft.previewOutfitItems ?? [];
+
+  useEffect(() => {
+    if (recommendationId && previewItems.length === 0) {
+      router.replace(`/ai/preview-outfit?recommendation=${recommendationId}`);
+    }
+  }, [recommendationId, previewItems.length, router]);
 
   const handleUpload = async (file: File) => {
     if (!consented) {
@@ -40,28 +50,36 @@ function PhotoUploadContent() {
     setUploading(true);
     setError("");
     try {
-      await uploadApi.consent();
-      const { photoUploadId } = await uploadApi.uploadPhoto(file);
+      const { consentId } = await uploadApi.consent();
+      const { photoUploadId } = await uploadApi.uploadPhoto(file, consentId);
       setPhotoUploadId(photoUploadId);
       router.push(`/ai/photo-check?photo=${photoUploadId}&recommendation=${recommendationId || ""}`);
     } catch (e: unknown) {
-      setError((e as { message?: string })?.message || "Upload thất bại. Vui lòng thử lại.");
+      setError(getUserErrorMessage(e, "Upload thất bại. Vui lòng thử lại."));
     } finally {
       setUploading(false);
     }
   };
 
   return (
-    <PageShell>
-      <PageHeader
+    <PageShell width="full" className={consumerPageShellClass}>
+      <FlowWizardToolbar
         steps={AI_FLOW_STEPS}
         currentStep={4}
         title="Upload ảnh preview 2D"
         subtitle="Ảnh sẽ được dùng để tạo minh họa outfit trên hình của bạn"
         showAiBadge
-        backHref={recommendationId ? `/ai/result/${recommendationId}` : "/ai/start"}
-        backLabel={recommendationId ? "Kết quả tư vấn" : "Bắt đầu tư vấn"}
+        backHref={recommendationId ? `/ai/preview-outfit?recommendation=${recommendationId}` : "/ai/start"}
+        backLabel={recommendationId ? "Chỉnh set outfit" : "Bắt đầu tư vấn"}
       />
+
+      {recommendationId && previewItems.length > 0 && (
+        <Card className="mb-6">
+          <CardContent className="p-4">
+            <PreviewOutfitTray items={previewItems} compact />
+          </CardContent>
+        </Card>
+      )}
 
       <Card>
         <CardContent className="p-6">
@@ -70,7 +88,7 @@ function PhotoUploadContent() {
             <li>• Đứng thẳng, toàn thân hoặc nửa người trở lên</li>
             <li>• Ánh sáng đủ, nền đơn giản</li>
             <li>• Không che khuất phần thân</li>
-            <li>• Định dạng JPG/PNG, tối đa 10MB</li>
+            <li>• Định dạng JPG/PNG/WEBP, tối đa 5MB</li>
           </ul>
         </CardContent>
       </Card>

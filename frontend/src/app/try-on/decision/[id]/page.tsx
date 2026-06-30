@@ -9,8 +9,9 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Disclaimer } from "@/components/layout/Disclaimer";
 import { PageShell } from "@/components/layout/PageShell";
-import { PageHeader } from "@/components/layout/PageHeader";
+import { FlowWizardToolbar } from "@/components/layout/FlowWizardToolbar";
 import { TRYON_FLOW_STEPS } from "@/components/layout/FlowStepper";
+import { consumerPageShellClass } from "@/lib/design-tokens";
 
 export default function TryOnDecisionPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
@@ -21,8 +22,8 @@ export default function TryOnDecisionPage({ params }: { params: Promise<{ id: st
   });
 
   return (
-    <PageShell width="narrow">
-      <PageHeader
+    <PageShell width="full" className={consumerPageShellClass}>
+      <FlowWizardToolbar
         steps={TRYON_FLOW_STEPS}
         currentStep={3}
         title="Quyết định tiếp theo"

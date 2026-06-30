@@ -1,5 +1,20 @@
-import apiClient, { unwrap } from "./api-client";
+import apiClient, { unwrap, type ApiError } from "./api-client";
 import type { BodyProfile, StyleProfile } from "@/types/user";
+import {
+  bodyProfileToPayload,
+  mergeBodyProfiles,
+  mergeStyleProfiles,
+  styleProfileToPayload,
+} from "@/lib/profile-merge";
+
+async function fetchProfileOrNull<T>(request: () => Promise<T>): Promise<T | null> {
+  try {
+    return await request();
+  } catch (error) {
+    if ((error as ApiError)?.status === 404) return null;
+    throw error;
+  }
+}
 
 interface BackendBodyProfile {
   heightCm: number;
@@ -47,36 +62,38 @@ function mapBodyProfile(raw: BackendBodyProfile): BodyProfile {
 }
 
 export const profileApi = {
-  getBodyProfile: async (): Promise<BodyProfile | null> => {
-    const res = await apiClient.get("/me/body-profile");
-    const data = unwrap(res) as BackendBodyProfile | null;
-    return data ? mapBodyProfile(data) : null;
-  },
+  getBodyProfile: async (): Promise<BodyProfile | null> =>
+    fetchProfileOrNull(async () => {
+      const res = await apiClient.get("/me/body-profile");
+      const data = unwrap(res) as BackendBodyProfile | null;
+      return data ? mapBodyProfile(data) : null;
+    }),
+
   saveBodyProfile: async (data: BodyProfile): Promise<BodyProfile> => {
-    const payload = {
-      heightCm: data.heightCm,
-      weightKg: data.weightKg,
-      fitPreference: data.fitPreference,
-      skinTone: data.skinTone,
-      goals: { items: data.goals },
-      shoulderWidthCm: data.measurements?.shoulderWidthCm,
-      chestCm: data.measurements?.chestCm,
-      waistCm: data.measurements?.waistCm,
-      abdomenCm: data.measurements?.abdomenCm,
-      hipCm: data.measurements?.hipCm,
-      thighCm: data.measurements?.thighCm,
-      inseamCm: data.measurements?.inseamCm,
-      armLengthCm: data.measurements?.armLengthCm,
-    };
-    const res = await apiClient.post("/me/body-profile", payload);
+    const existing = await fetchProfileOrNull(async () => {
+      const res = await apiClient.get("/me/body-profile");
+      const raw = unwrap(res) as BackendBodyProfile | null;
+      return raw ? mapBodyProfile(raw) : null;
+    });
+    const merged = mergeBodyProfiles(existing, data);
+    if (!merged) throw new Error("Thiếu thông tin cơ thể");
+    const res = await apiClient.post("/me/body-profile", bodyProfileToPayload(merged));
     return mapBodyProfile(unwrap(res) as BackendBodyProfile);
   },
-  getStyleProfile: async (): Promise<StyleProfile | null> => {
-    const res = await apiClient.get("/me/style-profile");
-    return unwrap(res);
-  },
+
+  getStyleProfile: async (): Promise<StyleProfile | null> =>
+    fetchProfileOrNull(async () => {
+      const res = await apiClient.get("/me/style-profile");
+      return unwrap(res);
+    }),
+
   saveStyleProfile: async (data: StyleProfile): Promise<StyleProfile> => {
-    const res = await apiClient.post("/me/style-profile", data);
+    const existing = await fetchProfileOrNull(async () => {
+      const res = await apiClient.get("/me/style-profile");
+      return unwrap(res);
+    });
+    const merged = mergeStyleProfiles(existing, data);
+    const res = await apiClient.post("/me/style-profile", styleProfileToPayload(merged));
     return unwrap(res);
   },
 };

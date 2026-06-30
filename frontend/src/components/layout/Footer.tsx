@@ -3,7 +3,7 @@ import { Sparkles } from "lucide-react";
 
 export function Footer() {
   return (
-    <footer className="relative mt-auto overflow-hidden bg-[var(--fashion-ink)] text-white">
+    <footer className="relative mt-auto hidden overflow-hidden bg-[var(--fashion-ink)] text-white md:block">
       <div className="pointer-events-none absolute -right-32 -top-32 h-64 w-64 rounded-full bg-violet-600/20 blur-3xl" />
       <div className="pointer-events-none absolute -bottom-24 -left-24 h-56 w-56 rounded-full bg-pink-600/15 blur-3xl" />
       <div className="relative mx-auto max-w-7xl px-4 py-16 sm:px-6">

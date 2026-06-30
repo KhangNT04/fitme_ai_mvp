@@ -6,12 +6,15 @@ import { CheckCircle, AlertTriangle, XCircle } from "lucide-react";
 import { uploadApi } from "@/services/upload-api";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { PreviewOutfitTray } from "@/components/ai/PreviewOutfitTray";
+import { useConsultationStore } from "@/stores/consultation-store";
 import { LoadingSkeleton } from "@/components/common/LoadingSkeleton";
 import { Disclaimer } from "@/components/layout/Disclaimer";
 import { PageSuspense } from "@/components/common/PageSuspense";
 import { PageShell } from "@/components/layout/PageShell";
-import { PageHeader } from "@/components/layout/PageHeader";
+import { FlowWizardToolbar } from "@/components/layout/FlowWizardToolbar";
 import { AI_FLOW_STEPS } from "@/components/layout/FlowStepper";
+import { consumerPageShellClass } from "@/lib/design-tokens";
 
 const qualityConfig = {
   GOOD: { icon: CheckCircle, color: "text-emerald-600", label: "Ảnh tốt" },
@@ -33,6 +36,8 @@ function PhotoCheckContent() {
   const searchParams = useSearchParams();
   const photoId = searchParams.get("photo");
   const recommendationId = searchParams.get("recommendation");
+  const { draft } = useConsultationStore();
+  const previewItems = draft.previewOutfitItems ?? [];
 
   const { data, isLoading } = useQuery({
     queryKey: ["photo-quality", photoId],
@@ -47,7 +52,7 @@ function PhotoCheckContent() {
 
   if (isLoading) {
     return (
-      <PageShell>
+      <PageShell width="full" className={consumerPageShellClass}>
         <LoadingSkeleton count={1} />
       </PageShell>
     );
@@ -57,8 +62,8 @@ function PhotoCheckContent() {
   const Icon = config.icon;
 
   return (
-    <PageShell>
-      <PageHeader
+    <PageShell width="full" className={consumerPageShellClass}>
+      <FlowWizardToolbar
         steps={AI_FLOW_STEPS}
         currentStep={4}
         title="Kiểm tra ảnh"
@@ -66,6 +71,26 @@ function PhotoCheckContent() {
         backHref={`/ai/photo-upload?recommendation=${recommendationId || ""}`}
         backLabel="Upload ảnh"
       />
+
+      {previewItems.length > 0 && (
+        <Card className="mb-6">
+          <CardContent className="p-4">
+            <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+              Set preview ({previewItems.length} món)
+            </p>
+            <PreviewOutfitTray items={previewItems} compact />
+            {recommendationId && (
+              <Button
+                variant="link"
+                className="mt-2 h-auto p-0 text-xs"
+                onClick={() => router.push(`/ai/preview-outfit?recommendation=${recommendationId}`)}
+              >
+                Chỉnh lại set outfit
+              </Button>
+            )}
+          </CardContent>
+        </Card>
+      )}
 
       <Card>
         <CardContent className="flex flex-col items-center p-8 text-center">

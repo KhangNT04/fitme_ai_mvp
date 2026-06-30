@@ -1,3 +1,4 @@
+import { PLACEHOLDER_PRODUCT, resolveImageList, resolveOptionalImageSrc } from "@/lib/media-url";
 import type { CreateProductRequest } from "@/types/brand";
 import type { Product, SizeChartRow } from "@/types/product";
 
@@ -130,9 +131,9 @@ export function mapProduct(raw: BackendProduct): Product {
     name: raw.name,
     category: raw.category,
     price: Number(raw.price),
-    images: (raw.images || []).map((img) => img.imageUrl),
+    images: resolveImageList((raw.images || []).map((img) => img.imageUrl)),
     imageDetails: (raw.images || []).map((img) => ({
-      url: img.imageUrl,
+      url: resolveOptionalImageSrc(img.imageUrl) ?? PLACEHOLDER_PRODUCT,
       type: img.imageType || "MAIN",
       sortOrder: img.sortOrder ?? 0,
     })),

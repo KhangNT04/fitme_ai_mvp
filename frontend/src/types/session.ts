@@ -13,4 +13,7 @@ export interface ConsultationDraft {
   wardrobeMode: import("./user").WardrobeMode;
   photoUploadId?: string;
   recommendationId?: string;
+  /** Recommendation whose outfit seeded previewOutfitItems. */
+  previewOutfitSourceId?: string;
+  previewOutfitItems?: import("./outfit").OutfitItem[];
 }

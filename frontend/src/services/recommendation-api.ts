@@ -1,4 +1,5 @@
-import apiClient, { unwrap } from "./api-client";
+import apiClient, { unwrap, type ApiError } from "./api-client";
+import { resolveOptionalImageSrc } from "@/lib/media-url";
 import type {
   CreateRecommendationRequest,
   RecommendationResult,
@@ -16,6 +17,7 @@ interface BackendOutfitItem {
   selectedColor?: string;
   price?: number;
   canBuy?: boolean;
+  imageUrl?: string;
 }
 
 interface BackendRecommendation {
@@ -37,6 +39,7 @@ interface BackendRecommendation {
   preview?: {
     type?: string;
     imageUrl?: string;
+    previewImageUrl?: string;
     disclaimer?: string;
   };
 }
@@ -52,6 +55,7 @@ function mapOutfitItem(item: BackendOutfitItem, index: number): OutfitItem {
     size: item.selectedSize,
     price: item.price,
     fromWardrobe: item.sourceType === "USER_WARDROBE",
+    imageUrl: resolveOptionalImageSrc(item.imageUrl),
   };
 }
 
@@ -75,7 +79,7 @@ function mapRecommendation(data: BackendRecommendation): RecommendationResult {
     preview: data.preview
       ? {
           type: (data.preview.type || "OUTFIT_BOARD") as "OUTFIT_BOARD" | "AVATAR" | "USER_PHOTO_2D",
-          imageUrl: data.preview.imageUrl,
+          imageUrl: resolveOptionalImageSrc(data.preview.imageUrl ?? data.preview.previewImageUrl),
           disclaimer: data.preview.disclaimer || "",
         }
       : undefined,
@@ -124,8 +128,16 @@ export const recommendationApi = {
     return items.map(mapSimilarProduct);
   },
   getSaved: async (): Promise<RecommendationResult[]> => {
-    const res = await apiClient.get("/recommendations/saved");
-    const list = unwrap(res) as BackendRecommendation[];
-    return list.map(mapRecommendation);
+    try {
+      const res = await apiClient.get("/recommendations/saved");
+      const list = unwrap(res) as BackendRecommendation[];
+      return (Array.isArray(list) ? list : []).map(mapRecommendation);
+    } catch (error) {
+      const apiError = error as ApiError;
+      if (apiError.status === 400 || apiError.status === 401) {
+        return [];
+      }
+      throw error;
+    }
   },
 };

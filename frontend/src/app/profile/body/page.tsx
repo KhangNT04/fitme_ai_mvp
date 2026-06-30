@@ -13,14 +13,14 @@ import { PageShell } from "@/components/layout/PageShell";
 import { CollapsingPageHeader } from "@/components/layout/CollapsingPageHeader";
 import { BodyProfileEditor, formToBodyProfile } from "@/components/profile/BodyProfileEditor";
 import { useConsultationStore } from "@/stores/consultation-store";
-import { consumerPageShellClass } from "@/lib/design-tokens";
+import { consumerPageShellClass, consumerGuestPromptClass } from "@/lib/design-tokens";
 import { getUserErrorMessage } from "@/lib/user-error-message";
 import type { BodyProfileForm } from "@/utils/validators";
 
 function GuestPrompt() {
   return (
     <PageShell width="full" className={consumerPageShellClass}>
-      <div className="surface-card mx-auto w-full max-w-md rounded-xl px-5 py-8 text-center sm:rounded-2xl sm:px-6 sm:py-10">
+      <div className={consumerGuestPromptClass}>
         <h1 className="font-display text-xl font-bold text-foreground">Chỉnh sửa hồ sơ cơ thể</h1>
         <p className="mt-2 text-sm text-muted-foreground">Vui lòng đăng nhập để cập nhật thông tin.</p>
         <Button className="mt-5 min-h-11 w-full rounded-full sm:mt-6 sm:w-auto" asChild>

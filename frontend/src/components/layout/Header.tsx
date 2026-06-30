@@ -15,7 +15,7 @@ import {
 } from "@/lib/portal-nav";
 import { useAuthStore } from "@/stores/auth-store";
 import { cn } from "@/lib/utils";
-import { portalShellMaxWidthClass } from "@/lib/design-tokens";
+import { consumerShellMaxWidthClass, portalShellMaxWidthClass } from "@/lib/design-tokens";
 import { isCompactHeader } from "@/lib/mobile-chrome";
 
 const navLinks = [
@@ -136,7 +136,7 @@ export function Header() {
 
   return (
     <header className="glass-nav sticky top-0 z-40 bg-white">
-      <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6">
+      <div className={cn("mx-auto flex h-16 w-full items-center justify-between px-4 sm:px-6", consumerShellMaxWidthClass)}>
         <NavScrollLink href="/" className="group flex items-center gap-2.5 font-display font-bold text-foreground">
           <span className="flex h-9 w-9 items-center justify-center rounded-xl gradient-ai text-white shadow-md transition-transform duration-300 group-hover:scale-105">
             <Sparkles className="h-4 w-4" />

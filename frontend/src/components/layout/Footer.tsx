@@ -1,12 +1,14 @@
 import Link from "next/link";
 import { Sparkles } from "lucide-react";
+import { consumerShellHorizontalClass, consumerShellMaxWidthClass } from "@/lib/design-tokens";
+import { cn } from "@/lib/utils";
 
 export function Footer() {
   return (
     <footer className="relative mt-auto hidden overflow-hidden bg-[var(--fashion-ink)] text-white md:block">
       <div className="pointer-events-none absolute -right-32 -top-32 h-64 w-64 rounded-full bg-violet-600/20 blur-3xl" />
       <div className="pointer-events-none absolute -bottom-24 -left-24 h-56 w-56 rounded-full bg-pink-600/15 blur-3xl" />
-      <div className="relative mx-auto max-w-7xl px-4 py-16 sm:px-6">
+      <div className={cn("relative py-16", consumerShellHorizontalClass, consumerShellMaxWidthClass)}>
         <div className="grid gap-12 sm:grid-cols-3">
           <div>
             <div className="flex items-center gap-2.5">

@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { PageShell } from "@/components/layout/PageShell";
 import { CollapsingPageHeader } from "@/components/layout/CollapsingPageHeader";
-import { consumerPageShellClass } from "@/lib/design-tokens";
+import { consumerPageShellClass, consumerGuestPromptClass } from "@/lib/design-tokens";
 import { getUserErrorMessage } from "@/lib/user-error-message";
 import { cn } from "@/lib/utils";
 
@@ -41,7 +41,7 @@ const REQUEST_OPTIONS: {
 function GuestPrivacyPrompt() {
   return (
     <PageShell width="full" className={consumerPageShellClass}>
-      <div className="surface-card mx-auto w-full max-w-md rounded-xl px-5 py-8 text-center sm:rounded-2xl sm:px-6 sm:py-10">
+      <div className={consumerGuestPromptClass}>
         <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-emerald-500/10 text-emerald-700 sm:h-14 sm:w-14 sm:rounded-2xl">
           <Shield className="h-6 w-6 sm:h-7 sm:w-7" aria-hidden="true" />
         </div>

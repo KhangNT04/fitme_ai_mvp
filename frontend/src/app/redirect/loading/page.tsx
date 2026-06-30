@@ -6,6 +6,8 @@ import { Loader2 } from "lucide-react";
 import { PageSuspense } from "@/components/common/PageSuspense";
 import { PageShell } from "@/components/layout/PageShell";
 import { PageHeader } from "@/components/layout/PageHeader";
+import { consumerPageShellClass } from "@/lib/design-tokens";
+import { cn } from "@/lib/utils";
 
 export default function RedirectLoadingPage() {
   return (
@@ -29,7 +31,7 @@ function RedirectLoadingContent() {
   }, [url]);
 
   return (
-    <PageShell width="narrow" className="flex flex-col items-center py-24 text-center">
+    <PageShell width="full" className={cn(consumerPageShellClass, "flex flex-col items-center py-16 text-center sm:py-24")}>
       <Loader2 className="h-12 w-12 animate-spin text-muted-foreground/70" />
       <PageHeader
         title="Đang chuyển hướng..."

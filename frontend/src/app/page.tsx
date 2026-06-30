@@ -8,6 +8,8 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useEnsureSession } from "@/hooks/use-ensure-session";
+import { consumerShellHorizontalClass, consumerShellMaxWidthClass } from "@/lib/design-tokens";
+import { cn } from "@/lib/utils";
 
 const features = [
   {
@@ -100,7 +102,7 @@ export default function HomePage() {
         />
         <div className="absolute inset-0 bg-gradient-to-br from-white/90 via-white/75 to-violet-100/60" />
         <div className="absolute inset-0 bg-gradient-to-t from-white/40 via-transparent to-white/20" />
-        <div className="relative mx-auto grid max-w-7xl items-center gap-12 px-4 py-16 sm:px-6 lg:grid-cols-2 lg:py-24">
+        <div className={cn("relative grid items-center gap-12 py-16 lg:grid-cols-2 lg:py-24", consumerShellHorizontalClass, consumerShellMaxWidthClass)}>
           <div className="relative z-10">
             <Badge variant="ai" className="animate-fade-up mb-5 shadow-md">
               Styling powered by AI
@@ -184,7 +186,7 @@ export default function HomePage() {
       </div>
 
       {/* Features */}
-      <section className="mx-auto max-w-7xl px-4 py-20 sm:px-6">
+      <section className={cn("py-20", consumerShellHorizontalClass, consumerShellMaxWidthClass)}>
         <div className="text-center">
           <p className="text-xs font-semibold uppercase tracking-[0.3em] text-primary">Curated for you</p>
           <h2 className="mt-3 font-display text-3xl font-bold text-foreground sm:text-4xl">Tính năng nổi bật</h2>
@@ -214,7 +216,7 @@ export default function HomePage() {
         <div className="absolute inset-0 opacity-30">
           <div className="fashion-grain h-full w-full opacity-100" />
         </div>
-        <div className="relative mx-auto max-w-7xl px-4 py-20 text-center sm:px-6">
+        <div className={cn("relative py-20 text-center", consumerShellHorizontalClass, consumerShellMaxWidthClass)}>
           <p className="text-xs font-semibold uppercase tracking-[0.3em] text-white/60">Your style journey</p>
           <h2 className="mt-4 font-display text-3xl font-bold text-white sm:text-4xl">Sẵn sàng thử?</h2>
           <p className="mx-auto mt-3 max-w-md text-white/75">Bắt đầu tư vấn AI miễn phí — chỉ mất vài phút.</p>

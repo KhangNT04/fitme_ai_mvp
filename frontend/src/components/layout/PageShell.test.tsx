@@ -9,6 +9,11 @@ describe("PageShell", () => {
     expect(container.firstChild).toHaveClass("max-w-xl");
   });
 
+  it("applies full consumer width class", () => {
+    const { container } = render(<PageShell width="full"><p>Full</p></PageShell>);
+    expect(container.firstChild).toHaveClass("max-w-7xl");
+  });
+
   it("applies wide width class", () => {
     const { container } = render(<PageShell width="wide"><p>Wide</p></PageShell>);
     expect(container.firstChild).toHaveClass("max-w-4xl");

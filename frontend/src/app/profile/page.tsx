@@ -23,7 +23,7 @@ import { Badge } from "@/components/ui/badge";
 import { LoadingSkeleton } from "@/components/common/LoadingSkeleton";
 import { PageShell } from "@/components/layout/PageShell";
 import { CollapsingPageHeader } from "@/components/layout/CollapsingPageHeader";
-import { consumerPageShellClass } from "@/lib/design-tokens";
+import { consumerPageShellClass, consumerGuestPromptClass } from "@/lib/design-tokens";
 import { FIT_PREFERENCES, GENDERS, RISK_LEVELS, SKIN_TONES } from "@/utils/constants";
 import { mergeBodyProfiles, mergeStyleProfiles } from "@/lib/profile-merge";
 import { hasMinimalBodyProfile, hasStyleProfileContent } from "@/lib/profile-prefill";
@@ -164,7 +164,7 @@ function ProfileSection({
 function GuestProfilePrompt() {
   return (
     <PageShell width="full" className={consumerPageShellClass}>
-      <div className="surface-card mx-auto w-full max-w-md rounded-xl px-5 py-8 text-center sm:rounded-2xl sm:px-6 sm:py-10">
+      <div className={consumerGuestPromptClass}>
         <div className="gradient-ai mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-xl shadow-md sm:h-14 sm:w-14 sm:rounded-2xl">
           <UserRound className="h-6 w-6 text-white sm:h-7 sm:w-7" aria-hidden="true" />
         </div>

@@ -74,7 +74,7 @@ export default function RedirectConfirmPage({
         showMobileBack
       />
 
-      <div className="mx-auto w-full max-w-lg space-y-3 sm:space-y-4">
+      <div className="w-full space-y-3 sm:space-y-4">
         <section className="surface-card overflow-hidden rounded-xl sm:rounded-2xl">
           <div className="flex items-center gap-2 border-b border-border/40 px-3 py-2.5 sm:gap-3 sm:px-5 sm:py-3">
             <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary sm:h-8 sm:w-8">

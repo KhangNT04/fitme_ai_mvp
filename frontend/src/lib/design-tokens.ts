@@ -1,11 +1,29 @@
 /** Presentational class constants — style only, no logic */
-export const pageContainer = "mx-auto max-w-7xl px-4 py-5 sm:px-6 sm:py-6";
+/** Consumer app max width — shared by PageShell, Header, Footer, landing sections. */
+export const consumerShellMaxWidthClass = "max-w-7xl";
+export const consumerShellHorizontalClass = "mx-auto w-full px-4 sm:px-6";
+/** Vertical padding for catalog / wizard / profile pages (pair with `pageContainer`). */
+export const consumerPageShellClass = "py-3 sm:py-5";
+export const pageContainer = `${consumerShellHorizontalClass} ${consumerShellMaxWidthClass}`;
 /** Brand/admin portal — 1.5× consumer full width (7xl → 120rem). */
 export const portalShellMaxWidthClass = "max-w-[120rem]";
 export const pageContainerPortal = `mx-auto flex min-h-[calc(100dvh-4rem)] w-full flex-col ${portalShellMaxWidthClass} px-4 py-3 sm:px-6 sm:py-4 lg:py-5`;
 export const pageContainerNarrow = "mx-auto max-w-xl px-4 py-8 sm:px-6";
 export const pageContainerMedium = "mx-auto max-w-2xl px-4 py-8 sm:px-6";
 export const pageContainerWide = "mx-auto max-w-4xl px-4 py-8 sm:px-6";
+/** Guest / empty prompt card — full content width inside PageShell (no max-w-md). */
+export const consumerGuestPromptClass =
+  "surface-card w-full rounded-xl px-5 py-8 text-center sm:rounded-2xl sm:px-6 sm:py-10";
+/** Product detail — media column width on desktop. */
+export const productDetailMediaColumnClass =
+  "mx-auto w-full lg:mx-0 lg:w-[32rem] lg:max-w-[32rem] lg:shrink-0";
+export const productDetailGridClass = "grid gap-8 lg:grid-cols-[32rem_minmax(0,1fr)] lg:gap-12";
+/** Card shell for product detail — extra vertical breathing room. */
+export const productDetailShellClass =
+  "surface-card rounded-2xl p-5 sm:p-6 lg:p-8 lg:py-10";
+export const productDetailInfoColumnClass =
+  "flex min-h-full flex-col justify-between gap-8 lg:min-h-[34rem]";
+export const productDetailSummaryClass = "space-y-5 lg:space-y-6";
 export const pageTitle = "font-display text-2xl font-bold tracking-tight text-foreground sm:text-3xl";
 export const pageSubtitle = "mt-2 text-base leading-relaxed text-muted-foreground";
 export const sectionTitle = "font-display text-xl font-semibold text-foreground";
@@ -17,8 +35,6 @@ export const catalogProductRowClass =
   "flex gap-2.5 overflow-x-auto overscroll-x-contain pb-1 snap-x snap-mandatory sm:gap-3 [scrollbar-width:thin]";
 export const catalogProductRowItemClass =
   "w-[10.75rem] shrink-0 snap-start sm:w-48 md:w-[14.25rem] lg:w-[15rem]";
-/** Vertical padding aligned with discover / try-on catalog pages */
-export const consumerPageShellClass = "py-3 sm:py-5";
 
 /** Brand / admin portal shell */
 export const portalLayoutRowClass = "flex min-h-0 flex-1 gap-6 sm:gap-8";

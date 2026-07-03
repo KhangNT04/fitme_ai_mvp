@@ -290,7 +290,7 @@ export default function ProfilePage() {
               icon={Palette}
               editHref="/profile/style"
             >
-              {hasStyle ? (
+              {hasStyle && styleProfile ? (
                 <dl>
                   {styleProfile.primaryStyle && (
                     <ProfileDetail label="Phong cách chính" value={styleProfile.primaryStyle} />

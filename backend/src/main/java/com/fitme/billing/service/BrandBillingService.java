@@ -21,6 +21,8 @@ import com.fitme.common.exception.NotFoundException;
 import com.fitme.brand.entity.Brand;
 import com.fitme.brand.repository.BrandRepository;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -30,6 +32,8 @@ import java.util.concurrent.ThreadLocalRandom;
 @Service
 @RequiredArgsConstructor
 public class BrandBillingService {
+
+    private static final Logger log = LoggerFactory.getLogger(BrandBillingService.class);
 
     private final BillingPlanRepository planRepository;
     private final BrandBillingOrderRepository orderRepository;
@@ -140,10 +144,10 @@ public class BrandBillingService {
 
     @Transactional
     public void handleWebhook(String rawBody) {
-        long orderCode = payOsClient.extractPaidOrderCode(rawBody);
-        BrandBillingOrder order = orderRepository.findByPayosOrderCode(orderCode)
-                .orElseThrow(() -> new NotFoundException("Đơn thanh toán không tồn tại"));
-        quotaService.grantFromOrder(order);
+        long orderCode = payOsClient.verifyAndParseWebhook(rawBody);
+        orderRepository.findByPayosOrderCode(orderCode).ifPresentOrElse(
+                quotaService::grantFromOrder,
+                () -> log.warn("PayOS webhook acknowledged for unknown orderCode={}", orderCode));
     }
 
     @Transactional

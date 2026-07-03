@@ -45,7 +45,7 @@ public class LivePayOsClient implements PayOsClient {
     }
 
     @Override
-    public long extractPaidOrderCode(String rawWebhookBody) {
+    public long verifyAndParseWebhook(String rawWebhookBody) {
         try {
             WebhookData data = client().webhooks().verify(rawWebhookBody);
             return data.getOrderCode();

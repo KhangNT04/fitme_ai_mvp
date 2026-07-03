@@ -32,7 +32,8 @@ services:
         value: fitme123
       - key: UPLOAD_DIR
         value: /tmp/uploads
-      # Brand billing — mock=true: bấm mua cộng lượt ngay (không cần PayOS key)
+      # Brand billing — mock=true: test cloud không cần PayOS key.
+      # PayOS thật: đổi PAYOS_MOCK=false trong Render dashboard + set 3 key bên dưới, rồi redeploy.
       - key: PAYOS_MOCK
         value: "true"
       - key: PAYOS_RETURN_URL

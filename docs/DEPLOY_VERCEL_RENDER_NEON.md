@@ -85,13 +85,31 @@ Giữ `DB_USERNAME` và `DB_PASSWORD` riêng (không nhét vào URL).
 | `PAYOS_API_KEY` | *(chỉ khi `PAYOS_MOCK=false`)* |
 | `PAYOS_CHECKSUM_KEY` | *(chỉ khi `PAYOS_MOCK=false`)* |
 
-**PayOS webhook** (khi dùng thanh toán thật): đăng ký trên [my.payos.vn](https://my.payos.vn):
+**PayOS webhook** (khi dùng thanh toán thật):
+
+1. Trên Render dashboard, set `PAYOS_MOCK=false` và 3 key từ [my.payos.vn](https://my.payos.vn) (`PAYOS_CLIENT_ID`, `PAYOS_API_KEY`, `PAYOS_CHECKSUM_KEY`) — **phải cùng kênh thanh toán** đang cấu hình webhook.
+2. **Manual Deploy** để backend nhận env mới.
+3. Đăng ký webhook URL:
 
 ```
 https://fitme-api.onrender.com/api/v1/webhooks/payos
 ```
 
 *(Thay `fitme-api` bằng URL Render thực tế nếu khác.)*
+
+**Render FREE — tránh lỗi `timeout of 10000ms exceeded`:**
+
+PayOS chỉ chờ ~10 giây; service free **ngủ** sau ~15 phút và cold start Docker/Spring thường **30–60 giây**.
+
+| Bước | Việc cần làm |
+|------|----------------|
+| 1 | Mở `https://fitme-api.onrender.com/actuator/health` — đợi `{"status":"UP"}` |
+| 2 | Trong **1–2 phút**, vào my.payos.vn → dán webhook URL → **Lưu** |
+| 3 | Không để tab PayOS idle lâu rồi mới bấm Lưu (service có thể ngủ lại) |
+
+**Lỗi khác timeout:** nếu server đã UP nhưng PayOS vẫn báo webhook lỗi, kiểm tra `PAYOS_MOCK=false` và checksum key khớp dashboard. Backend trả **2XX** khi nhận payload (kể cả order mẫu `orderCode: 123` của PayOS).
+
+**Giữ service ấm (tùy chọn):** [UptimeRobot](https://uptimerobot.com) ping `/actuator/health` mỗi 5 phút. **Lâu dài:** nâng Render Starter nếu cần webhook thanh toán ổn định.
 
 5. **Create Web Service** — đợi build ~5–10 phút.
 6. Lấy URL backend, ví dụ: `https://fitme-api.onrender.com`

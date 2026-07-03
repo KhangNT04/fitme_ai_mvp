@@ -10,10 +10,15 @@ import com.fitme.common.enums.BillingOrderStatus;
 import com.fitme.support.TestDataHelper;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.MediaType;
 
 import java.util.concurrent.ThreadLocalRandom;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatCode;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 class BrandBillingWebhookTest extends AbstractIntegrationTest {
 
@@ -48,5 +53,26 @@ class BrandBillingWebhookTest extends AbstractIntegrationTest {
 
         brandBillingService.handleWebhook(webhookBody);
         assertThat(brandQuotaService.getOrCreateBalance(brand.getId()).getTopupRemaining()).isEqualTo(250);
+    }
+
+    @Test
+    void webhook_unknownOrderCode_acknowledgedWithoutGrantingQuota() {
+        var brand = testDataHelper.createBrandOwner().brand();
+        int before = brandQuotaService.getOrCreateBalance(brand.getId()).getTopupRemaining();
+
+        String payOsSampleBody = "{\"data\":{\"orderCode\":123}}";
+        assertThatCode(() -> brandBillingService.handleWebhook(payOsSampleBody))
+                .doesNotThrowAnyException();
+
+        assertThat(brandQuotaService.getOrCreateBalance(brand.getId()).getTopupRemaining()).isEqualTo(before);
+    }
+
+    @Test
+    void webhook_httpEndpoint_returnsOkForUnknownOrder() throws Exception {
+        mockMvc.perform(post("/api/v1/webhooks/payos")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"data\":{\"orderCode\":123}}"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true));
     }
 }

@@ -27,7 +27,7 @@ public class MockPayOsClient implements PayOsClient {
     }
 
     @Override
-    public long extractPaidOrderCode(String rawWebhookBody) {
+    public long verifyAndParseWebhook(String rawWebhookBody) {
         try {
             JsonNode root = objectMapper.readTree(rawWebhookBody);
             if (root.has("data") && root.get("data").has("orderCode")) {

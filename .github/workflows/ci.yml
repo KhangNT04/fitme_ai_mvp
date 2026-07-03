@@ -147,6 +147,7 @@ jobs:
         env:
           PLAYWRIGHT_START_SERVER: "1"
           CI: "true"
+          JWT_SECRET: ci-jwt-secret-min-256-bits-long-for-testing-only
         run: |
           npx playwright test e2e/smoke-routes.spec.ts e2e/role-flows.spec.ts --workers=1 --retries=2
           npx playwright test e2e/rbac.spec.ts --workers=1 --retries=2

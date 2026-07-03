@@ -7,17 +7,33 @@ async function fillLoginForm(page: Page, email: string, password: string) {
   await page.locator('input[type="password"]').first().fill(password);
 }
 
+async function waitForPortalSession(page: Page) {
+  const response = await page.waitForResponse(
+    (resp) =>
+      resp.url().includes("/api/auth/session") &&
+      resp.request().method() === "POST",
+    { timeout: 30_000 },
+  );
+  if (!response.ok()) {
+    throw new Error(`Portal session sync failed: HTTP ${response.status()}`);
+  }
+}
+
 export async function loginBrand(page: Page, email = "brand@fitme.ai") {
   await page.goto("/brand/login");
   await fillLoginForm(page, email, DEMO_PASSWORD);
+  const sessionSync = waitForPortalSession(page);
   await page.getByRole("button", { name: "Đăng nhập" }).click();
+  await sessionSync;
   await page.waitForURL(/\/brand\/dashboard/, { timeout: 30_000 });
 }
 
 export async function loginAdmin(page: Page, email = "admin@fitme.ai") {
   await page.goto("/admin/login");
   await fillLoginForm(page, email, DEMO_PASSWORD);
+  const sessionSync = waitForPortalSession(page);
   await page.getByRole("button", { name: "Đăng nhập" }).click();
+  await sessionSync;
   await page.waitForURL(/\/admin\/dashboard/, { timeout: 30_000 });
 }
 

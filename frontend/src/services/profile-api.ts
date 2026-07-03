@@ -1,5 +1,6 @@
 import apiClient, { unwrap, type ApiError } from "./api-client";
 import type { BodyProfile, StyleProfile } from "@/types/user";
+import { normalizeKgWeight } from "@/lib/form-number";
 import {
   bodyProfileToPayload,
   mergeBodyProfiles,
@@ -54,7 +55,7 @@ function mapBodyProfile(raw: BackendBodyProfile): BodyProfile {
 
   return {
     heightCm: raw.heightCm,
-    weightKg: Number(raw.weightKg),
+    weightKg: normalizeKgWeight(Number(raw.weightKg)),
     gender: raw.gender,
     fitPreference: raw.fitPreference,
     skinTone: raw.skinTone,

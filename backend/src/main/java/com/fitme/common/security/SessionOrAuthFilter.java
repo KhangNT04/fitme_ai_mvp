@@ -10,10 +10,12 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Set;
 import java.util.regex.Pattern;
@@ -54,9 +56,11 @@ public class SessionOrAuthFilter extends OncePerRequestFilter {
         }
 
         response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-        response.setContentType(MediaType.APPLICATION_JSON_VALUE);
-        response.getWriter().write(objectMapper.writeValueAsString(
-                ApiResponse.fail("Yêu cầu đăng nhập hoặc session ẩn danh")));
+        response.setCharacterEncoding(StandardCharsets.UTF_8.name());
+        response.setContentType(MediaType.APPLICATION_JSON_VALUE + ";charset=UTF-8");
+        byte[] body = objectMapper.writeValueAsBytes(
+                ApiResponse.fail("Yêu cầu đăng nhập hoặc session ẩn danh"));
+        response.getOutputStream().write(body);
     }
 
     private boolean requiresAuth(String method, String uri) {
@@ -71,7 +75,9 @@ public class SessionOrAuthFilter extends OncePerRequestFilter {
 
     private boolean hasAuthenticatedUser() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        return auth != null && auth.getPrincipal() instanceof FitMeUserPrincipal;
+        return auth != null
+                && auth.isAuthenticated()
+                && auth.getPrincipal() instanceof UserDetails;
     }
 
     private boolean hasAnonymousSession(HttpServletRequest request) {

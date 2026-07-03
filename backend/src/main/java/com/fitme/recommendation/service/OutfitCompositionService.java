@@ -134,14 +134,14 @@ public class OutfitCompositionService {
     }
 
     public String recommendForm(BodyProfile body, StyleProfile style, String occasion) {
-        if (body.getFitPreference() != null) {
+        if (body != null && body.getFitPreference() != null) {
             return FitPreferenceLabels.vietnamese(body.getFitPreference());
         }
         return FitPreferenceLabels.vietnamese(com.fitme.common.enums.FitPreference.REGULAR);
     }
 
     public String recommendColor(StyleProfile style, List<RecommendationResponse.OutfitItemDto> items) {
-        if (style.getPreferredColors() != null && !style.getPreferredColors().isEmpty()) {
+        if (style != null && style.getPreferredColors() != null && !style.getPreferredColors().isEmpty()) {
             return style.getPreferredColors().get(0);
         }
         return items.stream().map(RecommendationResponse.OutfitItemDto::getSelectedColor)

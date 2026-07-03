@@ -16,6 +16,9 @@ export async function fillBrandProductForm(
   await page.getByText("Giá (VND)").locator("..").locator("input").fill("250000");
   await page.getByText("Màu (phân cách bằng dấu phẩy)").locator("..").locator("input").fill("Đen, Navy");
   await page.getByText("Size (phân cách bằng dấu phẩy)").locator("..").locator("input").fill("S, M, L");
-  await page.getByText("URL ảnh").locator("..").locator("textarea").fill(SAMPLE_IMAGES);
+  const imageField = page.getByPlaceholder("/catalog/products/sample.jpg");
+  if (await imageField.isVisible().catch(() => false)) {
+    await imageField.fill(SAMPLE_IMAGES);
+  }
   await page.getByText("Link mua hàng").locator("..").locator("input").fill(purchaseUrl);
 }

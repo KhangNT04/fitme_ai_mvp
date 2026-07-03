@@ -7,6 +7,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 
+import static org.hamcrest.Matchers.containsString;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -53,5 +54,74 @@ class RecommendationIntegrationTest extends AbstractIntegrationTest {
                 .andExpect(jsonPath("$.data.outfitItems").isArray())
                 .andExpect(jsonPath("$.data.explanation.bodyFit").isNotEmpty())
                 .andExpect(jsonPath("$.data.confidence").isNotEmpty());
+    }
+
+    @Test
+    void generateRecommendation_ignoresMissingSelectedProduct() throws Exception {
+        testDataHelper.createEligibleProduct("Áo test", "Áo thun");
+        testDataHelper.createEligibleProduct("Quần test", "Quần jean");
+        testDataHelper.createEligibleProduct("Giày test", "Giày sneaker");
+
+        String sessionToken = createAnonymousSessionToken();
+
+        mockMvc.perform(post("/api/v1/me/body-profile")
+                        .header(SESSION_HEADER, sessionToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"heightCm": 168, "weightKg": 60, "gender": "FEMALE", "fitPreference": "REGULAR"}
+                                """))
+                .andExpect(status().isOk());
+
+        mockMvc.perform(post("/api/v1/me/style-profile")
+                        .header(SESSION_HEADER, sessionToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{}"))
+                .andExpect(status().isOk());
+
+        mockMvc.perform(post("/api/v1/recommendations")
+                        .header(SESSION_HEADER, sessionToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "selectedProductId": "78212fad-7c31-4688-a76e-97585355822b",
+                                  "wardrobeMode": "NO_WARDROBE_DATA"
+                                }
+                                """))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.data.recommendationId").isNotEmpty());
+    }
+
+    @Test
+    void generateRecommendation_withoutOptionalStyleOrOccasion_returnsOutfit() throws Exception {
+        testDataHelper.createEligibleProduct("Áo casual", "Áo thun");
+        testDataHelper.createEligibleProduct("Quần casual", "Quần jean");
+        testDataHelper.createEligibleProduct("Giày casual", "Giày sneaker");
+
+        String sessionToken = createAnonymousSessionToken();
+
+        mockMvc.perform(post("/api/v1/me/body-profile")
+                        .header(SESSION_HEADER, sessionToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"heightCm": 165, "weightKg": 55, "gender": "FEMALE", "fitPreference": "REGULAR"}
+                                """))
+                .andExpect(status().isOk());
+
+        mockMvc.perform(post("/api/v1/me/style-profile")
+                        .header(SESSION_HEADER, sessionToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{}"))
+                .andExpect(status().isOk());
+
+        mockMvc.perform(post("/api/v1/recommendations")
+                        .header(SESSION_HEADER, sessionToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"wardrobeMode": "MIX_WARDROBE_AND_BRAND"}
+                                """))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.data.title").value(containsString("đa dạng")));
     }
 }

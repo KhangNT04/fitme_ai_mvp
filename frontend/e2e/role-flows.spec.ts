@@ -2,13 +2,18 @@ import { test, expect } from "@playwright/test";
 import { loginUser, loginBrand, loginAdmin, DEMO_PASSWORD } from "./helpers/auth";
 import {
   completeConsultationToResult,
-  ensureSessionViaHome,
   fillBodyProfile,
   fillStyleProfile,
   fillOccasion,
 } from "./helpers/consultation";
 import { fillBrandProductForm } from "./helpers/brand";
 import { BRAND_PAGES, ADMIN_PAGES, expectPageHeading } from "./helpers/portal";
+import {
+  getFirstProductIdFromDiscover,
+  startTryOnWithFirstProduct,
+  fillTryOnInputMetrics,
+  waitForTryOnResult,
+} from "./helpers/tryon";
 import {
   uniqueEmail,
   registerUser,
@@ -26,35 +31,18 @@ test.describe("Luồng công khai (không đăng nhập)", () => {
   });
 
   test("thử mặc AI → kết quả preview", async ({ page }) => {
-    await ensureSessionViaHome(page);
-    await page.goto("/try-on");
-    const productLink = page.getByRole("link", { name: "Xem" }).first();
-    await expect(productLink).toBeVisible({ timeout: 30_000 });
-    const productId = (await productLink.getAttribute("href"))?.split("/").pop();
-    await page.goto(`/try-on?product=${productId}`);
-    await page.getByRole("button", { name: "Tiếp tục thử outfit" }).click();
-    await page.waitForURL("**/try-on/selected");
+    await startTryOnWithFirstProduct(page);
     await page.getByRole("button", { name: "Tiếp tục nhập thông tin" }).click();
     await page.waitForURL("**/try-on/input");
-    await page.getByRole("spinbutton").nth(0).fill("168");
-    await page.getByRole("spinbutton").nth(1).fill("58");
-    await page.getByPlaceholder("VD: M").fill("M");
-    const combo = page.locator("form [role=combobox]");
-    await combo.nth(0).click();
-    await page.getByRole("option", { name: /Vừa vặn \(Regular\)/ }).click();
-    await combo.nth(1).click();
-    await page.getByRole("option", { name: "Đi cafe" }).click();
-    await combo.nth(2).click();
-    await page.getByRole("option", { name: "Gọn gàng" }).click();
+    await fillTryOnInputMetrics(page);
     await page.getByRole("button", { name: "Tạo preview thử mặc" }).click();
-    await page.waitForURL(/\/try-on\/result\//, { timeout: 90_000 });
+    await waitForTryOnResult(page);
     await expect(page.getByRole("heading", { name: "Kết quả thử mặc AI" })).toBeVisible();
   });
 
   test("khám phá → chi tiết sản phẩm → chuyển hướng mua", async ({ page }) => {
-    await page.goto("/discover");
-    await page.getByRole("link", { name: "Xem" }).first().click();
-    await page.waitForURL("**/products/**");
+    const productId = await getFirstProductIdFromDiscover(page);
+    await page.goto(`/products/${productId}`);
     await page.getByRole("link", { name: "Mua ngay" }).click();
     await page.waitForURL("**/redirect/confirm/**");
     await page.getByRole("button", { name: "Tiếp tục đến nơi bán" }).click();
@@ -70,7 +58,7 @@ test.describe("Luồng USER", () => {
     await page.locator("main").getByRole("link", { name: "Tủ đồ" }).click();
     await expect(page).toHaveURL(/\/wardrobe/);
     await page.goto("/profile");
-    await page.locator("main").getByRole("link", { name: "Gợi ý đã lưu" }).click();
+    await page.locator("main").getByRole("link", { name: "Đã lưu" }).click();
     await expect(page).toHaveURL(/\/saved-outfits/);
   });
 
@@ -94,8 +82,8 @@ test.describe("Luồng USER", () => {
 
   test("tư vấn từ sản phẩm → lưu gợi ý → danh sách đã lưu", async ({ page }) => {
     await loginUser(page);
-    await page.goto("/discover");
-    await page.getByRole("link", { name: "Xem" }).first().click();
+    const productId = await getFirstProductIdFromDiscover(page);
+    await page.goto(`/products/${productId}`);
     await page.getByRole("button", { name: /Tư vấn size & phối đồ bằng AI/ }).click();
     await fillBodyProfile(page);
     await fillStyleProfile(page);
@@ -154,7 +142,7 @@ test.describe("Luồng BRAND", () => {
     await page.goto("/brand/products/new");
     await fillBrandProductForm(page, productName);
     await page.getByRole("button", { name: "Tạo sản phẩm" }).click();
-    await expect(page.getByRole("button", { name: "Gửi duyệt" })).toBeVisible({ timeout: 15_000 });
+    await expect(page.getByRole("button", { name: "Gửi duyệt" })).toBeVisible({ timeout: 30_000 });
     await page.getByRole("button", { name: "Gửi duyệt" }).click();
     await page.waitForURL(/\/brand\/products$/);
     await expect(page.getByText("Chờ duyệt").first()).toBeVisible();

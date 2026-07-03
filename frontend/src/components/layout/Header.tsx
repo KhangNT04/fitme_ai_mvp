@@ -44,7 +44,7 @@ function NavQuickSaved({ className }: { className?: string }) {
         active && "bg-primary/10 text-primary hover:bg-primary/15 hover:text-primary",
         className,
       )}
-      aria-label="Gợi ý đã lưu"
+      aria-label="Đã lưu"
       title="Đã lưu"
     >
       <Bookmark className="h-[18px] w-[18px]" aria-hidden="true" />

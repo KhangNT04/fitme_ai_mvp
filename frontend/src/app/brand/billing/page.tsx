@@ -12,7 +12,9 @@ import { LoadingSkeleton } from "@/components/common/LoadingSkeleton";
 import { ErrorState } from "@/components/common/ErrorState";
 import { StatCard, StatCardGrid } from "@/components/common/AnalyticsChart";
 import { formatPrice } from "@/utils/format-price";
-import { portalCardClass, portalCardListClass } from "@/lib/design-tokens";
+import { portalCardClass } from "@/lib/design-tokens";
+
+const planListClass = "space-y-3";
 import type { BillingPlan } from "@/types/billing";
 import { actionFeedback } from "@/lib/action-feedback";
 
@@ -155,7 +157,7 @@ export default function BrandBillingPage() {
 
           <section className="space-y-4">
             <h2 className="text-lg font-semibold">Gói tháng</h2>
-            <div className={portalCardListClass}>
+            <div className={planListClass}>
               {subscriptions.map((plan) => (
                 <PlanCard
                   key={plan.id}
@@ -172,7 +174,7 @@ export default function BrandBillingPage() {
             <p className="text-sm text-muted-foreground">
               Mua thêm lượt bất cứ lúc nào — không bao gồm dashboard phân tích.
             </p>
-            <div className={portalCardListClass}>
+            <div className={planListClass}>
               {topups.map((plan) => (
                 <PlanCard
                   key={plan.id}

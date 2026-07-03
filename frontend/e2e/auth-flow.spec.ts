@@ -6,9 +6,9 @@ test.describe("User auth flow", () => {
     await loginUser(page);
 
     await expect(page.getByRole("heading", { name: "Hồ sơ của tôi" })).toBeVisible();
-    await expect(page.getByText("user@fitme.ai")).toBeVisible();
+    await expect(page.getByText("user@fitme.ai").first()).toBeVisible();
     await expect(page.locator("main").getByRole("link", { name: "Tủ đồ" })).toBeVisible();
-    await expect(page.locator("main").getByRole("link", { name: "Gợi ý đã lưu" })).toBeVisible();
+    await expect(page.locator("main").getByRole("link", { name: "Đã lưu" })).toBeVisible();
   });
 
   test("profile links navigate to wardrobe and saved outfits", async ({ page }) => {
@@ -19,7 +19,7 @@ test.describe("User auth flow", () => {
     await expect(page.getByRole("heading", { name: "Tủ đồ cá nhân" })).toBeVisible();
 
     await page.goto("/profile");
-    await page.locator("main").getByRole("link", { name: "Gợi ý đã lưu" }).click();
+    await page.locator("main").getByRole("link", { name: "Đã lưu" }).click();
     await expect(page).toHaveURL(/\/saved-outfits/);
   });
 

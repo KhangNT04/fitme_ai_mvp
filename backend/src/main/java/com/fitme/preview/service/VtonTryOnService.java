@@ -3,6 +3,7 @@ package com.fitme.preview.service;
 import com.fitme.billing.service.BrandQuotaService;
 import com.fitme.common.enums.PreviewStatus;
 import com.fitme.common.enums.PreviewType;
+import com.fitme.common.enums.TryOnPreviewMode;
 import com.fitme.common.enums.TryOnStatus;
 import com.fitme.preview.entity.PreviewGeneration;
 import com.fitme.preview.repository.PreviewGenerationRepository;
@@ -35,10 +36,11 @@ public class VtonTryOnService {
 
     @Transactional
     public void startJob(TryOnRequest tryOn) {
+        PreviewType previewType = toPreviewType(tryOn.getPreviewMode());
         PreviewGeneration preview = PreviewGeneration.builder()
                 .tryOnRequestId(tryOn.getId())
                 .photoUploadId(tryOn.getPhotoUploadId())
-                .previewType(PreviewType.OUTFIT_BOARD)
+                .previewType(previewType)
                 .status(PreviewStatus.PROCESSING)
                 .build();
         preview = previewRepository.save(preview);
@@ -47,7 +49,7 @@ public class VtonTryOnService {
         try {
             PreviewGenerator.PreviewResult result = previewGenerator.generate(
                     new PreviewGenerator.PreviewRequest(null, tryOn.getId(), tryOn.getPhotoUploadId(),
-                            PreviewType.OUTFIT_BOARD));
+                            previewType, tryOn.getAvatarKey()));
             preview.setPreviewImageUrl(result.imageUrl());
             preview.setDisclaimer(result.disclaimer());
             preview.setStatus(PreviewStatus.SUCCEEDED);
@@ -82,5 +84,16 @@ public class VtonTryOnService {
                     .ifPresent(brandIds::add);
         }
         brandQuotaService.consumeForTryOn(tryOnRequestId, brandIds);
+    }
+
+    private static PreviewType toPreviewType(TryOnPreviewMode mode) {
+        if (mode == null) {
+            return PreviewType.OUTFIT_BOARD;
+        }
+        return switch (mode) {
+            case USER_PHOTO -> PreviewType.USER_PHOTO_2D;
+            case AVATAR -> PreviewType.AVATAR;
+            case OUTFIT_BOARD_ONLY -> PreviewType.OUTFIT_BOARD;
+        };
     }
 }

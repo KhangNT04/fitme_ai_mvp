@@ -8,7 +8,8 @@ public interface PreviewGenerator {
 
     PreviewResult generate(PreviewRequest request);
 
-    record PreviewRequest(UUID recommendationId, UUID tryOnRequestId, UUID photoUploadId, PreviewType previewType) {}
+    record PreviewRequest(UUID recommendationId, UUID tryOnRequestId, UUID photoUploadId,
+                          PreviewType previewType, String avatarKey) {}
 
     record PreviewResult(String imageUrl, String disclaimer) {}
 }

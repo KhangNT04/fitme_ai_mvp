@@ -21,9 +21,9 @@ test.describe("Saved outfits flow", () => {
     await saveResponse;
 
     await page.goto("/saved-outfits");
-    await expect(page.getByRole("heading", { name: "Gợi ý đã lưu" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Đã lưu" })).toBeVisible();
     await expect(page.getByText(title!)).toBeVisible({ timeout: 15_000 });
-    await expect(page.getByRole("link", { name: "Xem" })).toBeVisible();
+    await expect(page.getByRole("link", { name: "Xem" }).first()).toBeVisible();
 
     await page.getByRole("link", { name: "Xem" }).first().click();
     await expect(page).toHaveURL(/\/ai\/result\//);

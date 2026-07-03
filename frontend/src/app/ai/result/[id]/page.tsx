@@ -2,6 +2,7 @@
 
 import { use } from "react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Save, Camera, ShoppingBag, Sparkles } from "lucide-react";
 import { recommendationApi } from "@/services/recommendation-api";
@@ -17,11 +18,13 @@ import { PageShell } from "@/components/layout/PageShell";
 import { FlowWizardToolbar } from "@/components/layout/FlowWizardToolbar";
 import { AI_FLOW_STEPS } from "@/components/layout/FlowStepper";
 import { catalogProductGridClass, consumerPageShellClass } from "@/lib/design-tokens";
+import { isFromSavedList, resolveSavedResultBack } from "@/lib/nav-context";
 import {
   outfitItemDetailHref,
   outfitItemShowPrice,
   outfitItemToProduct,
 } from "@/lib/outfit-product-mapper";
+import { actionFeedback } from "@/lib/action-feedback";
 import type { OutfitItem } from "@/types/outfit";
 
 function outfitItemMeta(item: OutfitItem): string | undefined {
@@ -68,6 +71,8 @@ export default function AiResultPage({
 }) {
   const { id } = use(params);
   const queryClient = useQueryClient();
+  const searchParams = useSearchParams();
+  const resultBack = resolveSavedResultBack("ai", isFromSavedList(searchParams));
 
   const { data, isLoading, error, refetch } = useQuery({
     queryKey: ["recommendation", id],
@@ -97,8 +102,8 @@ export default function AiResultPage({
         currentStep={4}
         title={data.title}
         showAiBadge
-        backHref="/discover"
-        backLabel="Khám phá sản phẩm"
+        backHref={resultBack.href}
+        backLabel={resultBack.label}
       />
 
       <div className="flex flex-wrap gap-2">
@@ -135,8 +140,13 @@ export default function AiResultPage({
       <div className="mt-8 flex flex-wrap gap-3 pb-mobile-nav md:pb-0">
         <Button
           onClick={async () => {
-            await recommendationApi.save(id);
-            await queryClient.invalidateQueries({ queryKey: ["saved-outfits"] });
+            try {
+              await recommendationApi.save(id);
+              await queryClient.invalidateQueries({ queryKey: ["saved-outfits"] });
+              actionFeedback({ successMessage: "Đã lưu gợi ý outfit" }).onSuccess();
+            } catch (err) {
+              actionFeedback({ errorMessage: "Không thể lưu gợi ý" }).onError(err);
+            }
           }}
         >
           <Save className="mr-2 h-4 w-4" />Lưu gợi ý

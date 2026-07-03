@@ -16,7 +16,7 @@ import { registerSchema, type RegisterForm } from "@/utils/validators";
 
 export default function RegisterPage() {
   return (
-    <Suspense fallback={<div className="mx-auto max-w-md px-4 py-12 text-center text-muted-foreground">Đang tải...</div>}>
+    <Suspense fallback={<div className="flex min-h-[80vh] items-center justify-center px-4 text-muted-foreground">Đang tải...</div>}>
       <RegisterForm />
     </Suspense>
   );

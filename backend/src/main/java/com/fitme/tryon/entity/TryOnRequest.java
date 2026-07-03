@@ -2,6 +2,7 @@ package com.fitme.tryon.entity;
 
 import com.fitme.common.enums.FitPreference;
 import com.fitme.common.enums.SkinTone;
+import com.fitme.common.enums.TryOnPreviewMode;
 import com.fitme.common.enums.TryOnStatus;
 import jakarta.persistence.*;
 import lombok.*;
@@ -33,6 +34,14 @@ public class TryOnRequest {
 
     @Column(name = "photo_upload_id")
     private UUID photoUploadId;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "preview_mode")
+    @Builder.Default
+    private TryOnPreviewMode previewMode = TryOnPreviewMode.OUTFIT_BOARD_ONLY;
+
+    @Column(name = "avatar_key")
+    private String avatarKey;
 
     private String occasion;
 
@@ -69,6 +78,10 @@ public class TryOnRequest {
 
     @Column(name = "preview_generation_id")
     private UUID previewGenerationId;
+
+    @Column(nullable = false)
+    @Builder.Default
+    private boolean saved = false;
 
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)

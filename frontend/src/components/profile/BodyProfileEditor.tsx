@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, type Resolver } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -89,7 +89,15 @@ export function BodyProfileEditor({
   saving,
 }: BodyProfileEditorProps) {
   const formValues = useMemo((): BodyProfileForm => {
-    if (!initial) return { heightCm: 165, weightKg: 55, gender: "FEMALE" as const, fitPreference: "REGULAR" as const, goals: [] };
+    if (!initial) {
+      return {
+        heightCm: 165,
+        weightKg: 55,
+        gender: "FEMALE" as const,
+        fitPreference: "REGULAR" as const,
+        goals: [],
+      };
+    }
     return bodyProfileToForm(initial);
   }, [initial ? profileSnapshotKey(bodyProfileToForm(initial)) : "empty"]);
 
@@ -98,7 +106,7 @@ export function BodyProfileEditor({
   );
 
   const { register, handleSubmit, setValue, watch, formState: { errors } } = useForm<BodyProfileForm>({
-    resolver: zodResolver(bodyProfileSchema),
+    resolver: zodResolver(bodyProfileSchema) as Resolver<BodyProfileForm>,
     values: formValues,
   });
 

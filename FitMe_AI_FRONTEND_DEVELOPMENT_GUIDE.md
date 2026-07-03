@@ -457,15 +457,16 @@ Người dùng chọn một hoặc nhiều sản phẩm để thử bằng AI, s
 4. User click “Tiếp tục thử outfit”.
 5. Vào `/try-on/selected`.
 6. Nếu thiếu item, AI gợi ý bổ sung.
-7. User chọn:
-   - dùng ảnh cá nhân
-   - dùng avatar mẫu
-   - chỉ xem outfit board
+7. User chọn chế độ preview trên `/try-on/input`:
+   - **Chỉ xem outfit board** — không cần ảnh, submit thẳng
+   - **Dùng avatar mẫu** — chọn 1 preset trong grid, bắt buộc trước khi submit
+   - **Dùng ảnh cá nhân** — consent + upload + kiểm tra chất lượng inline, bắt buộc ảnh GOOD
 8. Vào `/try-on/input`.
-9. Nhập height, weight, fit preference, skin tone, occasion, desired vibe, size thường mặc.
-10. Chuyển processing.
+9. Nhập height, weight, fit preference, skin tone (tùy chọn), occasion (tùy chọn), desired vibe (tùy chọn), size thường mặc (tùy chọn).
+10. Chuyển processing — subtitle thay đổi theo chế độ preview.
 11. Vào `/try-on/result/:id`.
 12. Hiển thị:
+   - badge loại preview (Outfit board / Avatar mẫu / Ảnh của bạn)
    - preview thử mặc
    - size recommendation
    - form recommendation

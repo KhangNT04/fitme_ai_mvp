@@ -14,4 +14,8 @@ public interface TryOnRequestRepository extends JpaRepository<TryOnRequest, UUID
     List<TryOnRequest> findBySessionId(UUID sessionId);
 
     List<TryOnRequest> findByStatus(TryOnStatus status);
+
+    List<TryOnRequest> findByUserIdAndSavedTrueOrderByUpdatedAtDesc(UUID userId);
+
+    List<TryOnRequest> findBySessionIdAndSavedTrueOrderByUpdatedAtDesc(UUID sessionId);
 }

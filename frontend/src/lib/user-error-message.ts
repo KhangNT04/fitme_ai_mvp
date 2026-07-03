@@ -1,6 +1,6 @@
 const STATUS_MESSAGES: Record<number, string> = {
   400: "Thông tin không hợp lệ. Vui lòng kiểm tra lại.",
-  401: "Email hoặc mật khẩu không đúng.",
+  401: "Phiên làm việc hết hạn. Vui lòng tải lại trang hoặc đăng nhập lại.",
   403: "Bạn không có quyền thực hiện thao tác này.",
   404: "Không tìm thấy dữ liệu yêu cầu.",
   408: "Kết nối quá thời gian. Vui lòng thử lại.",
@@ -60,6 +60,21 @@ export interface UserErrorOptions {
 
 const DEFAULT_FALLBACK = "Đã xảy ra lỗi. Vui lòng thử lại.";
 
+const SESSION_AUTH_ERROR_PATTERNS = [
+  /yêu cầu đăng nhập hoặc session ẩn danh/i,
+  /yêu c\?u.*session/i,
+  /session.*ẩn danh/i,
+  /session.*\?n danh/i,
+];
+
+function isSessionAuthError(text: string): boolean {
+  return SESSION_AUTH_ERROR_PATTERNS.some((pattern) => pattern.test(text));
+}
+
+function isCorruptedVietnamese(text: string): boolean {
+  return /\?/.test(text) && /[a-zA-Zàáảãạăắằẳẵặâấầẩẫậèéẻẽẹêếềểễệìíỉĩịòóỏõọôốồổỗộơớờởỡợùúủũụưứừửữựỳýỷỹỵđ]/i.test(text);
+}
+
 const VIETNAMESE_DIACRITICS = /[àáảãạăắằẳẵặâấầẩẫậèéẻẽẹêếềểễệìíỉĩịòóỏõọôốồổỗộơớờởỡợùúủũụưứừửữựỳýỷỹỵđ]/i;
 
 function isLikelyVietnamese(text: string): boolean {
@@ -85,6 +100,15 @@ export function formatUserErrorMessage(
   const trimmed = rawMessage?.trim();
 
   if (trimmed) {
+    if (isSessionAuthError(trimmed)) {
+      return "Phiên làm việc hết hạn. Vui lòng tải lại trang hoặc thử lại.";
+    }
+
+    if (isCorruptedVietnamese(trimmed)) {
+      const fromStatus = statusMessage(status, options?.context);
+      return fromStatus ?? fallback;
+    }
+
     if (isLikelyVietnamese(trimmed)) {
       return trimmed;
     }

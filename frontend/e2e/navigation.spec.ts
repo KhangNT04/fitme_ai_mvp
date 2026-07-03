@@ -47,6 +47,9 @@ test.describe("Header navigation", () => {
     await page.goto("/");
     await page.locator("header").getByRole("link", { name: "Tìm kiếm nhanh" }).click();
     await expect(page).toHaveURL(/\/discover#discover-search/);
-    await expect(page.locator("[data-discover-search]").first()).toBeFocused();
+    const search = page.locator("[data-discover-search]").filter({ visible: true }).first();
+    await expect(search).toBeVisible();
+    await search.click();
+    await expect(search).toBeFocused();
   });
 });

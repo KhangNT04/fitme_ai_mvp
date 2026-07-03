@@ -20,9 +20,9 @@ test.describe("Anonymous consultation flow", () => {
     test.setTimeout(120_000);
     await completeConsultationToResult(page);
 
-    await expect(page.getByText(/Gợi ý size:/)).toBeVisible();
-    await expect(page.getByText(/Form:/)).toBeVisible();
-    await expect(page.getByText(/Màu:/)).toBeVisible();
+    await expect(page.getByText(/Gợi ý size:/).first()).toBeVisible();
+    await expect(page.getByText(/Form:/).first()).toBeVisible();
+    await expect(page.getByText(/Màu:/).first()).toBeVisible();
     await expect(page.getByRole("note")).toBeVisible();
   });
 });

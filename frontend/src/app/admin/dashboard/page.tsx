@@ -3,11 +3,8 @@
 import { useQuery } from "@tanstack/react-query";
 import { Building2, Flag, Package, Shirt, Sparkles, Users } from "lucide-react";
 import { adminApi } from "@/services/admin-api";
-import { PortalLayout, adminNav } from "@/components/layout/PortalLayout";
-import { PortalPageHeader } from "@/components/portal/PortalPageHeader";
+import { PortalAdminPage } from "@/components/portal/PortalAdminPage";
 import { StatCard, StatCardGrid } from "@/components/common/AnalyticsChart";
-import { LoadingSkeleton } from "@/components/common/LoadingSkeleton";
-import { ErrorState } from "@/components/common/ErrorState";
 
 export default function AdminDashboardPage() {
   const { data, isLoading, error, refetch } = useQuery({
@@ -16,14 +13,14 @@ export default function AdminDashboardPage() {
   });
 
   return (
-    <PortalLayout title="Admin" nav={adminNav}>
-      <PortalPageHeader
-        title="Tổng quan hệ thống"
-        description="Theo dõi brand, sản phẩm chờ duyệt và hoạt động AI trên nền tảng."
-      />
-
-      {isLoading && <LoadingSkeleton count={4} />}
-      {error && <ErrorState onRetry={() => refetch()} />}
+    <PortalAdminPage
+      title="Tổng quan hệ thống"
+      description="Theo dõi brand, sản phẩm chờ duyệt và hoạt động AI trên nền tảng."
+      isLoading={isLoading}
+      error={error}
+      onRetry={() => refetch()}
+      skeleton="card"
+    >
       {data && (
         <StatCardGrid>
           <StatCard label="Tổng brand" value={data.totalBrands} sub={`${data.pendingBrands} chờ duyệt`} icon={<Building2 className="h-5 w-5" />} tone="violet" />
@@ -34,6 +31,6 @@ export default function AdminDashboardPage() {
           <StatCard label="Thử mặc AI" value={data.totalTryOns} icon={<Shirt className="h-5 w-5" />} tone="amber" />
         </StatCardGrid>
       )}
-    </PortalLayout>
+    </PortalAdminPage>
   );
 }

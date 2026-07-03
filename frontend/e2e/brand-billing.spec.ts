@@ -6,8 +6,8 @@ test.describe("Brand billing", () => {
     await loginBrand(page);
     await page.goto("/brand/billing");
     await expect(page.getByRole("heading", { name: "Gói & Thanh toán" })).toBeVisible();
-    await expect(page.getByText("Starter")).toBeVisible();
-    await expect(page.getByText("Top-up 150 lượt")).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Starter" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Top-up 150 lượt" })).toBeVisible();
     await expect(page.getByText("Lượt còn lại")).toBeVisible();
   });
 
@@ -27,8 +27,18 @@ test.describe("Admin billing plans", () => {
   test("admin can view billing plans catalog", async ({ page }) => {
     await loginAdmin(page);
     await page.goto("/admin/billing/plans");
-    await expect(page.getByRole("heading", { name: "Gói brand" })).toBeVisible();
-    await expect(page.getByText("SUB_STARTER")).toBeVisible();
-    await expect(page.getByText("TOPUP_150")).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Danh mục gói" })).toBeVisible();
+    await expect(page.getByRole("link", { name: "Thêm gói" })).toBeVisible();
+    await expect(page.getByRole("cell", { name: "SUB_STARTER" })).toBeVisible();
+    await expect(page.getByRole("cell", { name: "TOPUP_150" })).toBeVisible();
+  });
+
+  test("admin can view brand billing list and detail", async ({ page }) => {
+    await loginAdmin(page);
+    await page.goto("/admin/billing/brands");
+    await expect(page.getByRole("heading", { name: "Gói brand đang dùng" })).toBeVisible();
+    await page.getByRole("link", { name: "Chi tiết" }).first().click();
+    await expect(page.getByText("Lượt còn lại")).toBeVisible();
+    await expect(page.getByRole("button", { name: "Vô hiệu hóa gói" })).toBeVisible();
   });
 });

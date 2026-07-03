@@ -32,7 +32,7 @@ export default function StyleProfilePage() {
         steps={AI_FLOW_STEPS}
         currentStep={2}
         title="Gu thời trang"
-        subtitle="Chọn phong cách và màu sắc bạn yêu thích"
+        subtitle="Chọn phong cách và màu sắc bạn yêu thích (tùy chọn)"
         showAiBadge
         backHref="/ai/body-profile"
         backLabel="Thông tin cơ thể"

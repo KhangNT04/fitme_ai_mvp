@@ -5,6 +5,7 @@ import com.fitme.billing.entity.BillingPlan;
 import com.fitme.billing.entity.BrandBillingOrder;
 import com.fitme.billing.entity.BrandQuotaBalance;
 import com.fitme.billing.entity.BrandSubscription;
+import com.fitme.billing.dto.AdminBrandBillingDetailDto;
 import com.fitme.billing.dto.BrandBillingSummaryDto;
 import com.fitme.billing.dto.CheckoutResponse;
 import com.fitme.billing.payos.PayOsClient;
@@ -14,8 +15,11 @@ import com.fitme.billing.repository.BrandBillingOrderRepository;
 import com.fitme.billing.repository.BrandSubscriptionRepository;
 import com.fitme.common.config.FitMeProperties;
 import com.fitme.common.enums.BillingOrderStatus;
+import com.fitme.common.enums.BrandSubscriptionStatus;
 import com.fitme.common.exception.BusinessException;
 import com.fitme.common.exception.NotFoundException;
+import com.fitme.brand.entity.Brand;
+import com.fitme.brand.repository.BrandRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -30,6 +34,7 @@ public class BrandBillingService {
     private final BillingPlanRepository planRepository;
     private final BrandBillingOrderRepository orderRepository;
     private final BrandSubscriptionRepository subscriptionRepository;
+    private final BrandRepository brandRepository;
     private final BrandQuotaService quotaService;
     private final PayOsClient payOsClient;
     private final FitMeProperties fitMeProperties;
@@ -71,6 +76,28 @@ public class BrandBillingService {
                                     .build();
                         })
                         .toList())
+                .build();
+    }
+
+    public AdminBrandBillingDetailDto getAdminDetail(UUID brandId) {
+        Brand brand = brandRepository.findById(brandId)
+                .orElseThrow(() -> new NotFoundException("Thương hiệu không tồn tại"));
+        BrandBillingSummaryDto summary = getSummary(brandId);
+        boolean billingActive = summary.getTotalRemaining() > 0
+                || (summary.getSubscription() != null
+                && summary.getSubscription().getStatus() == BrandSubscriptionStatus.ACTIVE);
+        return AdminBrandBillingDetailDto.builder()
+                .brandId(brand.getId())
+                .brandName(brand.getName())
+                .contactEmail(brand.getContactEmail())
+                .brandStatus(brand.getStatus().name())
+                .subscriptionRemaining(summary.getSubscriptionRemaining())
+                .topupRemaining(summary.getTopupRemaining())
+                .totalRemaining(summary.getTotalRemaining())
+                .dashboardEnabled(summary.isDashboardEnabled())
+                .billingActive(billingActive)
+                .subscription(summary.getSubscription())
+                .recentOrders(summary.getRecentOrders())
                 .build();
     }
 

@@ -87,4 +87,27 @@ class BrandBillingIntegrationTest extends AbstractIntegrationTest {
         Product refreshed = productRepository.findById(product.getId()).orElseThrow();
         assertThat(refreshed.isAiTryOnEligible()).isTrue();
     }
+
+    @Test
+    void adminDeactivate_revokesQuotaAndCancelsSubscription() throws Exception {
+        var plan = billingPlanRepository.findByCode("TOPUP_150").orElseThrow();
+        mockMvc.perform(post("/api/v1/brand/billing/checkout")
+                        .with(user(brandPrincipal))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"planId\":\"" + plan.getId() + "\"}"))
+                .andExpect(status().isOk());
+
+        var admin = testDataHelper.createAdmin();
+        var adminPrincipal = new FitMeUserPrincipal(admin.user());
+
+        mockMvc.perform(post("/api/v1/admin/billing/brands/" + brandId + "/deactivate")
+                        .with(user(adminPrincipal))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"note\":\"test revoke\"}"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.totalRemaining").value(0))
+                .andExpect(jsonPath("$.data.billingActive").value(false));
+
+        assertThat(brandQuotaService.hasTryOnQuota(brandId)).isFalse();
+    }
 }

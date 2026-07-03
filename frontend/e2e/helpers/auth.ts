@@ -26,6 +26,10 @@ export async function loginUser(page: Page, email = "user@fitme.ai") {
   await fillLoginForm(page, email, DEMO_PASSWORD);
   await page.getByRole("button", { name: "Đăng nhập" }).click();
   await page.waitForURL(/\/profile/, { timeout: 30_000 });
+  await expect(page.getByRole("heading", { name: "Hồ sơ của tôi" })).toBeVisible({
+    timeout: 15_000,
+  });
+  await expect(page.getByText(email, { exact: true }).first()).toBeVisible({ timeout: 15_000 });
 }
 
 export async function expectPath(page: Page, pathPattern: RegExp) {

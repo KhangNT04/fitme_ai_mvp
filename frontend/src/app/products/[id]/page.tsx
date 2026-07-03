@@ -19,7 +19,9 @@ import { useEnsureSession } from "@/hooks/use-ensure-session";
 import { useRouter, useSearchParams } from "next/navigation";
 import { recommendationApi } from "@/services/recommendation-api";
 import { OutfitAiExplanationCard } from "@/components/ai/OutfitAiExplanationCard";
-import { AI_RESULT_FROM_PARAM, RECOMMENDATION_PARAM } from "@/lib/nav-context";
+import { AI_RESULT_FROM_PARAM, RECOMMENDATION_PARAM, TRYON_FROM_PARAM } from "@/lib/nav-context";
+import { useTryOnAddItem } from "@/hooks/use-tryon-add-item";
+import { productToTryOnItem } from "@/lib/tryon-product";
 import { PageShell } from "@/components/layout/PageShell";
 import { ProductPageBackLink } from "@/components/layout/ProductPageBackLink";
 import { PageSuspense } from "@/components/common/PageSuspense";
@@ -47,9 +49,11 @@ function ProductDetailContent({
   const router = useRouter();
   const searchParams = useSearchParams();
   const fromAiResult = searchParams.get("from") === AI_RESULT_FROM_PARAM;
+  const fromTryOn = searchParams.get("from") === TRYON_FROM_PARAM;
   const recommendationId = searchParams.get(RECOMMENDATION_PARAM);
   const { setSelectedProductId } = useConsultationStore();
   const { ensureSession } = useEnsureSession();
+  const { addItem: addToTryOn, ReplaceConfirmDialog } = useTryOnAddItem();
 
   const { data: product, isLoading, error, refetch } = useQuery({
     queryKey: ["product", id],
@@ -84,16 +88,22 @@ function ProductDetailContent({
     );
   }
 
+  const handleTryOn = () => {
+    addToTryOn(productToTryOnItem(product), { onSuccess: () => router.push("/try-on") });
+  };
+
   const actions = (
     <ProductDetailActions
       productId={product.id}
       aiTryOnEligible={product.aiTryOnEligible}
       onConsult={handleConsult}
+      onTryOn={fromTryOn && product.aiTryOnEligible ? handleTryOn : undefined}
     />
   );
 
   return (
     <PageShell width="full" className={cn(consumerPageShellClass, "pb-8 sm:pb-10")}>
+      {ReplaceConfirmDialog}
       <ProductPageBackLink className="mb-3 sm:mb-4" />
       <ProductImageGalleryProvider
         images={product.images}

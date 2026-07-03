@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { LoadingSkeleton } from "@/components/common/LoadingSkeleton";
 import { BrandTryOnSection } from "@/components/tryon/BrandTryOnSection";
 import { TryOnSelectionBar } from "@/components/tryon/TryOnSelectionBar";
+import { useTryOnAddItem } from "@/hooks/use-tryon-add-item";
 import { useTryOnStore } from "@/stores/tryon-store";
 import { TRY_ON_CATEGORIES } from "@/utils/constants";
 import { PageShell } from "@/components/layout/PageShell";
@@ -29,7 +30,12 @@ export default function TryOnPage() {
 function TryOnContent() {
   const searchParams = useSearchParams();
   const productId = searchParams.get("product");
-  const { addItem } = useTryOnStore();
+  const { addItem, ReplaceConfirmDialog } = useTryOnAddItem();
+  const selectedItems = useTryOnStore((s) => s.selectedItems);
+  const selectedProductIds = useMemo(
+    () => new Set(selectedItems.map((item) => item.productId)),
+    [selectedItems],
+  );
 
   const { data: brands = [] } = useQuery({
     queryKey: ["brands", "public"],
@@ -51,7 +57,7 @@ function TryOnContent() {
       const nameB = brandMap.get(b[0])?.name ?? b[1][0]?.brandName ?? "";
       return nameA.localeCompare(nameB, "vi");
     });
-  }, [data?.items, brandMap]);
+  }, [data, brandMap]);
 
   useEffect(() => {
     if (productId && data?.items) {
@@ -69,11 +75,12 @@ function TryOnContent() {
 
   return (
     <PageShell width="full" className={consumerPageShellClass}>
+      {ReplaceConfirmDialog}
       <FlowWizardToolbar
         steps={TRYON_FLOW_STEPS}
         currentStep={1}
         title="Thử mặc bằng AI"
-        subtitle="Chọn item để tạo preview thử mặc minh họa 2D"
+        subtitle="Mỗi loại (áo, quần, giày...) chỉ chọn 1 sản phẩm — không cần đủ set vẫn thử được"
         showAiBadge
         backHref="/discover"
         backLabel="Khám phá"
@@ -98,6 +105,7 @@ function TryOnContent() {
               key={id}
               brand={brandMap.get(id)}
               products={products}
+              selectedProductIds={selectedProductIds}
               onSelectProduct={addItem}
             />
           ))

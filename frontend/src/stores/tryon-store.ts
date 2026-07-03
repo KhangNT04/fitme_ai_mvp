@@ -1,16 +1,26 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
+import { mergeTryOnSelection, type TryOnAddItemResult } from "@/lib/tryon-role";
 import type { TryOnItem, TryOnInput } from "@/types/tryon";
 
 interface TryOnState {
   selectedItems: TryOnItem[];
   input: Partial<TryOnInput>;
   requestId: string | null;
-  addItem: (item: TryOnItem) => void;
+  photoUploadId: string | null;
+  avatarKey: string | null;
+  photoPreviewUrl: string | null;
+  photoQuality: "idle" | "uploading" | "checking" | "good" | "poor" | null;
+  addItem: (item: TryOnItem) => TryOnAddItemResult;
   removeItem: (productId: string) => void;
   clearItems: () => void;
   setInput: (input: Partial<TryOnInput>) => void;
   setRequestId: (id: string) => void;
+  setPhotoUploadId: (id: string | null) => void;
+  setAvatarKey: (key: string | null) => void;
+  setPhotoPreviewUrl: (url: string | null) => void;
+  setPhotoQuality: (status: TryOnState["photoQuality"]) => void;
+  clearPhoto: () => void;
   reset: () => void;
 }
 
@@ -20,12 +30,19 @@ export const useTryOnStore = create<TryOnState>()(
       selectedItems: [],
       input: {},
       requestId: null,
-      addItem: (item) =>
-        set((s) => ({
-          selectedItems: s.selectedItems.some((i) => i.productId === item.productId)
-            ? s.selectedItems
-            : [...s.selectedItems, item],
-        })),
+      photoUploadId: null,
+      avatarKey: null,
+      photoPreviewUrl: null,
+      photoQuality: null,
+      addItem: (item) => {
+        let result: TryOnAddItemResult = "unchanged";
+        set((s) => {
+          const merged = mergeTryOnSelection(s.selectedItems, item);
+          result = merged.result;
+          return { selectedItems: merged.items };
+        });
+        return result;
+      },
       removeItem: (productId) =>
         set((s) => ({
           selectedItems: s.selectedItems.filter((i) => i.productId !== productId),
@@ -33,7 +50,21 @@ export const useTryOnStore = create<TryOnState>()(
       clearItems: () => set({ selectedItems: [] }),
       setInput: (input) => set((s) => ({ input: { ...s.input, ...input } })),
       setRequestId: (id) => set({ requestId: id }),
-      reset: () => set({ selectedItems: [], input: {}, requestId: null }),
+      setPhotoUploadId: (id) => set({ photoUploadId: id }),
+      setAvatarKey: (key) => set({ avatarKey: key }),
+      setPhotoPreviewUrl: (url) => set({ photoPreviewUrl: url }),
+      setPhotoQuality: (status) => set({ photoQuality: status }),
+      clearPhoto: () => set({ photoUploadId: null, photoPreviewUrl: null, photoQuality: null }),
+      reset: () =>
+        set({
+          selectedItems: [],
+          input: {},
+          requestId: null,
+          photoUploadId: null,
+          avatarKey: null,
+          photoPreviewUrl: null,
+          photoQuality: null,
+        }),
     }),
     { name: "fitme-tryon", skipHydration: true }
   )

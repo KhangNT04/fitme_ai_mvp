@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { bodyProfileSchema, occasionSchema } from "./validators";
+import { bodyProfileSchema, occasionSchema, styleProfileSchema, tryOnInputSchema } from "./validators";
 
 const validBodyProfile = {
   heightCm: 170,
@@ -105,5 +105,90 @@ describe("occasionSchema wardrobeMode", () => {
       wardrobeMode: "INVALID_MODE",
     });
     expect(result.success).toBe(false);
+  });
+});
+
+describe("styleProfileSchema", () => {
+  it("accepts completely empty optional profile", () => {
+    expect(styleProfileSchema.safeParse({}).success).toBe(true);
+  });
+
+  it("accepts null or sentinel riskLevel from API/select", () => {
+    expect(styleProfileSchema.safeParse({ riskLevel: null }).success).toBe(true);
+    expect(styleProfileSchema.safeParse({ riskLevel: "__none__" }).success).toBe(true);
+  });
+
+  it("accepts partial selections", () => {
+    expect(
+      styleProfileSchema.safeParse({
+        primaryStyle: "Minimal",
+        preferredColors: ["Đen"],
+        artisticMode: false,
+      }).success,
+    ).toBe(true);
+  });
+});
+
+describe("tryOnInputSchema", () => {
+  it("rejects missing required measurements", () => {
+    const result = tryOnInputSchema.safeParse({
+      inputMode: "OUTFIT_BOARD_ONLY",
+      fitPreference: "REGULAR",
+    });
+    expect(result.success).toBe(false);
+  });
+
+  it("accepts submission without optional context fields", () => {
+    const result = tryOnInputSchema.safeParse({
+      heightCm: 170,
+      weightKg: 60,
+      fitPreference: "REGULAR",
+      inputMode: "OUTFIT_BOARD_ONLY",
+    });
+    expect(result.success).toBe(true);
+  });
+
+  it("accepts null or sentinel optional enum values", () => {
+    const result = tryOnInputSchema.safeParse({
+      heightCm: 170,
+      weightKg: 60,
+      fitPreference: "REGULAR",
+      skinTone: null,
+      occasion: undefined,
+      desiredVibe: "__none__",
+      inputMode: "OUTFIT_BOARD_ONLY",
+    });
+    expect(result.success).toBe(true);
+  });
+
+  it("requires avatarKey when mode is AVATAR", () => {
+    const result = tryOnInputSchema.safeParse({
+      heightCm: 170,
+      weightKg: 60,
+      fitPreference: "REGULAR",
+      inputMode: "AVATAR",
+    });
+    expect(result.success).toBe(false);
+  });
+
+  it("requires photoUploadId when mode is USER_PHOTO", () => {
+    const result = tryOnInputSchema.safeParse({
+      heightCm: 170,
+      weightKg: 60,
+      fitPreference: "REGULAR",
+      inputMode: "USER_PHOTO",
+    });
+    expect(result.success).toBe(false);
+  });
+
+  it("accepts AVATAR mode with avatarKey", () => {
+    const result = tryOnInputSchema.safeParse({
+      heightCm: 170,
+      weightKg: 60,
+      fitPreference: "REGULAR",
+      inputMode: "AVATAR",
+      avatarKey: "avatar-female-1",
+    });
+    expect(result.success).toBe(true);
   });
 });

@@ -46,7 +46,7 @@ public class PreviewService {
         try {
             PreviewGenerator.PreviewResult result = previewGenerator.generate(
                     new PreviewGenerator.PreviewRequest(request.getRecommendationId(),
-                            request.getTryOnRequestId(), request.getPhotoUploadId(), type));
+                            request.getTryOnRequestId(), request.getPhotoUploadId(), type, null));
             preview.setPreviewImageUrl(result.imageUrl());
             preview.setDisclaimer(result.disclaimer());
             preview.setStatus(PreviewStatus.SUCCEEDED);

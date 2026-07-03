@@ -24,6 +24,7 @@ describe("tryonApi", () => {
       weightKg: 60,
       fitPreference: "REGULAR",
       skinTone: "MEDIUM",
+      previewMode: "OUTFIT_BOARD_ONLY",
     });
     expect(res.id).toBe("req-1");
   });

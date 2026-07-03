@@ -52,8 +52,16 @@ export const portalTableTdClass = "px-4 py-3 align-middle";
 export const portalTableBodyClass =
   "[&_tr:nth-child(odd)]:bg-card [&_tr:nth-child(even)]:bg-primary/[0.04] [&_tr:hover]:bg-primary/[0.07] [&_tr]:transition-colors [&_tr_td]:border-b [&_tr_td]:border-primary/[0.06] [&_tr:last-child_td]:border-b-0";
 export const portalCardListClass = "space-y-3 md:hidden";
+/** Card stack visible on all breakpoints (catalogs, billing plans, rules). */
+export const portalCardStackClass = "space-y-3";
 export const portalCardClass =
   "rounded-2xl border border-border/60 bg-card p-4 shadow-sm";
+export const portalFormCardClass =
+  "rounded-2xl border border-border/60 bg-card p-4 shadow-sm space-y-4 sm:p-5";
+export const portalWarningCardClass =
+  "rounded-2xl border border-amber-200/80 bg-amber-50/40 p-4 shadow-sm space-y-4 sm:p-5";
+export const portalSectionClass = "space-y-6";
+export const portalSectionTitleClass = "text-lg font-semibold text-foreground";
 export const portalCardRowClass = "flex items-start justify-between gap-3";
 export const portalCardActionsClass = "mt-3 flex flex-wrap gap-2";
 export const portalTableActionsClass = "flex flex-wrap items-center gap-2";

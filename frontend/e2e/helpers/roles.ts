@@ -39,7 +39,7 @@ export async function submitBrandApplication(
   await page.getByRole("button", { name: "Gửi đơn đăng ký" }).click();
   await page.waitForURL(/\/brand\/pending/, { timeout: 30_000 });
   await expect(page.getByText(brandName)).toBeVisible();
-  await expect(page.getByText("PENDING")).toBeVisible();
+  await expect(page.getByText("Chờ duyệt")).toBeVisible();
 }
 
 export async function approveBrandAsAdmin(page: Page, brandName: string) {

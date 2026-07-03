@@ -35,3 +35,10 @@ Thumbs.db
 frontend/test-results/
 frontend/playwright-report/
 frontend/blob-report/
+
+# Python / AI services
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.venv/

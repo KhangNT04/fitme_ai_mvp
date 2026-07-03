@@ -1,4 +1,5 @@
 import { test, expect } from "@playwright/test";
+import { getFirstProductIdFromTryOnHub, fillTryOnInputMetrics, waitForTryOnResult } from "./helpers/tryon";
 import { ensureSessionViaHome } from "./helpers/consultation";
 
 test.describe("Try-on flow", () => {
@@ -6,45 +7,46 @@ test.describe("Try-on flow", () => {
 
   test("select item → input → processing → result", async ({ page }) => {
     await ensureSessionViaHome(page);
+    const productId = await getFirstProductIdFromTryOnHub(page);
 
-    await page.goto("/try-on");
-    await expect(page.getByRole("heading", { name: "Thử mặc bằng AI" })).toBeVisible();
-
-    const productLink = page.getByRole("link", { name: "Xem" }).first();
-    await expect(productLink).toBeVisible({ timeout: 30_000 });
-    const href = await productLink.getAttribute("href");
-    const productId = href?.split("/").pop();
     await page.goto(`/try-on?product=${productId}`);
-
-    await expect(page.getByRole("button", { name: "Tiếp tục thử outfit" })).toBeVisible({
-      timeout: 15_000,
-    });
+    await expect(page.getByText(/Đã chọn \(\d+\)/)).toBeVisible({ timeout: 30_000 });
     await page.getByRole("button", { name: "Tiếp tục thử outfit" }).click();
     await page.waitForURL("**/try-on/selected");
     await page.getByRole("button", { name: "Tiếp tục nhập thông tin" }).click();
     await page.waitForURL("**/try-on/input");
 
-    await page.getByRole("spinbutton").nth(0).fill("168");
-    await page.getByRole("spinbutton").nth(1).fill("58");
-    await page.getByPlaceholder("VD: M").fill("M");
-
-    const combo = page.locator("form [role=combobox]");
-    await combo.nth(0).click();
-    await page.getByRole("option", { name: /Vừa vặn \(Regular\)/ }).click();
-    await combo.nth(1).click();
-    await page.getByRole("option", { name: "Đi cafe" }).click();
-    await combo.nth(2).click();
-    await page.getByRole("option", { name: "Gọn gàng" }).click();
+    await fillTryOnInputMetrics(page);
 
     await page.getByRole("button", { name: "Tạo preview thử mặc" }).click();
 
-    await page.waitForURL(/\/try-on\/(processing|result)/, { timeout: 90_000 });
-
-    if (page.url().includes("/processing")) {
-      await page.waitForURL("**/try-on/result/**", { timeout: 90_000 });
-    }
+    await waitForTryOnResult(page);
 
     await expect(page.getByRole("heading", { name: "Kết quả thử mặc AI" })).toBeVisible();
     await expect(page.getByRole("note")).toBeVisible();
+  });
+
+  test("avatar mode → processing → result", async ({ page }) => {
+    await ensureSessionViaHome(page);
+    const productId = await getFirstProductIdFromTryOnHub(page);
+    await page.goto(`/try-on?product=${productId}`);
+
+    await expect(page.getByText(/Đã chọn \(\d+\)/)).toBeVisible({ timeout: 30_000 });
+    await page.getByRole("button", { name: "Tiếp tục thử outfit" }).click();
+    await page.waitForURL("**/try-on/selected");
+    await page.getByRole("button", { name: "Tiếp tục nhập thông tin" }).click();
+    await page.waitForURL("**/try-on/input");
+
+    await expect(page.getByRole("spinbutton").first()).toBeVisible({ timeout: 30_000 });
+    await page.getByRole("button", { name: "Dùng avatar mẫu" }).click();
+    await page.locator("button").filter({ hasText: /^Nữ 1$/ }).click();
+
+    await fillTryOnInputMetrics(page);
+
+    await page.getByRole("button", { name: "Tạo preview thử mặc" }).click();
+    await waitForTryOnResult(page);
+
+    await expect(page.getByRole("heading", { name: "Kết quả thử mặc AI" })).toBeVisible();
+    await expect(page.getByText(/Avatar mẫu|Outfit board/).first()).toBeVisible();
   });
 });

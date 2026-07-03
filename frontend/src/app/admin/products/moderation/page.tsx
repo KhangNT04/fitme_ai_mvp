@@ -5,8 +5,7 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { adminApi, getProductModerationWarnings } from "@/services/admin-api";
-import { PortalLayout, adminNav } from "@/components/layout/PortalLayout";
-import { PortalPageHeader } from "@/components/portal/PortalPageHeader";
+import { PortalAdminPage } from "@/components/portal/PortalAdminPage";
 import { FlagProductDialog } from "@/components/portal/FlagProductDialog";
 import {
   PortalActionButton,
@@ -260,8 +259,6 @@ function AdminProductModerationContent() {
     onError: actionFeedback({ errorMessage: "Không thể gắn cờ sản phẩm" }).onError,
   });
 
-  const isLoading = pendingQuery.isLoading;
-  const error = pendingQuery.error;
   const flaggedCountLabel = flaggedQuery.isLoading
     ? "…"
     : flaggedQuery.error
@@ -269,50 +266,47 @@ function AdminProductModerationContent() {
       : (flaggedQuery.data?.length ?? 0);
 
   return (
-    <PortalLayout title="Admin" nav={adminNav}>
-      <PortalPageHeader
-        title="Duyệt sản phẩm"
-        description="Kiểm tra ảnh, giá và thông tin trước khi hiển thị công khai."
-      />
-
-      {isLoading && <LoadingSkeleton type="list" />}
-      {error && <ErrorState onRetry={() => pendingQuery.refetch()} />}
-      {!isLoading && !error && (
-        <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as "pending" | "flagged")} className="space-y-4">
-          <TabsList>
-            <TabsTrigger value="pending">
-              Chờ duyệt ({pendingQuery.data?.length ?? 0})
-            </TabsTrigger>
-            <TabsTrigger value="flagged">
-              Đã gắn cờ ({flaggedCountLabel})
-            </TabsTrigger>
-          </TabsList>
-          <TabsContent value="pending">
+    <PortalAdminPage
+      title="Duyệt sản phẩm"
+      description="Kiểm tra ảnh, giá và thông tin trước khi hiển thị công khai."
+      isLoading={pendingQuery.isLoading}
+      error={pendingQuery.error}
+      onRetry={() => pendingQuery.refetch()}
+    >
+      <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as "pending" | "flagged")} className="space-y-4">
+        <TabsList>
+          <TabsTrigger value="pending">
+            Chờ duyệt ({pendingQuery.data?.length ?? 0})
+          </TabsTrigger>
+          <TabsTrigger value="flagged">
+            Đã gắn cờ ({flaggedCountLabel})
+          </TabsTrigger>
+        </TabsList>
+        <TabsContent value="pending">
+          <ProductModerationList
+            products={pendingQuery.data ?? []}
+            mode="pending"
+            onFlag={setFlagTarget}
+          />
+        </TabsContent>
+        <TabsContent value="flagged">
+          {flaggedQuery.isLoading && <LoadingSkeleton type="list" />}
+          {flaggedQuery.error && (
+            <ErrorState
+              title="Không tải được sản phẩm gắn cờ"
+              message="Backend có thể chưa cập nhật. Hãy khởi động lại server API rồi thử lại."
+              onRetry={() => flaggedQuery.refetch()}
+            />
+          )}
+          {!flaggedQuery.isLoading && !flaggedQuery.error && (
             <ProductModerationList
-              products={pendingQuery.data ?? []}
-              mode="pending"
+              products={flaggedQuery.data ?? []}
+              mode="flagged"
               onFlag={setFlagTarget}
             />
-          </TabsContent>
-          <TabsContent value="flagged">
-            {flaggedQuery.isLoading && <LoadingSkeleton type="list" />}
-            {flaggedQuery.error && (
-              <ErrorState
-                title="Không tải được sản phẩm gắn cờ"
-                message="Backend có thể chưa cập nhật. Hãy khởi động lại server API rồi thử lại."
-                onRetry={() => flaggedQuery.refetch()}
-              />
-            )}
-            {!flaggedQuery.isLoading && !flaggedQuery.error && (
-              <ProductModerationList
-                products={flaggedQuery.data ?? []}
-                mode="flagged"
-                onFlag={setFlagTarget}
-              />
-            )}
-          </TabsContent>
-        </Tabs>
-      )}
+          )}
+        </TabsContent>
+      </Tabs>
 
       <FlagProductDialog
         open={!!flagTarget}
@@ -323,6 +317,6 @@ function AdminProductModerationContent() {
           if (flagTarget) flag.mutate({ id: flagTarget.id, reason });
         }}
       />
-    </PortalLayout>
+    </PortalAdminPage>
   );
 }

@@ -23,7 +23,7 @@ export function focusDiscoverSearchInput(): boolean {
   return document.activeElement === input;
 }
 
-const FOCUS_RETRY_MS = [50, 200, 400, 650, 900];
+const FOCUS_RETRY_MS = [50, 200, 400, 650, 900, 1200, 1600, 2000];
 
 export function scheduleDiscoverSearchFocus() {
   for (const delay of FOCUS_RETRY_MS) {

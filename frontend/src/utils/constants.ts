@@ -95,6 +95,15 @@ export const TRY_ON_CATEGORIES = [
   { value: "accessory", label: "Phụ kiện" },
 ] as const;
 
+export const TRYON_AVATARS = [
+  { key: "avatar-female-1", label: "Nữ 1", imageUrl: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=300&h=400&q=80" },
+  { key: "avatar-female-2", label: "Nữ 2", imageUrl: "https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&w=300&h=400&q=80" },
+  { key: "avatar-male-1", label: "Nam 1", imageUrl: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=300&h=400&q=80" },
+  { key: "avatar-male-2", label: "Nam 2", imageUrl: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=300&h=400&q=80" },
+  { key: "avatar-neutral-1", label: "Trung tính 1", imageUrl: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=300&h=400&q=80" },
+  { key: "avatar-neutral-2", label: "Trung tính 2", imageUrl: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&w=300&h=400&q=80" },
+] as const;
+
 export const SESSION_STORAGE_KEY = "fitme_session_token";
 export const AUTH_TOKEN_KEY = "fitme_access_token";
 export const AUTH_REFRESH_KEY = "fitme_refresh_token";

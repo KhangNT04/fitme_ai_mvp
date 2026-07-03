@@ -26,7 +26,7 @@ test.describe("Brand portal — full coverage", () => {
     await expect(page.getByRole("button", { name: "Gửi duyệt" })).toBeVisible({ timeout: 15_000 });
     await page.getByRole("button", { name: "Gửi duyệt" }).click();
     await page.waitForURL(/\/brand\/products$/);
-    await expect(page.getByText(productName)).toBeVisible({ timeout: 15_000 });
+    await expect(page.getByRole("cell", { name: productName })).toBeVisible({ timeout: 15_000 });
     await expect(page.getByText("Chờ duyệt").first()).toBeVisible();
   });
 
@@ -47,7 +47,7 @@ test.describe("Brand portal — full coverage", () => {
     await page.getByRole("button", { name: "Gửi duyệt" }).click();
     await submitResponse;
     await page.waitForURL(/\/brand\/products$/);
-    await expect(page.getByText(productName)).toBeVisible({ timeout: 15_000 });
+    await expect(page.getByRole("cell", { name: productName })).toBeVisible({ timeout: 15_000 });
     await expect(page.getByText("Chờ duyệt").first()).toBeVisible();
   });
 

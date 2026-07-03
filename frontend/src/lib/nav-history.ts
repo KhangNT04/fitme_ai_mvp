@@ -28,6 +28,16 @@ export function normalizeNavHref(pathname: string, search = ""): string {
   return query ? `${pathname}?${query}` : pathname;
 }
 
+/** Transient routes replaced via router.replace — must not appear in back stack. */
+export function isEphemeralNavRoute(href: string): boolean {
+  const path = href.split("?")[0].replace(/\/$/, "") || "/";
+  return path === "/try-on/processing" || path === "/ai/processing";
+}
+
+function withoutEphemeralRoutes(stack: NavHistoryEntry[]): NavHistoryEntry[] {
+  return stack.filter((entry) => !isEphemeralNavRoute(entry.href));
+}
+
 export function labelForHref(href: string): string {
   const path = href.split("?")[0].replace(/\/$/, "") || "/";
 
@@ -51,7 +61,7 @@ export function labelForHref(href: string): string {
     "/ai/preview-outfit": "Chỉnh set outfit",
     "/ai/photo-check": "Kiểm tra ảnh",
     "/wardrobe": "Tủ đồ cá nhân",
-    "/saved-outfits": "Gợi ý đã lưu",
+    "/saved-outfits": "Đã lưu",
     "/similar-products": "Sản phẩm tương tự",
     "/auth/login": "Đăng nhập",
     "/auth/register": "Đăng ký",
@@ -98,13 +108,15 @@ export function getNavHistoryStack(): NavHistoryEntry[] {
 }
 
 export function getPreviousNavEntry(): NavHistoryEntry | null {
-  const stack = readStack();
+  const stack = withoutEphemeralRoutes(readStack());
   if (stack.length < 2) return null;
   return stack[stack.length - 2];
 }
 
 export function recordNavVisit(fullPath: string): void {
-  const stack = readStack();
+  if (isEphemeralNavRoute(fullPath)) return;
+
+  const stack = withoutEphemeralRoutes(readStack());
   const last = stack[stack.length - 1];
 
   if (last?.href === fullPath) return;
@@ -135,8 +147,17 @@ export function resolveNavBack(
   fallback: NavHistoryEntry,
   stack: readonly NavHistoryEntry[] = getNavHistorySnapshot(),
 ): NavHistoryEntry {
-  if (stack.length < 2) return fallback;
-  return stack[stack.length - 2];
+  const cleaned = withoutEphemeralRoutes([...stack]);
+  if (cleaned.length < 2) return fallback;
+
+  for (let i = cleaned.length - 2; i >= 0; i--) {
+    const entry = cleaned[i];
+    if (!isEphemeralNavRoute(entry.href)) {
+      return entry;
+    }
+  }
+
+  return fallback;
 }
 
 export function isTryOnRouteHref(href: string): boolean {

@@ -10,6 +10,6 @@ test.describe("Discover page", () => {
     await expect(
       page.locator("[data-discover-search]").filter({ visible: true }),
     ).toBeVisible();
-    await expect(page.getByText("Tất cả thương hiệu")).toBeVisible();
+    await expect(page.getByRole("combobox").filter({ hasText: "Tất cả thương hiệu" })).toBeVisible();
   });
 });

@@ -119,6 +119,9 @@ export const recommendationApi = {
   save: async (id: string): Promise<void> => {
     await apiClient.post(`/recommendations/${id}/save`);
   },
+  unsave: async (id: string): Promise<void> => {
+    await apiClient.delete(`/recommendations/${id}/save`);
+  },
   feedback: async (id: string, rating: string, comment?: string): Promise<void> => {
     await apiClient.post(`/recommendations/${id}/feedback`, { rating, comment });
   },

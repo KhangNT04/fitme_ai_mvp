@@ -28,9 +28,9 @@ export const ADMIN_PAGES: { path: string; heading: string | RegExp }[] = [
   { path: "/admin/brands", heading: "Quản lý thương hiệu" },
   { path: "/admin/products/moderation", heading: "Duyệt sản phẩm" },
   { path: "/admin/flagged-links", heading: "Link bị gắn cờ" },
-  { path: "/admin/rules/styles", heading: "Rule phong cách" },
-  { path: "/admin/rules/occasions", heading: "Rule hoàn cảnh" },
+  { path: "/admin/rules/styles", heading: "Quy tắc phong cách" },
+  { path: "/admin/rules/occasions", heading: "Quy tắc dịp" },
   { path: "/admin/analytics", heading: "Phân tích toàn hệ thống" },
   { path: "/admin/privacy", heading: "Quyền riêng tư & Consent" },
-  { path: "/admin/try-on-monitoring", heading: "Giám sát Try-on" },
+  { path: "/admin/try-on-monitoring", heading: "Giám sát thử mặc" },
 ];

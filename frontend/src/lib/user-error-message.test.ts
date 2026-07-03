@@ -22,8 +22,13 @@ describe("formatUserErrorMessage", () => {
     );
   });
 
-  it("maps common English messages", () => {
-    expect(formatUserErrorMessage("Forbidden", 403)).toBe("Bạn không có quyền truy cập.");
+  it("maps session auth errors to a friendly message", () => {
+    expect(formatUserErrorMessage("Yêu cầu đăng nhập hoặc session ẩn danh", 401)).toBe(
+      "Phiên làm việc hết hạn. Vui lòng tải lại trang hoặc thử lại.",
+    );
+    expect(formatUserErrorMessage("Yêu c?u ??ng nh?p ho?c session ?n danh", 401)).toBe(
+      "Phiên làm việc hết hạn. Vui lòng tải lại trang hoặc thử lại.",
+    );
   });
 
   it("handles network errors without status", () => {
@@ -36,7 +41,7 @@ describe("formatUserErrorMessage", () => {
 describe("getUserErrorMessage", () => {
   it("extracts ApiError shape from api-client", () => {
     expect(getUserErrorMessage({ message: "Request failed with status code 401", status: 401 })).toBe(
-      "Email hoặc mật khẩu không đúng."
+      "Phiên làm việc hết hạn. Vui lòng tải lại trang hoặc đăng nhập lại.",
     );
   });
 

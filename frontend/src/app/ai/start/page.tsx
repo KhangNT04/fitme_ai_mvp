@@ -8,7 +8,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { useEnsureSession } from "@/hooks/use-ensure-session";
 import { useHydrateConsultationProfiles } from "@/hooks/use-hydrate-consultation-profiles";
 import { useConsultationStore } from "@/stores/consultation-store";
-import { useEffect, useState } from "react";
+import { useEffect, useSyncExternalStore } from "react";
 import { PageShell } from "@/components/layout/PageShell";
 import { FlowWizardToolbar } from "@/components/layout/FlowWizardToolbar";
 import { AI_FLOW_STEPS } from "@/components/layout/FlowStepper";
@@ -24,11 +24,14 @@ export default function AiStartPage() {
   const router = useRouter();
   const { ensureSession } = useEnsureSession();
   const selectedProductId = useConsultationStore((s) => s.draft.selectedProductId);
-  const [mounted, setMounted] = useState(false);
+  const mounted = useSyncExternalStore(
+    () => () => {},
+    () => true,
+    () => false,
+  );
   useHydrateConsultationProfiles();
 
   useEffect(() => {
-    setMounted(true);
     void ensureSession();
   }, [ensureSession]);
 

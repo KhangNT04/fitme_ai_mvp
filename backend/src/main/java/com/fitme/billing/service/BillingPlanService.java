@@ -25,6 +25,10 @@ public class BillingPlanService {
         return planRepository.findAllByOrderBySortOrderAsc().stream().map(dtoMapper::toDto).toList();
     }
 
+    public BillingPlanDto get(UUID id) {
+        return dtoMapper.toDto(getEntity(id));
+    }
+
     public List<BillingPlanDto> listActive() {
         return planRepository.findByActiveTrueOrderBySortOrderAsc().stream().map(dtoMapper::toDto).toList();
     }

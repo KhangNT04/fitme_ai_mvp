@@ -160,6 +160,26 @@ public class BrandQuotaService {
         refreshBrandProductEligibility(brandId);
     }
 
+    @Transactional
+    public void deactivateBrandBilling(UUID brandId, String note) {
+        subscriptionRepository.findByBrandId(brandId).ifPresent(sub -> {
+            if (sub.getStatus() == BrandSubscriptionStatus.ACTIVE) {
+                sub.setStatus(BrandSubscriptionStatus.CANCELLED);
+                subscriptionRepository.save(sub);
+            }
+        });
+        BrandQuotaBalance balance = getOrCreateBalance(brandId);
+        int removed = balance.totalRemaining();
+        if (removed > 0) {
+            balance.setSubscriptionRemaining(0);
+            balance.setTopupRemaining(0);
+            balanceRepository.save(balance);
+            appendLedger(brandId, QuotaLedgerEntryType.ADMIN_REVOKE, -removed, 0,
+                    "ADMIN", null, note != null && !note.isBlank() ? note : "Admin vô hiệu hóa gói brand");
+        }
+        refreshBrandProductEligibility(brandId);
+    }
+
     @Scheduled(cron = "0 0 1 * * *")
     @Transactional
     public void expireSubscriptions() {

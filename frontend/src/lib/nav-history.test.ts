@@ -1,6 +1,7 @@
 import { describe, expect, it, beforeEach } from "vitest";
 import {
   getPreviousNavEntry,
+  isEphemeralNavRoute,
   labelForHref,
   popNavHistory,
   recordNavVisit,
@@ -57,5 +58,29 @@ describe("nav-history", () => {
     expect(sessionStorage.getItem(NAV_HISTORY_STORAGE_KEY)).toBe(
       JSON.stringify([{ href: "/try-on", label: "Thử mặc AI" }]),
     );
+  });
+
+  it("does not record ephemeral processing routes", () => {
+    recordNavVisit("/try-on/input");
+    recordNavVisit("/try-on/processing");
+    recordNavVisit("/try-on/result/abc");
+    expect(getPreviousNavEntry()).toEqual({
+      href: "/try-on/input",
+      label: "Thông tin thử mặc",
+    });
+  });
+
+  it("resolveNavBack skips ephemeral routes still present in legacy stacks", () => {
+    const stack = [
+      { href: "/ai/occasion", label: "Hoàn cảnh & vibe" },
+      { href: "/ai/processing", label: "Đang xử lý tư vấn" },
+      { href: "/ai/result/xyz", label: "Kết quả tư vấn" },
+    ];
+    expect(resolveNavBack({ href: "/discover", label: "Khám phá sản phẩm" }, stack)).toEqual({
+      href: "/ai/occasion",
+      label: "Hoàn cảnh & vibe",
+    });
+    expect(isEphemeralNavRoute("/try-on/processing")).toBe(true);
+    expect(isEphemeralNavRoute("/ai/processing")).toBe(true);
   });
 });

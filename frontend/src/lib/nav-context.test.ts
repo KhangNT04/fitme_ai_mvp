@@ -4,6 +4,7 @@ import {
   isTryOnNavContext,
   productDetailHref,
   resolveProductPageBack,
+  resolveSavedResultBack,
   TRYON_HUB,
   DISCOVER_HUB,
   setConsumerNavContext,
@@ -59,6 +60,14 @@ describe("nav-context", () => {
 
   it("resolveProductPageBack respects from=try-on query", () => {
     expect(resolveProductPageBack([], { fromTryOn: true })).toEqual(TRYON_HUB);
+  });
+
+  it("resolveSavedResultBack returns saved hub when opened from Đã lưu", () => {
+    expect(resolveSavedResultBack("tryon", true)).toEqual({
+      href: "/saved-outfits",
+      label: "Đã lưu",
+    });
+    expect(resolveSavedResultBack("ai", false)).toEqual(DISCOVER_HUB);
   });
 
   it("resolveProductPageBack returns ai result when from ai-result query", () => {

@@ -31,6 +31,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Comparator;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.UUID;
 
@@ -69,10 +71,15 @@ public class RecommendationService {
                 ? request.getOccasion() : "Casual hàng ngày";
         WardrobeMode mode = request.getWardrobeMode() != null ? request.getWardrobeMode() : WardrobeMode.NO_WARDROBE_DATA;
 
+        UUID selectedProductId = request.getSelectedProductId();
+        if (selectedProductId != null && productRepository.findById(selectedProductId).isEmpty()) {
+            selectedProductId = null;
+        }
+
         OutfitRequest outfitRequest = OutfitRequest.builder()
                 .userId(userId)
                 .sessionId(sessionId)
-                .selectedProductId(request.getSelectedProductId())
+                .selectedProductId(selectedProductId)
                 .occasion(occasion)
                 .desiredVibe(request.getDesiredVibe())
                 .wardrobeMode(mode)
@@ -90,8 +97,8 @@ public class RecommendationService {
                         outfitScoringService.scoreProduct(a, style, occasion, body)))
                 .toList();
 
-        Product anchor = request.getSelectedProductId() != null
-                ? productRepository.findById(request.getSelectedProductId()).orElse(null) : null;
+        Product anchor = selectedProductId != null
+                ? productRepository.findById(selectedProductId).orElse(null) : null;
 
         List<RecommendationResponse.OutfitItemDto> items = outfitCompositionService.buildOutfit(
                 anchor, eligible, wardrobe, mode, body, style);
@@ -103,7 +110,9 @@ public class RecommendationService {
         String recommendedColor = outfitCompositionService.recommendColor(style, items);
         Confidence confidence = items.size() >= 3 ? Confidence.HIGH : items.size() >= 2 ? Confidence.MEDIUM : Confidence.LOW;
 
-        String title = "Outfit " + occasion + " phong cách " + style.getPrimaryStyle();
+        String styleLabel = style.getPrimaryStyle() != null && !style.getPrimaryStyle().isBlank()
+                ? style.getPrimaryStyle() : "đa dạng";
+        String title = "Outfit " + occasion + " phong cách " + styleLabel;
         Recommendation rec = Recommendation.builder()
                 .outfitRequestId(outfitRequest.getId())
                 .userId(userId)
@@ -115,7 +124,9 @@ public class RecommendationService {
                 .recommendedColor(recommendedColor)
                 .confidence(confidence)
                 .explanationBody("Form " + recommendedForm + " giúp tổng thể thoải mái và phù hợp với số đo của bạn.")
-                .explanationStyle("Phù hợp với gu " + style.getPrimaryStyle() + " bạn đã chọn.")
+                .explanationStyle("đa dạng".equals(styleLabel)
+                        ? "Gợi ý cân bằng, dễ mặc hàng ngày."
+                        : "Phù hợp với gu " + styleLabel + " bạn đã chọn.")
                 .explanationOccasion("Phù hợp cho " + occasion + " vì nhẹ nhàng và dễ phối.")
                 .explanationColor("Màu " + recommendedColor + " tạo cảm giác hài hòa và dễ mix-match.")
                 .explanationWardrobe(wardrobe.isEmpty() ? null : "Đã tận dụng " + wardrobe.size() + " món từ tủ đồ của bạn.")
@@ -156,9 +167,24 @@ public class RecommendationService {
     @Transactional
     public void save(UUID id) {
         Recommendation rec = getOwnedRecommendation(id);
+        RequestContext.getCurrentUserId().ifPresent(userId -> {
+            if (rec.getUserId() == null) {
+                rec.setUserId(userId);
+            }
+        });
         rec.setSaved(true);
         recommendationRepository.save(rec);
         analyticsService.track("OUTFIT_SAVED", rec.getUserId(), rec.getSessionId(), null, null, id, null, null);
+    }
+
+    @Transactional
+    public void unsave(UUID id) {
+        Recommendation rec = getOwnedRecommendation(id);
+        if (!rec.isSaved()) {
+            return;
+        }
+        rec.setSaved(false);
+        recommendationRepository.save(rec);
     }
 
     public List<RecommendationResponse> getSaved() {
@@ -167,13 +193,19 @@ public class RecommendationService {
         if (userId == null && sessionId == null) {
             return List.of();
         }
-        List<Recommendation> saved;
+        LinkedHashMap<UUID, Recommendation> merged = new LinkedHashMap<>();
         if (userId != null) {
-            saved = recommendationRepository.findByUserIdAndSavedTrue(userId);
-        } else {
-            saved = recommendationRepository.findBySessionIdAndSavedTrue(sessionId);
+            recommendationRepository.findByUserIdAndSavedTrue(userId)
+                    .forEach(rec -> merged.putIfAbsent(rec.getId(), rec));
         }
-        return saved.stream().map(r -> getById(r.getId())).toList();
+        if (sessionId != null) {
+            recommendationRepository.findBySessionIdAndSavedTrue(sessionId)
+                    .forEach(rec -> merged.putIfAbsent(rec.getId(), rec));
+        }
+        return merged.values().stream()
+                .sorted(Comparator.comparing(Recommendation::getCreatedAt).reversed())
+                .map(rec -> getById(rec.getId()))
+                .toList();
     }
 
     public List<RecommendationResponse.OutfitItemDto> similarProducts(UUID id) {

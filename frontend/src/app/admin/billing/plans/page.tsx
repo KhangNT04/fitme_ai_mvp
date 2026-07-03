@@ -1,53 +1,39 @@
 "use client";
 
-import { useState } from "react";
+import Link from "next/link";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { adminBillingApi } from "@/services/billing-api";
-import { PortalLayout, adminNav } from "@/components/layout/PortalLayout";
-import { PortalPageHeader } from "@/components/portal/PortalPageHeader";
+import { PortalAdminPage } from "@/components/portal/PortalAdminPage";
+import {
+  PortalActionButton,
+  PortalActionGroup,
+  PortalActionLink,
+} from "@/components/portal/PortalActionButton";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { LoadingSkeleton } from "@/components/common/LoadingSkeleton";
 import { formatPrice } from "@/utils/format-price";
-import { portalCardClass, portalCardListClass } from "@/lib/design-tokens";
-import type { BillingPlan, BillingPlanType } from "@/types/billing";
+import {
+  PortalDataTable,
+  PortalDataTableBody,
+  PortalDataTableHead,
+  portalTableTdClass,
+  portalTableThClass,
+} from "@/components/portal/PortalDataTable";
+import {
+  portalCardActionsClass,
+  portalCardClass,
+  portalCardListClass,
+  portalCardRowClass,
+  portalTableActionsClass,
+} from "@/lib/design-tokens";
 import { actionFeedback } from "@/lib/action-feedback";
-
-const emptyForm = {
-  code: "",
-  name: "",
-  planType: "SUBSCRIPTION" as BillingPlanType,
-  priceVnd: 199000,
-  quotaAmount: 1000,
-  includesDashboard: true,
-  billingPeriodDays: 30,
-  active: true,
-  sortOrder: 0,
-};
 
 export default function AdminBillingPlansPage() {
   const queryClient = useQueryClient();
-  const [form, setForm] = useState(emptyForm);
-  const [editingId, setEditingId] = useState<string | null>(null);
 
-  const { data, isLoading } = useQuery({
+  const { data, isLoading, error, refetch } = useQuery({
     queryKey: ["admin-billing-plans"],
     queryFn: () => adminBillingApi.getPlans(),
-  });
-
-  const save = useMutation({
-    mutationFn: () =>
-      editingId
-        ? adminBillingApi.updatePlan(editingId, form)
-        : adminBillingApi.createPlan(form),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["admin-billing-plans"] });
-      setForm(emptyForm);
-      setEditingId(null);
-      actionFeedback({ successMessage: "Đã lưu gói" }).onSuccess();
-    },
-    onError: actionFeedback({ errorMessage: "Không thể lưu gói" }).onError,
   });
 
   const remove = useMutation({
@@ -59,81 +45,106 @@ export default function AdminBillingPlansPage() {
     onError: actionFeedback({ errorMessage: "Không thể xóa gói" }).onError,
   });
 
-  const startEdit = (plan: BillingPlan) => {
-    setEditingId(plan.id);
-    setForm({
-      code: plan.code,
-      name: plan.name,
-      planType: plan.planType,
-      priceVnd: plan.priceVnd,
-      quotaAmount: plan.quotaAmount,
-      includesDashboard: plan.includesDashboard,
-      billingPeriodDays: plan.billingPeriodDays ?? undefined,
-      active: plan.active,
-      sortOrder: plan.sortOrder,
-    });
-  };
-
   return (
-    <PortalLayout title="Admin" nav={adminNav}>
-      <PortalPageHeader title="Gói brand" description="Quản lý gói subscription và top-up." />
-
-      <div className={`${portalCardClass} mb-8 space-y-3`}>
-        <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-4">
-          <Input placeholder="Mã (SUB_STARTER)" value={form.code} onChange={(e) => setForm({ ...form, code: e.target.value })} />
-          <Input placeholder="Tên gói" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
-          <Input type="number" placeholder="Giá VNĐ" value={form.priceVnd} onChange={(e) => setForm({ ...form, priceVnd: Number(e.target.value) })} />
-          <Input type="number" placeholder="Số lượt" value={form.quotaAmount} onChange={(e) => setForm({ ...form, quotaAmount: Number(e.target.value) })} />
-        </div>
-        <div className="flex flex-wrap gap-3">
-          <select
-            className="rounded-md border border-border bg-background px-3 py-2 text-sm"
-            value={form.planType}
-            onChange={(e) => {
-              const planType = e.target.value as BillingPlanType;
-              setForm({
-                ...form,
-                planType,
-                includesDashboard: planType === "SUBSCRIPTION",
-                billingPeriodDays: planType === "SUBSCRIPTION" ? 30 : undefined,
-              });
-            }}
-          >
-            <option value="SUBSCRIPTION">Subscription</option>
-            <option value="TOPUP">Top-up</option>
-          </select>
-          <Button onClick={() => save.mutate()} disabled={!form.code || !form.name}>
-            {editingId ? "Cập nhật" : "Thêm gói"}
-          </Button>
-          {editingId && (
-            <Button variant="outline" onClick={() => { setEditingId(null); setForm(emptyForm); }}>
-              Hủy sửa
-            </Button>
-          )}
-        </div>
-      </div>
-
-      {isLoading ? <LoadingSkeleton type="list" /> : (
-        <div className={portalCardListClass}>
-          {data?.map((plan) => (
-            <article key={plan.id} className={portalCardClass}>
-              <div className="flex items-start justify-between gap-4">
-                <div>
-                  <p className="font-medium">{plan.name} <span className="text-muted-foreground">({plan.code})</span></p>
-                  <p className="mt-1 text-sm text-muted-foreground">
-                    {formatPrice(plan.priceVnd)} · {plan.quotaAmount} lượt · {plan.planType}
-                  </p>
-                  <Badge variant="outline" className="mt-2">{plan.active ? "Đang bán" : "Tắt"}</Badge>
+    <PortalAdminPage
+      title="Danh mục gói"
+      description="Quản lý gói subscription và top-up trong hệ thống."
+      headerActions={
+        <Button size="sm" asChild>
+          <Link href="/admin/billing/plans/new">Thêm gói</Link>
+        </Button>
+      }
+      isLoading={isLoading}
+      error={error}
+      onRetry={() => refetch()}
+      empty={!data?.length}
+      emptyTitle="Chưa có gói nào"
+      emptyDescription="Tạo gói subscription hoặc top-up để brand có thể mua lượt thử AI."
+    >
+      {data && (
+        <>
+          <div className={portalCardListClass}>
+            {data.map((plan) => (
+              <article key={plan.id} className={portalCardClass}>
+                <div className={portalCardRowClass}>
+                  <div className="min-w-0">
+                    <p className="font-medium text-foreground">
+                      {plan.name}{" "}
+                      <span className="text-muted-foreground">({plan.code})</span>
+                    </p>
+                    <p className="mt-1 text-sm text-muted-foreground">
+                      {formatPrice(plan.priceVnd)} · {plan.quotaAmount} lượt · {plan.planType}
+                    </p>
+                    <Badge variant="outline" className="mt-2">
+                      {plan.active ? "Đang bán" : "Tắt"}
+                    </Badge>
+                  </div>
                 </div>
-                <div className="flex gap-2">
-                  <Button variant="outline" size="sm" onClick={() => startEdit(plan)}>Sửa</Button>
-                  <Button variant="outline" size="sm" onClick={() => remove.mutate(plan.id)}>Xóa</Button>
-                </div>
-              </div>
-            </article>
-          ))}
-        </div>
+                <PortalActionGroup className={portalCardActionsClass}>
+                  <PortalActionLink href={`/admin/billing/plans/${plan.id}/edit`} variant="edit">
+                    Sửa
+                  </PortalActionLink>
+                  <PortalActionButton
+                    variant="delete"
+                    onClick={() => {
+                      if (window.confirm(`Xóa gói "${plan.name}"?`)) {
+                        remove.mutate(plan.id);
+                      }
+                    }}
+                  >
+                    Xóa
+                  </PortalActionButton>
+                </PortalActionGroup>
+              </article>
+            ))}
+          </div>
+
+          <PortalDataTable>
+            <PortalDataTableHead>
+              <tr>
+                <th className={portalTableThClass}>Tên gói</th>
+                <th className={portalTableThClass}>Mã</th>
+                <th className={portalTableThClass}>Loại</th>
+                <th className={portalTableThClass}>Giá</th>
+                <th className={portalTableThClass}>Lượt</th>
+                <th className={portalTableThClass}>Trạng thái</th>
+                <th className={portalTableThClass}>Thao tác</th>
+              </tr>
+            </PortalDataTableHead>
+            <PortalDataTableBody>
+              {data.map((plan) => (
+                <tr key={plan.id}>
+                  <td className={portalTableTdClass}>{plan.name}</td>
+                  <td className={portalTableTdClass}>{plan.code}</td>
+                  <td className={portalTableTdClass}>{plan.planType}</td>
+                  <td className={portalTableTdClass}>{formatPrice(plan.priceVnd)}</td>
+                  <td className={portalTableTdClass}>{plan.quotaAmount}</td>
+                  <td className={portalTableTdClass}>
+                    <Badge variant="outline">{plan.active ? "Đang bán" : "Tắt"}</Badge>
+                  </td>
+                  <td className={portalTableTdClass}>
+                    <PortalActionGroup className={portalTableActionsClass}>
+                      <PortalActionLink href={`/admin/billing/plans/${plan.id}/edit`} variant="edit">
+                        Sửa
+                      </PortalActionLink>
+                      <PortalActionButton
+                        variant="delete"
+                        onClick={() => {
+                          if (window.confirm(`Xóa gói "${plan.name}"?`)) {
+                            remove.mutate(plan.id);
+                          }
+                        }}
+                      >
+                        Xóa
+                      </PortalActionButton>
+                    </PortalActionGroup>
+                  </td>
+                </tr>
+              ))}
+            </PortalDataTableBody>
+          </PortalDataTable>
+        </>
       )}
-    </PortalLayout>
+    </PortalAdminPage>
   );
 }

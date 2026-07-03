@@ -3,6 +3,7 @@ import { renderHook, act } from "@testing-library/react";
 
 const pushMock = vi.fn();
 const createAnonymousMock = vi.fn();
+const getCurrentMock = vi.fn();
 
 vi.mock("next/navigation", () => ({
   useRouter: () => ({ push: pushMock, replace: vi.fn() }),
@@ -13,17 +14,21 @@ vi.mock("next/navigation", () => ({
 vi.mock("@/services/session-api", () => ({
   sessionApi: {
     createAnonymous: (...args: unknown[]) => createAnonymousMock(...args),
+    getCurrent: (...args: unknown[]) => getCurrentMock(...args),
   },
 }));
 
 import { useEnsureSession } from "./use-ensure-session";
 import { useSessionStore } from "@/stores/session-store";
 import { useConsultationStore } from "@/stores/consultation-store";
+import { SESSION_STORAGE_KEY } from "@/utils/constants";
 
 describe("useEnsureSession", () => {
   beforeEach(() => {
     pushMock.mockReset();
     createAnonymousMock.mockReset();
+    getCurrentMock.mockReset();
+    localStorage.clear();
     useSessionStore.setState({ session: null });
     useConsultationStore.setState({ draft: { sessionId: "", wardrobeMode: "MIX_WARDROBE_AND_BRAND" } });
   });
@@ -78,5 +83,24 @@ describe("useEnsureSession", () => {
 
     expect(pushMock).toHaveBeenCalledWith("/");
     expect(returned).toBeNull();
+  });
+
+  it("restores session from localStorage token when store is empty", async () => {
+    localStorage.setItem(SESSION_STORAGE_KEY, "stored-token");
+    getCurrentMock.mockResolvedValue({
+      sessionId: "stored-sess",
+      sessionToken: "stored-token",
+      privacyVersion: "1.0",
+    });
+
+    const { result } = renderHook(() => useEnsureSession());
+
+    await act(async () => {
+      await result.current.ensureSession();
+    });
+
+    expect(getCurrentMock).toHaveBeenCalledOnce();
+    expect(createAnonymousMock).not.toHaveBeenCalled();
+    expect(useSessionStore.getState().session?.sessionId).toBe("stored-sess");
   });
 });

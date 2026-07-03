@@ -66,6 +66,12 @@ public class TryOnController {
         return ApiResponse.ok(null);
     }
 
+    @DeleteMapping("/{id}/save")
+    public ApiResponse<Void> unsave(@PathVariable UUID id) {
+        tryOnService.unsave(id);
+        return ApiResponse.ok(null);
+    }
+
     @PostMapping("/{id}/feedback")
     public ApiResponse<Void> feedback(@PathVariable UUID id, @Valid @RequestBody FeedbackRequest request) {
         feedbackService.submitForTryOn(id, request);

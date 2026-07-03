@@ -13,7 +13,8 @@ export function useScrollCompact(enabled = true) {
   const headerRef = useRef<HTMLDivElement>(null);
   const documentTopRef = useRef<number | null>(null);
   const expandedBottomRef = useRef(0);
-  const [compact, setCompact] = useState(false);
+  const [scrolledPast, setScrolledPast] = useState(false);
+  const compact = enabled && scrolledPast;
 
   const measureExpandedBottom = useCallback(() => {
     const el = headerRef.current;
@@ -36,13 +37,10 @@ export function useScrollCompact(enabled = true) {
   }, [compact, enabled, measureExpandedBottom]);
 
   useEffect(() => {
-    if (!enabled) {
-      setCompact(false);
-      return;
-    }
+    if (!enabled) return;
 
     const update = () => {
-      setCompact(window.scrollY + MAIN_NAV_OFFSET_PX >= expandedBottomRef.current);
+      setScrolledPast(window.scrollY + MAIN_NAV_OFFSET_PX >= expandedBottomRef.current);
     };
 
     update();

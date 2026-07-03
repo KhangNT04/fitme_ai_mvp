@@ -17,10 +17,10 @@ test.describe("Redirect flow", () => {
   test("product confirm → loading page with external URL", async ({ page }) => {
     await page.goto("/discover");
 
-    const productLink = page.getByRole("link", { name: "Xem" }).first();
+    const productLink = page.locator('a[href^="/products/"]').first();
     await expect(productLink).toBeVisible({ timeout: 30_000 });
     const href = await productLink.getAttribute("href");
-    expect(href).toBeTruthy();
+    expect(href).toMatch(/^\/products\//);
 
     await page.goto(href!);
     await page.getByRole("link", { name: "Mua ngay" }).click();

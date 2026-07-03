@@ -42,6 +42,12 @@ public class RecommendationController {
         return ApiResponse.ok(null);
     }
 
+    @DeleteMapping("/{id}/save")
+    public ApiResponse<Void> unsave(@PathVariable UUID id) {
+        recommendationService.unsave(id);
+        return ApiResponse.ok(null);
+    }
+
     @PostMapping("/{id}/feedback")
     public ApiResponse<Void> feedback(@PathVariable UUID id, @Valid @RequestBody FeedbackRequest request) {
         feedbackService.submitForRecommendation(id, request);

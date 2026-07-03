@@ -7,8 +7,13 @@ import {
   popNavHistory,
   resolveNavBack,
   notifyNavHistoryChange,
+  isEphemeralNavRoute,
   type NavHistoryEntry,
 } from "@/lib/nav-history";
+
+function cleanedStack(stack: readonly NavHistoryEntry[]): NavHistoryEntry[] {
+  return stack.filter((entry) => !isEphemeralNavRoute(entry.href));
+}
 
 const SERVER_SNAPSHOT: NavHistoryEntry[] = [];
 
@@ -43,7 +48,7 @@ export function useNavBack(fallback: NavBackFallback, options?: { disableHistory
     return resolveNavBack(fb, stack);
   }, [fallback.href, fallback.label, options?.disableHistory, stack]);
 
-  const fromHistory = !options?.disableHistory && stack.length >= 2;
+  const fromHistory = !options?.disableHistory && cleanedStack(stack).length >= 2;
 
   const navigateBack = useCallback(
     (event?: { preventDefault: () => void }) => {

@@ -5,5 +5,6 @@ public enum QuotaLedgerEntryType {
     TOPUP_GRANT,
     CONSUME,
     ADMIN_ADJUST,
+    ADMIN_REVOKE,
     EXPIRE_RESET
 }

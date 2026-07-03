@@ -15,6 +15,7 @@ import {
   Eye,
   Menu,
   X,
+  CreditCard,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -24,12 +25,15 @@ const brandIcons: Record<string, React.ComponentType<{ className?: string }>> = 
   "/brand/dashboard": LayoutDashboard,
   "/brand/products": Package,
   "/brand/analytics": BarChart3,
+  "/brand/billing": CreditCard,
   "/brand/settings": Settings,
 };
 
 const adminIcons: Record<string, React.ComponentType<{ className?: string }>> = {
   "/admin/dashboard": LayoutDashboard,
   "/admin/brands": Users,
+  "/admin/billing/plans": CreditCard,
+  "/admin/billing/brands": Package,
   "/admin/products/moderation": Package,
   "/admin/flagged-links": Flag,
   "/admin/rules/styles": BookOpen,
@@ -119,6 +123,7 @@ export function PortalSidebarProvider({ nav, isAdmin, children }: PortalSidebarP
   const [mobileOpen, setMobileOpen] = useState(false);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- close drawer after route change
     setMobileOpen(false);
   }, [pathname]);
 

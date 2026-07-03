@@ -88,7 +88,7 @@ export default function DiscoverPage() {
   const groupedByBrand = useMemo(() => {
     if (!data?.items.length) return null;
     return groupProductsByBrand(data.items);
-  }, [data?.items]);
+  }, [data]);
 
   const sortedBrandGroups = useMemo(() => {
     if (!groupedByBrand) return [];
@@ -113,10 +113,9 @@ export default function DiscoverPage() {
     };
 
     const onFocusRequest = () => {
-      focusSearchField();
-      window.setTimeout(focusSearchField, 200);
-      window.setTimeout(focusSearchField, 450);
-      window.setTimeout(focusSearchField, 750);
+      for (const delay of [0, 200, 450, 750, 1200, 1600, 2000]) {
+        window.setTimeout(focusSearchField, delay);
+      }
     };
 
     activateSearch();

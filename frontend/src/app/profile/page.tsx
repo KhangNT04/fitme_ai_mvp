@@ -40,8 +40,8 @@ const hubLinks = [
   },
   {
     href: "/saved-outfits",
-    label: "Gợi ý đã lưu",
-    description: "Outfit AI đã lưu",
+    label: "Đã lưu",
+    description: "Outfit tư vấn & thử mặc",
     icon: Bookmark,
     accent: "bg-pink-500/10 text-pink-700",
   },

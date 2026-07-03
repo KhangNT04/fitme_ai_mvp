@@ -16,23 +16,19 @@ import { FlowWizardToolbar } from "@/components/layout/FlowWizardToolbar";
 import { TRYON_FLOW_STEPS } from "@/components/layout/FlowStepper";
 import { TryOnSelectionBar } from "@/components/tryon/TryOnSelectionBar";
 import { catalogProductGridClass, consumerPageShellClass } from "@/lib/design-tokens";
+import { useTryOnAddItem } from "@/hooks/use-tryon-add-item";
 import { useTryOnStore } from "@/stores/tryon-store";
-import type { Product } from "@/types/product";
-import type { TryOnItem } from "@/types/tryon";
-
-function toSelectedItem(product: Product): TryOnItem {
-  return {
-    productId: product.id,
-    category: product.category,
-    name: product.name,
-    imageUrl: product.images[0],
-  };
-}
+import { productToTryOnItem } from "@/lib/tryon-product";
 
 export default function TryOnBrandPage() {
   const params = useParams<{ id: string }>();
   const brandId = params.id;
-  const { addItem } = useTryOnStore();
+  const { addItem, ReplaceConfirmDialog } = useTryOnAddItem();
+  const selectedItems = useTryOnStore((s) => s.selectedItems);
+  const selectedProductIds = useMemo(
+    () => new Set(selectedItems.map((item) => item.productId)),
+    [selectedItems],
+  );
   const [search, setSearch] = useState("");
 
   const {
@@ -69,6 +65,7 @@ export default function TryOnBrandPage() {
 
   return (
     <PageShell width="full" className={consumerPageShellClass}>
+      {ReplaceConfirmDialog}
       <FlowWizardToolbar
         steps={TRYON_FLOW_STEPS}
         currentStep={1}
@@ -121,21 +118,17 @@ export default function TryOnBrandPage() {
         {data && data.items.length > 0 && (
           <div className={catalogProductGridClass}>
             {data.items.map((p) => (
-              <div
+              <ProductCard
                 key={p.id}
-                role="button"
-                tabIndex={0}
-                className="w-full cursor-pointer text-left"
-                onClick={() => addItem(toSelectedItem(p))}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter" || e.key === " ") {
-                    e.preventDefault();
-                    addItem(toSelectedItem(p));
-                  }
+                product={p}
+                showTryOn={false}
+                size="catalog"
+                detailContext="tryon"
+                tryOnPicker={{
+                  selected: selectedProductIds.has(p.id),
+                  onSelect: () => addItem(productToTryOnItem(p)),
                 }}
-              >
-                <ProductCard product={p} showTryOn={false} size="catalog" detailContext="tryon" />
-              </div>
+              />
             ))}
           </div>
         )}

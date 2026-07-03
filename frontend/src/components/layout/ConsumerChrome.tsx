@@ -20,6 +20,7 @@ function ConsumerChromeInner({ children }: ConsumerChromeProps) {
   const showBottomNav = shouldShowBottomNav(pathname);
   const isPortal = isPortalRoute(pathname);
   const isPortalApp = isPortalAppRoute(pathname);
+  const isAuthRoute = pathname.startsWith("/auth");
   const portalNav = getPortalNav(pathname);
 
   const shell = (
@@ -29,7 +30,7 @@ function ConsumerChromeInner({ children }: ConsumerChromeProps) {
       </Suspense>
       <Header />
       <main className={cn("flex min-h-0 flex-1 flex-col overflow-visible", showBottomNav && "pb-mobile-nav md:pb-0")}>{children}</main>
-      {!isPortal && <Footer />}
+      {!isPortal && !isAuthRoute && <Footer />}
       <Suspense fallback={null}>
         <MobileBottomNav />
       </Suspense>

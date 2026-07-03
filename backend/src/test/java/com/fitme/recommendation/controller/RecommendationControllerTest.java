@@ -6,6 +6,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -65,6 +66,57 @@ class RecommendationControllerTest extends AbstractIntegrationTest {
                 .andExpect(jsonPath("$.data").isArray())
                 .andExpect(jsonPath("$.data.length()").value(1))
                 .andExpect(jsonPath("$.data[0].recommendationId").value(recommendationId));
+    }
+
+    @Test
+    void unsave_afterSaving_removesFromSavedList() throws Exception {
+        testDataHelper.createEligibleProduct("Unsave outfit top", "Áo thun");
+        testDataHelper.createEligibleProduct("Unsave outfit bottom", "Quần jean");
+
+        String sessionToken = createAnonymousSessionToken();
+
+        mockMvc.perform(post("/api/v1/me/body-profile")
+                        .header(SESSION_HEADER, sessionToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"heightCm": 165, "weightKg": 55, "gender": "FEMALE", "fitPreference": "REGULAR"}
+                                """))
+                .andExpect(status().isOk());
+
+        mockMvc.perform(post("/api/v1/me/style-profile")
+                        .header(SESSION_HEADER, sessionToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"primaryStyle": "Minimal", "preferredColors": ["Black"]}
+                                """))
+                .andExpect(status().isOk());
+
+        String createResponse = mockMvc.perform(post("/api/v1/recommendations")
+                        .header(SESSION_HEADER, sessionToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"occasion": "Dạo phố", "wardrobeMode": "NO_WARDROBE_DATA"}
+                                """))
+                .andExpect(status().isOk())
+                .andReturn()
+                .getResponse()
+                .getContentAsString();
+
+        String recommendationId = objectMapper.readTree(createResponse)
+                .get("data").get("recommendationId").asText();
+
+        mockMvc.perform(post("/api/v1/recommendations/{id}/save", recommendationId)
+                        .header(SESSION_HEADER, sessionToken))
+                .andExpect(status().isOk());
+
+        mockMvc.perform(delete("/api/v1/recommendations/{id}/save", recommendationId)
+                        .header(SESSION_HEADER, sessionToken))
+                .andExpect(status().isOk());
+
+        mockMvc.perform(get("/api/v1/recommendations/saved")
+                        .header(SESSION_HEADER, sessionToken))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.length()").value(0));
     }
 
     @Test

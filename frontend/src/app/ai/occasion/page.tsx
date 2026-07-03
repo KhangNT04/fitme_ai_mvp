@@ -47,7 +47,7 @@ export default function OccasionPage() {
         steps={AI_FLOW_STEPS}
         currentStep={3}
         title="Hoàn cảnh & vibe"
-        subtitle="Bạn sẽ mặc outfit này ở đâu?"
+        subtitle="Bạn sẽ mặc outfit này ở đâu? (hoàn cảnh & vibe là tùy chọn)"
         showAiBadge
         backHref="/ai/style-profile"
         backLabel="Gu thời trang"
@@ -63,7 +63,7 @@ export default function OccasionPage() {
                   <Chip
                     key={o}
                     selected={occasion === o}
-                    onClick={() => setValue("occasion", o, { shouldValidate: true })}
+                    onClick={() => setValue("occasion", occasion === o ? undefined : o, { shouldValidate: true })}
                   >
                     {o}
                   </Chip>
@@ -79,7 +79,7 @@ export default function OccasionPage() {
                   <Chip
                     key={v}
                     selected={desiredVibe === v}
-                    onClick={() => setValue("desiredVibe", v, { shouldValidate: true })}
+                    onClick={() => setValue("desiredVibe", desiredVibe === v ? undefined : v, { shouldValidate: true })}
                   >
                     {v}
                   </Chip>

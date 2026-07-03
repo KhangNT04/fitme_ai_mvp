@@ -74,13 +74,16 @@ export const uploadApi = {
     const data = unwrap(res) as BackendPhotoUploadResponse;
     return { consentId: data.id };
   },
-  uploadPhoto: async (file: File, consentId?: string): Promise<{ photoUploadId: string }> => {
+  uploadPhoto: async (file: File, consentId?: string): Promise<{ photoUploadId: string; fileUrl?: string }> => {
     const data = await uploadMultipartFile<BackendPhotoUploadResponse>(
       "/uploads/user-photo",
       file,
       consentId ? { consentId } : undefined,
     );
-    return { photoUploadId: data.id };
+    return {
+      photoUploadId: data.id,
+      fileUrl: resolveOptionalImageSrc(data.fileUrl),
+    };
   },
   checkQuality: async (id: string): Promise<PhotoQualityResult> => {
     const res = await apiClient.get(`/uploads/user-photo/${id}/quality`);

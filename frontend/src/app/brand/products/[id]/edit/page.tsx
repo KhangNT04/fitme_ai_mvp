@@ -31,6 +31,7 @@ export default function BrandEditProductPage({ params }: { params: Promise<{ id:
 
   useEffect(() => {
     if (product) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- hydrate editable form from fetched product
       setForm(productToFormValues(product));
     }
   }, [product]);

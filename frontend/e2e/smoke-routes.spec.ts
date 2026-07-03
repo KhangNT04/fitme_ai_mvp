@@ -8,7 +8,7 @@ test.describe("Public route smoke", () => {
     { path: "/discover", heading: "Khám phá sản phẩm" },
     { path: "/try-on", heading: "Thử mặc bằng AI" },
     { path: "/wardrobe", heading: "Tủ đồ cá nhân" },
-    { path: "/saved-outfits", heading: "Gợi ý đã lưu" },
+    { path: "/saved-outfits", heading: "Đã lưu" },
     { path: "/profile", heading: "Hồ sơ người dùng" },
     { path: "/auth/login", heading: "Đăng nhập" },
     { path: "/auth/register", heading: "Đăng ký tài khoản" },
@@ -46,6 +46,6 @@ test.describe("Public route smoke", () => {
     const productLink = page.locator('a[href^="/products/"]').first();
     await expect(productLink).toBeVisible({ timeout: 30_000 });
     await productLink.click();
-    await expect(page.locator("h1")).toBeVisible({ timeout: 15_000 });
+    await expect(page.getByRole("heading", { level: 1 })).toBeVisible({ timeout: 15_000 });
   });
 });

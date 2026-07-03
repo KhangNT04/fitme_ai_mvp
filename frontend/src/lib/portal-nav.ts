@@ -14,7 +14,8 @@ export const brandNav: PortalNavItem[] = [
 export const adminNav: PortalNavItem[] = [
   { href: "/admin/dashboard", label: "Tổng quan" },
   { href: "/admin/brands", label: "Thương hiệu" },
-  { href: "/admin/billing/plans", label: "Gói brand" },
+  { href: "/admin/billing/plans", label: "Danh mục gói" },
+  { href: "/admin/billing/brands", label: "Gói brand đang dùng" },
   { href: "/admin/products/moderation", label: "Duyệt sản phẩm" },
   { href: "/admin/flagged-links", label: "Link bị gắn cờ" },
   { href: "/admin/rules/styles", label: "Quy tắc phong cách" },

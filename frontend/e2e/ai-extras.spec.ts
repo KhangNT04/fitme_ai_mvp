@@ -45,13 +45,13 @@ test.describe("AI result sub-pages", () => {
     );
     await expect(page.getByRole("link", { name: /Upload ảnh tạo preview/ })).toHaveAttribute(
       "href",
-      `/ai/photo-upload?recommendation=${recommendationId}`,
+      `/ai/preview-outfit?recommendation=${recommendationId}`,
     );
 
     await page.goto(`/ai/variants/${recommendationId}`);
     await expect(page.getByRole("heading", { name: "Thử biến thể" })).toBeVisible();
 
-    await page.goto(`/ai/photo-upload?recommendation=${recommendationId}`);
-    await expect(page.getByRole("heading", { name: "Upload ảnh preview 2D" })).toBeVisible();
+    await page.goto(`/ai/preview-outfit?recommendation=${recommendationId}`);
+    await expect(page.getByRole("heading", { name: "Chỉnh set outfit" })).toBeVisible();
   });
 });

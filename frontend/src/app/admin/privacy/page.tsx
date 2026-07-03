@@ -2,12 +2,10 @@
 
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { adminApi } from "@/services/admin-api";
-import { PortalLayout, adminNav } from "@/components/layout/PortalLayout";
-import { PortalPageHeader } from "@/components/portal/PortalPageHeader";
+import { PortalAdminPage } from "@/components/portal/PortalAdminPage";
 import { PortalActionButton } from "@/components/portal/PortalActionButton";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { LoadingSkeleton } from "@/components/common/LoadingSkeleton";
 import {
   PortalDataTable,
   PortalDataTableBody,
@@ -15,6 +13,12 @@ import {
   portalTableTdClass,
   portalTableThClass,
 } from "@/components/portal/PortalDataTable";
+import {
+  portalCardActionsClass,
+  portalCardClass,
+  portalCardListClass,
+  portalCardRowClass,
+} from "@/lib/design-tokens";
 import { actionFeedback } from "@/lib/action-feedback";
 
 interface ConsentRecord {
@@ -54,16 +58,18 @@ export default function AdminPrivacyPage() {
   });
 
   return (
-    <PortalLayout title="Admin" nav={adminNav}>
-      <PortalPageHeader title="Quyền riêng tư & Consent" />
-      <Tabs defaultValue="consents">
+    <PortalAdminPage
+      title="Quyền riêng tư & Consent"
+      description="Theo dõi nhật ký đồng ý và yêu cầu xóa dữ liệu của người dùng."
+    >
+      <Tabs defaultValue="consents" className="space-y-4">
         <TabsList>
-          <TabsTrigger value="consents">Consent logs</TabsTrigger>
+          <TabsTrigger value="consents">Nhật ký consent</TabsTrigger>
           <TabsTrigger value="deletions">Yêu cầu xóa dữ liệu</TabsTrigger>
         </TabsList>
         <TabsContent value="consents">
-          {loadingConsents ? <LoadingSkeleton type="list" /> : (
-            <PortalDataTable showOnMobile className="mt-0">
+          {loadingConsents ? null : (
+            <PortalDataTable showOnMobile>
               <PortalDataTableHead>
                 <tr>
                   <th className={portalTableThClass}>Loại</th>
@@ -95,29 +101,72 @@ export default function AdminPrivacyPage() {
           )}
         </TabsContent>
         <TabsContent value="deletions">
-          {loadingDeletions ? <LoadingSkeleton type="list" /> : (
-            <div className="space-y-3">
-              {deletions?.map((d) => (
-                <div key={d.id} className="flex items-center justify-between rounded-2xl border border-border/60 p-4">
-                  <div className="text-sm">
-                    <p><strong>ID:</strong> {d.id}</p>
-                    <p><strong>Loại:</strong> {d.requestType}</p>
-                    <p><strong>Trạng thái:</strong> {d.status}</p>
-                  </div>
-                  {d.id && d.status !== "COMPLETED" && (
-                    <PortalActionButton variant="resolve" onClick={() => processDeletion.mutate(d.id!)}>
-                      Xử lý
-                    </PortalActionButton>
+          {loadingDeletions ? null : (
+            <>
+              <div className={portalCardListClass}>
+                {deletions?.map((d) => (
+                  <article key={d.id} className={portalCardClass}>
+                    <div className={portalCardRowClass}>
+                      <div className="text-sm">
+                        <p className="font-medium">ID: {d.id}</p>
+                        <p className="mt-1 text-muted-foreground">Loại: {d.requestType}</p>
+                        <Badge variant="outline" className="mt-2">{d.status}</Badge>
+                      </div>
+                    </div>
+                    {d.id && d.status !== "COMPLETED" && (
+                      <div className={portalCardActionsClass}>
+                        <PortalActionButton variant="resolve" onClick={() => processDeletion.mutate(d.id!)}>
+                          Xử lý
+                        </PortalActionButton>
+                      </div>
+                    )}
+                  </article>
+                ))}
+              </div>
+              <PortalDataTable showOnMobile className="mt-6">
+                <PortalDataTableHead>
+                  <tr>
+                    <th className={portalTableThClass}>ID</th>
+                    <th className={portalTableThClass}>Loại</th>
+                    <th className={portalTableThClass}>Trạng thái</th>
+                    <th className={portalTableThClass}>Thao tác</th>
+                  </tr>
+                </PortalDataTableHead>
+                <PortalDataTableBody>
+                  {deletions?.map((d) => (
+                    <tr key={d.id}>
+                      <td className={`${portalTableTdClass} font-mono text-xs`}>{d.id}</td>
+                      <td className={portalTableTdClass}>{d.requestType}</td>
+                      <td className={portalTableTdClass}>
+                        <Badge variant="outline">{d.status}</Badge>
+                      </td>
+                      <td className={portalTableTdClass}>
+                        {d.id && d.status !== "COMPLETED" ? (
+                          <PortalActionButton
+                            variant="resolve"
+                            onClick={() => processDeletion.mutate(d.id!)}
+                          >
+                            Xử lý
+                          </PortalActionButton>
+                        ) : (
+                          "—"
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                  {(!deletions || deletions.length === 0) && (
+                    <tr>
+                      <td colSpan={4} className={`${portalTableTdClass} text-muted-foreground`}>
+                        Không có yêu cầu xóa dữ liệu
+                      </td>
+                    </tr>
                   )}
-                </div>
-              ))}
-              {(!deletions || deletions.length === 0) && (
-                <p className="text-sm text-muted-foreground">Không có yêu cầu xóa dữ liệu</p>
-              )}
-            </div>
+                </PortalDataTableBody>
+              </PortalDataTable>
+            </>
           )}
         </TabsContent>
       </Tabs>
-    </PortalLayout>
+    </PortalAdminPage>
   );
 }

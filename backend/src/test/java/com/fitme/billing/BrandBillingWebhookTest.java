@@ -11,6 +11,8 @@ import com.fitme.support.TestDataHelper;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import java.util.concurrent.ThreadLocalRandom;
+
 import static org.assertj.core.api.Assertions.assertThat;
 
 class BrandBillingWebhookTest extends AbstractIntegrationTest {
@@ -30,15 +32,17 @@ class BrandBillingWebhookTest extends AbstractIntegrationTest {
     void webhook_grantsQuota_idempotent() {
         var brand = testDataHelper.createBrandOwner().brand();
         var plan = billingPlanRepository.findByCode("TOPUP_250").orElseThrow();
+        long orderCode = System.currentTimeMillis() % 9_000_000_000L * 10L
+                + ThreadLocalRandom.current().nextInt(10);
         BrandBillingOrder order = orderRepository.save(BrandBillingOrder.builder()
                 .brandId(brand.getId())
                 .planId(plan.getId())
                 .amountVnd(plan.getPriceVnd())
                 .status(BillingOrderStatus.PENDING)
-                .payosOrderCode(12345678901L)
+                .payosOrderCode(orderCode)
                 .build());
 
-        String webhookBody = "{\"data\":{\"orderCode\":12345678901}}";
+        String webhookBody = "{\"data\":{\"orderCode\":" + orderCode + "}}";
         brandBillingService.handleWebhook(webhookBody);
         assertThat(brandQuotaService.getOrCreateBalance(brand.getId()).getTopupRemaining()).isEqualTo(250);
 

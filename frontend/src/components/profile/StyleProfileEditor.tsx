@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, type Resolver } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -44,7 +44,7 @@ export function StyleProfileEditor({
   saving,
 }: StyleProfileEditorProps) {
   const { handleSubmit, setValue, watch, reset } = useForm<StyleProfileForm>({
-    resolver: zodResolver(styleProfileSchema),
+    resolver: zodResolver(styleProfileSchema) as Resolver<StyleProfileForm>,
     defaultValues: {
       secondaryStyles: [],
       preferredColors: [],
@@ -62,7 +62,7 @@ export function StyleProfileEditor({
       secondaryStyles: initial.secondaryStyles ?? [],
       preferredColors: initial.preferredColors ?? [],
       avoidedColors: initial.avoidedColors ?? [],
-      riskLevel: initial.riskLevel,
+      riskLevel: initial.riskLevel ?? undefined,
       artisticMode: initial.artisticMode ?? false,
     };
     const snapshot = profileSnapshotKey(formValues);

@@ -7,6 +7,7 @@ import { Loader2 } from "lucide-react";
 import { recommendationApi } from "@/services/recommendation-api";
 import { previewApi } from "@/services/upload-api";
 import { profileApi } from "@/services/profile-api";
+import { productApi } from "@/services/product-api";
 import { useConsultationStore } from "@/stores/consultation-store";
 import { resolveConsultationStyleProfile } from "@/hooks/use-hydrate-consultation-profiles";
 import { hasMinimalBodyProfile } from "@/lib/profile-prefill";
@@ -94,9 +95,18 @@ function AiProcessingContent() {
         await queryClient.invalidateQueries({ queryKey: ["body-profile"] });
         await queryClient.invalidateQueries({ queryKey: ["style-profile"] });
 
+        let selectedProductId = draft.selectedProductId ?? null;
+        if (selectedProductId) {
+          try {
+            await productApi.getById(selectedProductId);
+          } catch {
+            selectedProductId = null;
+          }
+        }
+
         const result = await recommendationApi.create({
           sessionId: draft.sessionId,
-          selectedProductId: draft.selectedProductId || null,
+          selectedProductId,
           ...(draft.occasionRequest.occasion ? { occasion: draft.occasionRequest.occasion } : {}),
           ...(draft.occasionRequest.desiredVibe ? { desiredVibe: draft.occasionRequest.desiredVibe } : {}),
           wardrobeMode: draft.wardrobeMode,

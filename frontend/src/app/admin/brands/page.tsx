@@ -2,15 +2,13 @@
 
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { adminApi } from "@/services/admin-api";
-import { PortalLayout, adminNav } from "@/components/layout/PortalLayout";
-import { PortalPageHeader } from "@/components/portal/PortalPageHeader";
+import { PortalAdminPage } from "@/components/portal/PortalAdminPage";
 import {
   PortalActionButton,
   PortalActionGroup,
+  PortalActionLink,
 } from "@/components/portal/PortalActionButton";
 import { Badge } from "@/components/ui/badge";
-import { LoadingSkeleton } from "@/components/common/LoadingSkeleton";
-import { ErrorState } from "@/components/common/ErrorState";
 import {
   PortalDataTable,
   PortalDataTableBody,
@@ -64,11 +62,16 @@ export default function AdminBrandsPage() {
   });
 
   return (
-    <PortalLayout title="Admin" nav={adminNav}>
-      <PortalPageHeader title="Quản lý thương hiệu" description="Duyệt đăng ký mới và quản lý trạng thái brand." />
-
-      {isLoading && <LoadingSkeleton type="list" />}
-      {error && <ErrorState onRetry={() => refetch()} />}
+    <PortalAdminPage
+      title="Quản lý thương hiệu"
+      description="Duyệt đăng ký mới và quản lý trạng thái brand."
+      isLoading={isLoading}
+      error={error}
+      onRetry={() => refetch()}
+      empty={!data?.length}
+      emptyTitle="Chưa có thương hiệu"
+      emptyDescription="Brand đăng ký mới sẽ xuất hiện tại đây để duyệt."
+    >
       {data && (
         <>
           <div className={portalCardListClass}>
@@ -85,6 +88,9 @@ export default function AdminBrandsPage() {
                   <Badge variant="outline">{b.status}</Badge>
                 </div>
                 <PortalActionGroup className={portalCardActionsClass}>
+                  <PortalActionLink href={`/admin/billing/brands/${b.id}`} variant="analytics">
+                    Gói & lượt
+                  </PortalActionLink>
                   {b.status === "PENDING" && (
                     <>
                       <PortalActionButton variant="approve" onClick={() => approve.mutate(b.id)}>
@@ -128,6 +134,9 @@ export default function AdminBrandsPage() {
                   <td className={portalTableTdClass}>{b.activePlanName ?? "—"}</td>
                   <td className={portalTableTdClass}>
                     <PortalActionGroup className={portalTableActionsClass}>
+                      <PortalActionLink href={`/admin/billing/brands/${b.id}`} variant="analytics">
+                        Gói & lượt
+                      </PortalActionLink>
                       {b.status === "PENDING" && (
                         <>
                           <PortalActionButton variant="approve" onClick={() => approve.mutate(b.id)}>
@@ -151,6 +160,6 @@ export default function AdminBrandsPage() {
           </PortalDataTable>
         </>
       )}
-    </PortalLayout>
+    </PortalAdminPage>
   );
 }

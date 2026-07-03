@@ -6,8 +6,17 @@ import { useQueryClient } from "@tanstack/react-query";
 import { PortalLayout, brandNav } from "@/components/layout/PortalLayout";
 import { PortalPageHeader } from "@/components/portal/PortalPageHeader";
 import { LoadingSkeleton } from "@/components/common/LoadingSkeleton";
+import { PageSuspense } from "@/components/common/PageSuspense";
 
 export default function BrandBillingReturnPage() {
+  return (
+    <PageSuspense>
+      <BrandBillingReturnContent />
+    </PageSuspense>
+  );
+}
+
+function BrandBillingReturnContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const queryClient = useQueryClient();

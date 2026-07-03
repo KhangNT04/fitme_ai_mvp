@@ -44,6 +44,28 @@ export const AI_START_HUB: NavHistoryEntry = {
   label: "Tư vấn AI",
 };
 
+export const SAVED_OUTFITS_HUB: NavHistoryEntry = {
+  href: "/saved-outfits",
+  label: "Đã lưu",
+};
+
+export const SAVED_FROM_PARAM = "saved";
+
+type SearchLike = { get(name: string): string | null } | null | undefined;
+
+export function isFromSavedList(search: SearchLike): boolean {
+  return search?.get("from") === SAVED_FROM_PARAM;
+}
+
+/** Fallback back target for AI / try-on result pages opened from Đã lưu. */
+export function resolveSavedResultBack(
+  kind: "ai" | "tryon",
+  fromSaved: boolean,
+): NavHistoryEntry {
+  if (fromSaved) return SAVED_OUTFITS_HUB;
+  return kind === "ai" ? DISCOVER_HUB : TRYON_HUB;
+}
+
 function pathOnly(href: string): string {
   return href.split("?")[0].replace(/\/$/, "") || "/";
 }
@@ -113,8 +135,6 @@ export function resolveProductPageBack(
 
   return DISCOVER_HUB;
 }
-
-type SearchLike = { get(name: string): string | null } | null | undefined;
 
 /** Whether consumer chrome should treat the session as try-on flow (bottom nav). */
 export function isTryOnNavContext(pathname: string, search?: SearchLike): boolean {

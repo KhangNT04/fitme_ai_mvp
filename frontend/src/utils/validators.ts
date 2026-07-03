@@ -1,5 +1,26 @@
 import { z } from "zod";
 
+const UNSET_SELECT = "__none__";
+
+/** Normalize empty / null / sentinel select values to undefined for optional fields. */
+function unsetOptionalValue(value: unknown): unknown {
+  if (value === null || value === undefined || value === "" || value === UNSET_SELECT) {
+    return undefined;
+  }
+  if (typeof value === "string" && value.trim() === "") {
+    return undefined;
+  }
+  return value;
+}
+
+function optionalEnumField<const T extends readonly [string, ...string[]]>(values: T) {
+  return z.preprocess(unsetOptionalValue, z.enum(values).optional());
+}
+
+function optionalStringField() {
+  return z.preprocess(unsetOptionalValue, z.string().optional());
+}
+
 /** Treat empty / missing as unset for optional text fields. */
 function optionalTextField() {
   return z
@@ -21,7 +42,7 @@ export const bodyProfileSchema = z.object({
   weightKg: z.number({ error: "Nhập cân nặng" }).min(25, "Cân nặng tối thiểu 25kg").max(250, "Cân nặng tối đa 250kg"),
   gender: z.enum(["FEMALE", "MALE", "OTHER"], { error: "Chọn giới tính" }),
   fitPreference: z.enum(["SLIM", "REGULAR", "RELAXED", "OVERSIZE", "UNSURE"], { error: "Chọn gu mặc" }),
-  skinTone: z.enum(["FAIR", "MEDIUM", "TAN", "DEEP", "UNSURE"]).optional(),
+  skinTone: optionalEnumField(["FAIR", "MEDIUM", "TAN", "DEEP", "UNSURE"]),
   goals: z.array(z.string()).optional(),
   shoulderWidthCm: optionalMeasurementField(20, 80),
   chestCm: optionalMeasurementField(50, 200),
@@ -34,9 +55,9 @@ export const bodyProfileSchema = z.object({
 });
 
 export const styleProfileSchema = z.object({
-  primaryStyle: z.string().optional(),
+  primaryStyle: optionalStringField(),
   secondaryStyles: z.array(z.string()).optional(),
-  riskLevel: z.enum(["SAFE", "BALANCED", "BOLD", "EXPERIMENTAL"]).optional(),
+  riskLevel: optionalEnumField(["SAFE", "BALANCED", "BOLD", "EXPERIMENTAL"]),
   artisticMode: z.boolean().optional(),
   preferredColors: z.array(z.string()).optional(),
   avoidedColors: z.array(z.string()).optional(),
@@ -75,14 +96,31 @@ export const resetPasswordSchema = z.object({
 });
 
 export const tryOnInputSchema = z.object({
-  heightCm: z.number().min(100).max(250),
-  weightKg: z.number().min(30).max(200),
-  fitPreference: z.string().min(1).optional(),
-  skinTone: z.string().min(1).optional(),
-  occasion: optionalTextField(),
-  desiredVibe: optionalTextField(),
-  usualSize: optionalTextField(),
+  heightCm: z.number({ error: "Nhập chiều cao" }).min(100, "Chiều cao tối thiểu 100cm").max(250, "Chiều cao tối đa 250cm"),
+  weightKg: z.number({ error: "Nhập cân nặng" }).min(30, "Cân nặng tối thiểu 30kg").max(200, "Cân nặng tối đa 200kg"),
+  fitPreference: z.enum(["SLIM", "REGULAR", "RELAXED", "OVERSIZE", "UNSURE"], { error: "Chọn gu mặc" }),
+  skinTone: optionalEnumField(["FAIR", "MEDIUM", "TAN", "DEEP", "UNSURE"]),
+  occasion: optionalTextField().optional(),
+  desiredVibe: optionalTextField().optional(),
+  usualSize: optionalTextField().optional(),
   inputMode: z.enum(["USER_PHOTO", "AVATAR", "OUTFIT_BOARD_ONLY"]),
+  photoUploadId: z.string().uuid().optional(),
+  avatarKey: z.string().optional(),
+}).superRefine((data, ctx) => {
+  if (data.inputMode === "USER_PHOTO" && !data.photoUploadId) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: "Cần upload và kiểm tra ảnh cá nhân",
+      path: ["photoUploadId"],
+    });
+  }
+  if (data.inputMode === "AVATAR" && !data.avatarKey) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: "Cần chọn avatar mẫu",
+      path: ["avatarKey"],
+    });
+  }
 });
 
 export const brandOnboardingSchema = z.object({
@@ -97,11 +135,51 @@ export const brandOnboardingSchema = z.object({
   description: z.string().optional(),
 });
 
-export type BodyProfileForm = z.infer<typeof bodyProfileSchema>;
-export type StyleProfileForm = z.infer<typeof styleProfileSchema>;
+export type SkinToneValue = "FAIR" | "MEDIUM" | "TAN" | "DEEP" | "UNSURE";
+export type RiskLevelValue = "SAFE" | "BALANCED" | "BOLD" | "EXPERIMENTAL";
+export type FitPreferenceValue = "SLIM" | "REGULAR" | "RELAXED" | "OVERSIZE" | "UNSURE";
+
+export type BodyProfileForm = {
+  heightCm: number;
+  weightKg: number;
+  gender: "FEMALE" | "MALE" | "OTHER";
+  fitPreference: FitPreferenceValue;
+  skinTone?: SkinToneValue;
+  goals?: string[];
+  shoulderWidthCm?: number;
+  chestCm?: number;
+  waistCm?: number;
+  abdomenCm?: number;
+  hipCm?: number;
+  thighCm?: number;
+  inseamCm?: number;
+  armLengthCm?: number;
+};
+
+export type StyleProfileForm = {
+  primaryStyle?: string;
+  secondaryStyles?: string[];
+  riskLevel?: RiskLevelValue;
+  artisticMode?: boolean;
+  preferredColors?: string[];
+  avoidedColors?: string[];
+};
+
+export type TryOnInputForm = {
+  heightCm: number;
+  weightKg: number;
+  fitPreference: FitPreferenceValue;
+  skinTone?: SkinToneValue;
+  occasion?: string;
+  desiredVibe?: string;
+  usualSize?: string;
+  inputMode: "USER_PHOTO" | "AVATAR" | "OUTFIT_BOARD_ONLY";
+  photoUploadId?: string;
+  avatarKey?: string;
+};
+
 export type OccasionForm = z.infer<typeof occasionSchema>;
 export type LoginForm = z.infer<typeof loginSchema>;
 export type RegisterForm = z.infer<typeof registerSchema>;
 export type ResetPasswordForm = z.infer<typeof resetPasswordSchema>;
-export type TryOnInputForm = z.infer<typeof tryOnInputSchema>;
 export type BrandOnboardingForm = z.infer<typeof brandOnboardingSchema>;

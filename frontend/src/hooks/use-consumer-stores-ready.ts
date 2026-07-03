@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useAuthStore } from "@/stores/auth-store";
 import { useSessionStore } from "@/stores/session-store";
+import { useConsultationStore } from "@/stores/consultation-store";
 import { AUTH_TOKEN_KEY, AUTH_REFRESH_KEY, SESSION_STORAGE_KEY } from "@/utils/constants";
 
 function syncAuthTokensToLocalStorage(): void {
@@ -55,6 +56,7 @@ export function useConsumerStoresReady(): boolean {
       await Promise.all([
         waitForStoreHydration(useAuthStore),
         waitForStoreHydration(useSessionStore),
+        waitForStoreHydration(useConsultationStore),
       ]);
       syncAuthTokensToLocalStorage();
       syncSessionTokenToLocalStorage();

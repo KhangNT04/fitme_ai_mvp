@@ -30,6 +30,11 @@ interface ProductCardProps {
   compact?: boolean;
   /** Controls product detail back link + bottom nav context */
   detailContext?: ConsumerNavContext;
+  /** Try-on picker: show Chọn button and selection ring */
+  tryOnPicker?: {
+    selected: boolean;
+    onSelect: () => void;
+  };
 }
 
 const imageSizeClass: Record<"default" | "compact" | "catalog", string> = {
@@ -48,6 +53,7 @@ export function ProductCard({
   size,
   compact = false,
   detailContext,
+  tryOnPicker,
 }: ProductCardProps) {
   const cardSize = size ?? (compact ? "compact" : "default");
   const productHref = href ?? productDetailHref(product.id, detailContext);
@@ -60,7 +66,8 @@ export function ProductCard({
     <Card
       className={cn(
         "product-card-luxe group overflow-hidden border-border/50 bg-white",
-        (cardSize === "compact" || cardSize === "catalog") && "rounded-xl"
+        (cardSize === "compact" || cardSize === "catalog") && "rounded-xl",
+        tryOnPicker?.selected && "ring-2 ring-primary ring-offset-2",
       )}
     >
       <Link href={productHref} className="block w-full">
@@ -196,7 +203,26 @@ export function ProductCard({
           >
             <Link href={productHref}>Xem</Link>
           </Button>
-          {showTryOn && product.aiTryOnEligible && (
+          {tryOnPicker ? (
+            <Button
+              type="button"
+              size="sm"
+              variant={tryOnPicker.selected ? "secondary" : "ai"}
+              className={cn(
+                "flex-1",
+                !tryOnPicker.selected && "btn-shimmer",
+                (cardSize === "compact" || cardSize === "catalog") &&
+                  "h-7 px-1.5 text-[9px] sm:h-7 sm:px-2 sm:text-[10px] md:text-xs"
+              )}
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                tryOnPicker.onSelect();
+              }}
+            >
+              {tryOnPicker.selected ? "Đã chọn" : "Chọn"}
+            </Button>
+          ) : showTryOn && product.aiTryOnEligible ? (
             <Button
               size="sm"
               variant="ai"
@@ -209,7 +235,7 @@ export function ProductCard({
             >
               <Link href={`/try-on?product=${product.id}`}>Thử AI</Link>
             </Button>
-          )}
+          ) : null}
         </div>
       </CardContent>
     </Card>

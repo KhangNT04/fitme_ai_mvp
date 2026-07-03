@@ -37,6 +37,24 @@ export interface BrandBillingSummary {
   }>;
 }
 
+export interface AdminBrandBillingDetail extends BrandBillingSummary {
+  brandName: string;
+  contactEmail?: string | null;
+  brandStatus: string;
+  billingActive: boolean;
+}
+
+export interface AdminBrandBillingListItem {
+  id: string;
+  name: string;
+  contactEmail?: string | null;
+  status: string;
+  createdAt: string;
+  totalQuotaRemaining: number;
+  activePlanName?: string | null;
+  dashboardEnabled: boolean;
+}
+
 export interface CheckoutResponse {
   orderId: string;
   payosOrderCode: number;

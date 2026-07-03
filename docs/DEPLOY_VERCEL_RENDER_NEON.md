@@ -78,6 +78,20 @@ Giữ `DB_USERNAME` và `DB_PASSWORD` riêng (không nhét vào URL).
 | `FITME_SEED_FASHION_REFRESH` | `true` *(mặc định prod — đồng bộ catalog thời trang khi backend khởi động)* |
 | `FITME_SEED_PASSWORD` | chỉ khi bật seed — dùng mật khẩu mạnh |
 | `UPLOAD_DIR` | `/tmp/uploads` |
+| `PAYOS_MOCK` | `true` *(test billing trên cloud không cần key; đổi `false` khi có PayOS)* |
+| `PAYOS_RETURN_URL` | `https://fitme-ai-mvp.vercel.app/brand/billing/return?status=success` |
+| `PAYOS_CANCEL_URL` | `https://fitme-ai-mvp.vercel.app/brand/billing/return?status=cancel` |
+| `PAYOS_CLIENT_ID` | *(chỉ khi `PAYOS_MOCK=false`)* |
+| `PAYOS_API_KEY` | *(chỉ khi `PAYOS_MOCK=false`)* |
+| `PAYOS_CHECKSUM_KEY` | *(chỉ khi `PAYOS_MOCK=false`)* |
+
+**PayOS webhook** (khi dùng thanh toán thật): đăng ký trên [my.payos.vn](https://my.payos.vn):
+
+```
+https://fitme-api.onrender.com/api/v1/webhooks/payos
+```
+
+*(Thay `fitme-api` bằng URL Render thực tế nếu khác.)*
 
 5. **Create Web Service** — đợi build ~5–10 phút.
 6. Lấy URL backend, ví dụ: `https://fitme-api.onrender.com`
@@ -130,6 +144,8 @@ https://fitme-ai-mvp.vercel.app
 | API trực tiếp | `https://fitme-api.onrender.com/api/v1/products` |
 | API qua Vercel proxy | `https://YOUR.vercel.app/api/v1/products` |
 | Trang chủ | `https://YOUR.vercel.app` |
+| Brand billing | `https://fitme-ai-mvp.vercel.app/brand/billing` |
+| Admin gói brand | `https://fitme-ai-mvp.vercel.app/admin/billing/plans` |
 | Brand login | `/brand/login` — chỉ khi `FITME_SEED_ENABLED=true` và DB đã seed |
 
 ---

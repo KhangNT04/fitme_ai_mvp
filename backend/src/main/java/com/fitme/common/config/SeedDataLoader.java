@@ -6,6 +6,7 @@ import com.fitme.admin.repository.OccasionRuleRepository;
 import com.fitme.admin.repository.StyleRuleRepository;
 import com.fitme.auth.entity.UserAccount;
 import com.fitme.auth.repository.UserAccountRepository;
+import com.fitme.billing.service.BrandBillingService;
 import com.fitme.brand.entity.Brand;
 import com.fitme.brand.repository.BrandRepository;
 import com.fitme.common.enums.*;
@@ -44,6 +45,7 @@ public class SeedDataLoader implements CommandLineRunner {
     private final PasswordEncoder passwordEncoder;
     private final FashionCatalogLoader fashionCatalogLoader;
     private final FashionCatalogSeeder fashionCatalogSeeder;
+    private final BrandBillingService brandBillingService;
 
     @Value("${fitme.seed.admin-email:admin@fitme.ai}")
     private String adminEmail;
@@ -123,6 +125,7 @@ public class SeedDataLoader implements CommandLineRunner {
         for (FashionCatalogLoader.BrandEntry entry : fashionCatalogLoader.load().brands) {
             Brand brand = ensureApprovedBrand(brandOwner.getId(), entry);
             totalProducts += fashionCatalogSeeder.seedBrandCatalog(brand, entry);
+            brandBillingService.grantSeedEntitlement(brand.getId(), "SUB_GROWTH");
         }
 
         brandRepository.save(Brand.builder()
@@ -196,6 +199,7 @@ public class SeedDataLoader implements CommandLineRunner {
                 log.info("Refreshing fashion catalog for brand {}", brand.getName());
                 fashionCatalogSeeder.syncBrandCatalog(brand, entry);
             }
+            brandBillingService.grantSeedEntitlement(brand.getId(), "SUB_GROWTH");
         }
     }
 

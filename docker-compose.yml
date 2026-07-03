@@ -21,6 +21,8 @@ services:
       dockerfile: Dockerfile
     ports:
       - "8080:8080"
+    env_file:
+      - .env
     environment:
       DB_URL: jdbc:postgresql://postgres:5432/fitme
       DB_USERNAME: ${POSTGRES_USER:-fitme}
@@ -28,6 +30,14 @@ services:
       JWT_SECRET: ${JWT_SECRET:-fitme-dev-secret-change-in-production-min-256-bits-long-key-here}
       CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:3000}
       UPLOAD_DIR: /app/uploads
+      FITME_SEED_ENABLED: ${FITME_SEED_ENABLED:-true}
+      FITME_SEED_FASHION_REFRESH: ${FITME_SEED_FASHION_REFRESH:-true}
+      PAYOS_MOCK: ${PAYOS_MOCK:-true}
+      PAYOS_CLIENT_ID: ${PAYOS_CLIENT_ID:-}
+      PAYOS_API_KEY: ${PAYOS_API_KEY:-}
+      PAYOS_CHECKSUM_KEY: ${PAYOS_CHECKSUM_KEY:-}
+      PAYOS_RETURN_URL: ${PAYOS_RETURN_URL:-http://localhost:3000/brand/billing/return?status=success}
+      PAYOS_CANCEL_URL: ${PAYOS_CANCEL_URL:-http://localhost:3000/brand/billing/return?status=cancel}
     volumes:
       - backend_uploads:/app/uploads
     depends_on:

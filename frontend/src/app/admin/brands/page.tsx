@@ -78,6 +78,9 @@ export default function AdminBrandsPage() {
                   <div className="min-w-0">
                     <p className="font-medium text-foreground">{b.name}</p>
                     <p className="mt-1 truncate text-sm text-muted-foreground">{b.contactEmail ?? "—"}</p>
+                    <p className="mt-1 text-xs text-muted-foreground">
+                      Lượt: {b.totalQuotaRemaining ?? 0} · Gói: {b.activePlanName ?? "—"}
+                    </p>
                   </div>
                   <Badge variant="outline">{b.status}</Badge>
                 </div>
@@ -108,6 +111,8 @@ export default function AdminBrandsPage() {
                 <th className={portalTableThClass}>Tên</th>
                 <th className={portalTableThClass}>Email liên hệ</th>
                 <th className={portalTableThClass}>Trạng thái</th>
+                <th className={portalTableThClass}>Lượt còn</th>
+                <th className={portalTableThClass}>Gói</th>
                 <th className={portalTableThClass}>Thao tác</th>
               </tr>
             </PortalDataTableHead>
@@ -119,6 +124,8 @@ export default function AdminBrandsPage() {
                   <td className={portalTableTdClass}>
                     <Badge variant="outline">{b.status}</Badge>
                   </td>
+                  <td className={portalTableTdClass}>{b.totalQuotaRemaining ?? "—"}</td>
+                  <td className={portalTableTdClass}>{b.activePlanName ?? "—"}</td>
                   <td className={portalTableTdClass}>
                     <PortalActionGroup className={portalTableActionsClass}>
                       {b.status === "PENDING" && (

@@ -67,6 +67,9 @@ public class TryOnRequest {
     @Builder.Default
     private TryOnStatus status = TryOnStatus.DRAFT;
 
+    @Column(name = "preview_generation_id")
+    private UUID previewGenerationId;
+
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;

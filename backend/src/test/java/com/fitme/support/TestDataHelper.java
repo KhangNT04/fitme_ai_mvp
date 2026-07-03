@@ -2,6 +2,8 @@ package com.fitme.support;
 
 import com.fitme.auth.entity.UserAccount;
 import com.fitme.auth.repository.UserAccountRepository;
+import com.fitme.billing.entity.BrandQuotaBalance;
+import com.fitme.billing.repository.BrandQuotaBalanceRepository;
 import com.fitme.brand.entity.Brand;
 import com.fitme.brand.repository.BrandRepository;
 import com.fitme.common.enums.*;
@@ -29,6 +31,7 @@ public class TestDataHelper {
     private final ProductVariantRepository variantRepository;
     private final UserAccountRepository userAccountRepository;
     private final PasswordEncoder passwordEncoder;
+    private final BrandQuotaBalanceRepository brandQuotaBalanceRepository;
 
     public record BrandOwnerContext(UserAccount user, Brand brand) {}
 
@@ -117,6 +120,12 @@ public class TestDataHelper {
                 .sizeLabel("M")
                 .sku("TEST-SKU")
                 .stockStatus(StockStatus.IN_STOCK)
+                .build());
+
+        brandQuotaBalanceRepository.save(BrandQuotaBalance.builder()
+                .brandId(brand.getId())
+                .subscriptionRemaining(1000)
+                .topupRemaining(0)
                 .build());
 
         return product;

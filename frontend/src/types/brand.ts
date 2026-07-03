@@ -14,6 +14,9 @@ export interface Brand {
   contactPhone?: string;
   status: BrandStatus;
   createdAt: string;
+  totalQuotaRemaining?: number;
+  activePlanName?: string | null;
+  dashboardEnabled?: boolean;
 }
 
 export interface BrandOnboardingRequest {

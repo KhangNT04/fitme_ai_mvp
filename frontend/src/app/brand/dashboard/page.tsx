@@ -3,6 +3,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { Package, CheckCircle2, MousePointerClick, Percent, Shirt, Sparkles, TrendingUp } from "lucide-react";
 import { brandApi } from "@/services/brand-api";
+import { useBrandDashboardGate } from "@/hooks/use-brand-dashboard-gate";
 import { PortalLayout, brandNav } from "@/components/layout/PortalLayout";
 import { PortalPageHeader } from "@/components/portal/PortalPageHeader";
 import { StatCard, StatCardGrid } from "@/components/common/AnalyticsChart";
@@ -11,10 +12,21 @@ import { ErrorState } from "@/components/common/ErrorState";
 import { formatPercent } from "@/utils/format-price";
 
 export default function BrandDashboardPage() {
+  const gate = useBrandDashboardGate();
   const { data, isLoading, error, refetch } = useQuery({
     queryKey: ["brand-dashboard"],
     queryFn: () => brandApi.getDashboard(),
+    enabled: gate.dashboardEnabled,
   });
+
+  if (gate.isLoading || (!gate.dashboardEnabled && !gate.error)) {
+    return (
+      <PortalLayout title="Brand" nav={brandNav}>
+        <PortalPageHeader title="Tổng quan" />
+        <LoadingSkeleton count={4} />
+      </PortalLayout>
+    );
+  }
 
   return (
     <PortalLayout title="Brand" nav={brandNav}>

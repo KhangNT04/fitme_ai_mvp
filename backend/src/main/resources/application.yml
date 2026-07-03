@@ -46,6 +46,13 @@ fitme:
     expose-details: false
   test:
     expose-reset-tokens: ${FITME_TEST_EXPOSE_RESET_TOKENS:false}
+  payos:
+    mock: ${PAYOS_MOCK:true}
+    client-id: ${PAYOS_CLIENT_ID:}
+    api-key: ${PAYOS_API_KEY:}
+    checksum-key: ${PAYOS_CHECKSUM_KEY:}
+    return-url: ${PAYOS_RETURN_URL:http://localhost:3000/brand/billing/return?status=success}
+    cancel-url: ${PAYOS_CANCEL_URL:http://localhost:3000/brand/billing/return?status=cancel}
 
 springdoc:
   api-docs:

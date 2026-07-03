@@ -1,12 +1,16 @@
 package com.fitme.tryon.service;
 
 import com.fitme.analytics.service.AnalyticsService;
+import com.fitme.billing.service.BrandQuotaService;
 import com.fitme.common.enums.TryOnStatus;
 import com.fitme.common.exception.BusinessException;
 import com.fitme.common.exception.NotFoundException;
 import com.fitme.common.security.RequestContext;
-import com.fitme.preview.service.PreviewGenerator;
+import com.fitme.preview.entity.PreviewGeneration;
+import com.fitme.preview.service.VtonTryOnService;
 import com.fitme.tryon.dto.*;
+import com.fitme.billing.service.BrandQuotaService;
+import com.fitme.product.repository.ProductRepository;
 import com.fitme.tryon.entity.TryOnItem;
 import com.fitme.tryon.entity.TryOnRequest;
 import com.fitme.tryon.repository.TryOnItemRepository;
@@ -23,8 +27,10 @@ public class TryOnService {
 
     private final TryOnRequestRepository tryOnRequestRepository;
     private final TryOnItemRepository tryOnItemRepository;
-    private final PreviewGenerator previewGenerator;
+    private final VtonTryOnService vtonTryOnService;
     private final AnalyticsService analyticsService;
+    private final ProductRepository productRepository;
+    private final BrandQuotaService brandQuotaService;
 
     @Transactional
     public TryOnResponse create(CreateTryOnRequest request) {
@@ -50,7 +56,9 @@ public class TryOnService {
     }
 
     public TryOnResponse get(UUID id) {
-        return toResponse(getOwned(id));
+        TryOnResponse response = toResponse(getOwned(id));
+        attachPreviewIfReady(getOwned(id), response);
+        return response;
     }
 
     @Transactional
@@ -69,28 +77,33 @@ public class TryOnService {
     @Transactional
     public TryOnResponse generate(UUID id) {
         TryOnRequest tryOn = getOwned(id);
-        if (tryOnItemRepository.findByTryOnRequestId(id).isEmpty()) {
+        var items = tryOnItemRepository.findByTryOnRequestId(id);
+        if (items.isEmpty()) {
             throw new BusinessException("Cần thêm ít nhất một sản phẩm");
         }
+        var brandIds = items.stream()
+                .map(TryOnItem::getProductId)
+                .map(productRepository::findById)
+                .filter(java.util.Optional::isPresent)
+                .map(opt -> opt.get().getBrandId())
+                .collect(java.util.stream.Collectors.toCollection(java.util.LinkedHashSet::new));
+        brandQuotaService.precheckQuotaForBrands(brandIds);
+
         tryOn.setStatus(TryOnStatus.PROCESSING);
         tryOnRequestRepository.save(tryOn);
-        tryOn.setStatus(TryOnStatus.COMPLETED);
-        tryOnRequestRepository.save(tryOn);
+        vtonTryOnService.startJob(tryOn);
+        tryOn = tryOnRequestRepository.findById(id).orElseThrow();
         analyticsService.track("TRY_ON_GENERATED", tryOn.getUserId(), tryOn.getSessionId(),
                 null, null, null, id, null);
-        return toResponse(tryOn);
+        TryOnResponse response = toResponse(tryOn);
+        attachPreviewIfReady(tryOn, response);
+        return response;
     }
 
     public TryOnResponse getResult(UUID id) {
         TryOnRequest tryOn = getOwned(id);
         TryOnResponse response = toResponse(tryOn);
-        if (tryOn.getStatus() == TryOnStatus.COMPLETED) {
-            PreviewGenerator.PreviewResult result = previewGenerator.generate(
-                    new PreviewGenerator.PreviewRequest(null, id, tryOn.getPhotoUploadId(),
-                            com.fitme.common.enums.PreviewType.USER_PHOTO_2D));
-            response.setPreviewImageUrl(result.imageUrl());
-            response.setDisclaimer(result.disclaimer());
-        }
+        attachPreviewIfReady(tryOn, response);
         return response;
     }
 
@@ -116,6 +129,19 @@ public class TryOnService {
     public void save(UUID id) {
         analyticsService.track("OUTFIT_SAVED", RequestContext.getCurrentUserId().orElse(null),
                 RequestContext.getSessionId().orElse(null), null, null, null, id, null);
+    }
+
+    private void attachPreviewIfReady(TryOnRequest tryOn, TryOnResponse response) {
+        if (tryOn.getStatus() != TryOnStatus.COMPLETED && tryOn.getStatus() != TryOnStatus.FAILED) {
+            return;
+        }
+        vtonTryOnService.findPreviewForTryOn(tryOn.getId()).ifPresent(preview -> {
+            response.setPreviewImageUrl(preview.getPreviewImageUrl());
+            response.setDisclaimer(preview.getDisclaimer());
+            if (preview.getErrorMessage() != null && !preview.getErrorMessage().isBlank()) {
+                response.setErrorMessage(preview.getErrorMessage());
+            }
+        });
     }
 
     private void updateVariant(UUID tryOnId, VariantRequest request, String eventType) {

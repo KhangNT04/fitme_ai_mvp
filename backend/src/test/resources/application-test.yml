@@ -22,6 +22,8 @@ fitme:
     expose-details: true
   test:
     expose-reset-tokens: true
+  payos:
+    mock: true
 
 logging:
   level:

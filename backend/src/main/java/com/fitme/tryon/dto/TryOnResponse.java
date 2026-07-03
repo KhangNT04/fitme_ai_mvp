@@ -16,6 +16,7 @@ public class TryOnResponse {
     private List<TryOnItemDto> items;
     private String previewImageUrl;
     private String disclaimer;
+    private String errorMessage;
 
     @Data
     @Builder

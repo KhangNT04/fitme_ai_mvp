@@ -23,7 +23,7 @@ services:
       - key: JWT_SECRET
         generateValue: true
       - key: CORS_ORIGINS
-        sync: false
+        value: https://fitme-ai-mvp.vercel.app
       - key: FITME_SEED_ENABLED
         value: "false"
       - key: FITME_SEED_FASHION_REFRESH
@@ -32,3 +32,17 @@ services:
         value: fitme123
       - key: UPLOAD_DIR
         value: /tmp/uploads
+      # Brand billing — mock=true: bấm mua cộng lượt ngay (không cần PayOS key)
+      - key: PAYOS_MOCK
+        value: "true"
+      - key: PAYOS_RETURN_URL
+        value: https://fitme-ai-mvp.vercel.app/brand/billing/return?status=success
+      - key: PAYOS_CANCEL_URL
+        value: https://fitme-ai-mvp.vercel.app/brand/billing/return?status=cancel
+      # Khi bật PayOS thật: PAYOS_MOCK=false + set 3 key dưới trong Render dashboard (sync: false)
+      - key: PAYOS_CLIENT_ID
+        sync: false
+      - key: PAYOS_API_KEY
+        sync: false
+      - key: PAYOS_CHECKSUM_KEY
+        sync: false

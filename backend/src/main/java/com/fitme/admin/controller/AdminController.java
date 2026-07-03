@@ -1,5 +1,6 @@
 package com.fitme.admin.controller;
 
+import com.fitme.admin.dto.AdminBrandListItemDto;
 import com.fitme.admin.dto.ConsentRecordDto;
 import com.fitme.admin.dto.DataDeletionRequestDto;
 import com.fitme.admin.dto.OccasionRuleDto;
@@ -7,6 +8,7 @@ import com.fitme.admin.dto.OccasionRuleRequest;
 import com.fitme.admin.dto.PreviewGenerationDto;
 import com.fitme.admin.dto.StyleRuleDto;
 import com.fitme.admin.dto.StyleRuleRequest;
+import com.fitme.admin.service.AdminBrandListService;
 import com.fitme.admin.service.AdminDtoMapper;
 import com.fitme.admin.service.AdminFlaggedLinkService;
 import com.fitme.admin.service.AdminPreviewMonitoringService;
@@ -41,6 +43,7 @@ public class AdminController {
     private final PrivacyService privacyService;
     private final AdminPreviewMonitoringService adminPreviewMonitoringService;
     private final AdminDtoMapper adminDtoMapper;
+    private final AdminBrandListService adminBrandListService;
 
     @GetMapping("/dashboard")
     public ApiResponse<AdminDashboardResponse> dashboard() {
@@ -48,8 +51,8 @@ public class AdminController {
     }
 
     @GetMapping("/brands")
-    public ApiResponse<List<BrandResponse>> brands() {
-        return ApiResponse.ok(brandService.listAllBrands());
+    public ApiResponse<List<AdminBrandListItemDto>> brands() {
+        return ApiResponse.ok(adminBrandListService.listBrandsWithBilling());
     }
 
     @PostMapping("/brands/{id}/approve")

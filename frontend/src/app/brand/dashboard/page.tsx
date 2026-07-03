@@ -9,6 +9,7 @@ import { PortalPageHeader } from "@/components/portal/PortalPageHeader";
 import { StatCard, StatCardGrid } from "@/components/common/AnalyticsChart";
 import { LoadingSkeleton } from "@/components/common/LoadingSkeleton";
 import { ErrorState } from "@/components/common/ErrorState";
+import { BrandDashboardLockedState } from "@/components/brand/BrandDashboardLockedState";
 import { formatPercent } from "@/utils/format-price";
 
 export default function BrandDashboardPage() {
@@ -19,11 +20,29 @@ export default function BrandDashboardPage() {
     enabled: gate.dashboardEnabled,
   });
 
-  if (gate.isLoading || (!gate.dashboardEnabled && !gate.error)) {
+  if (gate.isLoading) {
     return (
       <PortalLayout title="Brand" nav={brandNav}>
         <PortalPageHeader title="Tổng quan" />
         <LoadingSkeleton count={4} />
+      </PortalLayout>
+    );
+  }
+
+  if (gate.error) {
+    return (
+      <PortalLayout title="Brand" nav={brandNav}>
+        <PortalPageHeader title="Tổng quan" />
+        <ErrorState onRetry={() => gate.refetch()} />
+      </PortalLayout>
+    );
+  }
+
+  if (gate.blockReason) {
+    return (
+      <PortalLayout title="Brand" nav={brandNav}>
+        <PortalPageHeader title="Tổng quan" />
+        <BrandDashboardLockedState pageLabel="Tổng quan" reason={gate.blockReason} />
       </PortalLayout>
     );
   }

@@ -2,6 +2,7 @@ import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import type { AuthUser } from "@/types/auth";
 import { authApi } from "@/services/auth-api";
+import { useConsultationStore } from "@/stores/consultation-store";
 import { AUTH_TOKEN_KEY, AUTH_REFRESH_KEY } from "@/utils/constants";
 
 async function syncPortalSession(accessToken: string): Promise<void> {
@@ -35,6 +36,10 @@ export const useAuthStore = create<AuthState>()(
       accessToken: null,
       refreshToken: null,
       setAuth: async (user, accessToken, refreshToken) => {
+        const prevUserId = get().user?.id;
+        if (prevUserId && prevUserId !== user.id) {
+          useConsultationStore.getState().reset();
+        }
         if (typeof window !== "undefined") {
           localStorage.setItem(AUTH_TOKEN_KEY, accessToken);
           localStorage.setItem(AUTH_REFRESH_KEY, refreshToken);
@@ -52,6 +57,7 @@ export const useAuthStore = create<AuthState>()(
       },
       logout: async () => {
         await authApi.logout();
+        useConsultationStore.getState().reset();
         get().clearAuth();
       },
       isAuthenticated: () => !!get().accessToken,

@@ -1,23 +1,25 @@
 "use client";
 
-import { useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { billingApi } from "@/services/billing-api";
+import { getBrandDashboardBlockReason } from "@/lib/brand-dashboard-access";
 
 export function useBrandDashboardGate() {
-  const router = useRouter();
-  const { data, isLoading, error } = useQuery({
+  const query = useQuery({
     queryKey: ["brand-billing-summary"],
     queryFn: () => billingApi.getSummary(),
     retry: false,
   });
 
-  useEffect(() => {
-    if (!isLoading && data && !data.dashboardEnabled) {
-      router.replace("/brand/billing");
-    }
-  }, [data, isLoading, router]);
+  const blockReason = useMemo(
+    () => (query.data ? getBrandDashboardBlockReason(query.data) : null),
+    [query.data],
+  );
 
-  return { data, isLoading, error, dashboardEnabled: data?.dashboardEnabled ?? false };
+  return {
+    ...query,
+    dashboardEnabled: query.data?.dashboardEnabled ?? false,
+    blockReason,
+  };
 }

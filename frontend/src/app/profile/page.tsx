@@ -16,7 +16,6 @@ import {
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { useAuthStore } from "@/stores/auth-store";
-import { useConsultationStore } from "@/stores/consultation-store";
 import { useSavedProfiles } from "@/hooks/use-saved-profiles";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -25,7 +24,6 @@ import { PageShell } from "@/components/layout/PageShell";
 import { CollapsingPageHeader } from "@/components/layout/CollapsingPageHeader";
 import { consumerPageShellClass, consumerGuestPromptClass } from "@/lib/design-tokens";
 import { FIT_PREFERENCES, GENDERS, RISK_LEVELS, SKIN_TONES } from "@/utils/constants";
-import { mergeBodyProfiles, mergeStyleProfiles } from "@/lib/profile-merge";
 import { hasMinimalBodyProfile, hasStyleProfileContent } from "@/lib/profile-prefill";
 import { cn } from "@/lib/utils";
 import type { UserRole } from "@/types/auth";
@@ -191,17 +189,13 @@ function GuestProfilePrompt() {
 
 export default function ProfilePage() {
   const { user, isAuthenticated, logout } = useAuthStore();
-  const draftBodyProfile = useConsultationStore((s) => s.draft.bodyProfile);
-  const draftStyleProfile = useConsultationStore((s) => s.draft.styleProfile);
-  const { bodyProfile: savedBodyProfile, styleProfile: savedStyleProfile, isLoading: profilesLoading } =
+  const { bodyProfile, styleProfile, isLoading: profilesLoading } =
     useSavedProfiles({ enabled: isAuthenticated() });
 
   if (!isAuthenticated()) {
     return <GuestProfilePrompt />;
   }
 
-  const bodyProfile = mergeBodyProfiles(savedBodyProfile, draftBodyProfile);
-  const styleProfile = mergeStyleProfiles(savedStyleProfile, draftStyleProfile);
   const hasBody = hasMinimalBodyProfile(bodyProfile);
   const hasStyle = hasStyleProfileContent(styleProfile);
 

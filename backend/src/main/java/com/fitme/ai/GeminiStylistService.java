@@ -16,9 +16,12 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Optional;
+import java.util.Map;
 import java.util.UUID;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -31,7 +34,7 @@ public class GeminiStylistService {
     private final GeminiOutfitValidator outfitValidator;
     private final SizeResolutionService sizeResolutionService;
 
-    public Optional<GeminiStylistResult> suggest(
+    public StylistSuggestOutcome suggest(
             BodyProfile body,
             StyleProfile style,
             CreateRecommendationRequest request,
@@ -39,18 +42,23 @@ public class GeminiStylistService {
             List<Product> candidates,
             UUID selectedProductId) {
         if (!properties.getAi().isGeminiStylistEnabled()) {
-            return Optional.empty();
+            return StylistSuggestOutcome.fallback("stylist_disabled");
         }
         try {
+            int limit = properties.getAi().getStylistCandidateLimit();
+            List<Product> limitedCandidates = buildLimitedCandidates(candidates, selectedProductId, limit);
+
             String contextJson = contextBuilder.buildContext(
-                    body, style, request, wardrobe, candidates, selectedProductId);
-            Optional<GeminiOutfitSuggestion> raw = geminiStylistClient.suggestOutfit(contextJson);
+                    body, style, request, wardrobe, limitedCandidates, selectedProductId);
+            var raw = geminiStylistClient.suggestOutfit(contextJson);
             if (raw.isEmpty()) {
-                return Optional.empty();
+                return StylistSuggestOutcome.fallback("gemini_empty");
             }
             GeminiOutfitSuggestion suggestion = raw.get();
+            List<Product> validationCandidates =
+                    expandCandidatesForSuggestion(limitedCandidates, candidates, suggestion);
             List<RecommendationResponse.OutfitItemDto> items =
-                    outfitValidator.validateAndMap(suggestion, candidates, body);
+                    outfitValidator.validateAndMap(suggestion, validationCandidates, body);
 
             String recommendedSize = suggestion.getRecommendedSize();
             if (recommendedSize == null || recommendedSize.isBlank()) {
@@ -82,7 +90,7 @@ public class GeminiStylistService {
                 title = "Outfit " + request.getOccasion() + " phong cách " + styleLabel;
             }
 
-            return Optional.of(new GeminiStylistResult(
+            return StylistSuggestOutcome.success(new GeminiStylistResult(
                     title,
                     items,
                     recommendedSize,
@@ -95,9 +103,57 @@ public class GeminiStylistService {
                     exp != null ? exp.getOccasionFit() : null,
                     exp != null ? exp.getColorFit() : null,
                     wardrobeFit));
+        } catch (IllegalArgumentException ex) {
+            log.warn("Gemini stylist validation failed, will fallback to rules: reason=validation_failed message={}",
+                    ex.getMessage());
+            return StylistSuggestOutcome.fallback("validation_failed");
         } catch (Exception ex) {
-            log.warn("Gemini stylist failed, will fallback to rules: {}", ex.getMessage());
-            return Optional.empty();
+            log.warn("Gemini stylist failed, will fallback to rules: reason=exception message={}", ex.getMessage());
+            return StylistSuggestOutcome.fallback("exception");
         }
+    }
+
+    private static List<Product> buildLimitedCandidates(
+            List<Product> candidates, UUID selectedProductId, int limit) {
+        if (candidates.size() <= limit) {
+            return candidates;
+        }
+        LinkedHashMap<UUID, Product> merged = new LinkedHashMap<>();
+        if (selectedProductId != null) {
+            candidates.stream()
+                    .filter(product -> selectedProductId.equals(product.getId()))
+                    .findFirst()
+                    .ifPresent(product -> merged.put(product.getId(), product));
+        }
+        for (Product product : candidates) {
+            if (merged.size() >= limit) {
+                break;
+            }
+            merged.putIfAbsent(product.getId(), product);
+        }
+        return List.copyOf(merged.values());
+    }
+
+    private static List<Product> expandCandidatesForSuggestion(
+            List<Product> limitedCandidates,
+            List<Product> allCandidates,
+            GeminiOutfitSuggestion suggestion) {
+        Map<UUID, Product> merged = limitedCandidates.stream()
+                .collect(Collectors.toMap(Product::getId, Function.identity(), (a, b) -> a, LinkedHashMap::new));
+        Map<UUID, Product> allById = allCandidates.stream()
+                .collect(Collectors.toMap(Product::getId, Function.identity(), (a, b) -> a));
+        if (suggestion.getItems() != null) {
+            for (GeminiOutfitSuggestion.Item item : suggestion.getItems()) {
+                if (item.getProductId() == null || item.getProductId().isBlank()) {
+                    continue;
+                }
+                UUID productId = UUID.fromString(item.getProductId());
+                Product product = allById.get(productId);
+                if (product != null) {
+                    merged.putIfAbsent(productId, product);
+                }
+            }
+        }
+        return List.copyOf(merged.values());
     }
 }

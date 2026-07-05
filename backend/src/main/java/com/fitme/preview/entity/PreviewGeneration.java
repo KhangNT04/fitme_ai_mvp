@@ -62,4 +62,8 @@ public class PreviewGeneration {
 
     @Column(name = "vton_job_id")
     private String vtonJobId;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "preview_source")
+    private com.fitme.common.enums.PreviewSource previewSource;
 }

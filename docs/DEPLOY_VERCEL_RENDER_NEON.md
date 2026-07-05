@@ -84,9 +84,36 @@ Giữ `DB_USERNAME` và `DB_PASSWORD` riêng (không nhét vào URL).
 | `PAYOS_CLIENT_ID` | *(chỉ khi `PAYOS_MOCK=false`)* |
 | `PAYOS_API_KEY` | *(chỉ khi `PAYOS_MOCK=false`)* |
 | `PAYOS_CHECKSUM_KEY` | *(chỉ khi `PAYOS_MOCK=false`)* |
-| `FITME_AI_STYLIST_MODE` | `rule` *(mặc định; đặt `gemini` để bật AI stylist)* |
-| `GEMINI_API_KEY` | API key từ [Google AI Studio](https://aistudio.google.com/apikey) *(chỉ khi `FITME_AI_STYLIST_MODE=gemini`)* |
+| `FITME_AI_STYLIST_MODE` | `gemini` *(production; `rule` chỉ khi tắt Gemini)* |
+| `GEMINI_API_KEY` | API key từ [Google AI Studio](https://aistudio.google.com/apikey) |
 | `GEMINI_MODEL` | `gemini-2.0-flash` *(tùy chọn)* |
+| `GEMINI_TIMEOUT_MS` | `25000` *(khuyến nghị trên Render)* |
+| `FITME_AI_MODE` | `hf` *(gọi ai-vton; `mock` chỉ dev local)* |
+| `AI_VTON_URL` | `https://fitme-ai-vton.onrender.com` |
+| `FITME_PUBLIC_BASE_URL` | URL backend Render (vd. `https://fitme-api.onrender.com`) |
+| `FITME_STORAGE_MODE` | `r2` *(production VTON; `local` chỉ dev)* |
+| `R2_ENDPOINT` | `https://<account-id>.r2.cloudflarestorage.com` |
+| `R2_BUCKET` | `fitme-uploads` |
+| `R2_ACCESS_KEY_ID` | Cloudflare R2 API token |
+| `R2_SECRET_ACCESS_KEY` | Cloudflare R2 API secret |
+| `R2_PUBLIC_BASE_URL` | Public bucket URL (vd. `https://pub-xxxx.r2.dev`) |
+
+**Cloudflare R2 (bắt buộc cho try-on USER_PHOTO trên Render):**
+
+1. Cloudflare Dashboard → R2 → tạo bucket `fitme-uploads`
+2. Bật public access hoặc custom domain → lấy `R2_PUBLIC_BASE_URL`
+3. Tạo S3-compatible API token → set `R2_*` trên Render
+4. Set `FITME_STORAGE_MODE=r2` → redeploy backend
+
+**Manual E2E checklist (Vercel + Render):**
+
+| Kiểm tra | Kỳ vọng |
+|----------|---------|
+| AI Stylist | Title tự nhiên (không còn template "phong cách đa dạng"), 2–3 item, badge **AI Gemini** |
+| `/actuator/health` | `geminiConfigured: true` khi đã set key |
+| Try-on USER_PHOTO | Badge **Ảnh thử mặc AI** khi VTON thành công; ảnh khác catalog |
+| VTON fallback | Badge **Minh họa sản phẩm** + `errorMessage` hiển thị |
+| Màu trên result | Khớp `selectedColor` của item đang thử |
 
 **PayOS webhook** (khi dùng thanh toán thật):
 

@@ -70,6 +70,14 @@ fitme:
     gemini-model: ${GEMINI_MODEL:gemini-2.0-flash}
     stylist-candidate-limit: ${GEMINI_CANDIDATE_LIMIT:30}
     stylist-timeout-ms: ${GEMINI_TIMEOUT_MS:15000}
+  storage:
+    mode: ${FITME_STORAGE_MODE:local}
+    r2:
+      endpoint: ${R2_ENDPOINT:}
+      bucket: ${R2_BUCKET:}
+      access-key-id: ${R2_ACCESS_KEY_ID:}
+      secret-access-key: ${R2_SECRET_ACCESS_KEY:}
+      public-base-url: ${R2_PUBLIC_BASE_URL:}
 
 springdoc:
   api-docs:
@@ -84,7 +92,9 @@ management:
         include: health
   endpoint:
     health:
-      show-details: never
+      show-details: when_authorized
+  health:
+    show-details: when_authorized
 
 logging:
   level:

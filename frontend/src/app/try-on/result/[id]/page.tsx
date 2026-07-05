@@ -34,6 +34,12 @@ const PREVIEW_PLACEHOLDERS: Record<TryOnPreviewType, string> = {
   USER_PHOTO_2D: "Preview trên ảnh của bạn",
 };
 
+const PREVIEW_SOURCE_LABELS: Record<string, string> = {
+  VTON: "Ảnh thử mặc AI",
+  OUTFIT_BOARD: "Minh họa outfit board",
+  FALLBACK: "Minh họa sản phẩm (VTON chưa khả dụng)",
+};
+
 export default function TryOnResultPage({
   params,
 }: {
@@ -81,6 +87,12 @@ export default function TryOnResultPage({
         </Badge>
       )}
 
+      {data.previewSource && (
+        <Badge className="mb-4 ml-2" variant={data.previewSource === "VTON" ? "ai" : "warning"}>
+          {PREVIEW_SOURCE_LABELS[data.previewSource] ?? data.previewSource}
+        </Badge>
+      )}
+
       <div className="relative aspect-[3/4] overflow-hidden rounded-xl bg-muted">
         {data.previewImageUrl ? (
           <Image src={data.previewImageUrl} alt="Try-on preview" fill className="object-cover" unoptimized />
@@ -93,6 +105,12 @@ export default function TryOnResultPage({
 
       {data.disclaimer && (
         <p className="mt-4 text-sm text-muted-foreground">{data.disclaimer}</p>
+      )}
+
+      {data.errorMessage && (
+        <p className="mt-2 text-sm text-amber-700 dark:text-amber-400">
+          {data.errorMessage}
+        </p>
       )}
 
       <Disclaimer className="mt-6" />

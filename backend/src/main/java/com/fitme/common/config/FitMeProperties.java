@@ -13,6 +13,7 @@ public class FitMeProperties {
     private Test test = new Test();
     private Payos payos = new Payos();
     private Ai ai = new Ai();
+    private Storage storage = new Storage();
 
     @Data
     public static class Ai {
@@ -70,5 +71,20 @@ public class FitMeProperties {
     @Data
     public static class Privacy {
         private String version;
+    }
+
+    @Data
+    public static class Storage {
+        private String mode = "local";
+        private R2 r2 = new R2();
+
+        @Data
+        public static class R2 {
+            private String endpoint;
+            private String bucket;
+            private String accessKeyId;
+            private String secretAccessKey;
+            private String publicBaseUrl;
+        }
     }
 }

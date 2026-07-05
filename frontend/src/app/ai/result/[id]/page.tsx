@@ -107,6 +107,11 @@ export default function AiResultPage({
       />
 
       <div className="flex flex-wrap gap-2">
+        {data.stylistSource === "gemini" ? (
+          <Badge variant="ai">AI Gemini</Badge>
+        ) : (
+          <Badge variant="secondary">Gợi ý rule</Badge>
+        )}
         {data.recommendedSize && <Badge>Gợi ý size: {data.recommendedSize}</Badge>}
         {data.recommendedForm && <Badge variant="secondary">Form: {data.recommendedForm}</Badge>}
         {data.recommendedColor && <Badge variant="outline">Màu: {data.recommendedColor}</Badge>}

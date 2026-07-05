@@ -2,6 +2,7 @@ package com.fitme.storage;
 
 import com.fitme.common.config.FitMeProperties;
 import lombok.RequiredArgsConstructor;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -12,6 +13,7 @@ import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 
 @Service
+@ConditionalOnProperty(name = "fitme.storage.mode", havingValue = "local", matchIfMissing = true)
 @RequiredArgsConstructor
 public class LocalStorageService implements StorageService {
 

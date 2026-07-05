@@ -63,8 +63,19 @@ public class OutfitCompositionService {
                     .findFirst().ifPresent(p -> byRole.put(ItemRole.SHOES, p));
         }
 
-        for (Map.Entry<ItemRole, Product> e : byRole.entrySet()) {
-            items.add(toProductItem(e.getValue(), e.getKey(), body));
+        boolean hasOnePiece = items.stream().anyMatch(i -> i.getRole() == ItemRole.ONE_PIECE)
+                || byRole.containsKey(ItemRole.ONE_PIECE);
+        List<ItemRole> coreRoles = hasOnePiece
+                ? List.of(ItemRole.ONE_PIECE, ItemRole.SHOES)
+                : List.of(ItemRole.TOP, ItemRole.BOTTOM, ItemRole.SHOES);
+
+        for (ItemRole role : coreRoles) {
+            Product product = byRole.get(role);
+            if (product == null || usedProducts.contains(product.getId())) {
+                continue;
+            }
+            items.add(toProductItem(product, role, body));
+            usedProducts.add(product.getId());
         }
 
         if (mode != WardrobeMode.NEW_ITEMS_ONLY && !wardrobe.isEmpty()) {
@@ -173,6 +184,7 @@ public class OutfitCompositionService {
                 .recommendedForm(rec.getRecommendedForm())
                 .recommendedColor(rec.getRecommendedColor())
                 .confidence(rec.getConfidence())
+                .stylistSource(rec.getStylistSource())
                 .outfitItems(items)
                 .explanation(RecommendationResponse.ExplanationDto.builder()
                         .bodyFit(rec.getExplanationBody())

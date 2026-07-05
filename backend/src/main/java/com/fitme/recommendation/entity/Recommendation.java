@@ -72,6 +72,9 @@ public class Recommendation {
     @Builder.Default
     private boolean saved = false;
 
+    @Column(name = "stylist_source")
+    private String stylistSource;
+
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;

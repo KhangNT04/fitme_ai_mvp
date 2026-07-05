@@ -47,17 +47,48 @@ services:
         sync: false
       - key: PAYOS_CHECKSUM_KEY
         sync: false
-      # AI VTON — set FITME_AI_MODE=hf + AI_VTON_URL when ai-vton service is deployed
+      # AI VTON — production: FITME_AI_MODE=hf + AI_VTON_URL + FITME_PUBLIC_BASE_URL
       - key: FITME_AI_MODE
-        value: mock
+        value: hf
       - key: AI_VTON_URL
-        sync: false
+        value: https://fitme-ai-vton.onrender.com
       - key: FITME_PUBLIC_BASE_URL
         sync: false
-      # AI Stylist — set FITME_AI_STYLIST_MODE=gemini + GEMINI_API_KEY in dashboard
+      # AI Stylist — set GEMINI_API_KEY in dashboard (required for Gemini)
       - key: FITME_AI_STYLIST_MODE
-        value: rule
+        value: gemini
       - key: GEMINI_API_KEY
         sync: false
       - key: GEMINI_MODEL
         value: gemini-2.0-flash
+      - key: GEMINI_TIMEOUT_MS
+        value: "25000"
+      # Cloudflare R2 — required for USER_PHOTO VTON on Render (public image URLs)
+      - key: FITME_STORAGE_MODE
+        value: r2
+      - key: R2_ENDPOINT
+        sync: false
+      - key: R2_BUCKET
+        sync: false
+      - key: R2_ACCESS_KEY_ID
+        sync: false
+      - key: R2_SECRET_ACCESS_KEY
+        sync: false
+      - key: R2_PUBLIC_BASE_URL
+        sync: false
+
+  - type: web
+    name: fitme-ai-vton
+    runtime: docker
+    region: singapore
+    plan: free
+    dockerfilePath: ai-services/vton/Dockerfile
+    dockerContext: ai-services/vton
+    healthCheckPath: /health
+    envVars:
+      - key: AI_MODE
+        value: hf
+      - key: HF_TOKEN
+        sync: false
+      - key: HF_SPACE
+        value: yisol/IDM-VTON

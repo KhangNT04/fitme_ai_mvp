@@ -277,7 +277,15 @@ public class TryOnService {
             response.setRecommendedSize(primarySize);
             response.setAlternativeSize(sizeResolutionService.altSize(primarySize));
             response.setRecommendedForm(outfitCompositionService.recommendForm(body, style, tryOn.getOccasion()));
-            response.setRecommendedColor(outfitCompositionService.recommendColor(style, itemsForColor));
+            String itemColor = enriched.stream()
+                    .map(TryOnResponse.TryOnItemDto::getSelectedColor)
+                    .filter(Objects::nonNull)
+                    .filter(color -> !color.isBlank())
+                    .findFirst()
+                    .orElse(null);
+            response.setRecommendedColor(itemColor != null
+                    ? itemColor
+                    : outfitCompositionService.recommendColor(style, itemsForColor));
         }
     }
 
@@ -331,6 +339,9 @@ public class TryOnService {
         vtonTryOnService.findPreviewForTryOn(tryOn.getId()).ifPresent(preview -> {
             response.setPreviewImageUrl(preview.getPreviewImageUrl());
             response.setDisclaimer(preview.getDisclaimer());
+            if (preview.getPreviewSource() != null) {
+                response.setPreviewSource(preview.getPreviewSource().name());
+            }
             if (preview.getErrorMessage() != null && !preview.getErrorMessage().isBlank()) {
                 response.setErrorMessage(preview.getErrorMessage());
             }

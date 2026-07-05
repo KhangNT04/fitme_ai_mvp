@@ -1,6 +1,7 @@
 package com.fitme.recommendation.service;
 
 import com.fitme.ai.GeminiStylistService;
+import com.fitme.ai.StylistSuggestOutcome;
 import com.fitme.ai.dto.GeminiStylistResult;
 import com.fitme.analytics.service.AnalyticsService;
 import com.fitme.common.enums.Confidence;
@@ -30,17 +31,18 @@ import com.fitme.userprofile.service.BodyProfileService;
 import com.fitme.userprofile.service.StyleProfileService;
 import com.fitme.wardrobe.entity.WardrobeItem;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class RecommendationService {
 
     private final OutfitRequestRepository outfitRequestRepository;
@@ -116,11 +118,13 @@ public class RecommendationService {
         String explanationOccasion = null;
         String explanationColor = null;
         String explanationWardrobe = null;
+        String stylistSource = "rule";
 
-        Optional<GeminiStylistResult> geminiResult = geminiStylistService.suggest(
+        StylistSuggestOutcome stylistOutcome = geminiStylistService.suggest(
                 body, style, request, wardrobe, eligible, selectedProductId);
-        if (geminiResult.isPresent()) {
-            GeminiStylistResult gemini = geminiResult.get();
+        if (stylistOutcome.result().isPresent()) {
+            GeminiStylistResult gemini = stylistOutcome.result().get();
+            stylistSource = "gemini";
             items = gemini.items();
             title = gemini.title();
             recommendedSize = gemini.recommendedSize();
@@ -148,6 +152,10 @@ public class RecommendationService {
         }
 
         if (items == null) {
+            if (stylistOutcome.fallbackReason() != null) {
+                log.info("Stylist fallback to rule engine: reason={} occasion={} candidateCount={}",
+                        stylistOutcome.fallbackReason(), occasion, eligible.size());
+            }
             items = outfitCompositionService.buildOutfit(
                     anchor, eligible, wardrobe, mode, body, style);
             recommendedSize = anchor != null
@@ -186,6 +194,7 @@ public class RecommendationService {
                 .explanationColor(explanationColor)
                 .explanationWardrobe(explanationWardrobe)
                 .status(RecommendationStatus.GENERATED.name())
+                .stylistSource(stylistSource)
                 .build();
         rec = recommendationRepository.save(rec);
 

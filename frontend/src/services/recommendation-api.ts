@@ -28,6 +28,7 @@ interface BackendRecommendation {
   recommendedForm?: string;
   recommendedColor?: string;
   confidence: string;
+  stylistSource?: string;
   outfitItems: BackendOutfitItem[];
   explanation?: {
     bodyFit?: string;
@@ -68,6 +69,7 @@ function mapRecommendation(data: BackendRecommendation): RecommendationResult {
     recommendedForm: data.recommendedForm,
     recommendedColor: data.recommendedColor,
     confidence: data.confidence as RecommendationResult["confidence"],
+    stylistSource: data.stylistSource as RecommendationResult["stylistSource"],
     outfitItems: (data.outfitItems || []).map(mapOutfitItem),
     explanation: {
       bodyFit: data.explanation?.bodyFit || "",

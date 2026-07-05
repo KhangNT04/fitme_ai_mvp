@@ -20,6 +20,7 @@ public class RecommendationResponse {
     private String recommendedForm;
     private String recommendedColor;
     private Confidence confidence;
+    private String stylistSource;
     private List<OutfitItemDto> outfitItems;
     private ExplanationDto explanation;
     private PreviewDto preview;

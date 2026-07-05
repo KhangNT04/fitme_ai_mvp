@@ -67,7 +67,7 @@ public class TryOnOutfitCompletionService {
     }
 
     public boolean isOutfitComplete(Collection<ItemRole> presentRoles) {
-        return missingCoreRoles(presentRoles).isEmpty();
+        return missingCoreRoles(presentRoles, List.of()).isEmpty();
     }
 
     public String resolvePreviewImageUrl(UUID tryOnRequestId) {
@@ -82,7 +82,7 @@ public class TryOnOutfitCompletionService {
     }
 
     private OutfitSuggestionsResponse buildResponse(List<Product> selected, Set<ItemRole> presentRoles) {
-        List<ItemRole> missing = missingCoreRoles(presentRoles);
+        List<ItemRole> missing = missingCoreRoles(presentRoles, selected);
         boolean complete = missing.isEmpty();
 
         List<String> suggestions = new ArrayList<>();
@@ -107,9 +107,11 @@ public class TryOnOutfitCompletionService {
                 .build();
     }
 
-    private List<ItemRole> missingCoreRoles(Collection<ItemRole> presentRoles) {
+    private List<ItemRole> missingCoreRoles(Collection<ItemRole> presentRoles, List<Product> selected) {
         boolean hasTop = presentRoles.contains(ItemRole.TOP) || presentRoles.contains(ItemRole.ONE_PIECE);
-        boolean hasBottom = presentRoles.contains(ItemRole.BOTTOM) || presentRoles.contains(ItemRole.ONE_PIECE);
+        boolean hasBottom = presentRoles.contains(ItemRole.BOTTOM)
+                || presentRoles.contains(ItemRole.ONE_PIECE)
+                || selected.stream().anyMatch(this::isFullBodyGarment);
 
         List<ItemRole> missing = new ArrayList<>();
         if (!hasTop) {
@@ -119,6 +121,18 @@ public class TryOnOutfitCompletionService {
             missing.add(ItemRole.BOTTOM);
         }
         return missing;
+    }
+
+    private boolean isFullBodyGarment(Product product) {
+        if (product == null || product.getCategory() == null) {
+            return false;
+        }
+        String category = product.getCategory().toLowerCase();
+        return category.contains("vest")
+                || category.contains("suit")
+                || category.contains("bộ")
+                || category.contains("three-piece")
+                || category.contains("jumpsuit");
     }
 
     private List<OutfitSuggestionsResponse.SuggestedOutfitItemDto> suggestMissingItems(

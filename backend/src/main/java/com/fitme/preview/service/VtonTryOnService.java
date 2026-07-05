@@ -6,6 +6,7 @@ import com.fitme.ai.client.AiVtonClient;
 import com.fitme.ai.client.AiVtonClient.VtonJobResponse;
 import com.fitme.billing.service.BrandQuotaService;
 import com.fitme.common.config.FitMeProperties;
+import com.fitme.common.enums.PreviewSource;
 import com.fitme.common.enums.PreviewStatus;
 import com.fitme.common.enums.PreviewType;
 import com.fitme.common.enums.TryOnPreviewMode;
@@ -125,6 +126,7 @@ public class VtonTryOnService {
             }
             preview.setVtonJobId(job.getJobId());
             preview.setDisclaimer(VTON_DISCLAIMER);
+            preview.setPreviewSource(PreviewSource.VTON);
             tryOn.setStatus(TryOnStatus.PROCESSING);
         } catch (Exception ex) {
             log.warn("Async VTON dispatch failed for try-on {}: {}", tryOn.getId(), ex.getMessage());
@@ -160,6 +162,7 @@ public class VtonTryOnService {
             preview.setPreviewImageUrl(response.getOutputImageUrl());
             preview.setDisclaimer(VTON_DISCLAIMER);
             preview.setStatus(PreviewStatus.SUCCEEDED);
+            preview.setPreviewSource(PreviewSource.VTON);
             preview.setErrorMessage(null);
             tryOn.setStatus(TryOnStatus.COMPLETED);
             consumeQuotaForTryOn(tryOn.getId());
@@ -180,6 +183,7 @@ public class VtonTryOnService {
             preview.setPreviewImageUrl(fallback.imageUrl());
             preview.setDisclaimer(fallback.disclaimer() + " (Fallback minh họa khi VTON thất bại.)");
             preview.setStatus(PreviewStatus.SUCCEEDED);
+            preview.setPreviewSource(PreviewSource.FALLBACK);
             preview.setErrorMessage(message);
             tryOn.setStatus(TryOnStatus.COMPLETED);
             consumeQuotaForTryOn(tryOn.getId());
@@ -219,6 +223,7 @@ public class VtonTryOnService {
             preview.setPreviewImageUrl(result.imageUrl());
             preview.setDisclaimer(result.disclaimer());
             preview.setStatus(PreviewStatus.SUCCEEDED);
+            preview.setPreviewSource(PreviewSource.OUTFIT_BOARD);
             tryOn.setStatus(TryOnStatus.COMPLETED);
             consumeQuotaForTryOn(tryOn.getId());
         } catch (Exception e) {

@@ -37,6 +37,7 @@ export interface RecommendationResult {
   recommendedForm?: string;
   recommendedColor?: string;
   confidence: ConfidenceLevel;
+  stylistSource?: "gemini" | "rule";
   outfitItems: OutfitItem[];
   explanation: RecommendationExplanation;
   preview?: PreviewInfo;

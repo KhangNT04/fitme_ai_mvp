@@ -44,6 +44,8 @@ export interface OutfitSuggestions {
   suggestedItems: TryOnSuggestedItem[];
 }
 
+export type TryOnPreviewSource = "VTON" | "OUTFIT_BOARD" | "FALLBACK";
+
 export interface TryOnResult {
   id: string;
   status: TryOnStatus;
@@ -52,6 +54,7 @@ export interface TryOnResult {
   outfitComplete?: boolean;
   saved?: boolean;
   previewImageUrl?: string;
+  previewSource?: TryOnPreviewSource;
   errorMessage?: string;
   recommendedSize?: string;
   alternativeSize?: string;

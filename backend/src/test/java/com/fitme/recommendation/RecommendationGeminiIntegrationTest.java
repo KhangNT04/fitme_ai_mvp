@@ -27,7 +27,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @TestPropertySource(properties = {
         "fitme.ai.stylist-mode=gemini",
-        "fitme.ai.gemini-api-key=test-key"
+        "fitme.ai.gemini-api-key=test-key",
+        "fitme.seed.enabled=false"
 })
 @Import(RecommendationGeminiIntegrationTest.StubConfig.class)
 class RecommendationGeminiIntegrationTest extends AbstractIntegrationTest {
@@ -98,6 +99,7 @@ class RecommendationGeminiIntegrationTest extends AbstractIntegrationTest {
                                 """))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.title").value("Outfit AI từ Gemini"))
+                .andExpect(jsonPath("$.data.stylistSource").value("gemini"))
                 .andExpect(jsonPath("$.data.explanation.styleFit").value("Hợp gu Korean casual."))
                 .andExpect(jsonPath("$.data.outfitItems.length()").value(2));
     }

@@ -26,6 +26,7 @@ public class TryOnResponse {
     private String previewImageUrl;
     private String disclaimer;
     private String errorMessage;
+    private String previewSource;
     private String recommendedSize;
     private String alternativeSize;
     private String recommendedForm;

@@ -37,6 +37,7 @@ type RawTryOnResult = {
   outfitComplete?: boolean;
   saved?: boolean;
   previewImageUrl?: string;
+  previewSource?: string;
   disclaimer?: string;
   errorMessage?: string;
   recommendedSize?: string;
@@ -76,6 +77,7 @@ function mapTryOnResult(data: RawTryOnResult): TryOnResult {
     outfitComplete: data.outfitComplete,
     saved: data.saved,
     previewImageUrl: resolveOptionalImageSrc(data.previewImageUrl),
+    previewSource: data.previewSource as TryOnResult["previewSource"],
     disclaimer: data.disclaimer || "",
     errorMessage: data.errorMessage,
     recommendedSize: data.recommendedSize,

@@ -113,12 +113,12 @@ class GeminiStylistServiceTest {
         when(tagRepository.findByProductId(any())).thenReturn(List.of());
 
         assertThat(service.suggest(body, style, request, List.of(), List.of(top), null))
-                .isPresent()
-                .get()
-                .satisfies(result -> {
-                    assertThat(result.title()).isEqualTo("Outfit test");
-                    assertThat(result.items()).hasSize(1);
-                    assertThat(result.explanationStyle()).isEqualTo("Style ok");
+                .satisfies(outcome -> {
+                    assertThat(outcome.result()).isPresent();
+                    assertThat(outcome.fallbackReason()).isNull();
+                    assertThat(outcome.result().get().title()).isEqualTo("Outfit test");
+                    assertThat(outcome.result().get().items()).hasSize(1);
+                    assertThat(outcome.result().get().explanationStyle()).isEqualTo("Style ok");
                 });
     }
 
@@ -131,7 +131,11 @@ class GeminiStylistServiceTest {
 
         fakeClient.willReturn(Optional.empty());
 
-        assertThat(service.suggest(body, style, request, List.of(), List.of(), null)).isEmpty();
+        assertThat(service.suggest(body, style, request, List.of(), List.of(), null))
+                .satisfies(outcome -> {
+                    assertThat(outcome.result()).isEmpty();
+                    assertThat(outcome.fallbackReason()).isEqualTo("gemini_empty");
+                });
     }
 
     static class FakeGeminiStylistClient extends GeminiStylistClient {

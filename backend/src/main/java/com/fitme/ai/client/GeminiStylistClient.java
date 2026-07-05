@@ -31,6 +31,7 @@ public class GeminiStylistClient {
         if (!properties.getAi().isGeminiStylistEnabled()) {
             return Optional.empty();
         }
+        String text = null;
         try {
             Map<String, Object> body = buildRequestBody(contextJson);
             GeminiApiResponse response = restClient().post()
@@ -43,7 +44,7 @@ public class GeminiStylistClient {
             if (response == null || response.getCandidates() == null || response.getCandidates().isEmpty()) {
                 return Optional.empty();
             }
-            String text = response.getCandidates().getFirst().getContent().getParts().getFirst().getText();
+            text = response.getCandidates().getFirst().getContent().getParts().getFirst().getText();
             if (text == null || text.isBlank()) {
                 return Optional.empty();
             }
@@ -52,9 +53,17 @@ public class GeminiStylistClient {
             log.warn("Gemini stylist request failed: {}", ex.getMessage());
             return Optional.empty();
         } catch (Exception ex) {
-            log.warn("Gemini stylist parse failed: {}", ex.getMessage());
+            log.warn("Gemini stylist parse failed: {} body={}", ex.getMessage(), truncateForLog(text));
             return Optional.empty();
         }
+    }
+
+    private static String truncateForLog(String value) {
+        if (value == null) {
+            return "";
+        }
+        String trimmed = value.trim();
+        return trimmed.length() <= 300 ? trimmed : trimmed.substring(0, 300) + "...";
     }
 
     private RestClient restClient() {

@@ -47,3 +47,17 @@ services:
         sync: false
       - key: PAYOS_CHECKSUM_KEY
         sync: false
+      # AI VTON — set FITME_AI_MODE=hf + AI_VTON_URL when ai-vton service is deployed
+      - key: FITME_AI_MODE
+        value: mock
+      - key: AI_VTON_URL
+        sync: false
+      - key: FITME_PUBLIC_BASE_URL
+        sync: false
+      # AI Stylist — set FITME_AI_STYLIST_MODE=gemini + GEMINI_API_KEY in dashboard
+      - key: FITME_AI_STYLIST_MODE
+        value: rule
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: GEMINI_MODEL
+        value: gemini-2.0-flash

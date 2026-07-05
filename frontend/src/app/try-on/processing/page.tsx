@@ -1,8 +1,7 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
-import { Loader2 } from "lucide-react";
 import { tryonApi } from "@/services/tryon-api";
 import { useTryOnStore } from "@/stores/tryon-store";
 import { Disclaimer } from "@/components/layout/Disclaimer";
@@ -12,8 +11,9 @@ import { TRYON_FLOW_STEPS } from "@/components/layout/FlowStepper";
 import { consumerPageShellClass } from "@/lib/design-tokens";
 import { ErrorState } from "@/components/common/ErrorState";
 import { BackLink } from "@/components/layout/BackLink";
-import { getUserErrorMessage } from "@/lib/user-error-message";
 import { toast } from "@/stores/toast-store";
+import { useTryOnPoll } from "@/hooks/use-tryon-poll";
+import { TryOnProgressBar } from "@/components/tryon/TryOnProgressBar";
 import type { TryOnInputMode } from "@/types/tryon";
 
 const MODE_SUBTITLES: Record<TryOnInputMode, string> = {
@@ -26,36 +26,30 @@ export default function TryOnProcessingPage() {
   const router = useRouter();
   const requestId = useTryOnStore((s) => s.requestId);
   const inputMode = useTryOnStore((s) => (s.input.inputMode ?? "OUTFIT_BOARD_ONLY") as TryOnInputMode);
-  const generateStartedRef = useRef(false);
-  const [error, setError] = useState<string | null>(null);
-  const [retryToken, setRetryToken] = useState(0);
+  const navigatedRef = useRef(false);
 
-  const subtitle = MODE_SUBTITLES[inputMode] ?? MODE_SUBTITLES.OUTFIT_BOARD_ONLY;
+  const { phase, error, elapsedMs, retry } = useTryOnPoll({
+    requestId,
+    onCompleted: () => {
+      if (navigatedRef.current || !requestId) return;
+      navigatedRef.current = true;
+      router.replace(`/try-on/result/${requestId}`);
+    },
+  });
 
   useEffect(() => {
-    if (generateStartedRef.current) return;
+    if (!requestId) {
+      router.replace("/try-on");
+    }
+  }, [requestId, router]);
 
-    const generate = async () => {
-      if (!requestId) {
-        router.replace("/try-on");
-        return;
-      }
+  useEffect(() => {
+    if (error) {
+      toast.error(error);
+    }
+  }, [error]);
 
-      generateStartedRef.current = true;
-
-      try {
-        await tryonApi.generate(requestId);
-        router.replace(`/try-on/result/${requestId}`);
-      } catch (e: unknown) {
-        generateStartedRef.current = false;
-        const message = getUserErrorMessage(e, "Tạo preview thất bại. Vui lòng thử lại.");
-        setError(message);
-        toast.error(message);
-      }
-    };
-
-    void generate();
-  }, [requestId, router, retryToken]);
+  const subtitle = MODE_SUBTITLES[inputMode] ?? MODE_SUBTITLES.OUTFIT_BOARD_ONLY;
 
   if (error) {
     return (
@@ -73,9 +67,8 @@ export default function TryOnProcessingPage() {
           title="Tạo preview thất bại"
           message={error}
           onRetry={() => {
-            generateStartedRef.current = false;
-            setError(null);
-            setRetryToken((t) => t + 1);
+            navigatedRef.current = false;
+            retry();
           }}
         />
         <div className="mt-4 flex justify-center">
@@ -97,7 +90,7 @@ export default function TryOnProcessingPage() {
         backLabel="Thông tin thử mặc"
       />
       <div className="flex flex-col items-center py-16 text-center">
-        <Loader2 className="h-12 w-12 animate-spin text-primary" />
+        <TryOnProgressBar phase={phase} elapsedMs={elapsedMs} inputMode={inputMode} />
         <Disclaimer className="mt-8" compact />
       </div>
     </PageShell>

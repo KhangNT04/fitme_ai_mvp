@@ -59,4 +59,7 @@ public class PreviewGeneration {
     @UpdateTimestamp
     @Column(name = "updated_at", nullable = false)
     private Instant updatedAt;
+
+    @Column(name = "vton_job_id")
+    private String vtonJobId;
 }

@@ -17,28 +17,42 @@ Ma trận ưu tiên và lộ trình 4 phase cho AI trong FitMe.
 
 ---
 
-## Phase 1 — FASHN VTON hybrid (sprint hiện tại)
+## Phase 1 — HF Space VTON (IDM-VTON) + async polling
 
-**Mục tiêu:** Try-on thật async với fallback mock.
+**Mục tiêu:** Try-on thật async qua Hugging Face Space `yisol/IDM-VTON` với fallback mock/outfit board.
 
-- [x] Microservice `ai-services/vton` (mock, fashn_api, fashn_local)
-- [x] Spring: `AiVtonClient`, `VtonCategoryMapper`, async `TryOnService`
-- [x] Frontend polling processing → result
-- [x] Docker profile `ai`, CI mode `mock`
+- [x] Microservice `ai-services/vton` (`mock`, `hf`, `local`)
+- [x] Spring: `AiVtonClient`, `VtonCategoryMapper`, async `VtonTryOnService` + poller
+- [x] Frontend polling processing → result (`useTryOnPoll`)
+- [x] Docker profile `ai`
 
-**Giới hạn MVP:** 1 garment / request; giày & phụ kiện → outfit board.
+**Phạm vi MVP:** `USER_PHOTO` + remote mode; 1 garment / request; giày & phụ kiện → outfit board.
+
+**Phase 2 semantic** — embeddings service có sẵn; wiring backend chưa hoàn tất (backlog).
 
 ---
 
-## Phase 2 — Semantic recommendation (sprint hiện tại)
+## Phase 2.5 — Gemini AI Stylist (hybrid) ✅
 
-**Mục tiêu:** Cải thiện ranking outfit bằng embedding đa ngôn ngữ.
+**Mục tiêu:** Gemini Flash chọn outfit + sinh lời giải thích tiếng Việt từ danh sách sản phẩm eligible (shop có quota AI try-on); fallback rule engine khi API fail.
 
-- [x] Microservice `ai-services/embeddings`
-- [x] `SemanticScoringService` + cache `products.style_embedding`
-- [x] Hook recompute khi product APPROVED → ACTIVE
+- [x] `GeminiStylistClient` — REST `generateContent` + JSON schema (Spring `RestClient`)
+- [x] `StylistContextBuilder` — body/style/occasion + top-N candidates (mặc định 30)
+- [x] `GeminiOutfitValidator` — chỉ chấp nhận `productId` trong candidate set
+- [x] Hook `RecommendationService.generate()` — `stylist-mode=gemini` + fallback `rule`
+- [x] Config: `FITME_AI_STYLIST_MODE`, `GEMINI_API_KEY`, `GEMINI_MODEL`
 
-**Model:** `sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2` (CPU OK cho dev).
+**Không đổi contract frontend** — `POST /api/v1/recommendations` + `explanation.*` như cũ.
+
+**Bật local:**
+
+```env
+FITME_AI_STYLIST_MODE=gemini
+GEMINI_API_KEY=AIza...   # Google AI Studio
+GEMINI_MODEL=gemini-2.0-flash
+```
+
+Mặc định `stylist-mode=rule` — hành vi rule engine không đổi.
 
 ---
 
@@ -66,4 +80,5 @@ Ma trận ưu tiên và lộ trình 4 phase cho AI trong FitMe.
 | VTON success rate | > 85% (eligible categories) |
 | P95 try-on latency | < 45s (API mode) |
 | Recommendation CTR | +10% vs rule-only baseline |
+| Gemini stylist fallback rate | < 5% (khi API key hợp lệ) |
 | Embedding cache hit | > 95% ACTIVE products |

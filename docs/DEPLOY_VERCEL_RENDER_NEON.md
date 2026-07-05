@@ -84,6 +84,9 @@ Giữ `DB_USERNAME` và `DB_PASSWORD` riêng (không nhét vào URL).
 | `PAYOS_CLIENT_ID` | *(chỉ khi `PAYOS_MOCK=false`)* |
 | `PAYOS_API_KEY` | *(chỉ khi `PAYOS_MOCK=false`)* |
 | `PAYOS_CHECKSUM_KEY` | *(chỉ khi `PAYOS_MOCK=false`)* |
+| `FITME_AI_STYLIST_MODE` | `rule` *(mặc định; đặt `gemini` để bật AI stylist)* |
+| `GEMINI_API_KEY` | API key từ [Google AI Studio](https://aistudio.google.com/apikey) *(chỉ khi `FITME_AI_STYLIST_MODE=gemini`)* |
+| `GEMINI_MODEL` | `gemini-2.0-flash` *(tùy chọn)* |
 
 **PayOS webhook** (khi dùng thanh toán thật):
 
@@ -262,7 +265,7 @@ Xem template: [`.env.cloud.example`](../.env.cloud.example)
 | Nơi | Biến quan trọng |
 |-----|-----------------|
 | Neon | JDBC URL, user, password |
-| Render | `SPRING_PROFILES_ACTIVE=prod`, `DB_*`, `JWT_SECRET`, `CORS_ORIGINS`, `FITME_SEED_*` |
+| Render | `SPRING_PROFILES_ACTIVE=prod`, `DB_*`, `JWT_SECRET`, `CORS_ORIGINS`, `FITME_SEED_*`, `FITME_AI_STYLIST_MODE`, `GEMINI_API_KEY` |
 | Vercel | `NEXT_PUBLIC_API_URL=/api/v1`, `BACKEND_INTERNAL_URL`, **`JWT_SECRET` (cùng Render)** |
 
 ---

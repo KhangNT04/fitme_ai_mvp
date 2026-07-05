@@ -67,7 +67,9 @@ public class AiVtonClient {
 
     public boolean isRemoteMode() {
         String mode = properties.getAi().getMode();
-        return "api".equalsIgnoreCase(mode) || "local".equalsIgnoreCase(mode);
+        return "api".equalsIgnoreCase(mode)
+                || "local".equalsIgnoreCase(mode)
+                || "hf".equalsIgnoreCase(mode);
     }
 
     private RestClient restClient() {

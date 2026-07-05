@@ -35,22 +35,27 @@ flowchart LR
 
 | Mode | Mô tả | Khi nào dùng |
 |------|--------|--------------|
-| `mock` | Không gọi FASHN; outfit board placeholder | CI, local dev không có API key |
-| `api` | `ai-vton` gọi FASHN hosted API | Dev/staging có `FASHN_API_KEY` |
-| `local` | `ai-vton` chạy model self-host (GPU) | Production worker riêng |
+| `mock` | Không gọi HF; outfit board / placeholder sync | CI, local dev |
+| `hf` | `ai-vton` gọi Hugging Face Space IDM-VTON | Dev/staging/production $0 |
+| `local` | `ai-vton` chạy model self-host (GPU) | Production worker riêng (tùy chọn) |
 
 Cấu hình Spring (`application.yml`):
 
 ```yaml
 fitme:
   ai:
-    mode: mock          # api | local | mock
+    mode: mock          # mock | hf | local
     vton-base-url: http://ai-vton:8001
     embeddings-base-url: http://ai-embeddings:8002
     public-base-url: http://localhost:8080
     fashn-api-key: ${FASHN_API_KEY:}
     job-timeout-seconds: 120
     semantic-score-weight: 20
+    stylist-mode: rule   # rule | gemini
+    gemini-api-key: ${GEMINI_API_KEY:}
+    gemini-model: gemini-2.0-flash
+    stylist-candidate-limit: 30
+    stylist-timeout-ms: 15000
 ```
 
 ---
@@ -68,14 +73,34 @@ fitme:
 
 ---
 
-## 4. Luồng recommendation (semantic boost)
+## 4. Luồng recommendation (hybrid rule + Gemini)
 
-1. Rule-based scoring hiện có trong `OutfitScoringService` (tag, style/occasion rules, gender/fit).
-2. `SemanticScoringService` gọi `ai-embeddings` cosine similarity: `(styleProfile + occasion)` vs `(product tags + name + description)`.
-3. Điểm semantic (tối đa `semantic-score-weight`, mặc định 20) cộng vào score tổng.
-4. Vector sản phẩm cache trong `products.style_embedding` (JSONB) khi admin duyệt ACTIVE.
+```mermaid
+sequenceDiagram
+  participant FE as Frontend
+  participant RS as RecommendationService
+  participant Rule as RuleEngine
+  participant Gemini as GeminiStylistClient
 
-Nếu `ai-embeddings` down → chỉ dùng rule scoring (hành vi cũ).
+  FE->>RS: POST /recommendations
+  RS->>Rule: filter ACTIVE + budget + canBeRecommended
+  Note over Rule: canBeRecommended yêu cầu brand có quota try-on
+  RS->>Gemini: generateContent JSON (top 30 candidates)
+  alt Gemini OK + valid productIds
+    Gemini-->>RS: outfit + explanation tiếng Việt
+  else fail / invalid
+    RS->>Rule: OutfitCompositionService.buildOutfit
+  end
+  RS-->>FE: RecommendationResponse (không đổi contract)
+```
+
+1. Rule-based scoring trong `OutfitScoringService` (tag, style/occasion rules, gender/fit).
+2. `ProductEligibilityService.canBeRecommended()` lọc sản phẩm shop có quota AI try-on.
+3. Khi `stylist-mode=gemini` và có `GEMINI_API_KEY`: `GeminiStylistService` gửi context JSON → Gemini chọn outfit + giải thích.
+4. `GeminiOutfitValidator` đảm bảo mọi `productId` ∈ candidate set; role hợp lệ (TOP/BOTTOM/ONE_PIECE/…).
+5. Nếu Gemini timeout / JSON lỗi → fallback `OutfitCompositionService` + template explanation (hành vi cũ).
+
+**Semantic boost (tùy chọn):** `SemanticScoringService` gọi `ai-embeddings` cosine similarity và cộng điểm vào rule score. Nếu `ai-embeddings` down → chỉ rule scoring.
 
 ---
 
@@ -104,6 +129,9 @@ Services: `postgres`, `backend`, `frontend`, `ai-vton`, `ai-embeddings`.
 | `AI_VTON_URL` | backend | Base URL ai-vton |
 | `AI_EMBEDDINGS_URL` | backend | Base URL ai-embeddings |
 | `FITME_PUBLIC_BASE_URL` | backend | URL public cho ảnh `/uploads` |
+| `FITME_AI_STYLIST_MODE` | backend | `rule` (mặc định) hoặc `gemini` |
+| `GEMINI_API_KEY` | backend | API key Google AI Studio (khi bật gemini) |
+| `GEMINI_MODEL` | backend | Mặc định `gemini-2.0-flash` |
 
 ---
 
@@ -122,7 +150,7 @@ ai-services/
   vton/           # FastAPI VTON
   embeddings/     # FastAPI embeddings
 backend/src/main/java/com/fitme/
-  ai/             # AiVtonClient, EmbeddingClient, VtonCategoryMapper
+  ai/             # AiVtonClient, GeminiStylistClient, StylistContextBuilder, GeminiStylistService
   preview/        # VtonPreviewGenerator, TryOnJobPoller
-  recommendation/ # SemanticScoringService
+  recommendation/ # RecommendationService, SemanticScoringService
 ```

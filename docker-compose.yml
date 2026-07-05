@@ -38,11 +38,26 @@ services:
       PAYOS_CHECKSUM_KEY: ${PAYOS_CHECKSUM_KEY:-}
       PAYOS_RETURN_URL: ${PAYOS_RETURN_URL:-http://localhost:3000/brand/billing/return?status=success}
       PAYOS_CANCEL_URL: ${PAYOS_CANCEL_URL:-http://localhost:3000/brand/billing/return?status=cancel}
+      FITME_AI_MODE: ${FITME_AI_MODE:-mock}
+      AI_VTON_URL: http://ai-vton:8001
+      FITME_PUBLIC_BASE_URL: http://localhost:8080
     volumes:
       - backend_uploads:/app/uploads
     depends_on:
       postgres:
         condition: service_healthy
+
+  ai-vton:
+    profiles: ["ai"]
+    build:
+      context: ./ai-services/vton
+      dockerfile: Dockerfile
+    ports:
+      - "8001:8001"
+    environment:
+      AI_MODE: ${FITME_AI_MODE:-mock}
+      HF_TOKEN: ${HF_TOKEN:-}
+      HF_SPACE: ${HF_SPACE:-yisol/IDM-VTON}
 
   frontend:
     build:

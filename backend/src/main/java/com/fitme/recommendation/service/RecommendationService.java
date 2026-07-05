@@ -1,5 +1,7 @@
 package com.fitme.recommendation.service;
 
+import com.fitme.ai.GeminiStylistService;
+import com.fitme.ai.dto.GeminiStylistResult;
 import com.fitme.analytics.service.AnalyticsService;
 import com.fitme.common.enums.Confidence;
 import com.fitme.common.enums.ItemRole;
@@ -34,6 +36,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -52,6 +55,7 @@ public class RecommendationService {
     private final OutfitScoringService outfitScoringService;
     private final OutfitCompositionService outfitCompositionService;
     private final SizeResolutionService sizeResolutionService;
+    private final GeminiStylistService geminiStylistService;
 
     @Transactional
     public RecommendationResponse generate(CreateRecommendationRequest request) {
@@ -100,19 +104,72 @@ public class RecommendationService {
         Product anchor = selectedProductId != null
                 ? productRepository.findById(selectedProductId).orElse(null) : null;
 
-        List<RecommendationResponse.OutfitItemDto> items = outfitCompositionService.buildOutfit(
-                anchor, eligible, wardrobe, mode, body, style);
-        String recommendedSize = anchor != null
-                ? sizeResolutionService.resolveSize(body, anchor.getId())
-                : sizeResolutionService.recommendSize(body, items);
-        String altSize = sizeResolutionService.altSize(recommendedSize);
-        String recommendedForm = outfitCompositionService.recommendForm(body, style, occasion);
-        String recommendedColor = outfitCompositionService.recommendColor(style, items);
-        Confidence confidence = items.size() >= 3 ? Confidence.HIGH : items.size() >= 2 ? Confidence.MEDIUM : Confidence.LOW;
+        List<RecommendationResponse.OutfitItemDto> items = null;
+        String title = null;
+        String recommendedSize = null;
+        String altSize = null;
+        String recommendedForm = null;
+        String recommendedColor = null;
+        Confidence confidence = null;
+        String explanationBody = null;
+        String explanationStyle = null;
+        String explanationOccasion = null;
+        String explanationColor = null;
+        String explanationWardrobe = null;
 
-        String styleLabel = style.getPrimaryStyle() != null && !style.getPrimaryStyle().isBlank()
-                ? style.getPrimaryStyle() : "đa dạng";
-        String title = "Outfit " + occasion + " phong cách " + styleLabel;
+        Optional<GeminiStylistResult> geminiResult = geminiStylistService.suggest(
+                body, style, request, wardrobe, eligible, selectedProductId);
+        if (geminiResult.isPresent()) {
+            GeminiStylistResult gemini = geminiResult.get();
+            items = gemini.items();
+            title = gemini.title();
+            recommendedSize = gemini.recommendedSize();
+            altSize = gemini.alternativeSize();
+            recommendedForm = gemini.recommendedForm();
+            recommendedColor = gemini.recommendedColor();
+            confidence = gemini.confidence();
+            explanationBody = gemini.explanationBody();
+            explanationStyle = gemini.explanationStyle();
+            explanationOccasion = gemini.explanationOccasion();
+            explanationColor = gemini.explanationColor();
+            explanationWardrobe = gemini.explanationWardrobe();
+            if (explanationBody == null || explanationBody.isBlank()) {
+                explanationBody = "Form " + recommendedForm + " phù hợp với số đo và gu mặc của bạn.";
+            }
+            if (explanationStyle == null || explanationStyle.isBlank()) {
+                explanationStyle = "Set đồ được chọn để hài hòa với phong cách bạn yêu thích.";
+            }
+            if (explanationOccasion == null || explanationOccasion.isBlank()) {
+                explanationOccasion = "Phù hợp cho " + occasion + ".";
+            }
+            if (explanationColor == null || explanationColor.isBlank()) {
+                explanationColor = "Tông màu " + recommendedColor + " dễ phối và tôn da.";
+            }
+        }
+
+        if (items == null) {
+            items = outfitCompositionService.buildOutfit(
+                    anchor, eligible, wardrobe, mode, body, style);
+            recommendedSize = anchor != null
+                    ? sizeResolutionService.resolveSize(body, anchor.getId())
+                    : sizeResolutionService.recommendSize(body, items);
+            altSize = sizeResolutionService.altSize(recommendedSize);
+            recommendedForm = outfitCompositionService.recommendForm(body, style, occasion);
+            recommendedColor = outfitCompositionService.recommendColor(style, items);
+            confidence = items.size() >= 3 ? Confidence.HIGH : items.size() >= 2 ? Confidence.MEDIUM : Confidence.LOW;
+
+            String styleLabel = style.getPrimaryStyle() != null && !style.getPrimaryStyle().isBlank()
+                    ? style.getPrimaryStyle() : "đa dạng";
+            title = "Outfit " + occasion + " phong cách " + styleLabel;
+            explanationBody = "Form " + recommendedForm + " giúp tổng thể thoải mái và phù hợp với số đo của bạn.";
+            explanationStyle = "đa dạng".equals(styleLabel)
+                    ? "Gợi ý cân bằng, dễ mặc hàng ngày."
+                    : "Phù hợp với gu " + styleLabel + " bạn đã chọn.";
+            explanationOccasion = "Phù hợp cho " + occasion + " vì nhẹ nhàng và dễ phối.";
+            explanationColor = "Màu " + recommendedColor + " tạo cảm giác hài hòa và dễ mix-match.";
+            explanationWardrobe = wardrobe.isEmpty() ? null : "Đã tận dụng " + wardrobe.size() + " món từ tủ đồ của bạn.";
+        }
+
         Recommendation rec = Recommendation.builder()
                 .outfitRequestId(outfitRequest.getId())
                 .userId(userId)
@@ -123,13 +180,11 @@ public class RecommendationService {
                 .recommendedForm(recommendedForm)
                 .recommendedColor(recommendedColor)
                 .confidence(confidence)
-                .explanationBody("Form " + recommendedForm + " giúp tổng thể thoải mái và phù hợp với số đo của bạn.")
-                .explanationStyle("đa dạng".equals(styleLabel)
-                        ? "Gợi ý cân bằng, dễ mặc hàng ngày."
-                        : "Phù hợp với gu " + styleLabel + " bạn đã chọn.")
-                .explanationOccasion("Phù hợp cho " + occasion + " vì nhẹ nhàng và dễ phối.")
-                .explanationColor("Màu " + recommendedColor + " tạo cảm giác hài hòa và dễ mix-match.")
-                .explanationWardrobe(wardrobe.isEmpty() ? null : "Đã tận dụng " + wardrobe.size() + " món từ tủ đồ của bạn.")
+                .explanationBody(explanationBody)
+                .explanationStyle(explanationStyle)
+                .explanationOccasion(explanationOccasion)
+                .explanationColor(explanationColor)
+                .explanationWardrobe(explanationWardrobe)
                 .status(RecommendationStatus.GENERATED.name())
                 .build();
         rec = recommendationRepository.save(rec);

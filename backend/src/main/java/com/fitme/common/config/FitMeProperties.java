@@ -17,9 +17,22 @@ public class FitMeProperties {
     @Data
     public static class Ai {
         private String mode = "mock";
-        private String vtonBaseUrl = "http://localhost:8101";
+        private String vtonBaseUrl = "http://localhost:8001";
         private String embeddingsBaseUrl = "http://localhost:8102";
+        private String publicBaseUrl = "http://localhost:8080";
         private long pollIntervalMs = 3000;
+        private int jobTimeoutSeconds = 120;
+        private String stylistMode = "rule";
+        private String geminiApiKey;
+        private String geminiModel = "gemini-2.0-flash";
+        private int stylistCandidateLimit = 30;
+        private int stylistTimeoutMs = 15000;
+
+        public boolean isGeminiStylistEnabled() {
+            return "gemini".equalsIgnoreCase(stylistMode)
+                    && geminiApiKey != null
+                    && !geminiApiKey.isBlank();
+        }
     }
 
     @Data

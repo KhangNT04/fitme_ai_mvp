@@ -38,6 +38,7 @@ type RawTryOnResult = {
   saved?: boolean;
   previewImageUrl?: string;
   disclaimer?: string;
+  errorMessage?: string;
   recommendedSize?: string;
   alternativeSize?: string;
   recommendedForm?: string;
@@ -76,6 +77,7 @@ function mapTryOnResult(data: RawTryOnResult): TryOnResult {
     saved: data.saved,
     previewImageUrl: resolveOptionalImageSrc(data.previewImageUrl),
     disclaimer: data.disclaimer || "",
+    errorMessage: data.errorMessage,
     recommendedSize: data.recommendedSize,
     alternativeSize: data.alternativeSize,
     recommendedForm: data.recommendedForm,

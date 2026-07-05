@@ -24,6 +24,11 @@ fitme:
     expose-reset-tokens: true
   payos:
     mock: true
+  ai:
+    mode: mock
+    vton-base-url: http://localhost:8001
+    public-base-url: http://localhost:8080
+    stylist-mode: rule
 
 logging:
   level:

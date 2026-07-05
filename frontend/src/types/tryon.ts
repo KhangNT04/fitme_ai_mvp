@@ -52,6 +52,7 @@ export interface TryOnResult {
   outfitComplete?: boolean;
   saved?: boolean;
   previewImageUrl?: string;
+  errorMessage?: string;
   recommendedSize?: string;
   alternativeSize?: string;
   recommendedForm?: string;

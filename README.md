@@ -54,6 +54,25 @@ docker compose up --build
 - Backend trực tiếp (dev compose): http://localhost:8080/api/v1
 - Swagger UI: http://localhost:8080/swagger-ui.html
 
+## Local pre-deploy (test AI trước Vercel/Render)
+
+Stack riêng với Gemini + ai-vton, cấu hình mirror Render:
+
+```powershell
+copy .env.local.example .env.local   # điền GEMINI_API_KEY
+.\scripts\dev-local.ps1
+```
+
+```bash
+cp .env.local.example .env.local
+./scripts/dev-local.sh
+```
+
+- App: http://localhost:3000 (Postgres port **5433** — không trùng compose mặc định)
+- Hot-reload: `.\scripts\dev-local.ps1 -Native`
+
+Chi tiết: [`docs/LOCAL_AI_DEV.md`](docs/LOCAL_AI_DEV.md)
+
 ## Deploy môi trường test (staging)
 
 Dùng stack Docker riêng với secrets bắt buộc, Postgres nội bộ, API proxy qua frontend (truy cập được qua IP server):

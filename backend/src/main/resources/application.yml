@@ -58,6 +58,18 @@ fitme:
     checksum-key: ${PAYOS_CHECKSUM_KEY:}
     return-url: ${PAYOS_RETURN_URL:http://localhost:3000/brand/billing/return?status=success}
     cancel-url: ${PAYOS_CANCEL_URL:http://localhost:3000/brand/billing/return?status=cancel}
+  ai:
+    mode: ${FITME_AI_MODE:mock}
+    vton-base-url: ${AI_VTON_URL:http://localhost:8001}
+    embeddings-base-url: ${AI_EMBEDDINGS_URL:http://localhost:8102}
+    public-base-url: ${FITME_PUBLIC_BASE_URL:http://localhost:8080}
+    poll-interval-ms: ${FITME_AI_POLL_INTERVAL_MS:3000}
+    job-timeout-seconds: ${FITME_AI_JOB_TIMEOUT_SECONDS:120}
+    stylist-mode: ${FITME_AI_STYLIST_MODE:rule}
+    gemini-api-key: ${GEMINI_API_KEY:}
+    gemini-model: ${GEMINI_MODEL:gemini-2.0-flash}
+    stylist-candidate-limit: ${GEMINI_CANDIDATE_LIMIT:30}
+    stylist-timeout-ms: ${GEMINI_TIMEOUT_MS:15000}
 
 springdoc:
   api-docs:

@@ -109,8 +109,10 @@ DB migration `V4__try_on_preview_link.sql`:
 | Provider | Env | Mô tả |
 |----------|-----|--------|
 | `mock` | `AI_MODE=mock` | Placeholder Unsplash, hoàn thành ~1s |
-| `fashn_api` | `AI_MODE=api` + `FASHN_API_KEY` | Gọi FASHN hosted API |
-| `fashn_local` | `AI_MODE=local` + CUDA | Wrap [fashn-vton-1.5](https://github.com/fashn-AI/fashn-vton-1.5) |
+| `hf` | `AI_MODE=hf` + `HF_TOKEN` (khuyến nghị) | Hugging Face Space [yisol/IDM-VTON](https://huggingface.co/spaces/yisol/IDM-VTON) qua `gradio_client` |
+| `local` | `AI_MODE=local` + CUDA | Wrap fashn-vton-1.5 self-host (tùy chọn) |
+
+Spring Boot: `FITME_AI_MODE=hf`, `AI_VTON_URL=http://ai-vton:8001`, `FITME_PUBLIC_BASE_URL` cho URL ảnh `/uploads`.
 
 ---
 

@@ -52,8 +52,30 @@ public class R2StorageService implements StorageService {
                     RequestBody.fromInputStream(file.getInputStream(), file.getSize()));
         }
 
-        if (r2.getPublicBaseUrl() != null && !r2.getPublicBaseUrl().isBlank()) {
-            return buildPublicUrl(r2.getPublicBaseUrl(), objectKey);
+        return MediaPaths.buildStoredPath(folder, safeName);
+    }
+
+    @Override
+    public String storeBytes(String folder, String filename, byte[] bytes, String contentType) throws IOException {
+        if (bytes == null || bytes.length == 0) {
+            throw new IOException("Empty file payload");
+        }
+        FitMeProperties.Storage.R2 r2 = properties.getStorage().getR2();
+        validateConfig(r2);
+        String safeName = MediaPaths.sanitizeFilename(filename != null ? filename : "output.jpg");
+        if (!safeName.contains(".")) {
+            safeName = safeName + defaultExtension(contentType);
+        }
+        String objectKey = folder + "/" + safeName;
+        String resolvedContentType = contentType != null && !contentType.isBlank() ? contentType : "image/jpeg";
+        try (S3Client client = buildClient(r2)) {
+            client.putObject(
+                    PutObjectRequest.builder()
+                            .bucket(r2.getBucket())
+                            .key(objectKey)
+                            .contentType(resolvedContentType)
+                            .build(),
+                    RequestBody.fromBytes(bytes));
         }
         return MediaPaths.buildStoredPath(folder, safeName);
     }

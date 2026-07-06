@@ -15,6 +15,14 @@ public final class StoredMediaPaths {
             return value;
         }
         if (value.startsWith("http://") || value.startsWith("https://")) {
+            try {
+                String pathname = java.net.URI.create(value).getPath();
+                if (pathname != null && pathname.startsWith("/uploads/")) {
+                    return pathname;
+                }
+            } catch (IllegalArgumentException ignored) {
+                // fall through to R2 key extraction
+            }
             String key = R2StorageService.extractObjectKey(value, null);
             if (key != null && !key.isBlank()) {
                 return "/uploads/" + (key.startsWith("/") ? key.substring(1) : key);

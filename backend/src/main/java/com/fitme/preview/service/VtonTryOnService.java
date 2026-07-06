@@ -51,6 +51,7 @@ public class VtonTryOnService {
     private final AiVtonClient aiVtonClient;
     private final VtonCategoryMapper vtonCategoryMapper;
     private final VtonImageUrlResolver vtonImageUrlResolver;
+    private final VtonOutputMirrorService vtonOutputMirrorService;
     private final FitMeProperties fitMeProperties;
 
     @Transactional
@@ -168,7 +169,13 @@ public class VtonTryOnService {
 
         if ("completed".equals(status) && response.getOutputImageUrl() != null
                 && !response.getOutputImageUrl().isBlank()) {
-            preview.setPreviewImageUrl(response.getOutputImageUrl());
+            String previewImageUrl = response.getOutputImageUrl();
+            try {
+                previewImageUrl = vtonOutputMirrorService.persistRemoteOutput(previewImageUrl, preview.getId());
+            } catch (Exception ex) {
+                log.warn("Could not persist VTON output for preview {}: {}", preview.getId(), ex.getMessage());
+            }
+            preview.setPreviewImageUrl(previewImageUrl);
             preview.setDisclaimer(resolveVtonDisclaimer(response));
             preview.setStatus(PreviewStatus.SUCCEEDED);
             preview.setPreviewSource(PreviewSource.VTON);

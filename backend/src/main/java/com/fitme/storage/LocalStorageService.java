@@ -37,6 +37,23 @@ public class LocalStorageService implements StorageService {
     }
 
     @Override
+    public String storeBytes(String folder, String filename, byte[] bytes, String contentType) throws IOException {
+        if (bytes == null || bytes.length == 0) {
+            throw new IOException("Empty file payload");
+        }
+        Path baseDir = Paths.get(properties.getUpload().getDir()).toAbsolutePath().normalize();
+        Path targetDir = baseDir.resolve(folder);
+        Files.createDirectories(targetDir);
+        String safeName = MediaPaths.sanitizeFilename(filename != null ? filename : "output.jpg");
+        if (!safeName.contains(".")) {
+            safeName = safeName + defaultExtension(contentType);
+        }
+        Path target = targetDir.resolve(safeName);
+        Files.write(target, bytes);
+        return MediaPaths.buildStoredPath(folder, safeName);
+    }
+
+    @Override
     public StoredObject read(String path) throws IOException {
         if (path == null || path.isBlank()) {
             throw new IOException("Invalid storage path");

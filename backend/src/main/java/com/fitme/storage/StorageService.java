@@ -8,6 +8,8 @@ public interface StorageService {
 
     String store(String folder, String filename, MultipartFile file) throws IOException;
 
+    String storeBytes(String folder, String filename, byte[] bytes, String contentType) throws IOException;
+
     void delete(String path) throws IOException;
 
     StoredObject read(String path) throws IOException;

@@ -18,4 +18,11 @@ class StoredMediaPathsTest {
                 "https://pub.example.r2.dev/user-photos/a.jpg"))
                 .isEqualTo("/uploads/user-photos/a.jpg");
     }
+
+    @Test
+    void normalizeToUploadPath_convertsBackendServedUrl() {
+        assertThat(StoredMediaPaths.normalizeToUploadPath(
+                "https://fitme-ai-mvp.onrender.com/uploads/vton-results/abc.jpg"))
+                .isEqualTo("/uploads/vton-results/abc.jpg");
+    }
 }

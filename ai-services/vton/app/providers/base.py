@@ -11,6 +11,7 @@ class VtonJobResult:
     output_image_url: str | None = None
     error_code: str | None = None
     error_message: str | None = None
+    fallback_mode: str | None = None
 
 
 class VtonProvider(Protocol):

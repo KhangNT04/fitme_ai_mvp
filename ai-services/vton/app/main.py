@@ -4,15 +4,25 @@ import os
 import uuid
 
 from fastapi import FastAPI, HTTPException
+from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 
 from app.category_mapper import is_supported, normalize_category
+from app.composite import ensure_output_dir
 from app.providers import get_provider
 from app.providers.mock import new_job_id
 
 AI_MODE = os.getenv("AI_MODE", "mock")
+_HF_FALLBACK_COMPOSITE = os.getenv("HF_FALLBACK_COMPOSITE", "true").strip().lower() in {
+    "1",
+    "true",
+    "yes",
+}
 
 app = FastAPI(title="FitMe AI VTON", version="1.0.0")
+
+_output_dir = ensure_output_dir()
+app.mount("/outputs", StaticFiles(directory=str(_output_dir)), name="outputs")
 
 
 class TryOnRequest(BaseModel):
@@ -28,11 +38,16 @@ class TryOnJobResponse(BaseModel):
     output_image_url: str | None = None
     error_code: str | None = None
     error_message: str | None = None
+    fallback_mode: str | None = None
 
 
 @app.get("/health")
-def health() -> dict[str, str]:
-    return {"status": "ok", "mode": AI_MODE}
+def health() -> dict[str, str | bool]:
+    return {
+        "status": "ok",
+        "mode": AI_MODE,
+        "hf_fallback_composite": _HF_FALLBACK_COMPOSITE,
+    }
 
 
 @app.post("/v1/try-on", status_code=202, response_model=TryOnJobResponse)
@@ -75,4 +90,5 @@ def poll_try_on(job_id: uuid.UUID) -> TryOnJobResponse:
         output_image_url=result.output_image_url,
         error_code=result.error_code,
         error_message=result.error_message,
+        fallback_mode=result.fallback_mode,
     )

@@ -290,9 +290,10 @@ Sau khi deploy xong, kiểm tra log Render có dòng `Refreshing fashion catalog
 | Triệu chứng | Nguyên nhân thường gặp | Cách xử lý |
 |-------------|------------------------|------------|
 | Preview ảnh **icon hỏng** trên `/try-on/input` sau F5 | URL `blob:` hết hạn trong localStorage | Đã fix: không persist `photoPreviewUrl`; reload sẽ gọi lại `/uploads/.../quality` |
-| Result USER_PHOTO = **ảnh gốc**, không thử mặc | VTON fail → fallback; hoặc `FITME_AI_MODE=mock` | Render: `FITME_AI_MODE=hf`, `AI_VTON_URL`, `FITME_PUBLIC_BASE_URL` = URL backend Render |
+| Result USER_PHOTO = **ảnh gốc**, không thử mặc | VTON fail hoàn toàn (kể cả composite) | Bật `HF_FALLBACK_COMPOSITE=true` trên ai-vton; kiểm tra `VTON_PUBLIC_BASE_URL` |
+| VTON log `gradio` / upstream exception | HF Space `yisol/IDM-VTON` không ổn định | Tự động ghép minh họa (composite); duplicate Space riêng + `HF_TOKEN` để có VTON thật |
 | VTON log `person_url_unreachable` | Backend URL sai hoặc `/uploads/**` không truy cập được từ ai-vton | Set `FITME_STORAGE_MODE=r2` + `R2_*`; test `curl https://<api>/uploads/user-photos/...` → 200 |
-| Avatar result **không đổi** outfit | Đúng thiết kế MVP — avatar = minh họa preset Unsplash | Badge **Minh họa avatar mẫu**; chưa có VTON trên avatar |
+| Avatar result **không đổi** outfit | VTON fail hoặc chưa deploy bản mới | Avatar cũng đi VTON async; kiểm tra disclaimer composite vs VTON thật |
 | Processing **timeout** 120s | Render/ai-vton free tier cold start | Đợi warm-up; ping `/actuator/health` trước khi test |
 
 **Checklist env Render (USER_PHOTO VTON):**
@@ -304,6 +305,15 @@ Sau khi deploy xong, kiểm tra log Render có dòng `Refreshing fashion catalog
 | `R2_ENDPOINT`, `R2_BUCKET`, `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY` | Có |
 | `FITME_AI_MODE` | `hf` |
 | `AI_VTON_URL` | `https://fitme-ai-vton.onrender.com` |
+
+**Checklist env Render (ai-vton service):**
+
+| Biến | Bắt buộc |
+|------|----------|
+| `AI_MODE` | `hf` |
+| `HF_TOKEN` | Khuyến nghị |
+| `HF_FALLBACK_COMPOSITE` | `true` |
+| `VTON_PUBLIC_BASE_URL` | `https://fitme-ai-vton.onrender.com` |
 
 **Vercel:** `BACKEND_INTERNAL_URL` phải trùng URL Render để proxy `/api/v1` và `/uploads`.
 

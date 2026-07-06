@@ -100,5 +100,7 @@ public class AiVtonClient {
         private String errorCode;
         @JsonProperty("error_message")
         private String errorMessage;
+        @JsonProperty("fallback_mode")
+        private String fallbackMode;
     }
 }

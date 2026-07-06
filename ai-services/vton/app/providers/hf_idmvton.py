@@ -4,6 +4,7 @@ import logging
 import os
 import tempfile
 import threading
+import time
 import uuid
 from pathlib import Path
 from typing import Any
@@ -13,17 +14,26 @@ import httpx
 from gradio_client import Client, handle_file
 
 from app.category_mapper import garment_description, is_supported, normalize_category
+from app.composite import build_composite_url
+from app.image_preflight import validate_image_url
 from app.providers.base import VtonJobResult
 
 logger = logging.getLogger(__name__)
 
 _HF_SPACE = os.getenv("HF_SPACE", "yisol/IDM-VTON")
 _HF_TOKEN = os.getenv("HF_TOKEN") or None
+_HF_MAX_RETRIES = max(1, int(os.getenv("HF_MAX_RETRIES", "2")))
+_HF_RETRY_DELAY_SECONDS = float(os.getenv("HF_RETRY_DELAY_SECONDS", "3"))
+_HF_FALLBACK_COMPOSITE = os.getenv("HF_FALLBACK_COMPOSITE", "true").strip().lower() in {
+    "1",
+    "true",
+    "yes",
+}
 _PRIVATE_HOSTS = frozenset({"localhost", "127.0.0.1", "0.0.0.0"})
 
 
 class HfIdmVtonProvider:
-    """Virtual try-on via Hugging Face Space yisol/IDM-VTON (gradio_client)."""
+    """Virtual try-on via Hugging Face Space with retry and composite fallback."""
 
     def __init__(self) -> None:
         self._client: Client | None = None
@@ -37,6 +47,10 @@ class HfIdmVtonProvider:
                 logger.info("Connecting to HF Space %s", _HF_SPACE)
                 self._client = Client(_HF_SPACE, token=_HF_TOKEN)
             return self._client
+
+    def _reset_client(self) -> None:
+        with self._client_lock:
+            self._client = None
 
     def submit(
         self,
@@ -54,42 +68,100 @@ class HfIdmVtonProvider:
                 error_message=f"Category not supported: {category}",
             )
 
+        try:
+            validate_image_url(person_image_url, "person")
+            validate_image_url(garment_image_url, "garment")
+        except Exception as exc:  # noqa: BLE001
+            return VtonJobResult(
+                job_id=job_id,
+                status="failed",
+                error_code="INVALID_IMAGE",
+                error_message=str(exc),
+            )
+
         description = garment_description(normalized)
         with self._lock:
-            self._jobs[job_id] = {"status": "processing", "error": None, "output": None}
+            self._jobs[job_id] = {
+                "status": "processing",
+                "error": None,
+                "output": None,
+                "fallback_mode": None,
+            }
 
         def _run() -> None:
-            try:
-                person_ref = _resolve_image_ref(person_image_url)
-                garment_ref = _resolve_image_ref(garment_image_url)
-                client = self._get_client()
-                gradio_job = client.submit(
-                    dict={"background": person_ref, "layers": [], "composite": None},
-                    garm_img=garment_ref,
-                    garment_des=description,
-                    is_checked=True,
-                    is_checked_crop=False,
-                    denoise_steps=30,
-                    seed=42,
-                    api_name="/tryon",
-                )
-                result = gradio_job.result()
-                output_url = _extract_output_url(result)
-                with self._lock:
-                    entry = self._jobs.get(job_id)
-                    if entry is not None:
-                        entry["status"] = "completed"
-                        entry["output"] = output_url
-            except Exception as exc:  # noqa: BLE001
-                logger.warning("HF VTON job %s failed: %s", job_id, exc)
-                with self._lock:
-                    entry = self._jobs.get(job_id)
-                    if entry is not None:
-                        entry["status"] = "failed"
-                        entry["error"] = str(exc)
+            last_error: Exception | None = None
+            for attempt in range(1, _HF_MAX_RETRIES + 1):
+                try:
+                    output_url = self._run_hf_job(
+                        person_image_url,
+                        garment_image_url,
+                        description,
+                    )
+                    with self._lock:
+                        entry = self._jobs.get(job_id)
+                        if entry is not None:
+                            entry["status"] = "completed"
+                            entry["output"] = output_url
+                            entry["fallback_mode"] = None
+                    return
+                except Exception as exc:  # noqa: BLE001
+                    last_error = exc
+                    logger.warning(
+                        "HF VTON job %s attempt %s/%s failed: %s",
+                        job_id,
+                        attempt,
+                        _HF_MAX_RETRIES,
+                        exc,
+                    )
+                    self._reset_client()
+                    if attempt < _HF_MAX_RETRIES:
+                        time.sleep(_HF_RETRY_DELAY_SECONDS)
+
+            if _HF_FALLBACK_COMPOSITE:
+                try:
+                    composite_url = build_composite_url(person_image_url, garment_image_url)
+                    logger.info("HF VTON job %s using composite fallback", job_id)
+                    with self._lock:
+                        entry = self._jobs.get(job_id)
+                        if entry is not None:
+                            entry["status"] = "completed"
+                            entry["output"] = composite_url
+                            entry["fallback_mode"] = "composite"
+                    return
+                except Exception as exc:  # noqa: BLE001
+                    last_error = exc
+                    logger.warning("Composite fallback failed for job %s: %s", job_id, exc)
+
+            with self._lock:
+                entry = self._jobs.get(job_id)
+                if entry is not None:
+                    entry["status"] = "failed"
+                    entry["error"] = str(last_error or "HF Space error")
 
         threading.Thread(target=_run, daemon=True).start()
         return VtonJobResult(job_id=job_id, status="processing")
+
+    def _run_hf_job(
+        self,
+        person_image_url: str,
+        garment_image_url: str,
+        description: str,
+    ) -> str:
+        person_ref = _resolve_image_ref(person_image_url)
+        garment_ref = _resolve_image_ref(garment_image_url)
+        client = self._get_client()
+        gradio_job = client.submit(
+            dict={"background": person_ref, "layers": None, "composite": None},
+            garm_img=garment_ref,
+            garment_des=description,
+            is_checked=True,
+            is_checked_crop=False,
+            denoise_steps=30,
+            seed=42,
+            api_name="/tryon",
+        )
+        result = gradio_job.result(timeout=300)
+        return _extract_output_url(result)
 
     def poll(self, job_id: str) -> VtonJobResult:
         with self._lock:
@@ -115,6 +187,7 @@ class HfIdmVtonProvider:
                 job_id=job_id,
                 status="completed",
                 output_image_url=str(job.get("output") or ""),
+                fallback_mode=job.get("fallback_mode"),
             )
 
 

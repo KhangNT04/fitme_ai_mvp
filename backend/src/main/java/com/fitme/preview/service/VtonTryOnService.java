@@ -39,6 +39,8 @@ public class VtonTryOnService {
 
     private static final String VTON_DISCLAIMER =
             "Ảnh thử mặc được tạo bằng AI — tham khảo phối đồ. Form thực tế có thể khác tùy size và chất liệu.";
+    private static final String VTON_COMPOSITE_DISCLAIMER =
+            "Ảnh ghép minh họa tạm thời — dịch vụ AI thử mặc đang gián đoạn. Tham khảo phối đồ, form thực tế có thể khác.";
 
     private final TryOnRequestRepository tryOnRequestRepository;
     private final TryOnItemRepository tryOnItemRepository;
@@ -165,7 +167,7 @@ public class VtonTryOnService {
         if ("completed".equals(status) && response.getOutputImageUrl() != null
                 && !response.getOutputImageUrl().isBlank()) {
             preview.setPreviewImageUrl(response.getOutputImageUrl());
-            preview.setDisclaimer(VTON_DISCLAIMER);
+            preview.setDisclaimer(resolveVtonDisclaimer(response));
             preview.setStatus(PreviewStatus.SUCCEEDED);
             preview.setPreviewSource(PreviewSource.VTON);
             preview.setErrorMessage(null);
@@ -257,6 +259,14 @@ public class VtonTryOnService {
             case AVATAR -> PreviewType.AVATAR;
             case OUTFIT_BOARD_ONLY -> PreviewType.OUTFIT_BOARD;
         };
+    }
+
+    private static String resolveVtonDisclaimer(VtonJobResponse response) {
+        if (response.getFallbackMode() != null
+                && "composite".equalsIgnoreCase(response.getFallbackMode().trim())) {
+            return VTON_COMPOSITE_DISCLAIMER;
+        }
+        return VTON_DISCLAIMER;
     }
 
     private static PreviewSource resolveSyncPreviewSource(TryOnPreviewMode mode) {

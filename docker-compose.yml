@@ -58,6 +58,9 @@ services:
       AI_MODE: ${FITME_AI_MODE:-mock}
       HF_TOKEN: ${HF_TOKEN:-}
       HF_SPACE: ${HF_SPACE:-yisol/IDM-VTON}
+      HF_MAX_RETRIES: ${HF_MAX_RETRIES:-2}
+      HF_FALLBACK_COMPOSITE: ${HF_FALLBACK_COMPOSITE:-true}
+      VTON_PUBLIC_BASE_URL: ${VTON_PUBLIC_BASE_URL:-http://localhost:8001}
 
   frontend:
     build:

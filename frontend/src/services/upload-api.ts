@@ -35,7 +35,17 @@ interface BackendPreviewResponse {
 }
 
 function normalizePhotoUpload(data: BackendPhotoUploadResponse): PhotoQualityResult {
-  const quality = (data.qualityStatus || "POOR") as PhotoQualityResult["quality"];
+  const raw = (data.qualityStatus || "PENDING").toUpperCase();
+  if (raw === "PENDING") {
+    return {
+      photoUploadId: data.id,
+      quality: "POOR",
+      message: "Đang kiểm tra chất lượng ảnh...",
+      canProceed: false,
+      fileUrl: resolveOptionalImageSrc(data.fileUrl),
+    };
+  }
+  const quality = raw as PhotoQualityResult["quality"];
   return {
     photoUploadId: data.id,
     quality,

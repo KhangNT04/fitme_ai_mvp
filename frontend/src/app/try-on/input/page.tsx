@@ -38,6 +38,7 @@ import { requiredNumberRegisterOptions, requiredKgWeightRegisterOptions, profile
 import { Chip } from "@/components/ui/chip";
 import { Badge } from "@/components/ui/badge";
 import { getUserErrorMessage } from "@/lib/user-error-message";
+import { isServerPreviewUrl } from "@/lib/media-url";
 import { toast } from "@/stores/toast-store";
 
 const NONE = "__none__";
@@ -54,6 +55,8 @@ export default function TryOnInputPage() {
   const fileRef = useRef<HTMLInputElement>(null);
   const blobPreviewRef = useRef<string | null>(null);
   const avatarPickerSyncedRef = useRef(false);
+  const uploadGenerationRef = useRef(0);
+  const inputModeRef = useRef<TryOnInputForm["inputMode"]>("OUTFIT_BOARD_ONLY");
   const [consented, setConsented] = useState(false);
   const [uploadError, setUploadError] = useState("");
   const [showAvatarPicker, setShowAvatarPicker] = useState(true);
@@ -105,8 +108,8 @@ export default function TryOnInputPage() {
   }, [avatarKey, setValue]);
 
   useEffect(() => {
-    if (!photoUploadId || photoPreviewUrl) return;
-    if (photoQuality !== "good") return;
+    if (!photoUploadId || photoQuality !== "good") return;
+    if (isServerPreviewUrl(photoPreviewUrl)) return;
     uploadApi.checkQuality(photoUploadId).then((quality) => {
       if (quality.fileUrl) setPhotoPreviewUrl(quality.fileUrl);
     }).catch(() => undefined);
@@ -126,6 +129,7 @@ export default function TryOnInputPage() {
   }, []);
 
   const inputMode = watch("inputMode");
+  inputModeRef.current = inputMode;
   const fitPreference = watch("fitPreference");
   const skinTone = watch("skinTone");
   const occasion = watch("occasion");
@@ -134,6 +138,9 @@ export default function TryOnInputPage() {
   const selectedAvatar = TRYON_AVATARS.find((a) => a.key === avatarKey);
 
   const handleModeChange = (mode: TryOnInputForm["inputMode"]) => {
+    if (mode !== "USER_PHOTO") {
+      uploadGenerationRef.current += 1;
+    }
     setValue("inputMode", mode, { shouldValidate: true });
     if (mode === "OUTFIT_BOARD_ONLY") {
       clearPhoto();
@@ -156,6 +163,10 @@ export default function TryOnInputPage() {
       setUploadError("Vui lòng đồng ý trước khi upload ảnh.");
       return;
     }
+    const generation = ++uploadGenerationRef.current;
+    const isStale = () =>
+      generation !== uploadGenerationRef.current || inputModeRef.current !== "USER_PHOTO";
+
     setUploadError("");
     setPhotoQuality("uploading");
 
@@ -168,7 +179,9 @@ export default function TryOnInputPage() {
 
     try {
       const { consentId } = await uploadApi.consent();
+      if (isStale()) return;
       const { photoUploadId: id, fileUrl } = await uploadApi.uploadPhoto(file, consentId);
+      if (isStale()) return;
       setPhotoUploadId(id);
       setValue("photoUploadId", id, { shouldValidate: true });
       if (fileUrl) {
@@ -176,6 +189,7 @@ export default function TryOnInputPage() {
       }
       setPhotoQuality("checking");
       const quality = await uploadApi.checkQuality(id);
+      if (isStale()) return;
       if (quality.quality === "GOOD" || quality.canProceed) {
         setPhotoQuality("good");
         if (quality.fileUrl) {
@@ -186,6 +200,7 @@ export default function TryOnInputPage() {
         setUploadError(quality.message || "Ảnh chưa đạt yêu cầu. Vui lòng upload lại.");
       }
     } catch (e: unknown) {
+      if (isStale()) return;
       setPhotoQuality("poor");
       setUploadError(getUserErrorMessage(e, "Upload thất bại. Vui lòng thử lại."));
     }

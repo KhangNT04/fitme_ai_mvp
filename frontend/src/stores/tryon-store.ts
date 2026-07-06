@@ -66,6 +66,22 @@ export const useTryOnStore = create<TryOnState>()(
           photoQuality: null,
         }),
     }),
-    { name: "fitme-tryon", skipHydration: true }
+    {
+      name: "fitme-tryon",
+      skipHydration: true,
+      partialize: (state) => ({
+        selectedItems: state.selectedItems,
+        input: state.input,
+        requestId: state.requestId,
+        photoUploadId: state.photoUploadId,
+        avatarKey: state.avatarKey,
+        photoQuality: state.photoQuality,
+      }),
+      onRehydrateStorage: () => (state) => {
+        if (state?.photoPreviewUrl?.startsWith("blob:")) {
+          state.photoPreviewUrl = null;
+        }
+      },
+    }
   )
 );

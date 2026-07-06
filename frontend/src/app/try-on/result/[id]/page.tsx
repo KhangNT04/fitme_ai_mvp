@@ -37,6 +37,8 @@ const PREVIEW_PLACEHOLDERS: Record<TryOnPreviewType, string> = {
 const PREVIEW_SOURCE_LABELS: Record<string, string> = {
   VTON: "Ảnh thử mặc AI",
   OUTFIT_BOARD: "Minh họa outfit board",
+  AVATAR: "Minh họa avatar mẫu",
+  USER_PHOTO: "Minh họa trên ảnh của bạn",
   FALLBACK: "Minh họa sản phẩm (VTON chưa khả dụng)",
 };
 

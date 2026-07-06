@@ -129,7 +129,8 @@ public class VtonTryOnService {
             preview.setPreviewSource(PreviewSource.VTON);
             tryOn.setStatus(TryOnStatus.PROCESSING);
         } catch (Exception ex) {
-            log.warn("Async VTON dispatch failed for try-on {}: {}", tryOn.getId(), ex.getMessage());
+            log.warn("Async VTON dispatch failed for try-on {}: reason={} message={}",
+                    tryOn.getId(), classifyVtonFailure(ex.getMessage()), ex.getMessage());
             applyVtonFailure(tryOn, preview, ex.getMessage());
         }
     }
@@ -223,7 +224,7 @@ public class VtonTryOnService {
             preview.setPreviewImageUrl(result.imageUrl());
             preview.setDisclaimer(result.disclaimer());
             preview.setStatus(PreviewStatus.SUCCEEDED);
-            preview.setPreviewSource(PreviewSource.OUTFIT_BOARD);
+            preview.setPreviewSource(resolveSyncPreviewSource(tryOn.getPreviewMode()));
             tryOn.setStatus(TryOnStatus.COMPLETED);
             consumeQuotaForTryOn(tryOn.getId());
         } catch (Exception e) {
@@ -252,5 +253,34 @@ public class VtonTryOnService {
             case AVATAR -> PreviewType.AVATAR;
             case OUTFIT_BOARD_ONLY -> PreviewType.OUTFIT_BOARD;
         };
+    }
+
+    private static PreviewSource resolveSyncPreviewSource(TryOnPreviewMode mode) {
+        if (mode == null) {
+            return PreviewSource.OUTFIT_BOARD;
+        }
+        return switch (mode) {
+            case USER_PHOTO -> PreviewSource.USER_PHOTO;
+            case AVATAR -> PreviewSource.AVATAR;
+            case OUTFIT_BOARD_ONLY -> PreviewSource.OUTFIT_BOARD;
+        };
+    }
+
+    private static String classifyVtonFailure(String message) {
+        if (message == null || message.isBlank()) {
+            return "unknown";
+        }
+        String lower = message.toLowerCase();
+        if (lower.contains("429") || lower.contains("quota") || lower.contains("rate limit")) {
+            return "quota_exceeded";
+        }
+        if (lower.contains("timeout") || lower.contains("timed out")) {
+            return "timeout";
+        }
+        if (lower.contains("url") || lower.contains("fetch") || lower.contains("download")
+                || lower.contains("404") || lower.contains("not found")) {
+            return "person_url_unreachable";
+        }
+        return "provider_error";
     }
 }

@@ -47,7 +47,7 @@ export function OutfitAiExplanationCard({
           </Badge>
         </div>
 
-        <p className="text-sm leading-relaxed text-muted-foreground">{advice}</p>
+        <p className="whitespace-pre-line text-sm leading-relaxed text-muted-foreground">{advice}</p>
       </CardContent>
     </Card>
   );

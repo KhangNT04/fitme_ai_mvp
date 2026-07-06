@@ -34,4 +34,14 @@ describe("upload-api", () => {
     const result = await uploadApi.uploadPhoto(new File(["x"], "photo.jpg", { type: "image/jpeg" }));
     expect(result.photoUploadId).toBe("upload-1");
   });
+
+  it("treats PENDING quality as not yet proceedable", async () => {
+    vi.mocked(apiClient.get).mockResolvedValue({
+      data: { success: true, data: { id: "pending-1", qualityStatus: "PENDING" } },
+    });
+
+    const result = await uploadApi.checkQuality("pending-1");
+    expect(result.canProceed).toBe(false);
+    expect(result.message).toContain("Đang kiểm tra");
+  });
 });

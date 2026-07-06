@@ -2,6 +2,16 @@ export const PLACEHOLDER_PRODUCT = "/placeholder-product.svg";
 
 const ABSOLUTE_URL = /^https?:\/\//i;
 
+export function isBlobPreviewUrl(url?: string | null): boolean {
+  return !!url?.trim().startsWith("blob:");
+}
+
+/** True when URL is safe to persist or reuse after page reload (not an expired blob). */
+export function isServerPreviewUrl(url?: string | null): boolean {
+  if (!url?.trim()) return false;
+  return !isBlobPreviewUrl(url);
+}
+
 function normalizeUploadPath(url: string): string {
   if (url.startsWith("/uploads/")) return url;
   if (ABSOLUTE_URL.test(url) && url.includes(".r2.dev/")) {

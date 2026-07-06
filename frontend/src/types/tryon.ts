@@ -44,7 +44,7 @@ export interface OutfitSuggestions {
   suggestedItems: TryOnSuggestedItem[];
 }
 
-export type TryOnPreviewSource = "VTON" | "OUTFIT_BOARD" | "FALLBACK";
+export type TryOnPreviewSource = "VTON" | "OUTFIT_BOARD" | "AVATAR" | "USER_PHOTO" | "FALLBACK";
 
 export interface TryOnResult {
   id: string;

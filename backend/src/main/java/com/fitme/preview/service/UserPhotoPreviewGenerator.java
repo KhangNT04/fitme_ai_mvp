@@ -2,6 +2,7 @@ package com.fitme.preview.service;
 
 import com.fitme.common.enums.PhotoQualityStatus;
 import com.fitme.preview.entity.UserPhotoUpload;
+import com.fitme.storage.StoredMediaPaths;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -25,7 +26,7 @@ public class UserPhotoPreviewGenerator implements PreviewGenerator {
             try {
                 UserPhotoUpload upload = photoUploadService.getEntity(request.photoUploadId());
                 if (upload.getQualityStatus() == PhotoQualityStatus.GOOD) {
-                    String fileUrl = upload.getFileUrl();
+                    String fileUrl = StoredMediaPaths.normalizeToUploadPath(upload.getFileUrl());
                     if (fileUrl != null && !fileUrl.isBlank()) {
                         return new PreviewResult(fileUrl,
                                 "Ảnh minh họa outfit trên ảnh của bạn — tham khảo phối đồ. Form thực tế có thể khác tùy size và chất liệu.");

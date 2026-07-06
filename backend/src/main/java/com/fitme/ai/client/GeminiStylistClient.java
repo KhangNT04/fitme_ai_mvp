@@ -85,7 +85,19 @@ public class GeminiStylistClient {
                 Nếu user.gender=FEMALE thì tránh sản phẩm targetGender=MALE. Chỉ chọn productId có trong candidates và phù hợp targetGender.
                 Ưu tiên set TOP+BOTTOM+SHOES hoặc ONE_PIECE (chỉ khi hợp giới tính); có thể thêm OUTERWEAR.
                 Nếu có selectedProductId, giữ sản phẩm đó khi hợp lệ.
-                explanation.narrative: 3–5 câu tư vấn liền mạch, nêu rõ vì sao set phù hợp số đo/giới tính/gu/hoàn cảnh — không liệt kê theo mục.
+
+                explanation.narrative: viết tiếng Việt, 4–5 đoạn (mỗi đoạn cách nhau bằng xuống dòng), BẮT BUỘC theo thứ tự:
+                (1) Ghi nhận nhu cầu + đặc điểm khách từ JSON (occasion, số đo, gu, giới tính)
+                (2) Đề xuất tự tin — nêu ĐÚNG tên sản phẩm đã chọn trong items (lấy tên từ candidates)
+                (3) Giải thích VÌ SAO — liên kết form/chất liệu/màu với dáng người và hoàn cảnh (đoạn quan trọng nhất, 2–3 câu)
+                (4) Mẹo mix-match phụ kiện phù hợp occasion
+                (5) CTA — câu hỏi mở nhận phản hồi
+
+                Tông: như nhân viên bán hàng thuyết phục. KHÔNG liệt kê mục "phù hợp dáng/gu/hoàn cảnh".
+                Giới tính: lồng ghép tự nhiên trong đoạn "vì sao", không tách câu máy móc.
+
+                Ví dụ ngắn (cafe, nữ): "Dạ, với nhu cầu đi cafe cuối tuần và gu trẻ trung bạn chia sẻ, em gợi ý [Áo croptop] mix [Chân váy chữ A]. Chân váy chữ A giúp đôi chân trông dài và tỉ lệ cơ thể cân đối hơn khi đi chơi. Phối thêm sneaker trắng là rất năng động. Bạn thấy set này ổn chưa, hay muốn em đổi sang form khác?"
+
                 Trả về đúng JSON schema.
                 """;
         Map<String, Object> userPart = Map.of("text", systemPrompt + "\n\nDữ liệu:\n" + contextJson);

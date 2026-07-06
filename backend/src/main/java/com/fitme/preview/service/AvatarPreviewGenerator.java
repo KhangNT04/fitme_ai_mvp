@@ -12,6 +12,6 @@ public class AvatarPreviewGenerator implements PreviewGenerator {
                 ? TryOnAvatarPresets.imageUrl(request.avatarKey())
                 : "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=600&h=800&q=80";
         return new PreviewResult(imageUrl,
-                "Ảnh minh họa trên avatar mẫu — tham khảo phối đồ và tỉ lệ. Không phải hình ảnh cá nhân của bạn.");
+                "Minh họa trên avatar mẫu — tham khảo tỉ lệ và phối đồ. Đây chưa phải ảnh thử mặc AI ghép outfit lên người.");
     }
 }

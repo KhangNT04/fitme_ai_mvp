@@ -149,7 +149,7 @@ public class RecommendationService {
                 explanationBody = explanationComposer.composeForCustomer(
                         body, style, occasion, request.getDesiredVibe(),
                         recommendedSize, altSize, recommendedForm, recommendedColor,
-                        wardrobe.size(), title);
+                        wardrobe.size(), title, toItemRefs(items));
                 explanationStyle = null;
                 explanationOccasion = null;
                 explanationColor = null;
@@ -177,7 +177,7 @@ public class RecommendationService {
             explanationBody = explanationComposer.composeForCustomer(
                     body, style, occasion, request.getDesiredVibe(),
                     recommendedSize, altSize, recommendedForm, recommendedColor,
-                    wardrobe.size(), title);
+                    wardrobe.size(), title, toItemRefs(items));
             explanationStyle = null;
             explanationOccasion = null;
             explanationColor = null;
@@ -297,6 +297,20 @@ public class RecommendationService {
 
     private static boolean hasExplanationFragments(String style, String occasion, String color) {
         return isNotBlank(style) || isNotBlank(occasion) || isNotBlank(color);
+    }
+
+    private static List<OutfitExplanationComposer.OutfitItemRef> toItemRefs(
+            List<RecommendationResponse.OutfitItemDto> items) {
+        if (items == null || items.isEmpty()) {
+            return List.of();
+        }
+        return items.stream()
+                .map(item -> new OutfitExplanationComposer.OutfitItemRef(
+                        item.getDisplayName(),
+                        null,
+                        item.getRole(),
+                        item.getSelectedColor()))
+                .toList();
     }
 
     private static boolean isNotBlank(String value) {

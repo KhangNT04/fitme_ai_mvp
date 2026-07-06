@@ -47,6 +47,35 @@ test.describe("Try-on flow", () => {
     await waitForTryOnResult(page);
 
     await expect(page.getByRole("heading", { name: "Kết quả thử mặc AI" })).toBeVisible();
-    await expect(page.getByText(/Avatar mẫu|Outfit board/).first()).toBeVisible();
+    await expect(page.getByText(/Avatar mẫu|Minh họa avatar/).first()).toBeVisible();
+  });
+
+  test("user photo mode → upload → processing → result", async ({ page }) => {
+    await ensureSessionViaHome(page);
+    const productId = await getFirstProductIdFromTryOnHub(page);
+    await page.goto(`/try-on?product=${productId}`);
+
+    await expect(page.getByText(/Đã chọn \(\d+\)/)).toBeVisible({ timeout: 30_000 });
+    await page.getByRole("button", { name: "Tiếp tục thử outfit" }).click();
+    await page.waitForURL("**/try-on/selected");
+    await page.getByRole("button", { name: "Tiếp tục nhập thông tin" }).click();
+    await page.waitForURL("**/try-on/input");
+
+    await page.getByRole("button", { name: "Dùng ảnh cá nhân" }).click();
+    await page.getByRole("checkbox").click();
+    await page.locator('input[type="file"]').setInputFiles({
+      name: "tryon-fixture.jpg",
+      mimeType: "image/jpeg",
+      buffer: Buffer.from([0xff, 0xd8, 0xff, 0xd9]),
+    });
+    await expect(page.getByText(/Ảnh đạt chất lượng tốt/i)).toBeVisible({ timeout: 30_000 });
+
+    await fillTryOnInputMetrics(page);
+    await page.getByRole("button", { name: "Tạo preview thử mặc" }).click();
+    await waitForTryOnResult(page);
+
+    await expect(page.getByRole("heading", { name: "Kết quả thử mặc AI" })).toBeVisible();
+    await expect(page.getByText(/Ảnh của bạn|Minh họa trên ảnh|Ảnh thử mặc AI/).first()).toBeVisible();
+    await expect(page.locator('img[alt="Try-on preview"]')).toBeVisible();
   });
 });

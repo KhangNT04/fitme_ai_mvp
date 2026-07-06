@@ -12,6 +12,7 @@ import com.fitme.product.repository.ProductTagRepository;
 import com.fitme.product.repository.ProductVariantRepository;
 import com.fitme.product.repository.SizeChartRepository;
 import com.fitme.product.service.ProductAudienceService;
+import com.fitme.product.service.ProductEligibilityService;
 import com.fitme.recommendation.dto.CreateRecommendationRequest;
 import com.fitme.recommendation.service.OutfitCompositionService;
 import com.fitme.recommendation.service.OutfitExplanationComposer;

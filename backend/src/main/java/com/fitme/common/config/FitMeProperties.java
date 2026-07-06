@@ -8,6 +8,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 public class FitMeProperties {
     private Jwt jwt = new Jwt();
     private Cors cors = new Cors();
+    private Frontend frontend = new Frontend();
     private Upload upload = new Upload();
     private Privacy privacy = new Privacy();
     private Test test = new Test();
@@ -61,6 +62,11 @@ public class FitMeProperties {
     @Data
     public static class Cors {
         private String origins;
+    }
+
+    @Data
+    public static class Frontend {
+        private String baseUrl;
     }
 
     @Data

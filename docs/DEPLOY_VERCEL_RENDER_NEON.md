@@ -300,7 +300,8 @@ Sau khi deploy xong, kiểm tra log Render có dòng `Refreshing fashion catalog
 
 | Biến | Bắt buộc |
 |------|----------|
-| `FITME_PUBLIC_BASE_URL` | `https://fitme-api.onrender.com` (URL backend, không phải Vercel) |
+| `FITME_PUBLIC_BASE_URL` | URL backend Render (vd. `https://fitme-ai-mvp.onrender.com`) |
+| `FITME_FRONTEND_BASE_URL` | URL Vercel (vd. `https://fitme-ai-mvp.vercel.app`) — cho ảnh catalog |
 | `FITME_STORAGE_MODE` | `r2` |
 | `R2_ENDPOINT`, `R2_BUCKET`, `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY` | Có |
 | `FITME_AI_MODE` | `hf` |

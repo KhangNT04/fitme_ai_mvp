@@ -36,6 +36,8 @@ fitme:
     refresh-expiration: ${JWT_REFRESH_EXPIRATION:604800000}
   cors:
     origins: ${CORS_ORIGINS:http://localhost:3000}
+  frontend:
+    base-url: ${FITME_FRONTEND_BASE_URL:}
   upload:
     dir: ${UPLOAD_DIR:./uploads}
   seed:

@@ -24,6 +24,8 @@ services:
         generateValue: true
       - key: CORS_ORIGINS
         value: https://fitme-ai-mvp.vercel.app
+      - key: FITME_FRONTEND_BASE_URL
+        value: https://fitme-ai-mvp.vercel.app
       - key: FITME_SEED_ENABLED
         value: "false"
       - key: FITME_SEED_FASHION_REFRESH

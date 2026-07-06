@@ -23,10 +23,18 @@ def validate_image_url(url: str, label: str) -> None:
         return
 
     with httpx.Client(timeout=20.0, follow_redirects=True) as client:
-        response = client.head(url)
-        if response.status_code == 405:
-            response = client.get(url)
+        response = _fetch_with_fallback(client, url)
         response.raise_for_status()
         content_type = (response.headers.get("content-type") or "").lower()
         if content_type and not content_type.startswith("image/"):
             logger.warning("%s URL content-type is %s, continuing anyway", label, content_type)
+
+
+def _fetch_with_fallback(client: httpx.Client, url: str) -> httpx.Response:
+    try:
+        response = client.head(url)
+        if response.status_code < 400:
+            return response
+    except httpx.HTTPError:
+        pass
+    return client.get(url)

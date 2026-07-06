@@ -112,13 +112,15 @@ export default function TryOnInputPage() {
   }, [avatarKey, setValue]);
 
   useEffect(() => {
-    if (!storesReady || !photoUploadId) return;
+    if (!storesReady || !photoUploadId || photoQuality === "uploading" || photoQuality === "checking") {
+      return;
+    }
     uploadApi.checkQuality(photoUploadId).catch(() => {
       clearPhoto();
       setValue("photoUploadId", undefined, { shouldValidate: true });
       setUploadError("Ảnh đã hết phiên — vui lòng upload lại.");
     });
-  }, [storesReady, photoUploadId, clearPhoto, setValue]);
+  }, [storesReady, photoUploadId, photoQuality, clearPhoto, setValue]);
 
   useEffect(() => {
     if (!photoUploadId || photoQuality !== "good") return;
@@ -154,6 +156,7 @@ export default function TryOnInputPage() {
     if (mode !== "USER_PHOTO") {
       uploadGenerationRef.current += 1;
     }
+    setInput({ inputMode: mode });
     setValue("inputMode", mode, { shouldValidate: true });
     if (mode === "OUTFIT_BOARD_ONLY") {
       clearPhoto();
@@ -242,6 +245,7 @@ export default function TryOnInputPage() {
     if (!session) return;
 
     try {
+      const previewMode = data.inputMode;
       const { id } = await tryonApi.create({
         heightCm: data.heightCm,
         weightKg: data.weightKg,
@@ -250,9 +254,11 @@ export default function TryOnInputPage() {
         ...(data.occasion ? { occasion: data.occasion } : {}),
         ...(data.desiredVibe ? { desiredVibe: data.desiredVibe } : {}),
         ...(data.usualSize ? { usualSize: data.usualSize } : {}),
-        previewMode: data.inputMode,
-        ...(data.photoUploadId ? { photoUploadId: data.photoUploadId } : {}),
-        ...(data.avatarKey ? { avatarKey: data.avatarKey } : {}),
+        previewMode,
+        ...(previewMode === "USER_PHOTO" && data.photoUploadId
+          ? { photoUploadId: data.photoUploadId }
+          : {}),
+        ...(previewMode === "AVATAR" && data.avatarKey ? { avatarKey: data.avatarKey } : {}),
       });
       for (const item of selectedItems) {
         await tryonApi.addItem(id, item.productId, item.category);

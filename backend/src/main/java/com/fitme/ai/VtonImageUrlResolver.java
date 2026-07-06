@@ -32,7 +32,7 @@ public class VtonImageUrlResolver {
         if (photoUploadId == null) {
             throw new BusinessException("Cần ảnh người dùng để thử mặc VTON");
         }
-        UserPhotoUpload upload = photoUploadService.getEntity(photoUploadId);
+        UserPhotoUpload upload = photoUploadService.requireById(photoUploadId);
         String fileUrl = upload.getFileUrl();
         if (fileUrl == null || fileUrl.isBlank()) {
             throw new BusinessException("Ảnh người dùng không hợp lệ");

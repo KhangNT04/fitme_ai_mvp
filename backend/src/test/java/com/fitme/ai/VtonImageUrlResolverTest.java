@@ -51,7 +51,7 @@ class VtonImageUrlResolverTest {
                 .id(uploadId)
                 .fileUrl("/uploads/user-photos/test.jpg")
                 .build();
-        when(photoUploadService.getEntity(uploadId)).thenReturn(upload);
+        when(photoUploadService.requireById(uploadId)).thenReturn(upload);
         when(mediaUrlResolver.resolvePublicUrl("/uploads/user-photos/test.jpg"))
                 .thenReturn("https://api.example/uploads/user-photos/test.jpg");
 

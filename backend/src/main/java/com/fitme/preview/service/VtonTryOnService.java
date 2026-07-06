@@ -188,8 +188,8 @@ public class VtonTryOnService {
             preview.setPreviewImageUrl(fallback.imageUrl());
             preview.setDisclaimer(fallback.disclaimer() + " (Fallback minh họa khi VTON thất bại.)");
             preview.setStatus(PreviewStatus.SUCCEEDED);
-            preview.setPreviewSource(PreviewSource.FALLBACK);
-            preview.setErrorMessage(message);
+            preview.setPreviewSource(resolveSyncPreviewSource(tryOn.getPreviewMode()));
+            preview.setErrorMessage(sanitizeVtonErrorMessage(message));
             tryOn.setStatus(TryOnStatus.COMPLETED);
             consumeQuotaForTryOn(tryOn.getId());
         } catch (Exception ex) {
@@ -268,6 +268,26 @@ public class VtonTryOnService {
             case AVATAR -> PreviewSource.AVATAR;
             case OUTFIT_BOARD_ONLY -> PreviewSource.OUTFIT_BOARD;
         };
+    }
+
+    private static String sanitizeVtonErrorMessage(String message) {
+        if (message == null || message.isBlank()) {
+            return "Dịch vụ AI thử mặc tạm thời không khả dụng.";
+        }
+        String lower = message.toLowerCase();
+        if (lower.contains("gradio") || lower.contains("upstream")) {
+            return "Dịch vụ AI thử mặc đang gặp sự cố. Bạn vẫn xem được ảnh minh họa bên dưới.";
+        }
+        if (lower.contains("429") || lower.contains("quota") || lower.contains("rate limit")) {
+            return "AI thử mặc đã hết quota — thử lại sau hoặc xem ảnh minh họa.";
+        }
+        if (lower.contains("timeout") || lower.contains("timed out")) {
+            return "AI thử mặc mất quá nhiều thời gian — xem ảnh minh họa thay thế.";
+        }
+        if (lower.contains("url") || lower.contains("fetch") || lower.contains("404")) {
+            return "Không truy cập được ảnh để ghép đồ — kiểm tra lại ảnh đã upload.";
+        }
+        return message.length() > 200 ? message.substring(0, 200) + "…" : message;
     }
 
     private static String classifyVtonFailure(String message) {

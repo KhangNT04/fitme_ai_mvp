@@ -87,6 +87,12 @@ public class PhotoUploadService {
         return getOwned(id);
     }
 
+    /** Server-side paths (VTON fallback, preview jobs) without request session. */
+    public UserPhotoUpload requireById(UUID id) {
+        return uploadRepository.findById(id)
+                .orElseThrow(() -> new NotFoundException("Ảnh không tồn tại"));
+    }
+
     private UserPhotoUpload getOwned(UUID id) {
         UserPhotoUpload upload = uploadRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException("Ảnh không tồn tại"));

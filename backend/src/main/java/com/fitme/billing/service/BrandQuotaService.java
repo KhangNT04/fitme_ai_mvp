@@ -9,6 +9,7 @@ import com.fitme.product.entity.Product;
 import com.fitme.product.repository.ProductRepository;
 import com.fitme.product.service.ProductEligibilityService;
 import org.springframework.context.annotation.Lazy;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -134,14 +135,27 @@ public class BrandQuotaService {
             if (balance.totalRemaining() <= 0) {
                 continue;
             }
-            if (balance.getSubscriptionRemaining() > 0) {
-                balance.setSubscriptionRemaining(balance.getSubscriptionRemaining() - 1);
+            int subscriptionRemaining = balance.getSubscriptionRemaining();
+            int topupRemaining = balance.getTopupRemaining();
+            if (subscriptionRemaining > 0) {
+                subscriptionRemaining--;
             } else {
-                balance.setTopupRemaining(balance.getTopupRemaining() - 1);
+                topupRemaining--;
             }
+            int balanceAfter = subscriptionRemaining + topupRemaining;
+            try {
+                appendLedger(brandId, QuotaLedgerEntryType.CONSUME, -1, balanceAfter,
+                        REF_TRY_ON_REQUEST, tryOnRequestId, "Try-on 2D");
+            } catch (DataIntegrityViolationException ex) {
+                if (ledgerRepository.existsByBrandIdAndEntryTypeAndReferenceTypeAndReferenceId(
+                        brandId, QuotaLedgerEntryType.CONSUME, REF_TRY_ON_REQUEST, tryOnRequestId)) {
+                    continue;
+                }
+                throw ex;
+            }
+            balance.setSubscriptionRemaining(subscriptionRemaining);
+            balance.setTopupRemaining(topupRemaining);
             balanceRepository.save(balance);
-            appendLedger(brandId, QuotaLedgerEntryType.CONSUME, -1, balance.totalRemaining(),
-                    REF_TRY_ON_REQUEST, tryOnRequestId, "Try-on 2D");
             refreshBrandProductEligibility(brandId);
         }
     }

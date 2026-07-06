@@ -156,6 +156,12 @@ public class VtonTryOnService {
     }
 
     private void pollSingleJob(PreviewGeneration preview) {
+        PreviewGeneration fresh = previewRepository.findById(preview.getId()).orElse(null);
+        if (fresh == null || fresh.getStatus() != PreviewStatus.PROCESSING) {
+            return;
+        }
+        preview = fresh;
+
         if (isTimedOut(preview)) {
             finalizeTimeout(preview);
             return;
@@ -175,6 +181,9 @@ public class VtonTryOnService {
                 ? tryOnRequestRepository.findById(preview.getTryOnRequestId()).orElse(null)
                 : null;
         if (tryOn == null) {
+            return;
+        }
+        if (tryOn.getStatus() == TryOnStatus.COMPLETED || tryOn.getStatus() == TryOnStatus.FAILED) {
             return;
         }
 

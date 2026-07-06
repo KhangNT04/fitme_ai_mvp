@@ -43,6 +43,7 @@ public class RecommendationResponse {
     @Data
     @Builder
     public static class ExplanationDto {
+        private String summary;
         private String bodyFit;
         private String styleFit;
         private String occasionFit;

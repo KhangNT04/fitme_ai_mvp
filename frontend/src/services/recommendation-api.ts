@@ -31,6 +31,7 @@ interface BackendRecommendation {
   stylistSource?: string;
   outfitItems: BackendOutfitItem[];
   explanation?: {
+    summary?: string;
     bodyFit?: string;
     styleFit?: string;
     occasionFit?: string;
@@ -72,6 +73,7 @@ function mapRecommendation(data: BackendRecommendation): RecommendationResult {
     stylistSource: data.stylistSource as RecommendationResult["stylistSource"],
     outfitItems: (data.outfitItems || []).map(mapOutfitItem),
     explanation: {
+      summary: data.explanation?.summary,
       bodyFit: data.explanation?.bodyFit || "",
       styleFit: data.explanation?.styleFit || "",
       occasionFit: data.explanation?.occasionFit || "",

@@ -172,10 +172,6 @@ export default function TryOnInputPage() {
       setPhotoUploadId(id);
       setValue("photoUploadId", id, { shouldValidate: true });
       if (fileUrl) {
-        if (blobPreviewRef.current) {
-          URL.revokeObjectURL(blobPreviewRef.current);
-          blobPreviewRef.current = null;
-        }
         setPhotoPreviewUrl(fileUrl);
       }
       setPhotoQuality("checking");
@@ -183,10 +179,6 @@ export default function TryOnInputPage() {
       if (quality.quality === "GOOD" || quality.canProceed) {
         setPhotoQuality("good");
         if (quality.fileUrl) {
-          if (blobPreviewRef.current) {
-            URL.revokeObjectURL(blobPreviewRef.current);
-            blobPreviewRef.current = null;
-          }
           setPhotoPreviewUrl(quality.fileUrl);
         }
       } else {
@@ -373,6 +365,17 @@ export default function TryOnInputPage() {
                           fill
                           className="object-cover"
                           unoptimized
+                          onLoad={() => {
+                            if (blobPreviewRef.current && !photoPreviewUrl.startsWith("blob:")) {
+                              URL.revokeObjectURL(blobPreviewRef.current);
+                              blobPreviewRef.current = null;
+                            }
+                          }}
+                          onError={() => {
+                            if (blobPreviewRef.current && !photoPreviewUrl.startsWith("blob:")) {
+                              setPhotoPreviewUrl(blobPreviewRef.current);
+                            }
+                          }}
                         />
                         {(photoQuality === "uploading" || photoQuality === "checking") && (
                           <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/40">

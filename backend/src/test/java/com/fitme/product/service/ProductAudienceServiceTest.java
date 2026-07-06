@@ -58,6 +58,37 @@ class ProductAudienceServiceTest {
     }
 
     @Test
+    void resolveTargetGender_infersFemaleFromDressCategoryWhenTagMissing() {
+        UUID id = UUID.randomUUID();
+        when(tagRepository.findByProductId(id)).thenReturn(List.of());
+
+        Product dress = Product.builder().id(id).category("Váy").name("Chân váy chữ A midi").build();
+        assertThat(productAudienceService.resolveTargetGender(dress)).isEqualTo(ProductTargetGender.FEMALE);
+    }
+
+    @Test
+    void isRecommendableFor_blocksDressForMaleUser() {
+        UUID id = UUID.randomUUID();
+        when(tagRepository.findByProductId(id)).thenReturn(List.of());
+
+        Product dress = Product.builder().id(id).category("Váy").name("Chân váy chữ A midi").build();
+        BodyProfile male = BodyProfile.builder().gender(Gender.MALE).build();
+
+        assertThat(productAudienceService.isRecommendableFor(male, dress)).isFalse();
+    }
+
+    @Test
+    void isRecommendableFor_allowsUnisexPantsForMaleUser() {
+        UUID id = UUID.randomUUID();
+        when(tagRepository.findByProductId(id)).thenReturn(List.of());
+
+        Product pants = Product.builder().id(id).category("Quần").name("Quần jean slim").build();
+        BodyProfile male = BodyProfile.builder().gender(Gender.MALE).build();
+
+        assertThat(productAudienceService.isRecommendableFor(male, pants)).isTrue();
+    }
+
+    @Test
     void resolveTargetGender_defaultsToUnisexWhenTagMissing() {
         UUID id = UUID.randomUUID();
         when(tagRepository.findByProductId(id)).thenReturn(List.of());

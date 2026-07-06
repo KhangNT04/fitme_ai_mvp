@@ -74,7 +74,20 @@ public class GeminiStylistService {
             if (wardrobe.isEmpty()) {
                 wardrobeFit = null;
             } else if (wardrobeFit == null || wardrobeFit.isBlank()) {
-                wardrobeFit = "Đã cân nhắc " + wardrobe.size() + " món từ tủ đồ của bạn.";
+                wardrobeFit = null;
+            }
+
+            String explanationBody = exp != null ? exp.getNarrative() : null;
+            if (explanationBody == null || explanationBody.isBlank()) {
+                explanationBody = exp != null ? exp.getBodyFit() : null;
+            }
+            String explanationStyle = exp != null ? exp.getStyleFit() : null;
+            String explanationOccasion = exp != null ? exp.getOccasionFit() : null;
+            String explanationColor = exp != null ? exp.getColorFit() : null;
+            if (exp != null && exp.getNarrative() != null && !exp.getNarrative().isBlank()) {
+                explanationStyle = null;
+                explanationOccasion = null;
+                explanationColor = null;
             }
 
             Confidence confidence = GeminiOutfitValidator.parseConfidence(suggestion.getConfidence());
@@ -98,10 +111,10 @@ public class GeminiStylistService {
                     suggestion.getRecommendedForm() != null ? suggestion.getRecommendedForm() : "regular",
                     suggestion.getRecommendedColor() != null ? suggestion.getRecommendedColor() : "neutral",
                     confidence,
-                    exp != null ? exp.getBodyFit() : null,
-                    exp != null ? exp.getStyleFit() : null,
-                    exp != null ? exp.getOccasionFit() : null,
-                    exp != null ? exp.getColorFit() : null,
+                    exp != null ? explanationBody : null,
+                    explanationStyle,
+                    explanationOccasion,
+                    explanationColor,
                     wardrobeFit));
         } catch (IllegalArgumentException ex) {
             log.warn("Gemini stylist validation failed, will fallback to rules: reason=validation_failed message={}",

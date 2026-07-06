@@ -16,6 +16,7 @@ import com.fitme.common.security.OwnershipChecker;
 import com.fitme.common.security.RequestContext;
 import com.fitme.product.entity.Product;
 import com.fitme.product.repository.ProductRepository;
+import com.fitme.product.service.ProductAudienceService;
 import com.fitme.product.service.ProductEligibilityService;
 import com.fitme.recommendation.dto.CreateRecommendationRequest;
 import com.fitme.recommendation.dto.RecommendationResponse;
@@ -58,6 +59,8 @@ public class RecommendationService {
     private final OutfitCompositionService outfitCompositionService;
     private final SizeResolutionService sizeResolutionService;
     private final GeminiStylistService geminiStylistService;
+    private final OutfitExplanationComposer explanationComposer;
+    private final ProductAudienceService productAudienceService;
 
     @Transactional
     public RecommendationResponse generate(CreateRecommendationRequest request) {
@@ -97,6 +100,7 @@ public class RecommendationService {
         List<WardrobeItem> wardrobe = wardrobeBlendService.loadWardrobe(userId, sessionId, mode);
         List<Product> eligible = productRepository.findByStatus(ProductStatus.ACTIVE).stream()
                 .filter(eligibilityService::canBeRecommended)
+                .filter(p -> productAudienceService.isRecommendableFor(body, p))
                 .filter(p -> outfitScoringService.withinBudget(p, request.getBudgetMin(), request.getBudgetMax()))
                 .sorted((a, b) -> Double.compare(
                         outfitScoringService.scoreProduct(b, style, occasion, body),
@@ -105,6 +109,9 @@ public class RecommendationService {
 
         Product anchor = selectedProductId != null
                 ? productRepository.findById(selectedProductId).orElse(null) : null;
+        if (anchor != null && !productAudienceService.isRecommendableFor(body, anchor)) {
+            throw new BusinessException("Sản phẩm đã chọn không phù hợp với giới tính trong hồ sơ của bạn.");
+        }
 
         List<RecommendationResponse.OutfitItemDto> items = null;
         String title = null;
@@ -137,17 +144,15 @@ public class RecommendationService {
             explanationOccasion = gemini.explanationOccasion();
             explanationColor = gemini.explanationColor();
             explanationWardrobe = gemini.explanationWardrobe();
-            if (explanationBody == null || explanationBody.isBlank()) {
-                explanationBody = "Form " + recommendedForm + " phù hợp với số đo và gu mặc của bạn.";
-            }
-            if (explanationStyle == null || explanationStyle.isBlank()) {
-                explanationStyle = "Set đồ được chọn để hài hòa với phong cách bạn yêu thích.";
-            }
-            if (explanationOccasion == null || explanationOccasion.isBlank()) {
-                explanationOccasion = "Phù hợp cho " + occasion + ".";
-            }
-            if (explanationColor == null || explanationColor.isBlank()) {
-                explanationColor = "Tông màu " + recommendedColor + " dễ phối và tôn da.";
+            if (explanationBody == null || explanationBody.isBlank()
+                    || hasExplanationFragments(explanationStyle, explanationOccasion, explanationColor)) {
+                explanationBody = explanationComposer.composeForCustomer(
+                        body, style, occasion, request.getDesiredVibe(),
+                        recommendedSize, altSize, recommendedForm, recommendedColor,
+                        wardrobe.size(), title);
+                explanationStyle = null;
+                explanationOccasion = null;
+                explanationColor = null;
             }
         }
 
@@ -169,13 +174,14 @@ public class RecommendationService {
             String styleLabel = style.getPrimaryStyle() != null && !style.getPrimaryStyle().isBlank()
                     ? style.getPrimaryStyle() : "đa dạng";
             title = "Outfit " + occasion + " phong cách " + styleLabel;
-            explanationBody = "Form " + recommendedForm + " giúp tổng thể thoải mái và phù hợp với số đo của bạn.";
-            explanationStyle = "đa dạng".equals(styleLabel)
-                    ? "Gợi ý cân bằng, dễ mặc hàng ngày."
-                    : "Phù hợp với gu " + styleLabel + " bạn đã chọn.";
-            explanationOccasion = "Phù hợp cho " + occasion + " vì nhẹ nhàng và dễ phối.";
-            explanationColor = "Màu " + recommendedColor + " tạo cảm giác hài hòa và dễ mix-match.";
-            explanationWardrobe = wardrobe.isEmpty() ? null : "Đã tận dụng " + wardrobe.size() + " món từ tủ đồ của bạn.";
+            explanationBody = explanationComposer.composeForCustomer(
+                    body, style, occasion, request.getDesiredVibe(),
+                    recommendedSize, altSize, recommendedForm, recommendedColor,
+                    wardrobe.size(), title);
+            explanationStyle = null;
+            explanationOccasion = null;
+            explanationColor = null;
+            explanationWardrobe = null;
         }
 
         Recommendation rec = Recommendation.builder()
@@ -287,6 +293,14 @@ public class RecommendationService {
                         .imageUrl(outfitCompositionService.resolveProductImageUrl(p.getId()))
                         .build())
                 .toList();
+    }
+
+    private static boolean hasExplanationFragments(String style, String occasion, String color) {
+        return isNotBlank(style) || isNotBlank(occasion) || isNotBlank(color);
+    }
+
+    private static boolean isNotBlank(String value) {
+        return value != null && !value.isBlank();
     }
 
     private Recommendation getOwnedRecommendation(UUID id) {

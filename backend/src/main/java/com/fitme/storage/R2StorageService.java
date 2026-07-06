@@ -52,7 +52,26 @@ public class R2StorageService implements StorageService {
                     RequestBody.fromInputStream(file.getInputStream(), file.getSize()));
         }
 
-        return buildPublicUrl(r2.getPublicBaseUrl(), objectKey);
+        return MediaPaths.buildStoredPath(folder, safeName);
+    }
+
+    @Override
+    public StoredObject read(String path) throws IOException {
+        FitMeProperties.Storage.R2 r2 = properties.getStorage().getR2();
+        validateConfig(r2);
+        String objectKey = extractObjectKey(path, r2.getPublicBaseUrl());
+        if (objectKey == null || objectKey.isBlank()) {
+            throw new IOException("Invalid storage path: " + path);
+        }
+        try (S3Client client = buildClient(r2)) {
+            var response = client.getObject(builder -> builder.bucket(r2.getBucket()).key(objectKey));
+            byte[] bytes = response.readAllBytes();
+            String contentType = response.response().contentType();
+            if (contentType == null || contentType.isBlank()) {
+                contentType = contentTypeFromKey(objectKey);
+            }
+            return new StoredObject(bytes, contentType);
+        }
     }
 
     @Override
@@ -90,8 +109,7 @@ public class R2StorageService implements StorageService {
         if (r2.getEndpoint() == null || r2.getEndpoint().isBlank()
                 || r2.getBucket() == null || r2.getBucket().isBlank()
                 || r2.getAccessKeyId() == null || r2.getAccessKeyId().isBlank()
-                || r2.getSecretAccessKey() == null || r2.getSecretAccessKey().isBlank()
-                || r2.getPublicBaseUrl() == null || r2.getPublicBaseUrl().isBlank()) {
+                || r2.getSecretAccessKey() == null || r2.getSecretAccessKey().isBlank()) {
             throw new IllegalStateException("R2 storage is not fully configured");
         }
     }
@@ -110,12 +128,27 @@ public class R2StorageService implements StorageService {
                     return value.substring(base.length() + 1);
                 }
             }
-            return Paths.get(URI.create(value).getPath()).toString().substring(1);
+            String path = Paths.get(URI.create(value).getPath()).toString();
+            if (path.startsWith("/") || path.startsWith("\\")) {
+                path = path.substring(1);
+            }
+            return path.replace('\\', '/');
         }
         if (value.startsWith("/uploads/")) {
             return value.substring("/uploads/".length());
         }
         return value.startsWith("/") ? value.substring(1) : value;
+    }
+
+    private static String contentTypeFromKey(String objectKey) {
+        String lower = objectKey.toLowerCase();
+        if (lower.endsWith(".png")) {
+            return "image/png";
+        }
+        if (lower.endsWith(".webp")) {
+            return "image/webp";
+        }
+        return "image/jpeg";
     }
 
     private static String defaultExtension(String contentType) {

@@ -13,6 +13,7 @@ import com.fitme.product.repository.ProductTagRepository;
 import com.fitme.product.repository.ProductVariantRepository;
 import com.fitme.recommendation.dto.CreateRecommendationRequest;
 import com.fitme.recommendation.service.OutfitCompositionService;
+import com.fitme.product.service.ProductAudienceService;
 import com.fitme.userprofile.entity.BodyProfile;
 import com.fitme.userprofile.entity.StyleProfile;
 import com.fitme.wardrobe.entity.WardrobeItem;
@@ -35,6 +36,7 @@ public class StylistContextBuilder {
     private final ProductTagRepository tagRepository;
     private final ProductVariantRepository variantRepository;
     private final OutfitCompositionService outfitCompositionService;
+    private final ProductAudienceService productAudienceService;
 
     public String buildContext(
             BodyProfile body,
@@ -101,6 +103,7 @@ public class StylistContextBuilder {
         map.put("category", product.getCategory());
         ItemRole role = outfitCompositionService.guessRole(product.getCategory());
         map.put("role", role.name());
+        map.put("targetGender", productAudienceService.resolveTargetGender(product).name());
         map.put("price", product.getPrice());
         map.put("fitType", product.getFitType() != null ? product.getFitType().name() : null);
         map.put("brandName", brandRepository.findById(product.getBrandId()).map(Brand::getName).orElse(""));

@@ -2,14 +2,18 @@ package com.fitme.ai;
 
 import com.fitme.ai.dto.GeminiOutfitSuggestion;
 import com.fitme.common.enums.Confidence;
+import com.fitme.common.enums.Gender;
 import com.fitme.common.enums.ItemRole;
 import com.fitme.product.entity.Product;
 import com.fitme.product.repository.ProductImageRepository;
+import com.fitme.product.repository.ProductTagRepository;
 import com.fitme.product.repository.ProductVariantRepository;
 import com.fitme.product.repository.SizeChartRepository;
+import com.fitme.product.service.ProductAudienceService;
 import com.fitme.product.service.ProductEligibilityService;
 import com.fitme.recommendation.dto.RecommendationResponse;
 import com.fitme.recommendation.service.OutfitCompositionService;
+import com.fitme.recommendation.service.OutfitExplanationComposer;
 import com.fitme.recommendation.service.SizeResolutionService;
 import com.fitme.userprofile.entity.BodyProfile;
 import com.fitme.wardrobe.repository.WardrobeItemRepository;
@@ -19,6 +23,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -30,6 +36,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 class GeminiOutfitValidatorTest {
 
     @Mock
@@ -46,13 +53,21 @@ class GeminiOutfitValidatorTest {
     @InjectMocks
     private SizeResolutionService sizeResolutionService;
 
+    @Mock
+    private ProductTagRepository tagRepository;
+    @Mock
+    private ProductAudienceService productAudienceService;
+
     private GeminiOutfitValidator validator;
 
     @BeforeEach
     void setUp() {
         OutfitCompositionService composition = new OutfitCompositionService(
-                variantRepository, imageRepository, wardrobeItemRepository, eligibilityService, sizeResolutionService);
-        validator = new GeminiOutfitValidator(composition, sizeResolutionService, eligibilityService);
+                variantRepository, imageRepository, wardrobeItemRepository, eligibilityService, sizeResolutionService,
+                new OutfitExplanationComposer(), new ProductAudienceService(tagRepository));
+        validator = new GeminiOutfitValidator(
+                composition, sizeResolutionService, eligibilityService, productAudienceService);
+        when(productAudienceService.isRecommendableFor(any(), any())).thenReturn(true);
     }
 
     @Test

@@ -11,9 +11,10 @@ import com.fitme.product.repository.ProductImageRepository;
 import com.fitme.product.repository.ProductTagRepository;
 import com.fitme.product.repository.ProductVariantRepository;
 import com.fitme.product.repository.SizeChartRepository;
-import com.fitme.product.service.ProductEligibilityService;
+import com.fitme.product.service.ProductAudienceService;
 import com.fitme.recommendation.dto.CreateRecommendationRequest;
 import com.fitme.recommendation.service.OutfitCompositionService;
+import com.fitme.recommendation.service.OutfitExplanationComposer;
 import com.fitme.recommendation.service.SizeResolutionService;
 import com.fitme.userprofile.entity.BodyProfile;
 import com.fitme.userprofile.entity.StyleProfile;
@@ -49,6 +50,8 @@ class GeminiStylistServiceTest {
     private WardrobeItemRepository wardrobeItemRepository;
     @Mock
     private SizeChartRepository sizeChartRepository;
+    @Mock
+    private ProductAudienceService productAudienceService;
 
     @InjectMocks
     private ProductEligibilityService eligibilityService;
@@ -65,15 +68,18 @@ class GeminiStylistServiceTest {
         properties.getAi().setGeminiApiKey("test-key");
 
         OutfitCompositionService composition = new OutfitCompositionService(
-                variantRepository, imageRepository, wardrobeItemRepository, eligibilityService, sizeResolutionService);
+                variantRepository, imageRepository, wardrobeItemRepository, eligibilityService, sizeResolutionService,
+                new OutfitExplanationComposer(), new ProductAudienceService(tagRepository));
         StylistContextBuilder contextBuilder = new StylistContextBuilder(
                 new ObjectMapper(),
                 properties,
                 brandRepository,
                 tagRepository,
                 variantRepository,
-                composition);
-        GeminiOutfitValidator validator = new GeminiOutfitValidator(composition, sizeResolutionService, eligibilityService);
+                composition,
+                productAudienceService);
+        GeminiOutfitValidator validator = new GeminiOutfitValidator(
+                composition, sizeResolutionService, eligibilityService, productAudienceService);
         fakeClient = new FakeGeminiStylistClient();
         service = new GeminiStylistService(properties, fakeClient, contextBuilder, validator, sizeResolutionService);
     }

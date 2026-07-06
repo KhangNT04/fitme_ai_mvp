@@ -4,13 +4,13 @@ import com.fitme.admin.entity.OccasionRule;
 import com.fitme.admin.entity.StyleRule;
 import com.fitme.admin.repository.OccasionRuleRepository;
 import com.fitme.admin.repository.StyleRuleRepository;
-import com.fitme.common.enums.ProductTargetGender;
 import com.fitme.common.enums.StockStatus;
 import com.fitme.common.util.FitCompatibility;
 import com.fitme.common.util.GenderAffinity;
 import com.fitme.product.entity.Product;
 import com.fitme.product.entity.ProductTag;
 import com.fitme.product.repository.ProductTagRepository;
+import com.fitme.product.service.ProductAudienceService;
 import com.fitme.userprofile.entity.BodyProfile;
 import com.fitme.userprofile.entity.StyleProfile;
 import lombok.RequiredArgsConstructor;
@@ -26,6 +26,7 @@ public class OutfitScoringService {
     private final ProductTagRepository tagRepository;
     private final StyleRuleRepository styleRuleRepository;
     private final OccasionRuleRepository occasionRuleRepository;
+    private final ProductAudienceService productAudienceService;
 
     public double scoreProduct(Product p, StyleProfile style, String occasion, BodyProfile body) {
         double score = 0;
@@ -41,7 +42,7 @@ public class OutfitScoringService {
         score += scoreFromStyleRules(style, tags);
         score += scoreFromOccasionRules(occasion, tags);
         if (body != null) {
-            score += GenderAffinity.scoreBonus(body, targetGenderFromTags(tags));
+            score += GenderAffinity.scoreBonus(body, productAudienceService.resolveTargetGender(p));
             if (p.getFitType() != null) {
                 score += FitCompatibility.scoreBonus(p.getFitType(), body.getFitPreference());
             }
@@ -86,22 +87,5 @@ public class OutfitScoringService {
         if (min != null && p.getPrice().compareTo(min) < 0) return false;
         if (max != null && p.getPrice().compareTo(max) > 0) return false;
         return true;
-    }
-
-    private ProductTargetGender targetGenderFromTags(List<ProductTag> tags) {
-        return tags.stream()
-                .filter(t -> "TARGET_GENDER".equals(t.getTagType()))
-                .map(ProductTag::getTagValue)
-                .findFirst()
-                .map(this::parseTargetGender)
-                .orElse(ProductTargetGender.UNISEX);
-    }
-
-    private ProductTargetGender parseTargetGender(String value) {
-        try {
-            return ProductTargetGender.valueOf(value);
-        } catch (IllegalArgumentException ignored) {
-            return ProductTargetGender.UNISEX;
-        }
     }
 }

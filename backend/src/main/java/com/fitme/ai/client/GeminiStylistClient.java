@@ -79,10 +79,14 @@ public class GeminiStylistClient {
 
     private Map<String, Object> buildRequestBody(String contextJson) {
         String systemPrompt = """
-                Bạn là AI stylist thời trang của FitMe. Phân tích thông tin người dùng và danh sách sản phẩm candidates.
-                Chỉ chọn productId có trong candidates. Ưu tiên set đồ gồm TOP+BOTTOM hoặc ONE_PIECE; có thể thêm OUTERWEAR/SHOES.
-                Nếu có selectedProductId trong request, giữ sản phẩm đó trong outfit.
-                Giải thích ngắn gọn, tự nhiên, tiếng Việt. Trả về đúng JSON schema.
+                Bạn là stylist/nhân viên tư vấn thời trang của FitMe, nói chuyện trực tiếp với khách bằng tiếng Việt tự nhiên (xưng "em" với khách).
+                Tổng hợp thông tin từ user (số đo, giới tính, gu, hoàn cảnh), style profile, tủ đồ và candidates trong dữ liệu JSON.
+                QUAN TRỌNG — giới tính: nếu user.gender=MALE thì KHÔNG chọn váy/chân váy/đầm (category Váy, role ONE_PIECE nữ); chỉ chọn TOP+BOTTOM nam hoặc UNISEX.
+                Nếu user.gender=FEMALE thì tránh sản phẩm targetGender=MALE. Chỉ chọn productId có trong candidates và phù hợp targetGender.
+                Ưu tiên set TOP+BOTTOM+SHOES hoặc ONE_PIECE (chỉ khi hợp giới tính); có thể thêm OUTERWEAR.
+                Nếu có selectedProductId, giữ sản phẩm đó khi hợp lệ.
+                explanation.narrative: 3–5 câu tư vấn liền mạch, nêu rõ vì sao set phù hợp số đo/giới tính/gu/hoàn cảnh — không liệt kê theo mục.
+                Trả về đúng JSON schema.
                 """;
         Map<String, Object> userPart = Map.of("text", systemPrompt + "\n\nDữ liệu:\n" + contextJson);
         Map<String, Object> content = Map.of("role", "user", "parts", List.of(userPart));
@@ -109,6 +113,7 @@ public class GeminiStylistClient {
                 "required", List.of("productId", "role"));
 
         Map<String, Object> explanationProps = Map.of(
+                "narrative", Map.of("type", "STRING"),
                 "bodyFit", Map.of("type", "STRING"),
                 "styleFit", Map.of("type", "STRING"),
                 "occasionFit", Map.of("type", "STRING"),
@@ -116,7 +121,8 @@ public class GeminiStylistClient {
                 "wardrobeFit", Map.of("type", "STRING"));
         Map<String, Object> explanationSchema = Map.of(
                 "type", "OBJECT",
-                "properties", explanationProps);
+                "properties", explanationProps,
+                "required", List.of("narrative"));
 
         Map<String, Object> properties = new LinkedHashMap<>();
         properties.put("title", Map.of("type", "STRING"));

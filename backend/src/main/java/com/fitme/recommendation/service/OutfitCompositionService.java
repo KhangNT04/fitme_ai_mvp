@@ -10,6 +10,7 @@ import com.fitme.product.entity.ProductVariant;
 import com.fitme.product.repository.ProductImageRepository;
 import com.fitme.product.repository.ProductVariantRepository;
 import com.fitme.product.service.ProductEligibilityService;
+import com.fitme.product.service.ProductAudienceService;
 import com.fitme.recommendation.dto.RecommendationResponse;
 import com.fitme.recommendation.entity.Recommendation;
 import com.fitme.recommendation.entity.RecommendationItem;
@@ -32,34 +33,45 @@ public class OutfitCompositionService {
     private final WardrobeItemRepository wardrobeItemRepository;
     private final ProductEligibilityService eligibilityService;
     private final SizeResolutionService sizeResolutionService;
+    private final OutfitExplanationComposer explanationComposer;
+    private final ProductAudienceService productAudienceService;
 
     public List<RecommendationResponse.OutfitItemDto> buildOutfit(Product anchor, List<Product> eligible,
             List<WardrobeItem> wardrobe, WardrobeMode mode, BodyProfile body, StyleProfile style) {
         List<RecommendationResponse.OutfitItemDto> items = new ArrayList<>();
         Set<UUID> usedProducts = new HashSet<>();
 
-        if (anchor != null && eligibilityService.canBeRecommended(anchor)) {
+        if (anchor != null && eligibilityService.canBeRecommended(anchor)
+                && productAudienceService.isRecommendableFor(body, anchor)) {
             items.add(toProductItem(anchor, guessRole(anchor.getCategory()), body));
             usedProducts.add(anchor.getId());
         }
 
         Map<ItemRole, Product> byRole = new EnumMap<>(ItemRole.class);
         for (Product p : eligible) {
-            if (usedProducts.contains(p.getId())) continue;
+            if (usedProducts.contains(p.getId()) || !productAudienceService.isRecommendableFor(body, p)) continue;
             ItemRole role = guessRole(p.getCategory());
             byRole.putIfAbsent(role, p);
         }
 
         if (!byRole.containsKey(ItemRole.TOP) && !byRole.containsKey(ItemRole.ONE_PIECE)) {
-            eligible.stream().filter(p -> !usedProducts.contains(p.getId())).findFirst()
+            eligible.stream()
+                    .filter(p -> !usedProducts.contains(p.getId()) && productAudienceService.isRecommendableFor(body, p))
+                    .findFirst()
                     .ifPresent(p -> byRole.put(ItemRole.TOP, p));
         }
         if (!byRole.containsKey(ItemRole.BOTTOM)) {
-            eligible.stream().filter(p -> !usedProducts.contains(p.getId()) && guessRole(p.getCategory()) == ItemRole.BOTTOM)
+            eligible.stream()
+                    .filter(p -> !usedProducts.contains(p.getId())
+                            && productAudienceService.isRecommendableFor(body, p)
+                            && guessRole(p.getCategory()) == ItemRole.BOTTOM)
                     .findFirst().ifPresent(p -> byRole.put(ItemRole.BOTTOM, p));
         }
         if (!byRole.containsKey(ItemRole.SHOES)) {
-            eligible.stream().filter(p -> !usedProducts.contains(p.getId()) && guessRole(p.getCategory()) == ItemRole.SHOES)
+            eligible.stream()
+                    .filter(p -> !usedProducts.contains(p.getId())
+                            && productAudienceService.isRecommendableFor(body, p)
+                            && guessRole(p.getCategory()) == ItemRole.SHOES)
                     .findFirst().ifPresent(p -> byRole.put(ItemRole.SHOES, p));
         }
 
@@ -135,11 +147,15 @@ public class OutfitCompositionService {
 
     public ItemRole guessRole(String category) {
         if (category == null) return ItemRole.TOP;
-        String c = category.toLowerCase();
-        if (c.contains("quần") || c.contains("bottom") || c.contains("chân")) return ItemRole.BOTTOM;
-        if (c.contains("giày") || c.contains("shoe")) return ItemRole.SHOES;
-        if (c.contains("áo khoác") || c.contains("outer")) return ItemRole.OUTERWEAR;
-        if (c.contains("váy") || c.contains("dress") || c.contains("one")) return ItemRole.ONE_PIECE;
+        String c = category.toLowerCase(Locale.ROOT);
+        if (c.contains("váy") || c.contains("dress") || c.contains("skirt")) return ItemRole.ONE_PIECE;
+        if (c.contains("quần") || c.contains("bottom") || c.contains("pant") || c.contains("jean")) {
+            return ItemRole.BOTTOM;
+        }
+        if (c.contains("giày") || c.contains("shoe") || c.contains("sneaker")) return ItemRole.SHOES;
+        if (c.contains("áo khoác") || c.contains("outer") || c.contains("jacket") || c.contains("blazer")) {
+            return ItemRole.OUTERWEAR;
+        }
         if (c.contains("phụ kiện") || c.contains("access")) return ItemRole.ACCESSORY;
         return ItemRole.TOP;
     }
@@ -187,6 +203,7 @@ public class OutfitCompositionService {
                 .stylistSource(rec.getStylistSource())
                 .outfitItems(items)
                 .explanation(RecommendationResponse.ExplanationDto.builder()
+                        .summary(explanationComposer.resolveSummary(rec))
                         .bodyFit(rec.getExplanationBody())
                         .styleFit(rec.getExplanationStyle())
                         .occasionFit(rec.getExplanationOccasion())

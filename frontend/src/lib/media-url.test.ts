@@ -5,6 +5,7 @@ describe("resolveImageSrc", () => {
   it("passes through absolute and app-relative URLs", () => {
     expect(resolveImageSrc("https://cdn.example.com/a.jpg")).toBe("https://cdn.example.com/a.jpg");
     expect(resolveImageSrc("/uploads/wardrobe/x.jpg")).toBe("/uploads/wardrobe/x.jpg");
+    expect(resolveImageSrc("https://pub.example.r2.dev/user-photos/x.jpg")).toBe("/uploads/user-photos/x.jpg");
   });
 
   it("uses placeholder for empty or invalid values", () => {

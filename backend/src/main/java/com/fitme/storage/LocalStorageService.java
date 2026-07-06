@@ -37,6 +37,23 @@ public class LocalStorageService implements StorageService {
     }
 
     @Override
+    public StoredObject read(String path) throws IOException {
+        if (path == null || path.isBlank()) {
+            throw new IOException("Invalid storage path");
+        }
+        String relative = path.startsWith("/uploads/") ? path.substring("/uploads/".length()) : path;
+        Path filePath = Paths.get(properties.getUpload().getDir()).resolve(relative).normalize();
+        if (!Files.exists(filePath) || !Files.isRegularFile(filePath)) {
+            throw new IOException("File not found: " + path);
+        }
+        String contentType = Files.probeContentType(filePath);
+        if (contentType == null || contentType.isBlank()) {
+            contentType = "image/jpeg";
+        }
+        return new StoredObject(Files.readAllBytes(filePath), contentType);
+    }
+
+    @Override
     public void delete(String path) throws IOException {
         if (path == null || path.isBlank()) {
             return;

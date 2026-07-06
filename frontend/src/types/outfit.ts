@@ -16,6 +16,7 @@ export interface OutfitItem {
 }
 
 export interface RecommendationExplanation {
+  summary?: string;
   bodyFit: string;
   styleFit: string;
   occasionFit: string;

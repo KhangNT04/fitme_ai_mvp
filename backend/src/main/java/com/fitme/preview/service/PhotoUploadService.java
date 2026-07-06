@@ -17,6 +17,7 @@ import com.fitme.preview.repository.PreviewGenerationRepository;
 import com.fitme.preview.repository.UserPhotoUploadRepository;
 import com.fitme.privacy.service.PrivacyService;
 import com.fitme.storage.StorageService;
+import com.fitme.storage.StoredMediaPaths;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -99,7 +100,7 @@ public class PhotoUploadService {
     private PhotoUploadResponse toResponse(UserPhotoUpload upload) {
         return PhotoUploadResponse.builder()
                 .id(upload.getId())
-                .fileUrl(upload.getFileUrl())
+                .fileUrl(StoredMediaPaths.normalizeToUploadPath(upload.getFileUrl()))
                 .qualityStatus(upload.getQualityStatus().name())
                 .status(upload.getStatus())
                 .build();

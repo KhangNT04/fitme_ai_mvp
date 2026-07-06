@@ -9,6 +9,7 @@ import com.fitme.product.repository.ProductVariantRepository;
 import com.fitme.product.repository.SizeChartRepository;
 import com.fitme.product.service.ProductEligibilityService;
 import com.fitme.recommendation.service.OutfitCompositionService;
+import com.fitme.recommendation.service.OutfitExplanationComposer;
 import com.fitme.tryon.dto.OutfitSuggestionsResponse;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -42,7 +43,8 @@ class TryOnOutfitCompletionServiceTest {
                 mock(SizeChartRepository.class),
                 null);
         OutfitCompositionService composition = new OutfitCompositionService(
-                null, null, null, null, null);
+                null, null, null, null, null, new OutfitExplanationComposer(),
+                new ProductAudienceService(mock(com.fitme.product.repository.ProductTagRepository.class)));
         service = new TryOnOutfitCompletionService(
                 productRepository, eligibilityService, composition, brandRepository, null);
     }

@@ -5,6 +5,7 @@ import com.fitme.common.enums.Confidence;
 import com.fitme.common.enums.ItemRole;
 import com.fitme.common.enums.SourceType;
 import com.fitme.product.entity.Product;
+import com.fitme.product.service.ProductAudienceService;
 import com.fitme.product.service.ProductEligibilityService;
 import com.fitme.recommendation.dto.RecommendationResponse;
 import com.fitme.recommendation.service.OutfitCompositionService;
@@ -30,14 +31,17 @@ public class GeminiOutfitValidator {
     private final OutfitCompositionService outfitCompositionService;
     private final SizeResolutionService sizeResolutionService;
     private final ProductEligibilityService eligibilityService;
+    private final ProductAudienceService productAudienceService;
 
     public GeminiOutfitValidator(
             OutfitCompositionService outfitCompositionService,
             SizeResolutionService sizeResolutionService,
-            ProductEligibilityService eligibilityService) {
+            ProductEligibilityService eligibilityService,
+            ProductAudienceService productAudienceService) {
         this.outfitCompositionService = outfitCompositionService;
         this.sizeResolutionService = sizeResolutionService;
         this.eligibilityService = eligibilityService;
+        this.productAudienceService = productAudienceService;
     }
 
     public List<RecommendationResponse.OutfitItemDto> validateAndMap(
@@ -62,6 +66,9 @@ public class GeminiOutfitValidator {
             Product product = candidateById.get(productId);
             if (product == null) {
                 throw new IllegalArgumentException("Product not in candidate set: " + productId);
+            }
+            if (!productAudienceService.isRecommendableFor(body, product)) {
+                throw new IllegalArgumentException("Product not suitable for user gender: " + productId);
             }
             ItemRole role = parseRole(raw.getRole());
             if (!ALLOWED_ROLES.contains(role)) {

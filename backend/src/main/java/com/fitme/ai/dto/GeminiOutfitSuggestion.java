@@ -35,5 +35,6 @@ public class GeminiOutfitSuggestion {
         private String occasionFit;
         private String colorFit;
         private String wardrobeFit;
+        private String narrative;
     }
 }

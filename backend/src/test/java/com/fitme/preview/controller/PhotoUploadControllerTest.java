@@ -7,6 +7,7 @@ import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockMultipartFile;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -58,11 +59,17 @@ class PhotoUploadControllerTest extends AbstractIntegrationTest {
                 .getContentAsString();
 
         String uploadId = objectMapper.readTree(uploadResponse).get("data").get("id").asText();
+        String fileUrl = objectMapper.readTree(uploadResponse).get("data").get("fileUrl").asText();
 
         mockMvc.perform(get("/api/v1/uploads/user-photo/{id}/quality", uploadId)
                         .header(SESSION_HEADER, sessionToken))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.data.qualityStatus").value("GOOD"));
+                .andExpect(jsonPath("$.data.qualityStatus").value("GOOD"))
+                .andExpect(jsonPath("$.data.fileUrl").value(fileUrl));
+
+        mockMvc.perform(get(fileUrl))
+                .andExpect(status().isOk())
+                .andExpect(header().string("Content-Type", org.hamcrest.Matchers.containsString("image/")));
 
         mockMvc.perform(delete("/api/v1/uploads/user-photo/{id}", uploadId)
                         .header(SESSION_HEADER, sessionToken))

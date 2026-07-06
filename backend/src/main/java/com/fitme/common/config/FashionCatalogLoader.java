@@ -36,6 +36,8 @@ public class FashionCatalogLoader {
     public static class FashionCatalog {
         public int version;
         public Map<String, List<String>> images;
+        /** Optional VTON-specific garment images (flat-lay) keyed by product imageKey. */
+        public Map<String, String> tryOnImages;
         public List<BrandEntry> brands;
     }
 

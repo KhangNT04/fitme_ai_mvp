@@ -126,6 +126,14 @@ public class OutfitCompositionService {
         return primaryProductImageUrl(productId);
     }
 
+    public String resolveTryOnImageUrl(UUID productId) {
+        return imageRepository.findByProductIdOrderBySortOrderAsc(productId).stream()
+                .filter(img -> "TRY_ON".equalsIgnoreCase(img.getImageType()))
+                .findFirst()
+                .map(ProductImage::getImageUrl)
+                .orElseGet(() -> primaryProductImageUrl(productId));
+    }
+
     private String primaryProductImageUrl(UUID productId) {
         return imageRepository.findByProductIdOrderBySortOrderAsc(productId).stream()
                 .findFirst()

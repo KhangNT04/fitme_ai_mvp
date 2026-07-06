@@ -18,6 +18,7 @@ import java.util.UUID;
 public class VtonOutputMirrorService {
 
     private static final String FOLDER = "vton-results";
+    private static final int MAX_MIRROR_ATTEMPTS = 3;
 
     private final StorageService storageService;
     private final MediaUrlResolver mediaUrlResolver;
@@ -33,14 +34,56 @@ public class VtonOutputMirrorService {
         if (isAlreadyPersisted(trimmed)) {
             return mediaUrlResolver.resolveBackendServedUrl(StoredMediaPaths.normalizeToUploadPath(trimmed));
         }
+        if (!isEphemeralVtonOutputUrl(trimmed)) {
+            return trimmed;
+        }
 
+        IOException lastError = null;
+        for (int attempt = 1; attempt <= MAX_MIRROR_ATTEMPTS; attempt++) {
+            try {
+                return mirrorOnce(trimmed, previewId);
+            } catch (IOException ex) {
+                lastError = ex;
+                log.warn("Mirror attempt {}/{} failed for preview {}: {}",
+                        attempt, MAX_MIRROR_ATTEMPTS, previewId, ex.getMessage());
+                if (attempt < MAX_MIRROR_ATTEMPTS) {
+                    try {
+                        Thread.sleep(500L * attempt);
+                    } catch (InterruptedException ie) {
+                        Thread.currentThread().interrupt();
+                        throw ex;
+                    }
+                }
+            }
+        }
+        throw lastError != null ? lastError : new IOException("Failed to mirror VTON output");
+    }
+
+    /** True for ephemeral ai-vton URLs that are lost on service redeploy. */
+    public static boolean isEphemeralVtonOutputUrl(String url) {
+        if (url == null || url.isBlank()) {
+            return false;
+        }
+        String trimmed = url.trim().toLowerCase(Locale.ROOT);
+        if (!trimmed.startsWith("http://") && !trimmed.startsWith("https://")) {
+            return false;
+        }
+        try {
+            String path = java.net.URI.create(url.trim()).getPath();
+            return path != null && path.toLowerCase(Locale.ROOT).contains("/outputs/");
+        } catch (IllegalArgumentException ex) {
+            return trimmed.contains("/outputs/");
+        }
+    }
+
+    private String mirrorOnce(String sourceUrl, UUID previewId) throws IOException {
         byte[] bytes = RestClient.create()
                 .get()
-                .uri(trimmed)
+                .uri(sourceUrl)
                 .retrieve()
                 .body(byte[].class);
         if (bytes == null || bytes.length == 0) {
-            throw new IOException("Empty VTON output from " + trimmed);
+            throw new IOException("Empty VTON output from " + sourceUrl);
         }
 
         String filename = previewId + ".jpg";

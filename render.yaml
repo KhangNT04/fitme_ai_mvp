@@ -95,8 +95,16 @@ services:
       - key: HF_SPACE
         value: yisol/IDM-VTON
       - key: HF_MAX_RETRIES
-        value: "2"
+        value: "3"
+      - key: HF_RETRY_DELAY_SECONDS
+        value: "5"
       - key: HF_FALLBACK_COMPOSITE
         value: "true"
+      - key: VTON_PROVIDER_CHAIN
+        value: hf,replicate,composite
+      - key: REPLICATE_API_TOKEN
+        sync: false
+      - key: REPLICATE_IDM_VTON_MODEL
+        value: cuuupid/idm-vton
       - key: VTON_PUBLIC_BASE_URL
         value: https://fitme-ai-vton.onrender.com

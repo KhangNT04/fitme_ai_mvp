@@ -1,4 +1,5 @@
 export const PLACEHOLDER_PRODUCT = "/placeholder-product.svg";
+export const EXPIRED_VTON_OUTPUT_PLACEHOLDER = "/placeholder-product.svg";
 
 const ABSOLUTE_URL = /^https?:\/\//i;
 
@@ -10,6 +11,17 @@ export function isBlobPreviewUrl(url?: string | null): boolean {
 export function isServerPreviewUrl(url?: string | null): boolean {
   if (!url?.trim()) return false;
   return !isBlobPreviewUrl(url);
+}
+
+/** Ephemeral ai-vton output URLs are lost after service redeploy. */
+export function isEphemeralVtonOutputUrl(url?: string | null): boolean {
+  if (!url?.trim()) return false;
+  try {
+    const parsed = new URL(url.trim());
+    return parsed.pathname.toLowerCase().includes("/outputs/");
+  } catch {
+    return url.toLowerCase().includes("/outputs/");
+  }
 }
 
 function normalizeUploadPath(url: string): string {
@@ -29,6 +41,7 @@ function normalizeUploadPath(url: string): string {
 /** Resolve API/storage paths to a browser-ready `src` for `<Image>` / `<img>`. */
 export function resolveImageSrc(url?: string | null, fallback = PLACEHOLDER_PRODUCT): string {
   if (!url?.trim()) return fallback;
+  if (isEphemeralVtonOutputUrl(url)) return EXPIRED_VTON_OUTPUT_PLACEHOLDER;
   const trimmed = normalizeUploadPath(url.trim());
   if (ABSOLUTE_URL.test(trimmed) || trimmed.startsWith("/") || trimmed.startsWith("blob:")) return trimmed;
   return fallback;
@@ -36,6 +49,7 @@ export function resolveImageSrc(url?: string | null, fallback = PLACEHOLDER_PROD
 
 export function resolveOptionalImageSrc(url?: string | null): string | undefined {
   if (!url?.trim()) return undefined;
+  if (isEphemeralVtonOutputUrl(url)) return EXPIRED_VTON_OUTPUT_PLACEHOLDER;
   const trimmed = normalizeUploadPath(url.trim());
   if (ABSOLUTE_URL.test(trimmed) || trimmed.startsWith("/") || trimmed.startsWith("blob:")) return trimmed;
   return undefined;

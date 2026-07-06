@@ -178,6 +178,18 @@ public class FashionCatalogSeeder {
                     .build());
         }
 
+        if (catalog.tryOnImages != null && entry.imageKey != null) {
+            String tryOnUrl = catalog.tryOnImages.get(entry.imageKey);
+            if (tryOnUrl != null && !tryOnUrl.isBlank()) {
+                imageRepository.save(ProductImage.builder()
+                        .productId(productId)
+                        .imageUrl(tryOnUrl)
+                        .imageType("TRY_ON")
+                        .sortOrder(-1)
+                        .build());
+            }
+        }
+
         List<String> colors = entry.colors != null && !entry.colors.isEmpty()
                 ? entry.colors
                 : List.of("Đen", "Trắng");

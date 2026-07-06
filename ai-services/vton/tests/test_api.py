@@ -71,10 +71,14 @@ def test_submit_and_poll_mock(client):
     assert poll.json().get("output_image_url")
 
 
+@patch("app.providers.hf_idmvton._resolve_image_ref", side_effect=lambda url: url)
+@patch("app.providers.hf_idmvton.validate_image_url")
 @patch("app.providers.hf_idmvton.Client")
-def test_hf_provider_submit(mock_client_cls, monkeypatch):
+def test_hf_provider_submit(mock_client_cls, _mock_validate, _mock_resolve, monkeypatch):
     monkeypatch.setenv("AI_MODE", "hf")
     monkeypatch.setenv("HF_FALLBACK_COMPOSITE", "false")
+    monkeypatch.setenv("VTON_PROVIDER_CHAIN", "hf")
+    monkeypatch.setenv("HF_MAX_RETRIES", "1")
     reset_provider()
 
     mock_gradio_job = MagicMock()
@@ -108,6 +112,7 @@ def test_hf_provider_submit(mock_client_cls, monkeypatch):
     assert "output" in poll.json()["output_image_url"]
 
 
+@patch("app.providers.hf_idmvton._resolve_image_ref", side_effect=lambda url: url)
 @patch("app.providers.hf_idmvton.validate_image_url")
 @patch("app.providers.hf_idmvton.build_composite_url")
 @patch("app.providers.hf_idmvton.Client")
@@ -115,12 +120,14 @@ def test_hf_composite_fallback_when_gradio_fails(
     mock_client_cls,
     mock_composite,
     _mock_validate,
+    _mock_resolve,
     monkeypatch,
 ):
     monkeypatch.setenv("AI_MODE", "hf")
     monkeypatch.setenv("HF_MAX_RETRIES", "1")
     monkeypatch.setenv("HF_RETRY_DELAY_SECONDS", "0")
     monkeypatch.setenv("HF_FALLBACK_COMPOSITE", "true")
+    monkeypatch.setenv("VTON_PROVIDER_CHAIN", "hf,composite")
     monkeypatch.setenv("VTON_PUBLIC_BASE_URL", "https://vton.test")
     reset_provider()
 
@@ -168,5 +175,57 @@ def test_compose_overlay():
     person.save(person_buf, format="JPEG")
     garment.save(garment_buf, format="PNG")
 
-    result = _compose(person_buf.getvalue(), garment_buf.getvalue())
+    result = _compose(person_buf.getvalue(), garment_buf.getvalue(), category="tops")
     assert result.size == (600, 800)
+
+
+@patch("app.providers.hf_idmvton._resolve_image_ref", side_effect=lambda url: url)
+@patch("app.providers.hf_idmvton.validate_image_url")
+@patch("app.providers.hf_idmvton.run_replicate_tryon")
+@patch("app.providers.hf_idmvton.Client")
+def test_replicate_fallback_when_hf_fails(
+    mock_client_cls,
+    mock_replicate,
+    _mock_validate,
+    _mock_resolve,
+    monkeypatch,
+):
+    monkeypatch.setenv("AI_MODE", "hf")
+    monkeypatch.setenv("HF_MAX_RETRIES", "1")
+    monkeypatch.setenv("HF_RETRY_DELAY_SECONDS", "0")
+    monkeypatch.setenv("VTON_PROVIDER_CHAIN", "hf,replicate")
+    monkeypatch.setenv("REPLICATE_API_TOKEN", "test-token")
+    reset_provider()
+
+    mock_client = MagicMock()
+    mock_gradio_job = MagicMock()
+    mock_gradio_job.result.side_effect = RuntimeError("upstream Gradio app has raised an exception")
+    mock_client.submit.return_value = mock_gradio_job
+    mock_client_cls.return_value = mock_client
+    mock_replicate.return_value = "https://replicate.delivery/output.jpg"
+
+    from app.main import app
+
+    client = TestClient(app)
+    response = client.post(
+        "/v1/try-on",
+        json={
+            "person_image_url": "https://example.com/person.jpg",
+            "garment_image_url": "https://example.com/shirt.jpg",
+            "category": "tops",
+        },
+    )
+    assert response.status_code == 202
+    job_id = response.json()["job_id"]
+
+    deadline = time.monotonic() + 5
+    while time.monotonic() < deadline:
+        poll = client.get(f"/v1/try-on/{job_id}")
+        if poll.json()["status"] != "processing":
+            break
+        time.sleep(0.1)
+
+    body = poll.json()
+    assert body["status"] == "completed"
+    assert body["fallback_mode"] == "replicate"
+    assert body["output_image_url"] == "https://replicate.delivery/output.jpg"

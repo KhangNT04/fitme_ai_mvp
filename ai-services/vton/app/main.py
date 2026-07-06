@@ -43,10 +43,14 @@ class TryOnJobResponse(BaseModel):
 
 @app.get("/health")
 def health() -> dict[str, str | bool]:
+    from app.providers.replicate_idmvton import is_replicate_configured
+
     return {
         "status": "ok",
         "mode": AI_MODE,
         "hf_fallback_composite": _HF_FALLBACK_COMPOSITE,
+        "provider_chain": os.getenv("VTON_PROVIDER_CHAIN", "hf,replicate,composite"),
+        "replicate_configured": is_replicate_configured(),
     }
 
 

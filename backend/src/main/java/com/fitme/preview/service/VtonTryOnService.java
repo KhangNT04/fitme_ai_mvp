@@ -89,6 +89,17 @@ public class VtonTryOnService {
         }
     }
 
+    @Transactional
+    public void pollForTryOn(UUID tryOnRequestId) {
+        findPreviewForTryOn(tryOnRequestId).ifPresent(preview -> {
+            if (preview.getStatus() == PreviewStatus.PROCESSING
+                    && preview.getVtonJobId() != null
+                    && !preview.getVtonJobId().isBlank()) {
+                pollSingleJob(preview);
+            }
+        });
+    }
+
     public Optional<PreviewGeneration> findPreviewForTryOn(UUID tryOnRequestId) {
         List<PreviewGeneration> previews = previewRepository.findByTryOnRequestId(tryOnRequestId);
         if (previews.isEmpty()) {
@@ -151,11 +162,11 @@ public class VtonTryOnService {
         }
 
         VtonJobResponse response = aiVtonClient.pollJob(preview.getVtonJobId());
-        if (response == null) {
+        if (response == null || response.getStatus() == null || response.getStatus().isBlank()) {
             return;
         }
 
-        String status = response.getStatus() != null ? response.getStatus().toLowerCase() : "";
+        String status = response.getStatus().toLowerCase();
         if ("processing".equals(status)) {
             return;
         }
@@ -175,6 +186,10 @@ public class VtonTryOnService {
             } catch (Exception ex) {
                 log.warn("Could not persist VTON output for preview {}: {}", preview.getId(), ex.getMessage());
             }
+            if (VtonOutputMirrorService.isEphemeralVtonOutputUrl(previewImageUrl)) {
+                log.info("VTON output not yet mirrored for preview {}, will retry on next poll", preview.getId());
+                return;
+            }
             preview.setPreviewImageUrl(previewImageUrl);
             preview.setDisclaimer(resolveVtonDisclaimer(response));
             preview.setStatus(PreviewStatus.SUCCEEDED);
@@ -182,9 +197,12 @@ public class VtonTryOnService {
             preview.setErrorMessage(null);
             tryOn.setStatus(TryOnStatus.COMPLETED);
             consumeQuotaForTryOn(tryOn.getId());
-        } else {
+        } else if ("failed".equals(status)) {
             applyVtonFailure(tryOn, preview,
                     response.getErrorMessage() != null ? response.getErrorMessage() : "VTON job failed");
+        } else {
+            log.warn("Unexpected VTON status '{}' for preview {}", status, preview.getId());
+            return;
         }
 
         previewRepository.save(preview);

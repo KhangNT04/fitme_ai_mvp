@@ -89,6 +89,10 @@ public class TryOnService {
 
     public TryOnResponse get(UUID id) {
         TryOnRequest tryOn = getOwned(id);
+        if (tryOn.getStatus() == TryOnStatus.PROCESSING) {
+            vtonTryOnService.pollForTryOn(id);
+            tryOn = tryOnRequestRepository.findById(id).orElseThrow();
+        }
         TryOnResponse response = toResponse(tryOn);
         attachItemDetails(tryOn, response);
         attachPreviewIfReady(tryOn, response);
@@ -149,6 +153,10 @@ public class TryOnService {
 
     public TryOnResponse getResult(UUID id) {
         TryOnRequest tryOn = getOwned(id);
+        if (tryOn.getStatus() == TryOnStatus.PROCESSING) {
+            vtonTryOnService.pollForTryOn(id);
+            tryOn = tryOnRequestRepository.findById(id).orElseThrow();
+        }
         TryOnResponse response = toResponse(tryOn);
         attachItemDetails(tryOn, response);
         attachPreviewIfReady(tryOn, response);

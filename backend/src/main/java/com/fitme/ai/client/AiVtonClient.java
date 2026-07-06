@@ -43,6 +43,9 @@ public class AiVtonClient {
         }
     }
 
+  /**
+   * Poll ai-vton job status. Returns {@code null} on transient network errors so callers keep waiting.
+   */
     public VtonJobResponse pollJob(String jobId) {
         RestClient client = restClient();
         try {
@@ -51,13 +54,8 @@ public class AiVtonClient {
                     .retrieve()
                     .body(VtonJobResponse.class);
         } catch (RestClientException ex) {
-            log.warn("VTON poll failed for {}: {}", jobId, ex.getMessage());
-            VtonJobResponse failed = new VtonJobResponse();
-            failed.setJobId(jobId);
-            failed.setStatus("failed");
-            failed.setErrorCode("PROVIDER_ERROR");
-            failed.setErrorMessage(ex.getMessage());
-            return failed;
+            log.warn("VTON poll transient error for {}: {}", jobId, ex.getMessage());
+            return null;
         }
     }
 

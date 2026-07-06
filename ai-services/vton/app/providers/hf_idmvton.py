@@ -17,23 +17,41 @@ from app.category_mapper import garment_description, is_supported, normalize_cat
 from app.composite import build_composite_url
 from app.image_preflight import validate_image_url
 from app.providers.base import VtonJobResult
+from app.providers.replicate_idmvton import is_replicate_configured, run_replicate_tryon
 
 logger = logging.getLogger(__name__)
 
 _HF_SPACE = os.getenv("HF_SPACE", "yisol/IDM-VTON")
 _HF_TOKEN = os.getenv("HF_TOKEN") or None
-_HF_MAX_RETRIES = max(1, int(os.getenv("HF_MAX_RETRIES", "2")))
-_HF_RETRY_DELAY_SECONDS = float(os.getenv("HF_RETRY_DELAY_SECONDS", "3"))
-_HF_FALLBACK_COMPOSITE = os.getenv("HF_FALLBACK_COMPOSITE", "true").strip().lower() in {
-    "1",
-    "true",
-    "yes",
-}
 _PRIVATE_HOSTS = frozenset({"localhost", "127.0.0.1", "0.0.0.0"})
 
 
+def _hf_max_retries() -> int:
+    return max(1, int(os.getenv("HF_MAX_RETRIES", "3")))
+
+
+def _hf_retry_delay_seconds() -> float:
+    return float(os.getenv("HF_RETRY_DELAY_SECONDS", "5"))
+
+
+def _hf_fallback_composite() -> bool:
+    return os.getenv("HF_FALLBACK_COMPOSITE", "true").strip().lower() in {
+        "1",
+        "true",
+        "yes",
+    }
+
+
+def _provider_chain() -> list[str]:
+    return [
+        step.strip().lower()
+        for step in os.getenv("VTON_PROVIDER_CHAIN", "hf,replicate,composite").split(",")
+        if step.strip()
+    ]
+
+
 class HfIdmVtonProvider:
-    """Virtual try-on via Hugging Face Space with retry and composite fallback."""
+    """Virtual try-on via HF Space → Replicate → composite fallback chain."""
 
     def __init__(self) -> None:
         self._client: Client | None = None
@@ -90,43 +108,54 @@ class HfIdmVtonProvider:
                     )
 
             last_error: Exception | None = None
-            for attempt in range(1, _HF_MAX_RETRIES + 1):
+
+            if "hf" in _provider_chain():
+                for attempt in range(1, _hf_max_retries() + 1):
+                    try:
+                        output_url = self._run_hf_job(
+                            person_image_url,
+                            garment_image_url,
+                            description,
+                        )
+                        self._mark_completed(job_id, output_url, fallback_mode=None)
+                        return
+                    except Exception as exc:  # noqa: BLE001
+                        last_error = exc
+                        logger.warning(
+                            "HF VTON job %s attempt %s/%s failed: %s",
+                            job_id,
+                            attempt,
+                            _hf_max_retries(),
+                            exc,
+                        )
+                        self._reset_client()
+                        if attempt < _hf_max_retries():
+                            time.sleep(_hf_retry_delay_seconds())
+
+            if "replicate" in _provider_chain() and is_replicate_configured():
                 try:
-                    output_url = self._run_hf_job(
+                    output_url = run_replicate_tryon(
                         person_image_url,
                         garment_image_url,
+                        normalized or category,
                         description,
                     )
-                    with self._lock:
-                        entry = self._jobs.get(job_id)
-                        if entry is not None:
-                            entry["status"] = "completed"
-                            entry["output"] = output_url
-                            entry["fallback_mode"] = None
+                    logger.info("Replicate VTON job %s completed", job_id)
+                    self._mark_completed(job_id, output_url, fallback_mode="replicate")
                     return
                 except Exception as exc:  # noqa: BLE001
                     last_error = exc
-                    logger.warning(
-                        "HF VTON job %s attempt %s/%s failed: %s",
-                        job_id,
-                        attempt,
-                        _HF_MAX_RETRIES,
-                        exc,
-                    )
-                    self._reset_client()
-                    if attempt < _HF_MAX_RETRIES:
-                        time.sleep(_HF_RETRY_DELAY_SECONDS)
+                    logger.warning("Replicate VTON job %s failed: %s", job_id, exc)
 
-            if _HF_FALLBACK_COMPOSITE:
+            if "composite" in _provider_chain() and _hf_fallback_composite():
                 try:
-                    composite_url = build_composite_url(person_image_url, garment_image_url)
+                    composite_url = build_composite_url(
+                        person_image_url,
+                        garment_image_url,
+                        category=normalized,
+                    )
                     logger.info("HF VTON job %s using composite fallback", job_id)
-                    with self._lock:
-                        entry = self._jobs.get(job_id)
-                        if entry is not None:
-                            entry["status"] = "completed"
-                            entry["output"] = composite_url
-                            entry["fallback_mode"] = "composite"
+                    self._mark_completed(job_id, composite_url, fallback_mode="composite")
                     return
                 except Exception as exc:  # noqa: BLE001
                     last_error = exc
@@ -136,10 +165,18 @@ class HfIdmVtonProvider:
                 entry = self._jobs.get(job_id)
                 if entry is not None:
                     entry["status"] = "failed"
-                    entry["error"] = str(last_error or "HF Space error")
+                    entry["error"] = str(last_error or "All VTON providers failed")
 
         threading.Thread(target=_run, daemon=True).start()
         return VtonJobResult(job_id=job_id, status="processing")
+
+    def _mark_completed(self, job_id: str, output_url: str, fallback_mode: str | None) -> None:
+        with self._lock:
+            entry = self._jobs.get(job_id)
+            if entry is not None:
+                entry["status"] = "completed"
+                entry["output"] = output_url
+                entry["fallback_mode"] = fallback_mode
 
     def _run_hf_job(
         self,
@@ -149,19 +186,26 @@ class HfIdmVtonProvider:
     ) -> str:
         person_ref = _resolve_image_ref(person_image_url)
         garment_ref = _resolve_image_ref(garment_image_url)
+        logger.info(
+            "HF VTON submit person=%s garment=%s",
+            person_image_url[:100],
+            garment_image_url[:100],
+        )
         client = self._get_client()
         gradio_job = client.submit(
             dict={"background": person_ref, "layers": None, "composite": None},
             garm_img=garment_ref,
             garment_des=description,
             is_checked=True,
-            is_checked_crop=False,
+            is_checked_crop=True,
             denoise_steps=30,
             seed=42,
             api_name="/tryon",
         )
         result = gradio_job.result(timeout=300)
-        return _extract_output_url(result)
+        output_url = _extract_output_url(result)
+        logger.info("HF VTON completed output=%s", output_url[:120] if output_url else "")
+        return output_url
 
     def poll(self, job_id: str) -> VtonJobResult:
         with self._lock:
@@ -192,12 +236,9 @@ class HfIdmVtonProvider:
 
 
 def _resolve_image_ref(url: str) -> Any:
-    parsed = urlparse(url)
-    host = (parsed.hostname or "").lower()
-    if host in _PRIVATE_HOSTS:
-        return handle_file(_download_to_temp(url))
+    """Always download remote images locally so HF Gradio does not fetch cold-start URLs."""
     if url.startswith("http://") or url.startswith("https://"):
-        return handle_file(url)
+        return handle_file(_download_to_temp(url))
     path = Path(url)
     if path.is_file():
         return handle_file(str(path))
@@ -209,6 +250,7 @@ def _download_to_temp(url: str) -> str:
     with httpx.Client(timeout=30.0, follow_redirects=True) as client:
         response = client.get(url)
         response.raise_for_status()
+        logger.debug("Downloaded %s bytes from %s", len(response.content), url[:100])
         with tempfile.NamedTemporaryFile(delete=False, suffix=suffix) as tmp:
             tmp.write(response.content)
             return tmp.name

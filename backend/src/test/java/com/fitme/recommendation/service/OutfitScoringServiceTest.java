@@ -1,9 +1,11 @@
 package com.fitme.recommendation.service;
 
 import com.fitme.common.enums.FitPreference;
+import com.fitme.common.enums.ProductTargetGender;
 import com.fitme.common.enums.StockStatus;
 import com.fitme.product.entity.Product;
 import com.fitme.product.entity.ProductTag;
+import com.fitme.product.service.ProductAudienceService;
 import com.fitme.userprofile.entity.BodyProfile;
 import com.fitme.userprofile.entity.StyleProfile;
 import org.junit.jupiter.api.Test;
@@ -28,6 +30,8 @@ class OutfitScoringServiceTest {
     private com.fitme.admin.repository.StyleRuleRepository styleRuleRepository;
     @Mock
     private com.fitme.admin.repository.OccasionRuleRepository occasionRuleRepository;
+    @Mock
+    private ProductAudienceService productAudienceService;
 
     @InjectMocks
     private OutfitScoringService outfitScoringService;
@@ -55,6 +59,7 @@ class OutfitScoringServiceTest {
         ));
         when(styleRuleRepository.findByActiveTrue()).thenReturn(List.of());
         when(occasionRuleRepository.findByActiveTrue()).thenReturn(List.of());
+        when(productAudienceService.resolveTargetGender(p)).thenReturn(ProductTargetGender.UNISEX);
 
         double score = outfitScoringService.scoreProduct(p, style, "Casual", body);
         assertThat(score).isGreaterThan(30);

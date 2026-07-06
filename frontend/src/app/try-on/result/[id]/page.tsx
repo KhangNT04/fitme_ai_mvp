@@ -83,61 +83,83 @@ export default function TryOnResultPage({
         backLabel={resultBack.label}
       />
 
-      {data.previewType && (
-        <Badge className="mb-4" variant="secondary">
-          {PREVIEW_TYPE_LABELS[data.previewType] ?? "Preview"}
-        </Badge>
-      )}
-
-      {data.previewSource && (
-        <Badge className="mb-4 ml-2" variant={data.previewSource === "VTON" ? "ai" : "warning"}>
-          {PREVIEW_SOURCE_LABELS[data.previewSource] ?? data.previewSource}
-        </Badge>
-      )}
-
-      <div className="relative aspect-[3/4] overflow-hidden rounded-xl bg-muted">
-        {data.previewImageUrl ? (
-          <Image src={data.previewImageUrl} alt="Try-on preview" fill className="object-cover" unoptimized />
-        ) : (
-          <div className="flex h-full items-center justify-center text-muted-foreground/70">
-            {PREVIEW_PLACEHOLDERS[data.previewType ?? "OUTFIT_BOARD"]}
-          </div>
+      <div className="mb-4 flex flex-wrap gap-2">
+        {data.previewType && (
+          <Badge variant="secondary">
+            {PREVIEW_TYPE_LABELS[data.previewType] ?? "Preview"}
+          </Badge>
+        )}
+        {data.previewSource && (
+          <Badge variant={data.previewSource === "VTON" ? "ai" : "warning"}>
+            {PREVIEW_SOURCE_LABELS[data.previewSource] ?? data.previewSource}
+          </Badge>
         )}
       </div>
 
-      {data.disclaimer && (
-        <p className="mt-4 text-sm text-muted-foreground">{data.disclaimer}</p>
-      )}
+      <div className="grid gap-6 lg:grid-cols-[minmax(0,300px)_1fr] lg:items-start">
+        <div className="mx-auto w-full max-w-[300px] space-y-3 lg:mx-0">
+          <div className="relative aspect-[3/4] w-full overflow-hidden rounded-xl border border-border bg-muted">
+            {data.previewImageUrl ? (
+              <Image
+                src={data.previewImageUrl}
+                alt="Try-on preview"
+                fill
+                className="object-contain"
+                unoptimized
+              />
+            ) : (
+              <div className="flex h-full items-center justify-center px-4 text-center text-sm text-muted-foreground/70">
+                {PREVIEW_PLACEHOLDERS[data.previewType ?? "OUTFIT_BOARD"]}
+              </div>
+            )}
+          </div>
 
-      {data.errorMessage && (
-        <p className="mt-2 text-sm text-amber-700 dark:text-amber-400">
-          {data.errorMessage}
-        </p>
-      )}
+          {data.disclaimer && (
+            <p className="text-xs leading-relaxed text-muted-foreground">{data.disclaimer}</p>
+          )}
 
-      <Disclaimer className="mt-6" />
+          {data.errorMessage && (
+            <p className="text-xs leading-relaxed text-amber-700 dark:text-amber-400">
+              {data.errorMessage}
+            </p>
+          )}
+        </div>
 
-      <div className="mt-6 flex flex-wrap gap-2">
-        {data.recommendedSize && <Badge>Gợi ý size: {data.recommendedSize}</Badge>}
-        {data.recommendedForm && <Badge variant="secondary">Form: {data.recommendedForm}</Badge>}
-        {data.recommendedColor && <Badge variant="outline">Màu: {data.recommendedColor}</Badge>}
+        <div className="min-w-0 space-y-4">
+          <div className="flex flex-wrap gap-2">
+            {data.recommendedSize && <Badge>Gợi ý size: {data.recommendedSize}</Badge>}
+            {data.recommendedForm && <Badge variant="secondary">Form: {data.recommendedForm}</Badge>}
+            {data.recommendedColor && <Badge variant="outline">Màu: {data.recommendedColor}</Badge>}
+          </div>
+
+          {(data.improvementSuggestions?.length || data.suggestedItems?.length) ? (
+            <Card>
+              <CardHeader className="pb-3">
+                <CardTitle className="text-base">Gợi ý hoàn thiện set</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <TryOnOutfitSuggestions
+                  suggestions={{
+                    outfitComplete: data.outfitComplete ?? false,
+                    missingRoles: [],
+                    improvementSuggestions: data.improvementSuggestions ?? [],
+                    suggestedItems: data.suggestedItems ?? [],
+                  }}
+                  compact
+                />
+              </CardContent>
+            </Card>
+          ) : (
+            <Card>
+              <CardContent className="p-6 text-sm text-muted-foreground">
+                Set đồ hiện tại đã cân đối — bạn có thể thử màu, size hoặc form khác bằng các nút bên dưới.
+              </CardContent>
+            </Card>
+          )}
+        </div>
       </div>
 
-      {(data.improvementSuggestions?.length || data.suggestedItems?.length) ? (
-        <Card className="mt-6">
-          <CardHeader><CardTitle className="text-base">Gợi ý hoàn thiện set</CardTitle></CardHeader>
-          <CardContent>
-            <TryOnOutfitSuggestions
-              suggestions={{
-                outfitComplete: data.outfitComplete ?? false,
-                missingRoles: [],
-                improvementSuggestions: data.improvementSuggestions ?? [],
-                suggestedItems: data.suggestedItems ?? [],
-              }}
-            />
-          </CardContent>
-        </Card>
-      ) : null}
+      <Disclaimer className="mt-6" />
 
       <div className="mt-8 grid gap-3 sm:grid-cols-2">
         <Button variant="outline" asChild><Link href={`/try-on/color/${id}`}><Palette className="mr-2 h-4 w-4" />Thử màu khác</Link></Button>

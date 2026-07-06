@@ -45,7 +45,7 @@ export function TryOnOutfitSuggestions({
       {suggestedItems.length > 0 && (
         <div className="space-y-2">
           <p className="text-sm font-medium">Gợi ý bổ sung cho set</p>
-          <div className="grid gap-3 sm:grid-cols-2">
+          <div className="grid gap-3">
             {suggestedItems.map((item) => (
               <Card key={item.productId}>
                 <CardContent className="flex items-center gap-3 p-3">

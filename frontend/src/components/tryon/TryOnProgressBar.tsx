@@ -21,8 +21,8 @@ const PHASE_LABELS: Record<TryOnInputMode, Record<TryOnPollPhase, string>> = {
   },
   AVATAR: {
     idle: "Đang chuẩn bị...",
-    starting: "Đang tạo preview avatar...",
-    polling: "Đang xử lý preview...",
+    starting: "Đang gửi yêu cầu thử mặc AI...",
+    polling: "AI đang ghép trang phục lên avatar mẫu...",
     completed: "Hoàn tất!",
     failed: "Không tạo được preview",
     timeout: "Hết thời gian chờ",

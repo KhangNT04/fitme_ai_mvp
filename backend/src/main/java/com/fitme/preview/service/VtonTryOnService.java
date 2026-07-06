@@ -95,7 +95,11 @@ public class VtonTryOnService {
     }
 
     private boolean shouldUseAsyncVton(TryOnRequest tryOn) {
-        return tryOn.getPreviewMode() == TryOnPreviewMode.USER_PHOTO && aiVtonClient.isRemoteMode();
+        if (!aiVtonClient.isVtonEnabled()) {
+            return false;
+        }
+        TryOnPreviewMode mode = tryOn.getPreviewMode();
+        return mode == TryOnPreviewMode.USER_PHOTO || mode == TryOnPreviewMode.AVATAR;
     }
 
     private void dispatchAsyncVton(TryOnRequest tryOn, PreviewGeneration preview) {

@@ -72,6 +72,16 @@ public class AiVtonClient {
                 || "hf".equalsIgnoreCase(mode);
     }
 
+    /** True when backend should call the VTON microservice (mock returns a demo composite). */
+    public boolean isVtonEnabled() {
+        String mode = properties.getAi().getMode();
+        if (mode == null || mode.isBlank()) {
+            return false;
+        }
+        String normalized = mode.trim().toLowerCase(java.util.Locale.ROOT);
+        return "mock".equals(normalized) || isRemoteMode();
+    }
+
     private RestClient restClient() {
         return RestClient.builder()
                 .baseUrl(properties.getAi().getVtonBaseUrl())

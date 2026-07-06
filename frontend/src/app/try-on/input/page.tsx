@@ -100,12 +100,25 @@ export default function TryOnInputPage() {
   });
 
   useEffect(() => {
+    void ensureSession();
+  }, [ensureSession]);
+
+  useEffect(() => {
     if (photoUploadId) setValue("photoUploadId", photoUploadId, { shouldValidate: true });
   }, [photoUploadId, setValue]);
 
   useEffect(() => {
     if (avatarKey) setValue("avatarKey", avatarKey, { shouldValidate: true });
   }, [avatarKey, setValue]);
+
+  useEffect(() => {
+    if (!storesReady || !photoUploadId) return;
+    uploadApi.checkQuality(photoUploadId).catch(() => {
+      clearPhoto();
+      setValue("photoUploadId", undefined, { shouldValidate: true });
+      setUploadError("Ảnh đã hết phiên — vui lòng upload lại.");
+    });
+  }, [storesReady, photoUploadId, clearPhoto, setValue]);
 
   useEffect(() => {
     if (!photoUploadId || photoQuality !== "good") return;
@@ -178,6 +191,12 @@ export default function TryOnInputPage() {
     setPhotoPreviewUrl(localPreview);
 
     try {
+      const session = await ensureSession();
+      if (!session) {
+        setPhotoQuality("poor");
+        setUploadError("Không thể tạo phiên làm việc. Vui lòng tải lại trang.");
+        return;
+      }
       const { consentId } = await uploadApi.consent();
       if (isStale()) return;
       const { photoUploadId: id, fileUrl } = await uploadApi.uploadPhoto(file, consentId);
@@ -286,7 +305,9 @@ export default function TryOnInputPage() {
 
               {inputMode === "AVATAR" && (
                 <div className="space-y-3">
-                  <p className="text-sm text-muted-foreground">Chọn một avatar mẫu để minh họa outfit.</p>
+                  <p className="text-sm text-muted-foreground">
+                    Chọn avatar mẫu — AI sẽ ghép outfit lên hình minh họa.
+                  </p>
 
                   {selectedAvatar && !showAvatarPicker ? (
                     <div className="flex flex-col items-center gap-3">
@@ -351,7 +372,7 @@ export default function TryOnInputPage() {
               {inputMode === "USER_PHOTO" && (
                 <div className="space-y-4">
                   <p className="text-sm text-muted-foreground">
-                    Upload ảnh toàn thân hoặc nửa người để minh họa outfit trên hình của bạn.
+                    Upload ảnh toàn thân hoặc nửa người — AI sẽ ghép trang phục lên ảnh của bạn.
                   </p>
                   <label className="flex items-start gap-3 rounded-lg border border-border p-4">
                     <Checkbox checked={consented} onCheckedChange={(c) => setConsented(!!c)} />

@@ -86,17 +86,14 @@ public class GeminiStylistClient {
                 Ưu tiên set TOP+BOTTOM+SHOES hoặc ONE_PIECE (chỉ khi hợp giới tính); có thể thêm OUTERWEAR.
                 Nếu có selectedProductId, giữ sản phẩm đó khi hợp lệ.
 
-                explanation.narrative: viết tiếng Việt, 4–5 đoạn (mỗi đoạn cách nhau bằng xuống dòng), BẮT BUỘC theo thứ tự:
-                (1) Ghi nhận nhu cầu + đặc điểm khách từ JSON (occasion, số đo, gu, giới tính)
-                (2) Đề xuất tự tin — nêu ĐÚNG tên sản phẩm đã chọn trong items (lấy tên từ candidates)
-                (3) Giải thích VÌ SAO — liên kết form/chất liệu/màu với dáng người và hoàn cảnh (đoạn quan trọng nhất, 2–3 câu)
-                (4) Mẹo mix-match phụ kiện phù hợp occasion
-                (5) CTA — câu hỏi mở nhận phản hồi
+                explanation.narrative: viết tiếng Việt, 2 đoạn (cách nhau bằng xuống dòng), theo mẫu tự nhiên sau:
+                Đoạn 1: mở bằng "Với dáng người cao khoảng …, nặng …kg và thích mặc …" (chỉ lồng số đo cần thiết, KHÔNG liệt kê lại toàn bộ form người dùng đã nhập); gợi ý combo bằng tên sản phẩm thường (không dùng ngoặc vuông); nêu cảm giác set (dễ mặc hằng ngày / gọn công sở…); gợi ý size chính và size thay thế nếu muốn thoải mái hơn.
+                Đoạn 2: mở "Về màu sắc, …" — giải thích vì sao tông màu an toàn; gợi ý giày/phụ kiện hoàn thiện set.
 
-                Tông: như nhân viên bán hàng thuyết phục. KHÔNG liệt kê mục "phù hợp dáng/gu/hoàn cảnh".
-                Giới tính: lồng ghép tự nhiên trong đoạn "vì sao", không tách câu máy móc.
+                Tông: như stylist tư vấn thân thiện, không máy móc. KHÔNG dùng "Dạ em đã nhận được thông tin", "Lý do em chọn", checklist "phù hợp dáng/gu/hoàn cảnh", hay ngoặc vuông quanh tên sản phẩm.
+                Giới tính: lồng ghép tự nhiên khi cần, không tách câu riêng.
 
-                Ví dụ ngắn (cafe, nữ): "Dạ, với nhu cầu đi cafe cuối tuần và gu trẻ trung bạn chia sẻ, em gợi ý [Áo croptop] mix [Chân váy chữ A]. Chân váy chữ A giúp đôi chân trông dài và tỉ lệ cơ thể cân đối hơn khi đi chơi. Phối thêm sneaker trắng là rất năng động. Bạn thấy set này ổn chưa, hay muốn em đổi sang form khác?"
+                Ví dụ rút gọn: "Với dáng người cao khoảng 1m70, nặng 60kg và thích mặc vừa vặn, bạn có thể chọn áo sơ mi caro form regular phối cùng quần jeans ống suông màu xanh nhạt. Set này khá dễ mặc hằng ngày, không quá nghiêm túc nhưng vẫn gọn gàng. Size S sẽ hợp nếu bạn muốn áo ôm vừa người; còn nếu thích thoải mái hơn một chút khi ngồi học, đi chơi hoặc di chuyển nhiều, bạn có thể cân nhắc lên size M.\n\nVề màu sắc, navy là lựa chọn an toàn vì dễ phối, hợp với nhiều tông da và không làm tổng thể bị quá nổi. Bạn có thể hoàn thiện set bằng một đôi sneaker trắng hoặc xám nhạt để giữ cảm giác sạch sẽ, trẻ trung."
 
                 Trả về đúng JSON schema.
                 """;

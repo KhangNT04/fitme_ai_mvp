@@ -38,14 +38,16 @@ class OutfitExplanationComposerTest {
                 "S", "M", "Vừa vặn (Regular)", "Trắng", 0,
                 "Outfit Đi cafe phong cách Korean Casual", items);
 
-        assertThat(text).contains("165cm");
-        assertThat(text).contains("[Áo thun basic]");
-        assertThat(text).contains("[Quần jean slim]");
+        assertThat(text).contains("1m65");
+        assertThat(text).contains("áo thun basic");
+        assertThat(text).contains("quần jean slim");
+        assertThat(text).doesNotContain("[");
+        assertThat(text).doesNotContain("đã nhận được thông tin");
+        assertThat(text).contains("Về màu sắc");
         assertThat(text).contains("\n\n");
         assertThat(text).doesNotContain("Phù hợp dáng");
         assertThat(text).doesNotContain("Phù hợp gu");
-        assertThat(text).doesNotContain("Em chọn toàn món nam/unisex");
-        assertThat(text).contains("?");
+        assertThat(text).doesNotContain("Lý do em chọn");
     }
 
     @Test
@@ -70,6 +72,7 @@ class OutfitExplanationComposerTest {
         assertThat(text).contains("công sở");
         assertThat(text).contains("giày");
         assertThat(text).contains("vòng hông");
+        assertThat(text).contains("Về màu sắc");
     }
 
     @Test

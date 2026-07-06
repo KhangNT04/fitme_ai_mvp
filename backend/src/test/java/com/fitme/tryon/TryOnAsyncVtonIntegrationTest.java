@@ -52,6 +52,48 @@ class TryOnAsyncVtonIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
+    void avatarMode_hfMode_returnsProcessingThenCompletesAfterPoll() throws Exception {
+        VtonJobResponse submit = new VtonJobResponse();
+        submit.setJobId("job-avatar-1");
+        submit.setStatus("processing");
+        StubAiVtonClient.submitResponse = submit;
+
+        VtonJobResponse completed = new VtonJobResponse();
+        completed.setJobId("job-avatar-1");
+        completed.setStatus("completed");
+        completed.setOutputImageUrl("https://cdn.example/vton-avatar.jpg");
+
+        StubAiVtonClient.pollQueue.add(completed);
+
+        Product product = testDataHelper.createEligibleProduct("HF avatar top", "Áo thun");
+        String sessionToken = createAnonymousSessionToken();
+
+        String requestId = createTryOn(sessionToken, """
+                {
+                  "previewMode": "AVATAR",
+                  "avatarKey": "avatar-female-1",
+                  "heightCm": 165,
+                  "weightKg": 55
+                }
+                """);
+        addItem(sessionToken, requestId, product);
+
+        mockMvc.perform(post("/api/v1/try-on/requests/{id}/generate", requestId)
+                        .header(SESSION_HEADER, sessionToken))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.status").value("PROCESSING"));
+
+        vtonTryOnService.pollProcessingJobs();
+
+        mockMvc.perform(get("/api/v1/try-on/requests/{id}/result", requestId)
+                        .header(SESSION_HEADER, sessionToken))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.status").value("COMPLETED"))
+                .andExpect(jsonPath("$.data.previewImageUrl").value("https://cdn.example/vton-avatar.jpg"))
+                .andExpect(jsonPath("$.data.previewSource").value("VTON"));
+    }
+
+    @Test
     void userPhotoMode_hfMode_returnsProcessingThenCompletesAfterPoll() throws Exception {
         VtonJobResponse submit = new VtonJobResponse();
         submit.setJobId("job-async-1");
@@ -115,6 +157,11 @@ class TryOnAsyncVtonIntegrationTest extends AbstractIntegrationTest {
 
         StubAiVtonClient(FitMeProperties properties) {
             super(properties);
+        }
+
+        @Override
+        public boolean isVtonEnabled() {
+            return true;
         }
 
         @Override

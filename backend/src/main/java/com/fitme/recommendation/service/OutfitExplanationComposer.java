@@ -1,7 +1,6 @@
 package com.fitme.recommendation.service;
 
 import com.fitme.common.enums.FitPreference;
-import com.fitme.common.enums.Gender;
 import com.fitme.common.enums.ItemRole;
 import com.fitme.common.enums.SkinTone;
 import com.fitme.recommendation.entity.Recommendation;
@@ -46,12 +45,9 @@ public class OutfitExplanationComposer {
             List<OutfitItemRef> items) {
         List<String> paragraphs = new ArrayList<>();
 
-        paragraphs.add(acknowledgeParagraph(body, style, occasion, desiredVibe));
-        paragraphs.add(proposalParagraph(items, title));
-        paragraphs.add(whyParagraph(body, style, occasion, recommendedSize, alternativeSize,
-                recommendedForm, recommendedColor, items));
-        paragraphs.add(mixMatchParagraph(occasion, wardrobeCount));
-        paragraphs.add(callToActionParagraph());
+        paragraphs.add(openingParagraph(body, style, occasion, items, title, recommendedForm,
+                recommendedSize, alternativeSize));
+        paragraphs.add(colorAndFinishParagraph(body, style, occasion, recommendedColor, items, wardrobeCount));
 
         return paragraphs.stream()
                 .filter(s -> s != null && !s.isBlank())
@@ -65,151 +61,155 @@ public class OutfitExplanationComposer {
         return composeFromRecommendation(rec);
     }
 
-    private String acknowledgeParagraph(
+    private String openingParagraph(
             BodyProfile body,
             StyleProfile style,
             String occasion,
-            String desiredVibe) {
-        StringBuilder sb = new StringBuilder("Dạ, em đã nhận được thông tin của bạn");
-        if (occasion != null && !occasion.isBlank()) {
-            sb.append(" — bạn đang tìm set đồ cho ").append(occasion.trim().toLowerCase(Locale.forLanguageTag("vi")));
+            List<OutfitItemRef> items,
+            String title,
+            String recommendedForm,
+            String recommendedSize,
+            String alternativeSize) {
+        StringBuilder sb = new StringBuilder();
+        appendBodyContext(sb, body, style);
+        String combo = describeComboNaturally(sortByRole(items), recommendedForm, title);
+        if (combo != null) {
+            sb.append(combo).append(" ");
         }
-        if (desiredVibe != null && !desiredVibe.isBlank()) {
-            sb.append(", vibe ").append(desiredVibe.trim());
-        } else if (style.getPrimaryStyle() != null && !style.getPrimaryStyle().isBlank()
-                && !isGenericStyle(style.getPrimaryStyle())) {
-            sb.append(", gu ").append(style.getPrimaryStyle().trim());
+        if (appendBodyShapeHint(sb, body)) {
+            sb.append(" ");
         }
-        sb.append(".");
-        if (body.getHeightCm() != null || body.getWeightKg() != null) {
-            sb.append(" Với số đo ");
+        sb.append(occasionFeel(occasion));
+        appendSizeAdvice(sb, recommendedSize, alternativeSize);
+        return sb.toString().trim();
+    }
+
+    private String colorAndFinishParagraph(
+            BodyProfile body,
+            StyleProfile style,
+            String occasion,
+            String recommendedColor,
+            List<OutfitItemRef> items,
+            int wardrobeCount) {
+        StringBuilder sb = new StringBuilder();
+        if (recommendedColor != null && !recommendedColor.isBlank()) {
+            sb.append("Về màu sắc, ").append(recommendedColor.trim().toLowerCase(Locale.ROOT));
+            sb.append(" là lựa chọn an toàn vì dễ phối");
+            if (body.getSkinTone() != null && body.getSkinTone() != SkinTone.UNSURE) {
+                sb.append(", hợp với tông da ").append(formatSkinTone(body.getSkinTone()));
+            } else {
+                sb.append(", hợp với nhiều tông da");
+            }
+            sb.append(" và không làm tổng thể bị quá nổi. ");
+        }
+        sb.append(finishWithFootwearAndAccessories(occasion, items));
+        if (wardrobeCount > 0) {
+            sb.append(" Trong tủ đồ bạn còn ").append(wardrobeCount)
+                    .append(" món có thể ghép thêm nếu muốn đổi gió.");
+        }
+        return sb.toString().trim();
+    }
+
+    private static void appendBodyContext(StringBuilder sb, BodyProfile body, StyleProfile style) {
+        boolean hasMeasure = body.getHeightCm() != null || body.getWeightKg() != null;
+        String fitLabel = formatFitPreference(body.getFitPreference());
+        if (hasMeasure || fitLabel != null) {
+            sb.append("Với dáng người ");
             if (body.getHeightCm() != null) {
-                sb.append("cao ").append(body.getHeightCm()).append("cm");
+                sb.append("cao khoảng ").append(formatHeightNatural(body.getHeightCm()));
             }
             if (body.getWeightKg() != null) {
                 if (body.getHeightCm() != null) {
                     sb.append(", ");
                 }
-                sb.append(body.getWeightKg().stripTrailingZeros().toPlainString()).append("kg");
+                sb.append("nặng ").append(body.getWeightKg().stripTrailingZeros().toPlainString()).append("kg");
             }
-            String fitLabel = formatFitPreference(body.getFitPreference());
             if (fitLabel != null) {
-                sb.append(" và thích form ").append(fitLabel);
+                sb.append(" và thích mặc ").append(fitLabel);
             }
-            sb.append(", em sẽ ưu tiên phom vừa vặn mà vẫn thoải mái.");
+            sb.append(", ");
+        } else if (style.getPrimaryStyle() != null && !style.getPrimaryStyle().isBlank()
+                && !isGenericStyle(style.getPrimaryStyle())) {
+            sb.append("Với gu ").append(style.getPrimaryStyle().trim()).append(" bạn chia sẻ, ");
         }
-        return sb.toString();
     }
 
-    private String proposalParagraph(List<OutfitItemRef> items, String title) {
-        List<OutfitItemRef> sorted = sortByRole(items);
+    private static String describeComboNaturally(
+            List<OutfitItemRef> sorted,
+            String recommendedForm,
+            String title) {
         if (sorted.isEmpty()) {
             if (title != null && !title.isBlank()) {
-                return "Em đặc biệt gợi ý bạn thử set \"" + title.trim()
-                        + "\" — combo em chọn để bạn mặc ngay không cần nghĩ nhiều.";
+                return "bạn có thể thử set \"" + title.trim() + "\" — combo gọn, dễ mặc ngay.";
             }
-            return "Em đã ghép một set cân bằng để bạn thử trước.";
+            return "bạn có thể thử set em ghép sẵn từ danh mục.";
         }
 
-        StringBuilder sb = new StringBuilder("Em gợi ý bạn kết hợp ");
-        List<String> named = new ArrayList<>();
-        for (OutfitItemRef item : sorted) {
-            String label = formatItemLabel(item);
-            if (label != null) {
-                named.add("[" + label + "]");
-            }
+        OutfitItemRef top = findByRole(sorted, ItemRole.TOP);
+        OutfitItemRef bottom = findByRole(sorted, ItemRole.BOTTOM);
+        OutfitItemRef onePiece = findByRole(sorted, ItemRole.ONE_PIECE);
+        String formSuffix = formPhrase(recommendedForm);
+
+        if (onePiece != null) {
+            return "bạn có thể chọn " + lowercaseFirst(toNaturalName(onePiece)) + formSuffix + ".";
         }
-        if (named.isEmpty()) {
-            return "Em đã ghép set phù hợp từ các món trong danh mục — bạn xem thử nhé.";
+        if (top != null && bottom != null) {
+            return "bạn có thể chọn " + lowercaseFirst(toNaturalName(top)) + formSuffix
+                    + " phối cùng " + lowercaseFirst(toNaturalName(bottom)) + ".";
         }
-        if (named.size() == 1) {
-            sb.append(named.getFirst());
-        } else if (named.size() == 2) {
-            sb.append(named.get(0)).append(" đi cùng ").append(named.get(1));
-        } else {
-            sb.append(String.join(", ", named.subList(0, named.size() - 1)))
-                    .append(" và ").append(named.getLast());
+        OutfitItemRef primary = sorted.getFirst();
+        return "bạn có thể chọn " + lowercaseFirst(toNaturalName(primary)) + formSuffix + ".";
+    }
+
+    private static void appendSizeAdvice(StringBuilder sb, String recommendedSize, String alternativeSize) {
+        if (recommendedSize == null || recommendedSize.isBlank()) {
+            return;
+        }
+        sb.append(" Size ").append(recommendedSize.trim());
+        sb.append(" sẽ hợp nếu bạn muốn áo ôm vừa người");
+        if (alternativeSize != null && !alternativeSize.isBlank()
+                && !alternativeSize.equalsIgnoreCase(recommendedSize)) {
+            sb.append("; còn nếu thích thoải mái hơn một chút khi ngồi học, đi chơi hoặc di chuyển nhiều, ");
+            sb.append("bạn có thể cân nhắc lên size ").append(alternativeSize.trim());
         }
         sb.append(".");
-        return sb.toString();
     }
 
-    private String whyParagraph(
-            BodyProfile body,
-            StyleProfile style,
-            String occasion,
-            String recommendedSize,
-            String alternativeSize,
-            String recommendedForm,
-            String recommendedColor,
-            List<OutfitItemRef> items) {
-        StringBuilder sb = new StringBuilder("Lý do em chọn set này là ");
+    private static String finishWithFootwearAndAccessories(String occasion, List<OutfitItemRef> items) {
+        OutfitItemRef shoes = findByRole(sortByRole(items), ItemRole.SHOES);
+        String shoeHint = shoes != null
+                ? lowercaseFirst(toNaturalName(shoes))
+                : footwearSuggestion(occasionTone(occasion));
 
-        boolean hasBodyShape = appendBodyShapeHint(sb, body);
-        if (!hasBodyShape) {
-            sb.append("vì ");
-        }
-
-        if (recommendedSize != null && !recommendedSize.isBlank()) {
-            sb.append("size ").append(recommendedSize.trim());
-            if (alternativeSize != null && !alternativeSize.isBlank()
-                    && !alternativeSize.equalsIgnoreCase(recommendedSize)) {
-                sb.append(" (muốn rộng hơn thì thử ").append(alternativeSize.trim()).append(")");
-            }
-            if (recommendedForm != null && !recommendedForm.isBlank()) {
-                sb.append(" với form ").append(recommendedForm.trim());
-            }
-            sb.append(" sẽ ôm vừa số đo mà không bị chật cả ngày");
-        } else if (recommendedForm != null && !recommendedForm.isBlank()) {
-            sb.append("form ").append(recommendedForm.trim()).append(" giúp tổng thể gọn và thoải mái");
-        } else {
-            sb.append("phom đồ em chọn cân đối, dễ mặc");
-        }
-        sb.append(". ");
-
-        appendGenderFitNaturally(sb, body, items);
-
-        if (recommendedColor != null && !recommendedColor.isBlank()) {
-            sb.append("Tông ").append(recommendedColor.trim());
-            if (body.getSkinTone() != null && body.getSkinTone() != SkinTone.UNSURE) {
-                sb.append(" hợp tone da ").append(formatSkinTone(body.getSkinTone()));
-            } else if (style.getPreferredColors() != null && !style.getPreferredColors().isEmpty()) {
-                sb.append(" gần với màu bạn hay chọn");
-            }
-            sb.append(", dễ phối thêm phụ kiện. ");
-        }
-
-        if (occasion != null && !occasion.isBlank()) {
-            sb.append("Đi ").append(occasion.trim()).append(" thì set này ");
-            sb.append(switch (occasionTone(occasion)) {
-                case OFFICE -> "vừa chuyên nghiệp vừa thoải mái suốt ngày dài.";
-                case PARTY -> "giúp bạn nổi bật mà vẫn tự tin khi di chuyển.";
-                case CASUAL -> "nhẹ nhàng, trẻ trung và dễ chụp hình.";
-                default -> "vừa gọn gàng vừa dễ mix lại.";
-            });
-        }
-
-        return sb.toString().trim();
-    }
-
-    private String mixMatchParagraph(String occasion, int wardrobeCount) {
         OccasionTone tone = occasionTone(occasion);
-        String accessory = switch (tone) {
-            case OFFICE -> "một đôi giày tây hoặc loafer và túi tote da bản vừa";
-            case PARTY -> "một sợi dây chuyền mảnh hoặc clutch nhỏ là đủ điểm nhấn";
-            case CASUAL -> "một đôi sneaker trắng hoặc sandal đế bệt là outfit đã rất năng động";
-            default -> "một đôi giày trung tính và túi xách gọn";
+        String extra = switch (tone) {
+            case OFFICE -> "một túi tote da bản vừa hoặc đồng hồ basic";
+            case PARTY -> "một clutch nhỏ hoặc sợi dây chuyền mảnh";
+            case CASUAL -> "một túi đeo chéo nhỏ hoặc đồng hồ basic";
+            default -> "một túi xách gọn hoặc đồng hồ basic";
         };
-        StringBuilder sb = new StringBuilder("Để hoàn thiện, bạn chỉ cần phối thêm ").append(accessory).append(".");
-        if (wardrobeCount > 0) {
-            sb.append(" Em cũng thấy trong tủ đồ bạn còn ").append(wardrobeCount)
-                    .append(" món có thể ghép thêm nếu muốn đổi gió.");
-        }
-        return sb.toString();
+
+        return "Bạn có thể hoàn thiện set bằng " + shoeHint
+                + " để giữ cảm giác sạch sẽ, trẻ trung. "
+                + "Nếu muốn set đồ bớt đơn giản, thêm " + extra + " là đủ.";
     }
 
-    private static String callToActionParagraph() {
-        return "Bạn thấy set này ổn chưa — hay muốn em đổi sang form rộng hơn, tông màu khác, hoặc thay một món trong combo?";
+    private static String occasionFeel(String occasion) {
+        return switch (occasionTone(occasion)) {
+            case OFFICE -> "Set này gọn gàng, đủ chỉn chu cho công sở mà vẫn thoải mái cả ngày.";
+            case PARTY -> "Set này giúp bạn nổi bật vừa phải mà vẫn dễ di chuyển.";
+            case CASUAL -> "Set này khá dễ mặc hằng ngày, không quá nghiêm túc nhưng vẫn gọn gàng.";
+            default -> "Set này cân bằng, dễ mặc lại nhiều lần trong tuần.";
+        };
+    }
+
+    private static String footwearSuggestion(OccasionTone tone) {
+        return switch (tone) {
+            case OFFICE -> "một đôi giày tây hoặc loafer";
+            case PARTY -> "một đôi giày cao gót vừa phải hoặc mule";
+            case CASUAL -> "một đôi sneaker trắng hoặc xám nhạt";
+            default -> "một đôi giày trung tính";
+        };
     }
 
     private static boolean appendBodyShapeHint(StringBuilder sb, BodyProfile body) {
@@ -218,28 +218,71 @@ public class OutfitExplanationComposer {
         Integer height = body.getHeightCm();
 
         if (waist != null && hip != null && hip.compareTo(waist.multiply(java.math.BigDecimal.valueOf(1.08))) > 0) {
-            sb.append("form quần/chân váy cạp cao hoặc xòe nhẹ sẽ cân bằng vòng hông và giúp chân trông dài hơn, ");
+            sb.append("Form quần/chân váy cạp cao hoặc xòe nhẹ sẽ cân bằng vòng hông và giúp chân trông dài hơn.");
             return true;
         }
         if (height != null && height < 155) {
-            sb.append("tỉ lệ top–bottom em chọn giúp đôi chân trông dài và hack dáng hiệu quả, ");
+            sb.append("Tỉ lệ top–bottom em chọn giúp đôi chân trông dài và hack dáng hiệu quả.");
             return true;
         }
         return false;
     }
 
-    private static void appendGenderFitNaturally(StringBuilder sb, BodyProfile body, List<OutfitItemRef> items) {
-        if (body == null || body.getGender() == null || body.getGender() == Gender.OTHER) {
-            return;
+    private static OutfitItemRef findByRole(List<OutfitItemRef> items, ItemRole role) {
+        if (items == null) {
+            return null;
         }
-        boolean hasDress = items != null && items.stream()
-                .anyMatch(i -> i.role() == ItemRole.ONE_PIECE
-                        || (i.category() != null && i.category().toLowerCase(Locale.ROOT).contains("váy")));
-        if (body.getGender() == Gender.MALE) {
-            sb.append("Toàn bộ món em chọn đều hướng nam/unisex nên bạn mặc thoải mái, không lệch gu. ");
-        } else if (body.getGender() == Gender.FEMALE && !hasDress) {
-            sb.append("Set này giữ phom nữ tính nhưng vẫn năng động, đúng gu bạn khai báo. ");
+        return items.stream()
+                .filter(i -> i.role() == role)
+                .findFirst()
+                .orElse(null);
+    }
+
+    private static String toNaturalName(OutfitItemRef item) {
+        if (item.displayName() != null && !item.displayName().isBlank()) {
+            return item.displayName().trim();
         }
+        if (item.category() != null && !item.category().isBlank()) {
+            return item.category().trim();
+        }
+        return "món này";
+    }
+
+    private static String lowercaseFirst(String text) {
+        if (text == null || text.isBlank()) {
+            return text;
+        }
+        String trimmed = text.trim();
+        return Character.toLowerCase(trimmed.charAt(0)) + trimmed.substring(1);
+    }
+
+    private static String formPhrase(String recommendedForm) {
+        if (recommendedForm == null || recommendedForm.isBlank()) {
+            return "";
+        }
+        String lower = recommendedForm.toLowerCase(Locale.ROOT);
+        if (lower.contains("regular") || lower.contains("vừa vặn")) {
+            return " form regular";
+        }
+        if (lower.contains("slim") || lower.contains("ôm")) {
+            return " form slim";
+        }
+        if (lower.contains("relaxed") || lower.contains("thoải")) {
+            return " form relaxed";
+        }
+        if (lower.contains("oversize") || lower.contains("rộng")) {
+            return " form rộng";
+        }
+        return "";
+    }
+
+    private static String formatHeightNatural(int heightCm) {
+        int meters = heightCm / 100;
+        int remainder = heightCm % 100;
+        if (remainder == 0) {
+            return meters + "m";
+        }
+        return meters + "m" + remainder;
     }
 
     private static List<OutfitItemRef> sortByRole(List<OutfitItemRef> items) {
@@ -265,16 +308,6 @@ public class OutfitExplanationComposer {
         };
     }
 
-    private static String formatItemLabel(OutfitItemRef item) {
-        if (item.displayName() != null && !item.displayName().isBlank()) {
-            return item.displayName().trim();
-        }
-        if (item.category() != null && !item.category().isBlank()) {
-            return item.category().trim();
-        }
-        return null;
-    }
-
     private enum OccasionTone {
         OFFICE, CASUAL, PARTY, GENERAL
     }
@@ -293,7 +326,8 @@ public class OutfitExplanationComposer {
             return OccasionTone.PARTY;
         }
         if (lower.contains("cafe") || lower.contains("chơi") || lower.contains("hẹn")
-                || lower.contains("dạo") || lower.contains("phố")) {
+                || lower.contains("dạo") || lower.contains("phố") || lower.contains("hàng ngày")
+                || lower.contains("casual")) {
             return OccasionTone.CASUAL;
         }
         return OccasionTone.GENERAL;

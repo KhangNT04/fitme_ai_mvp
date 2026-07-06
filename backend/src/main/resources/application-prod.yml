@@ -5,6 +5,10 @@ fitme:
     top-up-enabled: true
   test:
     expose-reset-tokens: false
+  ai:
+    public-base-url: ${FITME_PUBLIC_BASE_URL:https://fitme-ai-mvp.onrender.com}
+  frontend:
+    base-url: ${FITME_FRONTEND_BASE_URL:https://fitme-ai-mvp.vercel.app}
 
 springdoc:
   swagger-ui:

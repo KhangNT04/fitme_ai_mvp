@@ -52,6 +52,9 @@ public class R2StorageService implements StorageService {
                     RequestBody.fromInputStream(file.getInputStream(), file.getSize()));
         }
 
+        if (r2.getPublicBaseUrl() != null && !r2.getPublicBaseUrl().isBlank()) {
+            return buildPublicUrl(r2.getPublicBaseUrl(), objectKey);
+        }
         return MediaPaths.buildStoredPath(folder, safeName);
     }
 

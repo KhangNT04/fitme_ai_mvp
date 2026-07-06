@@ -116,6 +116,8 @@ public class VtonTryOnService {
         try {
             String personUrl = vtonImageUrlResolver.resolvePersonUrl(tryOn);
             VtonCategoryMapper.GarmentSelection selected = garment.get();
+            log.info("VTON dispatch try-on {} personUrl={} garmentUrl={}",
+                    tryOn.getId(), personUrl, selected.garmentImageUrl());
             VtonJobResponse job = aiVtonClient.submitJob(
                     personUrl,
                     selected.garmentImageUrl(),

@@ -71,9 +71,8 @@ def test_submit_and_poll_mock(client):
     assert poll.json().get("output_image_url")
 
 
-@patch("app.providers.hf_idmvton.validate_image_url")
 @patch("app.providers.hf_idmvton.Client")
-def test_hf_provider_submit(mock_client_cls, _mock_validate, monkeypatch):
+def test_hf_provider_submit(mock_client_cls, monkeypatch):
     monkeypatch.setenv("AI_MODE", "hf")
     monkeypatch.setenv("HF_FALLBACK_COMPOSITE", "false")
     reset_provider()
@@ -109,17 +108,18 @@ def test_hf_provider_submit(mock_client_cls, _mock_validate, monkeypatch):
     assert "output" in poll.json()["output_image_url"]
 
 
-@patch("app.providers.hf_idmvton.build_composite_url")
 @patch("app.providers.hf_idmvton.validate_image_url")
+@patch("app.providers.hf_idmvton.build_composite_url")
 @patch("app.providers.hf_idmvton.Client")
 def test_hf_composite_fallback_when_gradio_fails(
     mock_client_cls,
-    _mock_validate,
     mock_composite,
+    _mock_validate,
     monkeypatch,
 ):
     monkeypatch.setenv("AI_MODE", "hf")
     monkeypatch.setenv("HF_MAX_RETRIES", "1")
+    monkeypatch.setenv("HF_RETRY_DELAY_SECONDS", "0")
     monkeypatch.setenv("HF_FALLBACK_COMPOSITE", "true")
     monkeypatch.setenv("VTON_PUBLIC_BASE_URL", "https://vton.test")
     reset_provider()

@@ -55,7 +55,7 @@ services:
       - key: AI_VTON_URL
         value: https://fitme-ai-vton.onrender.com
       - key: FITME_PUBLIC_BASE_URL
-        sync: false
+        value: https://fitme-ai-mvp.onrender.com
       # AI Stylist — set GEMINI_API_KEY in dashboard (required for Gemini)
       - key: FITME_AI_STYLIST_MODE
         value: gemini

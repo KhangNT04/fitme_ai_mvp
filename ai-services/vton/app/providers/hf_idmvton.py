@@ -68,17 +68,6 @@ class HfIdmVtonProvider:
                 error_message=f"Category not supported: {category}",
             )
 
-        try:
-            validate_image_url(person_image_url, "person")
-            validate_image_url(garment_image_url, "garment")
-        except Exception as exc:  # noqa: BLE001
-            return VtonJobResult(
-                job_id=job_id,
-                status="failed",
-                error_code="INVALID_IMAGE",
-                error_message=str(exc),
-            )
-
         description = garment_description(normalized)
         with self._lock:
             self._jobs[job_id] = {
@@ -89,6 +78,17 @@ class HfIdmVtonProvider:
             }
 
         def _run() -> None:
+            for label, url in (("person", person_image_url), ("garment", garment_image_url)):
+                try:
+                    validate_image_url(url, label)
+                except Exception as exc:  # noqa: BLE001
+                    logger.warning(
+                        "VTON %s URL may be unreachable for job %s: %s",
+                        label,
+                        job_id,
+                        exc,
+                    )
+
             last_error: Exception | None = None
             for attempt in range(1, _HF_MAX_RETRIES + 1):
                 try:

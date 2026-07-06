@@ -20,7 +20,7 @@ public class FashionCatalogSeeder {
 
     private static final Logger log = LoggerFactory.getLogger(FashionCatalogSeeder.class);
     private static final String LEGACY_DEMO_PREFIX = "Sản phẩm demo ";
-    private static final String CATALOG_META_TAG = "catalog-v5";
+    private static final String CATALOG_META_TAG = "catalog-v6";
     private static final String[] SIZES = {"S", "M", "L", "XL"};
 
     private final FashionCatalogLoader catalogLoader;
@@ -176,18 +176,6 @@ public class FashionCatalogSeeder {
                     .imageType(i == 0 ? "MAIN" : "DETAIL")
                     .sortOrder(i)
                     .build());
-        }
-
-        if (catalog.tryOnImages != null && entry.imageKey != null) {
-            String tryOnUrl = catalog.tryOnImages.get(entry.imageKey);
-            if (tryOnUrl != null && !tryOnUrl.isBlank()) {
-                imageRepository.save(ProductImage.builder()
-                        .productId(productId)
-                        .imageUrl(tryOnUrl)
-                        .imageType("TRY_ON")
-                        .sortOrder(-1)
-                        .build());
-            }
         }
 
         List<String> colors = entry.colors != null && !entry.colors.isEmpty()

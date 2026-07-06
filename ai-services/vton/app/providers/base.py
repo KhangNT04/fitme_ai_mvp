@@ -21,6 +21,7 @@ class VtonProvider(Protocol):
         person_image_url: str,
         garment_image_url: str,
         category: str,
+        garment_description: str | None = None,
     ) -> VtonJobResult: ...
 
     def poll(self, job_id: str) -> VtonJobResult: ...

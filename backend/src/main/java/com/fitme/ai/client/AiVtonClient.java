@@ -11,8 +11,6 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.client.RestClientException;
 
-import java.util.Map;
-
 @Component
 @RequiredArgsConstructor
 @Slf4j
@@ -20,17 +18,22 @@ public class AiVtonClient {
 
     private final FitMeProperties properties;
 
-    public VtonJobResponse submitJob(String personImageUrl, String garmentImageUrl, String category) {
+    public VtonJobResponse submitJob(
+            String personImageUrl, String garmentImageUrl, String category, String garmentDescription) {
         RestClient client = restClient();
         try {
+            java.util.HashMap<String, Object> body = new java.util.HashMap<>();
+            body.put("person_image_url", personImageUrl);
+            body.put("garment_image_url", garmentImageUrl);
+            body.put("category", category);
+            body.put("mode", "balanced");
+            if (garmentDescription != null && !garmentDescription.isBlank()) {
+                body.put("garment_description", garmentDescription);
+            }
             return client.post()
                     .uri("/v1/try-on")
                     .contentType(MediaType.APPLICATION_JSON)
-                    .body(Map.of(
-                            "person_image_url", personImageUrl,
-                            "garment_image_url", garmentImageUrl,
-                            "category", category,
-                            "mode", "balanced"))
+                    .body(body)
                     .retrieve()
                     .body(VtonJobResponse.class);
         } catch (RestClientException ex) {

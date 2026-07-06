@@ -105,6 +105,6 @@ services:
       - key: REPLICATE_API_TOKEN
         sync: false
       - key: REPLICATE_IDM_VTON_MODEL
-        value: cuuupid/idm-vton:906425dbca90663ff5427624839572cc56ea7d380343d13e2a4c4b09d3f0c30f
+        value: cuuupid/idm-vton:0513734a452173b8173e907e3a59d19a36266e55b48528559432bd21c7d7e985
       - key: VTON_PUBLIC_BASE_URL
         value: https://fitme-ai-vton.onrender.com

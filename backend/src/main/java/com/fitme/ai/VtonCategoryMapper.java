@@ -44,7 +44,7 @@ public class VtonCategoryMapper {
             return Optional.empty();
         }
         String imageUrl = mediaUrlResolver.resolvePublicUrl(
-                outfitCompositionService.resolveTryOnImageUrl(item.getProductId()));
+                outfitCompositionService.resolveProductImageUrl(item.getProductId()));
         if (imageUrl == null || imageUrl.isBlank()) {
             return Optional.empty();
         }

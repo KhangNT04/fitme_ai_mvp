@@ -26,6 +26,7 @@ class MockVtonProvider:
         person_image_url: str,
         garment_image_url: str,
         category: str,
+        garment_description: str | None = None,
     ) -> VtonJobResult:
         with self._lock:
             self._jobs[job_id] = {

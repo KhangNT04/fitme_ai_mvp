@@ -35,9 +35,12 @@ class FashnLocalProvider:
         person_image_url: str,
         garment_image_url: str,
         category: str,
+        garment_description: str | None = None,
     ) -> VtonJobResult:
         if self._pipeline is None:
-            return self._fallback.submit(job_id, person_image_url, garment_image_url, category)
+            return self._fallback.submit(
+                job_id, person_image_url, garment_image_url, category, garment_description
+            )
         self._jobs[job_id] = {
             "person": person_image_url,
             "garment": garment_image_url,

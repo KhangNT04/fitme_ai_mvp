@@ -13,7 +13,8 @@ from urllib.parse import urlparse
 import httpx
 from gradio_client import Client, handle_file
 
-from app.category_mapper import garment_description, is_supported, normalize_category
+from app.category_mapper import garment_description as default_garment_description
+from app.category_mapper import is_supported, normalize_category
 from app.composite import build_composite_url
 from app.image_preflight import validate_image_url
 from app.providers.base import VtonJobResult
@@ -76,6 +77,7 @@ class HfIdmVtonProvider:
         person_image_url: str,
         garment_image_url: str,
         category: str,
+        garment_description: str | None = None,
     ) -> VtonJobResult:
         normalized = normalize_category(category)
         if not is_supported(normalized):
@@ -86,7 +88,7 @@ class HfIdmVtonProvider:
                 error_message=f"Category not supported: {category}",
             )
 
-        description = garment_description(normalized)
+        description = (garment_description or "").strip() or default_garment_description(normalized)
         with self._lock:
             self._jobs[job_id] = {
                 "status": "processing",

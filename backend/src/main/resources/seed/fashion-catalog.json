@@ -1,11 +1,5 @@
 {
   "version": 4,
-  "tryOnImages": {
-    "ksh-cardigan-len": "/catalog/products/ksh-ao-len-co-lo.jpg",
-    "ksh-ao-bomber": "/catalog/products/ksh-ao-thun-cotton.jpg",
-    "lm-cardigan-dai": "/catalog/products/lm-ao-tank.jpg",
-    "sb-ao-len-basic": "/catalog/products/sb-ao-thun-basic.jpg"
-  },
   "images": {
     "ksh-ao-thun-cotton": [
       "/catalog/products/ksh-ao-thun-cotton.jpg",

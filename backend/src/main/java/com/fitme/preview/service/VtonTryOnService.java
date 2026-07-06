@@ -128,12 +128,13 @@ public class VtonTryOnService {
         try {
             String personUrl = vtonImageUrlResolver.resolvePersonUrl(tryOn);
             VtonCategoryMapper.GarmentSelection selected = garment.get();
-            log.info("VTON dispatch try-on {} personUrl={} garmentUrl={}",
-                    tryOn.getId(), personUrl, selected.garmentImageUrl());
+            log.info("VTON dispatch try-on {} product={} personUrl={} garmentUrl={}",
+                    tryOn.getId(), selected.productName(), personUrl, selected.garmentImageUrl());
             VtonJobResponse job = aiVtonClient.submitJob(
                     personUrl,
                     selected.garmentImageUrl(),
-                    selected.category());
+                    selected.category(),
+                    selected.productName());
 
             if (job == null || "failed".equalsIgnoreCase(job.getStatus())) {
                 applyVtonFailure(tryOn, preview, job != null ? job.getErrorMessage() : "VTON submit failed");

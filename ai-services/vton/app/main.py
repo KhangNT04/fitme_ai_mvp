@@ -30,6 +30,7 @@ class TryOnRequest(BaseModel):
     garment_image_url: str = Field(..., min_length=1)
     category: str = Field(..., min_length=1)
     mode: str = Field(default="balanced")
+    garment_description: str | None = Field(default=None, max_length=200)
 
 
 class TryOnJobResponse(BaseModel):
@@ -73,6 +74,7 @@ def submit_try_on(body: TryOnRequest) -> TryOnJobResponse:
         person_image_url=body.person_image_url,
         garment_image_url=body.garment_image_url,
         category=normalized or body.category,
+        garment_description=body.garment_description,
     )
     if result.status == "failed":
         return TryOnJobResponse(

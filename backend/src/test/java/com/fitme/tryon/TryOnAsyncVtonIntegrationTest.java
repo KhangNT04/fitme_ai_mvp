@@ -175,7 +175,8 @@ class TryOnAsyncVtonIntegrationTest extends AbstractIntegrationTest {
         }
 
         @Override
-        public VtonJobResponse submitJob(String personImageUrl, String garmentImageUrl, String category) {
+        public VtonJobResponse submitJob(
+                String personImageUrl, String garmentImageUrl, String category, String garmentDescription) {
             return submitResponse;
         }
 

@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fitme.brand.entity.Brand;
 import com.fitme.brand.repository.BrandRepository;
 import com.fitme.common.config.FitMeProperties;
+import com.fitme.common.enums.ProductTargetGender;
 import com.fitme.common.enums.WardrobeMode;
 import com.fitme.product.entity.Product;
 import com.fitme.product.repository.ProductImageRepository;
@@ -88,6 +89,8 @@ class StylistContextBuilderTest {
         when(brandRepository.findById(any())).thenReturn(Optional.of(Brand.builder().name("Brand").build()));
         when(tagRepository.findByProductId(any())).thenReturn(List.of());
         when(variantRepository.findByProductId(any())).thenReturn(List.of());
+        when(productAudienceService.resolveTargetGender(any(Product.class)))
+                .thenReturn(ProductTargetGender.UNISEX);
 
         BodyProfile body = BodyProfile.builder().heightCm(165).weightKg(BigDecimal.valueOf(55)).build();
         StyleProfile style = StyleProfile.builder().primaryStyle("Casual").build();

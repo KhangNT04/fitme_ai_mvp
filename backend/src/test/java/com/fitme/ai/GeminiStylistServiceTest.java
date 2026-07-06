@@ -5,6 +5,7 @@ import com.fitme.ai.client.GeminiStylistClient;
 import com.fitme.ai.dto.GeminiOutfitSuggestion;
 import com.fitme.brand.repository.BrandRepository;
 import com.fitme.common.config.FitMeProperties;
+import com.fitme.common.enums.ProductTargetGender;
 import com.fitme.common.enums.WardrobeMode;
 import com.fitme.product.entity.Product;
 import com.fitme.product.repository.ProductImageRepository;
@@ -70,7 +71,7 @@ class GeminiStylistServiceTest {
 
         OutfitCompositionService composition = new OutfitCompositionService(
                 variantRepository, imageRepository, wardrobeItemRepository, eligibilityService, sizeResolutionService,
-                new OutfitExplanationComposer(), new ProductAudienceService(tagRepository));
+                new OutfitExplanationComposer(), productAudienceService);
         StylistContextBuilder contextBuilder = new StylistContextBuilder(
                 new ObjectMapper(),
                 properties,
@@ -118,6 +119,9 @@ class GeminiStylistServiceTest {
         when(sizeChartRepository.findByProductId(any())).thenReturn(List.of());
         when(brandRepository.findById(any())).thenReturn(Optional.empty());
         when(tagRepository.findByProductId(any())).thenReturn(List.of());
+        when(productAudienceService.resolveTargetGender(any(Product.class)))
+                .thenReturn(ProductTargetGender.UNISEX);
+        when(productAudienceService.isRecommendableFor(any(), any(Product.class))).thenReturn(true);
 
         assertThat(service.suggest(body, style, request, List.of(), List.of(top), null))
                 .satisfies(outcome -> {

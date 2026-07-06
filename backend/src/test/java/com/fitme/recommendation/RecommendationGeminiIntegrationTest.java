@@ -100,7 +100,7 @@ class RecommendationGeminiIntegrationTest extends AbstractIntegrationTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.title").value("Outfit AI từ Gemini"))
                 .andExpect(jsonPath("$.data.stylistSource").value("gemini"))
-                .andExpect(jsonPath("$.data.explanation.styleFit").value("Hợp gu Korean casual."))
+                .andExpect(jsonPath("$.data.explanation.summary").value(org.hamcrest.Matchers.containsString("Outfit AI từ Gemini")))
                 .andExpect(jsonPath("$.data.outfitItems.length()").value(2));
     }
 

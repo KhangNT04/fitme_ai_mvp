@@ -52,7 +52,7 @@ class VtonImageUrlResolverTest {
                 .fileUrl("/uploads/user-photos/test.jpg")
                 .build();
         when(photoUploadService.requireById(uploadId)).thenReturn(upload);
-        when(mediaUrlResolver.resolvePublicUrl("/uploads/user-photos/test.jpg"))
+        when(mediaUrlResolver.resolveBackendServedUrl("/uploads/user-photos/test.jpg"))
                 .thenReturn("https://api.example/uploads/user-photos/test.jpg");
 
         String url = resolver.resolvePersonUrl(tryOn);

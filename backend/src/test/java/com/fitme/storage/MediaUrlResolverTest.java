@@ -48,6 +48,16 @@ class MediaUrlResolverTest {
     }
 
     @Test
+    void resolveBackendServedUrl_mapsR2PublicUrlToBackendUploads() {
+        properties.getAi().setPublicBaseUrl("https://fitme-ai-mvp.onrender.com");
+
+        String url = resolver.resolveBackendServedUrl(
+                "https://pub.example.r2.dev/user-photos/abc.jpg");
+
+        assertThat(url).isEqualTo("https://fitme-ai-mvp.onrender.com/uploads/user-photos/abc.jpg");
+    }
+
+    @Test
     void resolvePublicUrl_keepsAbsoluteUrl() {
         String absolute = "https://images.unsplash.com/photo.jpg";
         assertThat(resolver.resolvePublicUrl(absolute)).isEqualTo(absolute);

@@ -32,6 +32,26 @@ public class MediaUrlResolver {
         return joinBase(resolveBackendBaseUrl(), value);
     }
 
+    /**
+     * URL for external AI services (ai-vton) to fetch user uploads via this backend.
+     * R2 public URLs may 404 when the bucket is private; {@code /uploads/**} is always served here.
+     */
+    public String resolveBackendServedUrl(String storedPathOrUrl) {
+        if (storedPathOrUrl == null || storedPathOrUrl.isBlank()) {
+            return storedPathOrUrl;
+        }
+        String trimmed = storedPathOrUrl.trim();
+        if (trimmed.startsWith("http://") || trimmed.startsWith("https://")) {
+            String normalized = StoredMediaPaths.normalizeToUploadPath(trimmed);
+            if (normalized.startsWith("/uploads/")) {
+                return joinBase(resolveBackendBaseUrl(), normalized);
+            }
+            return trimmed;
+        }
+        String value = StoredMediaPaths.normalizeToUploadPath(trimmed);
+        return joinBase(resolveBackendBaseUrl(), value);
+    }
+
     private boolean isR2Mode() {
         String mode = properties.getStorage().getMode();
         return mode != null && "r2".equalsIgnoreCase(mode.trim());

@@ -292,7 +292,7 @@ Sau khi deploy xong, kiểm tra log Render có dòng `Refreshing fashion catalog
 | Preview ảnh **icon hỏng** trên `/try-on/input` sau F5 | URL `blob:` hết hạn trong localStorage | Đã fix: không persist `photoPreviewUrl`; reload sẽ gọi lại `/uploads/.../quality` |
 | Result USER_PHOTO = **ảnh gốc**, không thử mặc | VTON fail hoàn toàn (kể cả composite) | Bật `HF_FALLBACK_COMPOSITE=true` trên ai-vton; kiểm tra `VTON_PUBLIC_BASE_URL` |
 | VTON log `gradio` / upstream exception | HF Space `yisol/IDM-VTON` không ổn định | Tự động ghép minh họa (composite); duplicate Space riêng + `HF_TOKEN` để có VTON thật |
-| VTON log `person_url_unreachable` | Backend URL sai hoặc `/uploads/**` không truy cập được từ ai-vton | Set `FITME_STORAGE_MODE=r2` + `R2_*`; test `curl https://<api>/uploads/user-photos/...` → 200 |
+| VTON log `person_url_unreachable` | R2 public URL 404 hoặc `/uploads/**` không truy cập | VTON dùng URL backend `FITME_PUBLIC_BASE_URL/uploads/...`; kiểm tra `curl` → 200 |
 | Avatar result **không đổi** outfit | VTON fail hoặc chưa deploy bản mới | Avatar cũng đi VTON async; kiểm tra disclaimer composite vs VTON thật |
 | Processing **timeout** 120s | Render/ai-vton free tier cold start | Đợi warm-up; ping `/actuator/health` trước khi test |
 

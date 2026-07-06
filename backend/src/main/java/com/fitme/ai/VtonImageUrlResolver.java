@@ -37,6 +37,6 @@ public class VtonImageUrlResolver {
         if (fileUrl == null || fileUrl.isBlank()) {
             throw new BusinessException("Ảnh người dùng không hợp lệ");
         }
-        return mediaUrlResolver.resolvePublicUrl(fileUrl);
+        return mediaUrlResolver.resolveBackendServedUrl(fileUrl);
     }
 }

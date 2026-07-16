@@ -1,13 +1,12 @@
 package com.fitme.recommendation;
 
 import com.fitme.AbstractIntegrationTest;
-import com.fitme.product.entity.Product;
 import com.fitme.support.TestDataHelper;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 
-import static org.hamcrest.Matchers.containsString;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -41,7 +40,7 @@ class RecommendationIntegrationTest extends AbstractIntegrationTest {
                                 """))
                 .andExpect(status().isOk());
 
-        mockMvc.perform(post("/api/v1/recommendations")
+        String createResponse = mockMvc.perform(post("/api/v1/recommendations")
                         .header(SESSION_HEADER, sessionToken)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
@@ -49,7 +48,19 @@ class RecommendationIntegrationTest extends AbstractIntegrationTest {
                                 """))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
-                .andExpect(jsonPath("$.data.recommendationId").isNotEmpty())
+                .andExpect(jsonPath("$.data.requestId").isNotEmpty())
+                .andExpect(jsonPath("$.data.options").isArray())
+                .andExpect(jsonPath("$.data.options[0].recommendationId").isNotEmpty())
+                .andReturn()
+                .getResponse()
+                .getContentAsString();
+
+        String recommendationId = objectMapper.readTree(createResponse)
+                .get("data").get("options").get(0).get("recommendationId").asText();
+
+        mockMvc.perform(get("/api/v1/recommendations/{id}", recommendationId)
+                        .header(SESSION_HEADER, sessionToken))
+                .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.title").isNotEmpty())
                 .andExpect(jsonPath("$.data.outfitItems").isArray())
                 .andExpect(jsonPath("$.data.explanation.bodyFit").isNotEmpty())
@@ -89,7 +100,7 @@ class RecommendationIntegrationTest extends AbstractIntegrationTest {
                                 """))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
-                .andExpect(jsonPath("$.data.recommendationId").isNotEmpty());
+                .andExpect(jsonPath("$.data.options[0].recommendationId").isNotEmpty());
     }
 
     @Test
@@ -122,6 +133,9 @@ class RecommendationIntegrationTest extends AbstractIntegrationTest {
                                 """))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
-                .andExpect(jsonPath("$.data.title").value(containsString("đa dạng")));
+                .andExpect(jsonPath("$.data.options").isArray())
+                .andExpect(jsonPath("$.data.options.length()").value(4))
+                .andExpect(jsonPath("$.data.options[0].title").isNotEmpty())
+                .andExpect(jsonPath("$.data.options[0].styleLabel").isNotEmpty());
     }
 }

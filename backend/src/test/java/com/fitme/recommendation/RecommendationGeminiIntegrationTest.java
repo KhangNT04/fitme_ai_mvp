@@ -21,6 +21,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
 
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -91,12 +92,23 @@ class RecommendationGeminiIntegrationTest extends AbstractIntegrationTest {
                                 """))
                 .andExpect(status().isOk());
 
-        mockMvc.perform(post("/api/v1/recommendations")
+        String createResponse = mockMvc.perform(post("/api/v1/recommendations")
                         .header(SESSION_HEADER, sessionToken)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
                                 {"occasion": "Đi cafe", "wardrobeMode": "NO_WARDROBE_DATA"}
                                 """))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.options[0].recommendationId").isNotEmpty())
+                .andReturn()
+                .getResponse()
+                .getContentAsString();
+
+        String recommendationId = objectMapper.readTree(createResponse)
+                .get("data").get("options").get(0).get("recommendationId").asText();
+
+        mockMvc.perform(get("/api/v1/recommendations/{id}", recommendationId)
+                        .header(SESSION_HEADER, sessionToken))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.title").value("Outfit AI từ Gemini"))
                 .andExpect(jsonPath("$.data.stylistSource").value("gemini"))

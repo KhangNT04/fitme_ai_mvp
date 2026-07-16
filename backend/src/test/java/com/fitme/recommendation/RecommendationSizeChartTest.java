@@ -12,6 +12,7 @@ import org.springframework.http.MediaType;
 import java.math.BigDecimal;
 import java.util.UUID;
 
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -70,7 +71,7 @@ class RecommendationSizeChartTest extends AbstractIntegrationTest {
                                 """))
                 .andExpect(status().isOk());
 
-        mockMvc.perform(post("/api/v1/recommendations")
+        String createResponse = mockMvc.perform(post("/api/v1/recommendations")
                         .header(SESSION_HEADER, sessionToken)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
@@ -80,6 +81,17 @@ class RecommendationSizeChartTest extends AbstractIntegrationTest {
                                   "selectedProductId": "%s"
                                 }
                                 """.formatted(productId)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.options[0].recommendationId").isNotEmpty())
+                .andReturn()
+                .getResponse()
+                .getContentAsString();
+
+        String recommendationId = objectMapper.readTree(createResponse)
+                .get("data").get("options").get(0).get("recommendationId").asText();
+
+        mockMvc.perform(get("/api/v1/recommendations/{id}", recommendationId)
+                        .header(SESSION_HEADER, sessionToken))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.recommendedSize").value("L"));
     }

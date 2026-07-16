@@ -18,7 +18,8 @@ import {
   getGuestBodyProfile,
   saveGuestBodyProfile,
 } from "@/lib/local-profile-storage";
-import { profileApi } from "@/services/profile-api";
+import { ensureServerBodyProfile } from "@/lib/ensure-server-body-profile";
+import type { ApiError } from "@/services/api-client";
 import { consumerPageShellClass } from "@/lib/design-tokens";
 import { getUserErrorMessage } from "@/lib/user-error-message";
 import { toast } from "@/stores/toast-store";
@@ -51,25 +52,20 @@ function BodyProfilePageContent() {
 
       if (useAuthStore.getState().isAuthenticated()) {
         try {
-          await profileApi.saveBodyProfile(next);
+          await ensureServerBodyProfile(next);
         } catch (e) {
-          const status = (e as { status?: number })?.status;
-          // Expired login → keep going as guest instead of blocking consultation.
-          if (status === 401) {
+          const status = (e as ApiError)?.status;
+          if (status === 401 || status === 403) {
             useAuthStore.getState().clearAuth();
             saveGuestBodyProfile(next);
+            await ensureServerBodyProfile(next);
           } else {
             throw e;
           }
         }
       } else {
         saveGuestBodyProfile(next);
-        // Best-effort sync so chat/recommendation APIs see the same profile.
-        try {
-          await profileApi.saveBodyProfile(next);
-        } catch {
-          // Local save is enough for guest chat gate.
-        }
+        await ensureServerBodyProfile(next);
       }
 
       router.push("/ai/chat");

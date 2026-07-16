@@ -10,12 +10,13 @@ import { ChatMessageList } from "@/components/stylist-chat/ChatMessageList";
 import { ChatComposer } from "@/components/stylist-chat/ChatComposer";
 import { useEnsureSession } from "@/hooks/use-ensure-session";
 import { useBodyProfileReady } from "@/hooks/use-body-profile-ready";
+import { useConsumerStoresReady } from "@/hooks/use-consumer-stores-ready";
 import { useAuthStore } from "@/stores/auth-store";
 import { useConsultationStore } from "@/stores/consultation-store";
 import { useStylistChatStore } from "@/stores/stylist-chat-store";
-import { profileApi } from "@/services/profile-api";
 import { stylistChatApi } from "@/services/stylist-chat-api";
-import { getGuestBodyProfile } from "@/lib/local-profile-storage";
+import type { ApiError } from "@/services/api-client";
+import { ensureServerBodyProfile } from "@/lib/ensure-server-body-profile";
 import { consumerPageShellClass } from "@/lib/design-tokens";
 import { getUserErrorMessage } from "@/lib/user-error-message";
 import { toast } from "@/stores/toast-store";
@@ -27,39 +28,54 @@ function newId() {
     : `msg-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
 }
 
+function assistantErrorMessage(error: unknown): string {
+  const status = (error as ApiError)?.status;
+  if (status === 400) {
+    return "Mình cần hồ sơ cơ thể trước khi gợi ý outfit. Vui lòng quay lại bước Hồ sơ và lưu lại nhé.";
+  }
+  if (status === 401 || status === 403) {
+    return "Phiên làm việc hết hạn. Tải lại trang hoặc lưu lại hồ sơ cơ thể rồi thử gửi tin nhắn lần nữa.";
+  }
+  return "Xin lỗi, mình chưa xử lý được yêu cầu này. Bạn thử mô tả lại outfit mong muốn nhé.";
+}
+
 export default function AiChatPage() {
   const router = useRouter();
+  const storesReady = useConsumerStoresReady();
   const { ensureSession } = useEnsureSession();
-  const { ready, isLoading, profile, isAuthenticated, refreshGuest } = useBodyProfileReady();
+  const { ready, isLoading, profile, refreshGuest } = useBodyProfileReady();
   const selectedProductId = useConsultationStore((s) => s.draft.selectedProductId);
   const messages = useStylistChatStore((s) => s.messages);
   const conversationId = useStylistChatStore((s) => s.conversationId);
   const addMessage = useStylistChatStore((s) => s.addMessage);
   const setConversationId = useStylistChatStore((s) => s.setConversationId);
   const [sending, setSending] = useState(false);
-  const [hydrated, setHydrated] = useState(false);
+  const [chatHydrated, setChatHydrated] = useState(false);
 
   useEffect(() => {
-    void Promise.resolve(useStylistChatStore.persist.rehydrate()).finally(() => setHydrated(true));
+    void Promise.resolve(useStylistChatStore.persist.rehydrate()).finally(() => setChatHydrated(true));
   }, []);
 
   useEffect(() => {
+    if (!storesReady) return;
     void ensureSession();
-  }, [ensureSession]);
+  }, [ensureSession, storesReady]);
 
   useEffect(() => {
-    if (isLoading) return;
+    if (!storesReady || isLoading || !ready || !profile) return;
+    void ensureSession()
+      .then(() => ensureServerBodyProfile(profile))
+      .catch(() => {
+        // Best-effort warm-up; send() retries before chat API.
+      });
+  }, [storesReady, isLoading, ready, profile, ensureSession]);
+
+  useEffect(() => {
+    if (!storesReady || isLoading) return;
     if (!ready) {
       router.replace("/ai/body-profile?required=1");
     }
-  }, [isLoading, ready, router]);
-
-  const syncGuestProfileIfNeeded = useCallback(async () => {
-    if (isAuthenticated) return;
-    const guest = getGuestBodyProfile() ?? profile;
-    if (!guest) return;
-    await profileApi.saveBodyProfile(guest);
-  }, [isAuthenticated, profile]);
+  }, [storesReady, isLoading, ready, router]);
 
   const send = useCallback(
     async (text: string) => {
@@ -75,19 +91,18 @@ export default function AiChatPage() {
       setSending(true);
       try {
         await ensureSession();
-        await syncGuestProfileIfNeeded();
+        await ensureServerBodyProfile(profile);
         const history = useStylistChatStore
           .getState()
           .messages.filter((m) => m.type === "text" || m.type === "off_topic")
           .slice(-10)
           .map((m) => ({ role: m.role, content: m.content }));
 
+        const authenticated = useAuthStore.getState().isAuthenticated();
         const result = await stylistChatApi.sendMessage({
           message: text,
-          conversationId: useAuthStore.getState().isAuthenticated()
-            ? conversationId
-            : undefined,
-          history: useAuthStore.getState().isAuthenticated() ? undefined : history,
+          conversationId: authenticated ? conversationId : undefined,
+          history: authenticated ? undefined : history,
           selectedProductId,
         });
 
@@ -113,7 +128,7 @@ export default function AiChatPage() {
           id: newId(),
           role: "assistant",
           type: "text",
-          content: "Xin lỗi, mình chưa xử lý được yêu cầu này. Bạn thử mô tả lại outfit mong muốn nhé.",
+          content: assistantErrorMessage(e),
           createdAt: Date.now(),
         });
       } finally {
@@ -125,7 +140,7 @@ export default function AiChatPage() {
       sending,
       addMessage,
       ensureSession,
-      syncGuestProfileIfNeeded,
+      profile,
       conversationId,
       selectedProductId,
       setConversationId,
@@ -133,7 +148,7 @@ export default function AiChatPage() {
     ],
   );
 
-  if (isLoading || !hydrated || !ready) {
+  if (!storesReady || isLoading || !chatHydrated || !ready) {
     return (
       <PageShell width="full" className={consumerPageShellClass}>
         <LoadingSkeleton className="h-64" />

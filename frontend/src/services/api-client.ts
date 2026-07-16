@@ -1,6 +1,7 @@
 import axios, { type AxiosError, type InternalAxiosRequestConfig } from "axios";
 import { formatUserErrorMessage } from "@/lib/user-error-message";
 import { isJwtExpired } from "@/lib/jwt-expiry";
+import { emitAuthClear, emitAuthDropAccess } from "@/lib/auth-events";
 import { API_URL, SESSION_STORAGE_KEY, AUTH_TOKEN_KEY, AUTH_REFRESH_KEY } from "@/utils/constants";
 
 export interface ApiError {
@@ -38,13 +39,7 @@ function clearAuthTokens(): void {
   if (typeof window === "undefined") return;
   localStorage.removeItem(AUTH_TOKEN_KEY);
   localStorage.removeItem(AUTH_REFRESH_KEY);
-  try {
-    // Keep UI in sync when tokens die mid-request (expired JWT).
-    const { useAuthStore } = require("@/stores/auth-store") as typeof import("@/stores/auth-store");
-    useAuthStore.getState().clearAuth();
-  } catch {
-    // ignore circular import / SSR
-  }
+  emitAuthClear();
 }
 
 async function refreshAccessToken(): Promise<string | null> {
@@ -82,6 +77,7 @@ apiClient.interceptors.request.use((config: InternalAxiosRequestConfig) => {
       // Drop expired bearer so anonymous session can still authenticate the request.
       localStorage.removeItem(AUTH_TOKEN_KEY);
       accessToken = null;
+      emitAuthDropAccess();
     }
 
     if (sessionToken) {

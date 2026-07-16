@@ -17,7 +17,6 @@ export async function fillBodyProfile(page: Page) {
   await page.getByLabel("Chiều cao (cm)").fill("165");
   await page.getByLabel("Cân nặng (kg)").fill("55");
   await page.getByLabel("Tuổi").fill("25");
-  await page.getByText("Tổng thể cân đối hơn").click();
 
   const comboboxes = page.locator("form [role=combobox]");
   await comboboxes.nth(0).click();

@@ -6,6 +6,7 @@ import { useSessionStore } from "@/stores/session-store";
 import { useConsultationStore } from "@/stores/consultation-store";
 import { useTryOnStore } from "@/stores/tryon-store";
 import { AUTH_TOKEN_KEY, AUTH_REFRESH_KEY, SESSION_STORAGE_KEY } from "@/utils/constants";
+import { isJwtExpired } from "@/lib/jwt-expiry";
 
 function syncAuthTokensToLocalStorage(): void {
   if (typeof window === "undefined") return;
@@ -77,5 +78,7 @@ export function useConsumerStoresReady(): boolean {
 
 export function hasApiRequestIdentity(): boolean {
   if (typeof window === "undefined") return false;
-  return !!localStorage.getItem(AUTH_TOKEN_KEY) || !!localStorage.getItem(SESSION_STORAGE_KEY);
+  const access = localStorage.getItem(AUTH_TOKEN_KEY);
+  if (access && !isJwtExpired(access)) return true;
+  return !!localStorage.getItem(SESSION_STORAGE_KEY);
 }

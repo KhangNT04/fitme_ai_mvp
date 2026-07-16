@@ -3,6 +3,8 @@ import { persist } from "zustand/middleware";
 import type { AuthUser } from "@/types/auth";
 import { authApi } from "@/services/auth-api";
 import { useConsultationStore } from "@/stores/consultation-store";
+import { isJwtExpired } from "@/lib/jwt-expiry";
+import { AUTH_CLEAR_EVENT, AUTH_DROP_ACCESS_EVENT } from "@/lib/auth-events";
 import { AUTH_TOKEN_KEY, AUTH_REFRESH_KEY } from "@/utils/constants";
 
 async function syncPortalSession(accessToken: string): Promise<void> {
@@ -60,10 +62,25 @@ export const useAuthStore = create<AuthState>()(
         useConsultationStore.getState().reset();
         get().clearAuth();
       },
-      isAuthenticated: () => !!get().accessToken,
+      isAuthenticated: () => {
+        const token = get().accessToken;
+        return !!token && !isJwtExpired(token);
+      },
       isBrand: () => get().user?.role === "BRAND",
       isAdmin: () => get().user?.role === "ADMIN",
     }),
     { name: "fitme-auth", skipHydration: true }
   )
 );
+
+if (typeof window !== "undefined") {
+  window.addEventListener(AUTH_CLEAR_EVENT, () => {
+    useAuthStore.getState().clearAuth();
+  });
+  window.addEventListener(AUTH_DROP_ACCESS_EVENT, () => {
+    const token = useAuthStore.getState().accessToken;
+    if (token && isJwtExpired(token)) {
+      useAuthStore.setState({ accessToken: null });
+    }
+  });
+}

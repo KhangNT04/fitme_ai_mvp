@@ -50,7 +50,7 @@ export async function completeConsultationToResult(page: Page): Promise<string |
   if (!page.url().includes("/ai/chat")) {
     await fillBodyProfile(page);
   }
-  await expect(page.getByText(/Bạn muốn tôi phối đồ|Tư vấn outfit AI/)).toBeVisible({
+  await expect(page.getByRole("heading", { name: "Tư vấn outfit AI" })).toBeVisible({
     timeout: 15_000,
   });
 

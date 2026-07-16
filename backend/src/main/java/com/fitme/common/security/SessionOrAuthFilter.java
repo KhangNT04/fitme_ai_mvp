@@ -31,6 +31,7 @@ public class SessionOrAuthFilter extends OncePerRequestFilter {
             Pattern.compile("^/api/v1/uploads(/.*)?$"),
             Pattern.compile("^/api/v1/previews(/.*)?$"),
             Pattern.compile("^/api/v1/try-on(/.*)?$"),
+            Pattern.compile("^/api/v1/stylist/chat(/.*)?$"),
             Pattern.compile("^/api/v1/me(/.*)?$"),
             Pattern.compile("^/api/v1/privacy(/.*)?$"),
             Pattern.compile("^/api/v1/redirects(/.*)?$"),

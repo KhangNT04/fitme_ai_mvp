@@ -203,6 +203,7 @@ public class OutfitCompositionService {
         return RecommendationResponse.builder()
                 .recommendationId(rec.getId())
                 .title(rec.getTitle())
+                .styleLabel(rec.getStyleLabel())
                 .recommendedSize(rec.getRecommendedSize())
                 .alternativeSize(rec.getAlternativeSize())
                 .recommendedForm(rec.getRecommendedForm())

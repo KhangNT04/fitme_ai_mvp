@@ -2,19 +2,12 @@
 
 import { useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useQueryClient } from "@tanstack/react-query";
 import { Loader2 } from "lucide-react";
-import { recommendationApi } from "@/services/recommendation-api";
 import { previewApi } from "@/services/upload-api";
-import { profileApi } from "@/services/profile-api";
-import { productApi } from "@/services/product-api";
 import { useConsultationStore } from "@/stores/consultation-store";
-import { resolveConsultationStyleProfile } from "@/hooks/use-hydrate-consultation-profiles";
-import { hasMinimalBodyProfile } from "@/lib/profile-prefill";
-import { mergeBodyProfiles } from "@/lib/profile-merge";
 import { Disclaimer } from "@/components/layout/Disclaimer";
 import { ErrorState } from "@/components/common/ErrorState";
-import { Button } from "@/components/ui/button";
+import { LoadingSkeleton } from "@/components/common/LoadingSkeleton";
 import { FlowWizardToolbar } from "@/components/layout/FlowWizardToolbar";
 import { AI_FLOW_STEPS } from "@/components/layout/FlowStepper";
 import { PageShell } from "@/components/layout/PageShell";
@@ -33,103 +26,62 @@ export default function AiProcessingPage() {
 function AiProcessingContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const queryClient = useQueryClient();
   const isPreviewMode = searchParams.get("preview") === "true";
   const photoId = searchParams.get("photo");
   const recommendationId = searchParams.get("recommendation");
-  const { draft, setRecommendationId } = useConsultationStore();
+  const { draft } = useConsultationStore();
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    if (!isPreviewMode) {
+      router.replace("/ai/chat");
+      return;
+    }
+
     const generate = async () => {
-      if (isPreviewMode) {
-        const recId = recommendationId || draft.recommendationId;
-        if (!recId || !photoId) {
-          router.replace("/ai/start");
-          return;
-        }
-        if ((draft.previewOutfitItems?.length ?? 0) === 0) {
-          router.replace(`/ai/preview-outfit?recommendation=${recId}`);
-          return;
-        }
-
-        try {
-          const result = await previewApi.create({
-            recommendationId: recId,
-            photoUploadId: photoId,
-            previewType: "USER_PHOTO_2D",
-          });
-          router.replace(`/ai/preview/${result.id}`);
-        } catch (e: unknown) {
-          setError(
-            getUserErrorMessage(e, {
-              fallback: "Không thể tạo preview 2D. Vui lòng thử lại.",
-            }),
-          );
-        }
-        return;
-      }
-
-      if (!draft.sessionId || !draft.occasionRequest) {
+      const recId = recommendationId || draft.recommendationId;
+      if (!recId || !photoId) {
         router.replace("/ai/start");
         return;
       }
-
-      const bodyProfile = mergeBodyProfiles(
-        await profileApi.getBodyProfile(),
-        draft.bodyProfile,
-      );
-      const styleProfile = resolveConsultationStyleProfile(
-        draft.styleProfile,
-        await profileApi.getStyleProfile(),
-      );
-
-      if (!hasMinimalBodyProfile(bodyProfile)) {
-        router.replace("/ai/body-profile");
+      if ((draft.previewOutfitItems?.length ?? 0) === 0) {
+        router.replace(`/ai/preview-outfit?recommendation=${recId}`);
         return;
       }
 
       try {
-        await profileApi.saveBodyProfile(bodyProfile);
-        await profileApi.saveStyleProfile(styleProfile);
-        await queryClient.invalidateQueries({ queryKey: ["body-profile"] });
-        await queryClient.invalidateQueries({ queryKey: ["style-profile"] });
-
-        let selectedProductId = draft.selectedProductId ?? null;
-        if (selectedProductId) {
-          try {
-            await productApi.getById(selectedProductId);
-          } catch {
-            selectedProductId = null;
-          }
-        }
-
-        const result = await recommendationApi.create({
-          sessionId: draft.sessionId,
-          selectedProductId,
-          ...(draft.occasionRequest.occasion ? { occasion: draft.occasionRequest.occasion } : {}),
-          ...(draft.occasionRequest.desiredVibe ? { desiredVibe: draft.occasionRequest.desiredVibe } : {}),
-          wardrobeMode: draft.wardrobeMode,
-          budgetMin: draft.occasionRequest.budgetMin,
-          budgetMax: draft.occasionRequest.budgetMax,
+        const result = await previewApi.create({
+          recommendationId: recId,
+          photoUploadId: photoId,
+          previewType: "USER_PHOTO_2D",
         });
-        setRecommendationId(result.id);
-        router.replace(`/ai/result/${result.id}`);
+        router.replace(`/ai/preview/${result.id}`);
       } catch (e: unknown) {
-        setError(getUserErrorMessage(e, { fallback: "Không thể tạo gợi ý outfit. Vui lòng thử lại." }));
+        setError(
+          getUserErrorMessage(e, {
+            fallback: "Không thể tạo preview 2D. Vui lòng thử lại.",
+          }),
+        );
       }
     };
 
-    generate();
+    void generate();
   }, [
-    draft,
+    draft.previewOutfitItems,
+    draft.recommendationId,
     isPreviewMode,
     photoId,
     recommendationId,
-    queryClient,
     router,
-    setRecommendationId,
   ]);
+
+  if (!isPreviewMode) {
+    return (
+      <PageShell width="full" className={consumerPageShellClass}>
+        <LoadingSkeleton className="h-48" />
+      </PageShell>
+    );
+  }
 
   if (error) {
     const recId = recommendationId || draft.recommendationId;
@@ -137,26 +89,27 @@ function AiProcessingContent() {
       <PageShell width="full" className={consumerPageShellClass}>
         <FlowWizardToolbar
           steps={AI_FLOW_STEPS}
-          currentStep={4}
-          title={isPreviewMode ? "Preview outfit 2D" : "Tư vấn outfit"}
-          backHref={isPreviewMode && recId ? `/ai/photo-check?photo=${photoId}&recommendation=${recId}` : "/ai/occasion"}
-          backLabel={isPreviewMode ? "Kiểm tra ảnh" : "Hoàn cảnh & vibe"}
+          currentStep={2}
+          title="Preview outfit 2D"
+          backHref={
+            recId
+              ? `/ai/photo-check?photo=${photoId}&recommendation=${recId}`
+              : "/ai/chat"
+          }
+          backLabel="Kiểm tra ảnh"
           showAiBadge
         />
         <ErrorState
-          title={isPreviewMode ? "Tạo preview thất bại" : "Tạo gợi ý thất bại"}
+          title="Tạo preview thất bại"
           message={error}
           onRetry={() =>
-            isPreviewMode && recId && photoId
-              ? router.push(`/ai/processing?preview=true&photo=${photoId}&recommendation=${recId}`)
-              : router.push("/ai/occasion")
+            recId && photoId
+              ? router.push(
+                  `/ai/processing?preview=true&photo=${photoId}&recommendation=${recId}`,
+                )
+              : router.push("/ai/chat")
           }
         />
-        {!isPreviewMode && (
-          <Button variant="outline" className="mt-4 w-full" onClick={() => router.push("/ai/start")}>
-            Bắt đầu lại
-          </Button>
-        )}
       </PageShell>
     );
   }
@@ -165,16 +118,12 @@ function AiProcessingContent() {
     <PageShell width="full" className={consumerPageShellClass}>
       <FlowWizardToolbar
         steps={AI_FLOW_STEPS}
-        currentStep={4}
-        title={isPreviewMode ? "AI đang tạo preview 2D..." : "AI đang tạo gợi ý outfit..."}
-        subtitle={
-          isPreviewMode
-            ? `${draft.previewOutfitItems?.length ?? 0} món trong set của bạn`
-            : "Phân tích dáng người, gu và hoàn cảnh của bạn"
-        }
+        currentStep={2}
+        title="AI đang tạo preview 2D..."
+        subtitle={`${draft.previewOutfitItems?.length ?? 0} món trong set của bạn`}
         showAiBadge
-        backHref={isPreviewMode ? "/discover" : "/ai/occasion"}
-        backLabel={isPreviewMode ? "Khám phá" : "Hoàn cảnh & vibe"}
+        backHref="/discover"
+        backLabel="Khám phá"
       />
       <div className="flex flex-col items-center py-16 text-center">
         <Loader2 className="h-12 w-12 animate-spin text-primary" />

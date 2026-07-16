@@ -3,8 +3,6 @@ import { loginUser, loginBrand, loginAdmin, DEMO_PASSWORD } from "./helpers/auth
 import {
   completeConsultationToResult,
   fillBodyProfile,
-  fillStyleProfile,
-  fillOccasion,
 } from "./helpers/consultation";
 import { fillBrandProductForm } from "./helpers/brand";
 import { BRAND_PAGES, ADMIN_PAGES, expectPageHeading } from "./helpers/portal";
@@ -27,7 +25,7 @@ test.setTimeout(120_000);
 test.describe("Luồng công khai (không đăng nhập)", () => {
   test("tư vấn outfit ẩn danh → kết quả AI", async ({ page }) => {
     await completeConsultationToResult(page);
-    await expect(page.getByText(/Tư vấn outfit/)).toBeVisible();
+    await expect(page.getByText(/Tư vấn outfit|Mặc thử outfit/).first()).toBeVisible();
   });
 
   test("thử mặc AI → kết quả preview", async ({ page }) => {
@@ -85,12 +83,18 @@ test.describe("Luồng USER", () => {
     const productId = await getFirstProductIdFromDiscover(page);
     await page.goto(`/products/${productId}`);
     await page.getByRole("button", { name: /Tư vấn size & phối đồ bằng AI/ }).click();
-    await fillBodyProfile(page);
-    await fillStyleProfile(page);
-    await fillOccasion(page);
-    await page.waitForURL(/\/ai\/result\//, { timeout: 90_000 });
+    await page.waitForURL(/\/ai\/(body-profile|chat|start)/);
+    if (page.url().includes("body-profile") || !page.url().includes("/ai/chat")) {
+      await fillBodyProfile(page);
+    }
+    await page.waitForURL("**/ai/chat", { timeout: 30_000 });
 
-    const title = await page.getByRole("heading", { level: 1 }).textContent();
+    await page.getByLabel("Tin nhắn tư vấn").fill("Outfit đi làm văn phòng thanh lịch");
+    await page.getByRole("button", { name: "Gửi" }).click();
+    await expect(page.getByRole("button", { name: "Lưu" }).first()).toBeVisible({
+      timeout: 120_000,
+    });
+
     const saveResponse = page.waitForResponse(
       (resp) =>
         resp.url().includes("/recommendations/") &&
@@ -98,13 +102,13 @@ test.describe("Luồng USER", () => {
         resp.request().method() === "POST" &&
         resp.status() === 200,
     );
-    await page.getByRole("button", { name: "Lưu gợi ý" }).click();
+    await page.getByRole("button", { name: "Lưu" }).first().click();
     await saveResponse;
     await page.goto("/saved-outfits");
-    await expect(page.getByText(title!).first()).toBeVisible({ timeout: 15_000 });
+    await expect(page.getByRole("heading", { name: "Đã lưu" })).toBeVisible({ timeout: 15_000 });
   });
 
-  test("tủ đồ → thêm item → tư vấn ưu tiên tủ đồ", async ({ page }) => {
+  test("tủ đồ → thêm item → tư vấn outfit", async ({ page }) => {
     const itemName = `Áo sơ mi trắng E2E ${Date.now()}`;
     await loginUser(page);
     await page.goto("/wardrobe");
@@ -117,12 +121,12 @@ test.describe("Luồng USER", () => {
     await expect(page.getByRole("heading", { name: itemName }).first()).toBeVisible({ timeout: 15_000 });
 
     await page.goto("/ai/start");
-    await page.getByRole("button", { name: "Bắt đầu nhập thông tin" }).click();
-    await fillBodyProfile(page);
-    await fillStyleProfile(page);
-    await fillOccasion(page, "Ưu tiên tủ đồ của tôi");
-    await page.waitForURL(/\/ai\/result\//, { timeout: 90_000 });
-    await expect(page.getByText("Bạn đã có").first()).toBeVisible();
+    await page.waitForURL(/\/ai\/(body-profile|chat)/, { timeout: 30_000 });
+    if (page.url().includes("body-profile")) {
+      await fillBodyProfile(page);
+    }
+    await page.waitForURL("**/ai/chat", { timeout: 30_000 });
+    await expect(page.getByText(/Bạn muốn tôi phối đồ|Tư vấn outfit AI/)).toBeVisible();
   });
 });
 

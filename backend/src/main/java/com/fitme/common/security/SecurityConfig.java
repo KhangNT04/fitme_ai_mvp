@@ -55,6 +55,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/v1/uploads/**").permitAll()
                         .requestMatchers("/api/v1/previews/**").permitAll()
                         .requestMatchers("/api/v1/try-on/**").permitAll()
+                        .requestMatchers("/api/v1/stylist/chat/**").permitAll()
                         .requestMatchers("/api/v1/privacy/**").permitAll()
                         .requestMatchers("/api/v1/webhooks/**").permitAll()
                         .requestMatchers("/uploads/**").permitAll()

@@ -70,17 +70,33 @@ describe("nav-history", () => {
     });
   });
 
+  it("does not record ai start gate and resolves back past it", () => {
+    recordNavVisit("/discover");
+    recordNavVisit("/ai/start");
+    recordNavVisit("/ai/body-profile?required=1");
+    expect(isEphemeralNavRoute("/ai/start")).toBe(true);
+    expect(getPreviousNavEntry()).toEqual({
+      href: "/discover",
+      label: "Khám phá sản phẩm",
+    });
+    expect(resolveNavBack({ href: "/", label: "Trang chủ" })).toEqual({
+      href: "/discover",
+      label: "Khám phá sản phẩm",
+    });
+  });
+
   it("resolveNavBack skips ephemeral routes still present in legacy stacks", () => {
     const stack = [
-      { href: "/ai/occasion", label: "Hoàn cảnh & vibe" },
+      { href: "/ai/body-profile", label: "Hồ sơ cơ thể" },
       { href: "/ai/processing", label: "Đang xử lý tư vấn" },
       { href: "/ai/result/xyz", label: "Kết quả tư vấn" },
     ];
     expect(resolveNavBack({ href: "/discover", label: "Khám phá sản phẩm" }, stack)).toEqual({
-      href: "/ai/occasion",
-      label: "Hoàn cảnh & vibe",
+      href: "/ai/body-profile",
+      label: "Hồ sơ cơ thể",
     });
     expect(isEphemeralNavRoute("/try-on/processing")).toBe(true);
     expect(isEphemeralNavRoute("/ai/processing")).toBe(true);
+    expect(isEphemeralNavRoute("/ai/start")).toBe(true);
   });
 });

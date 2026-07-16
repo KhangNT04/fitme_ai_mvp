@@ -37,6 +37,12 @@ public class OutfitRequest {
     @Column(name = "desired_vibe", columnDefinition = "TEXT")
     private String desiredVibe;
 
+    @Column(name = "user_message", columnDefinition = "TEXT")
+    private String userMessage;
+
+    @Column(name = "conversation_id")
+    private UUID conversationId;
+
     @Enumerated(EnumType.STRING)
     @Column(name = "wardrobe_mode", nullable = false)
     @Builder.Default

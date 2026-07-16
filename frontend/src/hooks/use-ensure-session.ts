@@ -5,11 +5,24 @@ import { useRouter } from "next/navigation";
 import { sessionApi } from "@/services/session-api";
 import { useSessionStore } from "@/stores/session-store";
 import { useConsultationStore } from "@/stores/consultation-store";
-import { SESSION_STORAGE_KEY } from "@/utils/constants";
+import { useAuthStore } from "@/stores/auth-store";
+import { isJwtExpired } from "@/lib/jwt-expiry";
+import { SESSION_STORAGE_KEY, AUTH_TOKEN_KEY, AUTH_REFRESH_KEY } from "@/utils/constants";
 
 function persistSessionToken(token: string): void {
   if (typeof window !== "undefined") {
     localStorage.setItem(SESSION_STORAGE_KEY, token);
+  }
+}
+
+function purgeExpiredAuthTokens(): void {
+  if (typeof window === "undefined") return;
+  const access = localStorage.getItem(AUTH_TOKEN_KEY);
+  const refresh = localStorage.getItem(AUTH_REFRESH_KEY);
+  if (access && isJwtExpired(access) && (!refresh || isJwtExpired(refresh))) {
+    useAuthStore.getState().clearAuth();
+  } else if (access && isJwtExpired(access)) {
+    localStorage.removeItem(AUTH_TOKEN_KEY);
   }
 }
 
@@ -20,6 +33,8 @@ export function useEnsureSession() {
   const setSessionId = useConsultationStore((s) => s.setSessionId);
 
   const ensureSession = useCallback(async () => {
+    purgeExpiredAuthTokens();
+
     const createFresh = async () => {
       const newSession = await sessionApi.createAnonymous();
       setSession(newSession);

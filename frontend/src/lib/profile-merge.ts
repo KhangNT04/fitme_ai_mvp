@@ -43,6 +43,7 @@ export function mergeBodyProfiles(
   return {
     heightCm: update.heightCm,
     weightKg: update.weightKg,
+    age: "age" in update ? update.age : base?.age,
     gender: update.gender ?? base.gender,
     fitPreference: "fitPreference" in update ? update.fitPreference : base?.fitPreference,
     skinTone: "skinTone" in update ? update.skinTone : base?.skinTone,
@@ -76,6 +77,7 @@ export function bodyProfileToPayload(data: BodyProfile): Record<string, unknown>
     gender: data.gender,
     fitPreference: data.fitPreference ?? "REGULAR",
   };
+  if (data.age != null) payload.age = data.age;
   if (data.skinTone != null) payload.skinTone = data.skinTone;
   if (data.goals != null) payload.goals = { items: data.goals };
 

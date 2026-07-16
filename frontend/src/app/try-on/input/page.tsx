@@ -16,7 +16,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { LoadingSkeleton } from "@/components/common/LoadingSkeleton";
 import { tryOnInputSchema, type TryOnInputForm } from "@/utils/validators";
-import { FIT_PREFERENCES, SKIN_TONES, OCCASION_OPTIONS, VIBE_OPTIONS, TRYON_AVATARS } from "@/utils/constants";
+import { FIT_PREFERENCES, TRYON_AVATARS } from "@/utils/constants";
 import { useTryOnStore } from "@/stores/tryon-store";
 import { useConsultationStore } from "@/stores/consultation-store";
 import { useEnsureSession } from "@/hooks/use-ensure-session";
@@ -37,11 +37,10 @@ import { consumerPageShellClass } from "@/lib/design-tokens";
 import { requiredNumberRegisterOptions, requiredKgWeightRegisterOptions, profileSnapshotKey } from "@/lib/form-number";
 import { Chip } from "@/components/ui/chip";
 import { Badge } from "@/components/ui/badge";
+import { SkinTonePicker } from "@/components/ui/skin-tone-picker";
 import { getUserErrorMessage } from "@/lib/user-error-message";
 import { isServerPreviewUrl } from "@/lib/media-url";
 import { toast } from "@/stores/toast-store";
-
-const NONE = "__none__";
 
 const INPUT_MODES = [
   { value: "USER_PHOTO", label: "Dùng ảnh cá nhân" },
@@ -147,8 +146,6 @@ export default function TryOnInputPage() {
   inputModeRef.current = inputMode;
   const fitPreference = watch("fitPreference");
   const skinTone = watch("skinTone");
-  const occasion = watch("occasion");
-  const desiredVibe = watch("desiredVibe");
 
   const selectedAvatar = TRYON_AVATARS.find((a) => a.key === avatarKey);
 
@@ -237,8 +234,6 @@ export default function TryOnInputPage() {
   const onSubmit = async (data: TryOnInputForm) => {
     setInput({
       inputMode: data.inputMode,
-      ...(data.occasion ? { occasion: data.occasion } : {}),
-      ...(data.desiredVibe ? { desiredVibe: data.desiredVibe } : {}),
       ...(data.usualSize ? { usualSize: data.usualSize } : {}),
     });
     const session = await ensureSession();
@@ -251,8 +246,6 @@ export default function TryOnInputPage() {
         weightKg: data.weightKg,
         fitPreference: data.fitPreference,
         skinTone: data.skinTone,
-        ...(data.occasion ? { occasion: data.occasion } : {}),
-        ...(data.desiredVibe ? { desiredVibe: data.desiredVibe } : {}),
         ...(data.usualSize ? { usualSize: data.usualSize } : {}),
         previewMode,
         ...(previewMode === "USER_PHOTO" && data.photoUploadId
@@ -507,58 +500,12 @@ export default function TryOnInputPage() {
               </div>
               <div>
                 <Label>Tông da (tùy chọn)</Label>
-                <Select
-                  value={skinTone ?? NONE}
-                  onValueChange={(v) =>
-                    setValue("skinTone", v === NONE ? undefined : (v as TryOnInputForm["skinTone"]), {
-                      shouldValidate: true,
-                    })
+                <SkinTonePicker
+                  value={skinTone}
+                  onChange={(v) =>
+                    setValue("skinTone", v, { shouldValidate: true })
                   }
-                >
-                  <SelectTrigger className="mt-1"><SelectValue placeholder="Chưa chọn" /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value={NONE}>Chưa chọn</SelectItem>
-                    {SKIN_TONES.map((s) => <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>)}
-                  </SelectContent>
-                </Select>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardContent className="space-y-4 p-6">
-              <p className="text-sm text-muted-foreground">
-                Hoàn cảnh và vibe là tùy chọn — bạn có thể bỏ qua và tiếp tục.
-              </p>
-              <div>
-                <Label>Hoàn cảnh (tùy chọn)</Label>
-                <Select
-                  value={occasion ?? NONE}
-                  onValueChange={(v) =>
-                    setValue("occasion", v === NONE ? undefined : v, { shouldValidate: true })
-                  }
-                >
-                  <SelectTrigger className="mt-1"><SelectValue placeholder="Chọn" /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value={NONE}>Chưa chọn</SelectItem>
-                    {OCCASION_OPTIONS.map((o) => <SelectItem key={o} value={o}>{o}</SelectItem>)}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div>
-                <Label>Vibe (tùy chọn)</Label>
-                <Select
-                  value={desiredVibe ?? NONE}
-                  onValueChange={(v) =>
-                    setValue("desiredVibe", v === NONE ? undefined : v, { shouldValidate: true })
-                  }
-                >
-                  <SelectTrigger className="mt-1"><SelectValue placeholder="Chọn" /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value={NONE}>Chưa chọn</SelectItem>
-                    {VIBE_OPTIONS.map((v) => <SelectItem key={v} value={v}>{v}</SelectItem>)}
-                  </SelectContent>
-                </Select>
+                />
               </div>
             </CardContent>
           </Card>

@@ -81,9 +81,8 @@ export function isAiWizardStep(href: string): boolean {
   const path = pathOnly(href);
   return (
     path === "/ai/body-profile" ||
-    path === "/ai/style-profile" ||
-    path === "/ai/occasion" ||
     path === "/ai/processing" ||
+    path.startsWith("/ai/options") ||
     path === "/ai/photo-check" ||
     path === "/ai/photo-upload" ||
     path === "/ai/preview-outfit"

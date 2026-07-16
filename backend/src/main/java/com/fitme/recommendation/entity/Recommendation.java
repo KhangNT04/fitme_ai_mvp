@@ -32,6 +32,9 @@ public class Recommendation {
 
     private String title;
 
+    @Column(name = "style_label")
+    private String styleLabel;
+
     @Column(name = "recommended_size")
     private String recommendedSize;
 

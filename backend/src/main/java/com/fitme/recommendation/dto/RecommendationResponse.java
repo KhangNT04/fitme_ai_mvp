@@ -15,6 +15,7 @@ import java.util.UUID;
 public class RecommendationResponse {
     private UUID recommendationId;
     private String title;
+    private String styleLabel;
     private String recommendedSize;
     private String alternativeSize;
     private String recommendedForm;

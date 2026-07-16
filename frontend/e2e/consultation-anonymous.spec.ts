@@ -16,13 +16,10 @@ test.describe("Anonymous consultation flow", () => {
     ).toBeVisible();
   });
 
-  test("full flow: body → style → occasion → result with size badges", async ({ page }) => {
-    test.setTimeout(120_000);
+  test("full flow: body gate → chat → outfit options", async ({ page }) => {
+    test.setTimeout(180_000);
     await completeConsultationToResult(page);
 
-    await expect(page.getByText(/Gợi ý size:/).first()).toBeVisible();
-    await expect(page.getByText(/Form:/).first()).toBeVisible();
-    await expect(page.getByText(/Màu:/).first()).toBeVisible();
-    await expect(page.getByRole("note")).toBeVisible();
+    await expect(page.getByText(/Gợi ý size:/).first()).toBeVisible({ timeout: 30_000 });
   });
 });

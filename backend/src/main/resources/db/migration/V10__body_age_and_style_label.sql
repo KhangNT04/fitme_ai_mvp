@@ -1,0 +1,5 @@
+ALTER TABLE body_profiles
+    ADD COLUMN IF NOT EXISTS age INTEGER;
+
+ALTER TABLE recommendations
+    ADD COLUMN IF NOT EXISTS style_label VARCHAR(100);

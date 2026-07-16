@@ -22,6 +22,7 @@ export interface BodyMeasurements {
 export interface BodyProfile {
   heightCm: number;
   weightKg: number;
+  age?: number;
   gender: Gender;
   fitPreference?: FitPreference;
   skinTone?: SkinTone;

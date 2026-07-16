@@ -70,6 +70,9 @@ public class BodyProfileService {
     private void applyRequest(BodyProfile profile, BodyProfileRequest request) {
         profile.setHeightCm(request.getHeightCm());
         profile.setWeightKg(request.getWeightKg());
+        if (request.getAge() != null) {
+            profile.setAge(request.getAge());
+        }
         profile.setGender(request.getGender());
         if (request.getFitPreference() != null) {
             profile.setFitPreference(request.getFitPreference());
@@ -121,6 +124,7 @@ public class BodyProfileService {
                 .id(profile.getId())
                 .heightCm(profile.getHeightCm())
                 .weightKg(profile.getWeightKg())
+                .age(profile.getAge())
                 .gender(profile.getGender())
                 .fitPreference(profile.getFitPreference())
                 .skinTone(profile.getSkinTone())

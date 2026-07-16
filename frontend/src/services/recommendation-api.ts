@@ -3,6 +3,7 @@ import { resolveOptionalImageSrc } from "@/lib/media-url";
 import type {
   CreateRecommendationRequest,
   RecommendationResult,
+  RecommendationOptionsResult,
   OutfitItem,
 } from "@/types/outfit";
 import type { Product } from "@/types/product";
@@ -23,6 +24,7 @@ interface BackendOutfitItem {
 interface BackendRecommendation {
   recommendationId: string;
   title: string;
+  styleLabel?: string;
   recommendedSize?: string;
   alternativeSize?: string;
   recommendedForm?: string;
@@ -46,6 +48,20 @@ interface BackendRecommendation {
   };
 }
 
+interface BackendStyleOption {
+  recommendationId: string;
+  styleLabel: string;
+  title: string;
+  previewImageUrl?: string;
+  itemCount: number;
+  stylistSource?: string;
+}
+
+interface BackendRecommendationOptions {
+  requestId: string;
+  options: BackendStyleOption[];
+}
+
 function mapOutfitItem(item: BackendOutfitItem, index: number): OutfitItem {
   return {
     id: item.productId || item.wardrobeItemId || `item-${index}`,
@@ -65,6 +81,7 @@ function mapRecommendation(data: BackendRecommendation): RecommendationResult {
   return {
     id: data.recommendationId,
     title: data.title,
+    styleLabel: data.styleLabel,
     recommendedSize: data.recommendedSize,
     alternativeSize: data.alternativeSize,
     recommendedForm: data.recommendedForm,
@@ -90,6 +107,20 @@ function mapRecommendation(data: BackendRecommendation): RecommendationResult {
   };
 }
 
+function mapOptions(data: BackendRecommendationOptions): RecommendationOptionsResult {
+  return {
+    requestId: data.requestId,
+    options: (data.options || []).map((option) => ({
+      recommendationId: option.recommendationId,
+      styleLabel: option.styleLabel,
+      title: option.title,
+      previewImageUrl: resolveOptionalImageSrc(option.previewImageUrl) ?? undefined,
+      itemCount: option.itemCount,
+      stylistSource: option.stylistSource,
+    })),
+  };
+}
+
 function mapSimilarProduct(item: BackendOutfitItem): Product {
   return {
     id: item.productId || "",
@@ -112,9 +143,13 @@ function mapSimilarProduct(item: BackendOutfitItem): Product {
 }
 
 export const recommendationApi = {
-  create: async (data: CreateRecommendationRequest): Promise<RecommendationResult> => {
+  create: async (data: CreateRecommendationRequest): Promise<RecommendationOptionsResult> => {
     const res = await apiClient.post("/recommendations", data);
-    return mapRecommendation(unwrap(res));
+    return mapOptions(unwrap(res));
+  },
+  getOptionsByRequestId: async (requestId: string): Promise<RecommendationOptionsResult> => {
+    const res = await apiClient.get(`/recommendations/by-request/${requestId}`);
+    return mapOptions(unwrap(res));
   },
   getById: async (id: string): Promise<RecommendationResult> => {
     const res = await apiClient.get(`/recommendations/${id}`);

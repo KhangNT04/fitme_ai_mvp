@@ -1,7 +1,6 @@
 package com.fitme.recommendation.dto;
 
 import com.fitme.common.enums.WardrobeMode;
-import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
 
 import java.math.BigDecimal;
@@ -16,4 +15,11 @@ public class CreateRecommendationRequest {
     private WardrobeMode wardrobeMode;
     private BigDecimal budgetMin;
     private BigDecimal budgetMax;
+    /** Free-text user prompt from stylist chat. */
+    private String userMessage;
+    private UUID conversationId;
+    /** Optional style labels to generate (chat intent). Falls back to catalog defaults. */
+    private java.util.List<String> styleLabels;
+    /** Compact conversation history for follow-ups. */
+    private java.util.List<String> conversationHistory;
 }

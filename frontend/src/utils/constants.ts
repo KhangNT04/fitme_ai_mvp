@@ -12,10 +12,10 @@ export const FIT_PREFERENCES = [
 ] as const;
 
 export const SKIN_TONES = [
-  { value: "FAIR", label: "Sáng" },
-  { value: "MEDIUM", label: "Trung bình" },
-  { value: "TAN", label: "Ngăm" },
-  { value: "DEEP", label: "Đậm" },
+  { value: "FAIR", label: "Sáng", color: "#F3D0B8" },
+  { value: "MEDIUM", label: "Trung bình", color: "#C98A5C" },
+  { value: "TAN", label: "Ngăm", color: "#8B5A3C" },
+  { value: "DEEP", label: "Đậm", color: "#4A2C1F" },
   { value: "UNSURE", label: "Chưa chắc" },
 ] as const;
 

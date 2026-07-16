@@ -20,6 +20,8 @@ public class BodyProfileRequest {
     private Integer heightCm;
     @NotNull @DecimalMin("25") @DecimalMax("250")
     private BigDecimal weightKg;
+    @Min(13) @Max(80)
+    private Integer age;
     @NotNull
     private Gender gender;
     private FitPreference fitPreference;

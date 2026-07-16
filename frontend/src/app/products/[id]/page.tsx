@@ -69,7 +69,7 @@ function ProductDetailContent({
   const handleConsult = async () => {
     await ensureSession();
     setSelectedProductId(id);
-    router.push("/ai/body-profile");
+    router.push("/ai/start");
   };
 
   if (isLoading) {

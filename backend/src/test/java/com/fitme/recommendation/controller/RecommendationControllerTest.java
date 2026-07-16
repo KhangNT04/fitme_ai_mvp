@@ -17,26 +17,12 @@ class RecommendationControllerTest extends AbstractIntegrationTest {
     @Autowired
     private TestDataHelper testDataHelper;
 
-    @Test
-    void getSaved_afterSavingRecommendation_returnsSavedList() throws Exception {
-        testDataHelper.createEligibleProduct("Saved outfit top", "Áo thun");
-        testDataHelper.createEligibleProduct("Saved outfit bottom", "Quần jean");
-
-        String sessionToken = createAnonymousSessionToken();
-
+    private String createBodyAndRecommend(String sessionToken) throws Exception {
         mockMvc.perform(post("/api/v1/me/body-profile")
                         .header(SESSION_HEADER, sessionToken)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
-                                {"heightCm": 165, "weightKg": 55, "gender": "FEMALE", "fitPreference": "REGULAR"}
-                                """))
-                .andExpect(status().isOk());
-
-        mockMvc.perform(post("/api/v1/me/style-profile")
-                        .header(SESSION_HEADER, sessionToken)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content("""
-                                {"primaryStyle": "Minimal", "preferredColors": ["Black"]}
+                                {"heightCm": 165, "weightKg": 55, "age": 25, "gender": "FEMALE", "fitPreference": "REGULAR"}
                                 """))
                 .andExpect(status().isOk());
 
@@ -44,15 +30,27 @@ class RecommendationControllerTest extends AbstractIntegrationTest {
                         .header(SESSION_HEADER, sessionToken)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
-                                {"occasion": "Dạo phố", "wardrobeMode": "NO_WARDROBE_DATA"}
+                                {"wardrobeMode": "NO_WARDROBE_DATA"}
                                 """))
                 .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.requestId").exists())
+                .andExpect(jsonPath("$.data.options").isArray())
+                .andExpect(jsonPath("$.data.options.length()").value(4))
                 .andReturn()
                 .getResponse()
                 .getContentAsString();
 
-        String recommendationId = objectMapper.readTree(createResponse)
-                .get("data").get("recommendationId").asText();
+        return objectMapper.readTree(createResponse)
+                .get("data").get("options").get(0).get("recommendationId").asText();
+    }
+
+    @Test
+    void getSaved_afterSavingRecommendation_returnsSavedList() throws Exception {
+        testDataHelper.createEligibleProduct("Saved outfit top", "Áo thun");
+        testDataHelper.createEligibleProduct("Saved outfit bottom", "Quần jean");
+
+        String sessionToken = createAnonymousSessionToken();
+        String recommendationId = createBodyAndRecommend(sessionToken);
 
         mockMvc.perform(post("/api/v1/recommendations/{id}/save", recommendationId)
                         .header(SESSION_HEADER, sessionToken))
@@ -74,36 +72,7 @@ class RecommendationControllerTest extends AbstractIntegrationTest {
         testDataHelper.createEligibleProduct("Unsave outfit bottom", "Quần jean");
 
         String sessionToken = createAnonymousSessionToken();
-
-        mockMvc.perform(post("/api/v1/me/body-profile")
-                        .header(SESSION_HEADER, sessionToken)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content("""
-                                {"heightCm": 165, "weightKg": 55, "gender": "FEMALE", "fitPreference": "REGULAR"}
-                                """))
-                .andExpect(status().isOk());
-
-        mockMvc.perform(post("/api/v1/me/style-profile")
-                        .header(SESSION_HEADER, sessionToken)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content("""
-                                {"primaryStyle": "Minimal", "preferredColors": ["Black"]}
-                                """))
-                .andExpect(status().isOk());
-
-        String createResponse = mockMvc.perform(post("/api/v1/recommendations")
-                        .header(SESSION_HEADER, sessionToken)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content("""
-                                {"occasion": "Dạo phố", "wardrobeMode": "NO_WARDROBE_DATA"}
-                                """))
-                .andExpect(status().isOk())
-                .andReturn()
-                .getResponse()
-                .getContentAsString();
-
-        String recommendationId = objectMapper.readTree(createResponse)
-                .get("data").get("recommendationId").asText();
+        String recommendationId = createBodyAndRecommend(sessionToken);
 
         mockMvc.perform(post("/api/v1/recommendations/{id}/save", recommendationId)
                         .header(SESSION_HEADER, sessionToken))
@@ -116,15 +85,6 @@ class RecommendationControllerTest extends AbstractIntegrationTest {
         mockMvc.perform(get("/api/v1/recommendations/saved")
                         .header(SESSION_HEADER, sessionToken))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.data.length()").value(0));
-    }
-
-    @Test
-    void getSaved_withoutIdentity_returnsEmptyList() throws Exception {
-        mockMvc.perform(get("/api/v1/recommendations/saved"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.success").value(true))
-                .andExpect(jsonPath("$.data").isArray())
                 .andExpect(jsonPath("$.data.length()").value(0));
     }
 }

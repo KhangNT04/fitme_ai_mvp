@@ -33,6 +33,7 @@ export interface PreviewInfo {
 export interface RecommendationResult {
   id: string;
   title: string;
+  styleLabel?: string;
   recommendedSize?: string;
   alternativeSize?: string;
   recommendedForm?: string;
@@ -42,6 +43,20 @@ export interface RecommendationResult {
   outfitItems: OutfitItem[];
   explanation: RecommendationExplanation;
   preview?: PreviewInfo;
+}
+
+export interface StyleRecommendationOption {
+  recommendationId: string;
+  styleLabel: string;
+  title: string;
+  previewImageUrl?: string;
+  itemCount: number;
+  stylistSource?: string;
+}
+
+export interface RecommendationOptionsResult {
+  requestId: string;
+  options: StyleRecommendationOption[];
 }
 
 export interface CreateRecommendationRequest {

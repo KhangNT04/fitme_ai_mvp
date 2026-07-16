@@ -4,6 +4,7 @@ import { bodyProfileSchema, occasionSchema, styleProfileSchema, tryOnInputSchema
 const validBodyProfile = {
   heightCm: 170,
   weightKg: 65,
+  age: 25,
   gender: "FEMALE" as const,
   fitPreference: "REGULAR" as const,
 };
@@ -13,6 +14,7 @@ describe("bodyProfileSchema", () => {
     expect(bodyProfileSchema.safeParse({
       heightCm: 170,
       weightKg: 65,
+      age: 25,
       gender: "FEMALE",
       fitPreference: "OVERSIZE",
     }).success).toBe(true);
@@ -57,12 +59,13 @@ describe("bodyProfileSchema", () => {
     expect(bodyProfileSchema.safeParse({
       heightCm: 170,
       weightKg: 65,
+      age: 25,
       fitPreference: "REGULAR",
     }).success).toBe(false);
   });
 
   it("rejects missing fit preference", () => {
-    expect(bodyProfileSchema.safeParse({ heightCm: 170, weightKg: 65, gender: "FEMALE" }).success).toBe(false);
+    expect(bodyProfileSchema.safeParse({ heightCm: 170, weightKg: 65, age: 25, gender: "FEMALE" }).success).toBe(false);
   });
 
   it("rejects weight below 25 kg", () => {

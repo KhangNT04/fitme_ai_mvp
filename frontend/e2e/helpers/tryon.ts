@@ -29,7 +29,7 @@ export async function getFirstProductIdFromDiscover(page: Page): Promise<string>
   return productId;
 }
 
-/** Fill body metrics on try-on input (occasion/vibe are optional). */
+/** Fill body metrics on try-on input. */
 export async function fillTryOnInputMetrics(page: Page) {
   await page.getByRole("spinbutton").nth(0).fill("168");
   await page.getByRole("spinbutton").nth(1).fill("58");

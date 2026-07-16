@@ -1,5 +1,6 @@
 import axios, { type AxiosError, type InternalAxiosRequestConfig } from "axios";
 import { formatUserErrorMessage } from "@/lib/user-error-message";
+import { isJwtExpired } from "@/lib/jwt-expiry";
 import { API_URL, SESSION_STORAGE_KEY, AUTH_TOKEN_KEY, AUTH_REFRESH_KEY } from "@/utils/constants";
 
 export interface ApiError {
@@ -33,10 +34,26 @@ const apiClient = axios.create({
 
 let refreshPromise: Promise<string | null> | null = null;
 
+function clearAuthTokens(): void {
+  if (typeof window === "undefined") return;
+  localStorage.removeItem(AUTH_TOKEN_KEY);
+  localStorage.removeItem(AUTH_REFRESH_KEY);
+  try {
+    // Keep UI in sync when tokens die mid-request (expired JWT).
+    const { useAuthStore } = require("@/stores/auth-store") as typeof import("@/stores/auth-store");
+    useAuthStore.getState().clearAuth();
+  } catch {
+    // ignore circular import / SSR
+  }
+}
+
 async function refreshAccessToken(): Promise<string | null> {
   if (typeof window === "undefined") return null;
   const refreshToken = localStorage.getItem(AUTH_REFRESH_KEY);
-  if (!refreshToken) return null;
+  if (!refreshToken || isJwtExpired(refreshToken)) {
+    clearAuthTokens();
+    return null;
+  }
 
   try {
     const res = await axios.post<ApiResponse<BackendAuthResponse>>(
@@ -51,8 +68,7 @@ async function refreshAccessToken(): Promise<string | null> {
       return data.accessToken;
     }
   } catch {
-    localStorage.removeItem(AUTH_TOKEN_KEY);
-    localStorage.removeItem(AUTH_REFRESH_KEY);
+    clearAuthTokens();
   }
   return null;
 }
@@ -60,7 +76,13 @@ async function refreshAccessToken(): Promise<string | null> {
 apiClient.interceptors.request.use((config: InternalAxiosRequestConfig) => {
   if (typeof window !== "undefined") {
     const sessionToken = localStorage.getItem(SESSION_STORAGE_KEY);
-    const accessToken = localStorage.getItem(AUTH_TOKEN_KEY);
+    let accessToken = localStorage.getItem(AUTH_TOKEN_KEY);
+
+    if (accessToken && isJwtExpired(accessToken)) {
+      // Drop expired bearer so anonymous session can still authenticate the request.
+      localStorage.removeItem(AUTH_TOKEN_KEY);
+      accessToken = null;
+    }
 
     if (sessionToken) {
       config.headers["X-Anonymous-Session"] = sessionToken;

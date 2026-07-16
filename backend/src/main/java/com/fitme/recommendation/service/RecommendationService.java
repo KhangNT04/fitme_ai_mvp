@@ -5,7 +5,6 @@ import com.fitme.ai.StylistSuggestOutcome;
 import com.fitme.ai.dto.GeminiStylistResult;
 import com.fitme.analytics.service.AnalyticsService;
 import com.fitme.common.enums.Confidence;
-import com.fitme.common.enums.ItemRole;
 import com.fitme.common.enums.ProductStatus;
 import com.fitme.common.enums.RecommendationStatus;
 import com.fitme.common.enums.SourceType;
@@ -19,6 +18,7 @@ import com.fitme.product.repository.ProductRepository;
 import com.fitme.product.service.ProductAudienceService;
 import com.fitme.product.service.ProductEligibilityService;
 import com.fitme.recommendation.dto.CreateRecommendationRequest;
+import com.fitme.recommendation.dto.RecommendationOptionsResponse;
 import com.fitme.recommendation.dto.RecommendationResponse;
 import com.fitme.recommendation.entity.OutfitRequest;
 import com.fitme.recommendation.entity.Recommendation;
@@ -29,13 +29,13 @@ import com.fitme.recommendation.repository.RecommendationRepository;
 import com.fitme.userprofile.entity.BodyProfile;
 import com.fitme.userprofile.entity.StyleProfile;
 import com.fitme.userprofile.service.BodyProfileService;
-import com.fitme.userprofile.service.StyleProfileService;
 import com.fitme.wardrobe.entity.WardrobeItem;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -46,13 +46,14 @@ import java.util.UUID;
 @Slf4j
 public class RecommendationService {
 
+    private static final String DEFAULT_OCCASION = "Casual hàng ngày";
+
     private final OutfitRequestRepository outfitRequestRepository;
     private final RecommendationRepository recommendationRepository;
     private final RecommendationItemRepository recommendationItemRepository;
     private final ProductRepository productRepository;
     private final ProductEligibilityService eligibilityService;
     private final BodyProfileService bodyProfileService;
-    private final StyleProfileService styleProfileService;
     private final AnalyticsService analyticsService;
     private final WardrobeBlendService wardrobeBlendService;
     private final OutfitScoringService outfitScoringService;
@@ -61,9 +62,10 @@ public class RecommendationService {
     private final GeminiStylistService geminiStylistService;
     private final OutfitExplanationComposer explanationComposer;
     private final ProductAudienceService productAudienceService;
+    private final UserStylingContextService userStylingContextService;
 
     @Transactional
-    public RecommendationResponse generate(CreateRecommendationRequest request) {
+    public RecommendationOptionsResponse generate(CreateRecommendationRequest request) {
         UUID userId = RequestContext.getCurrentUserId().orElse(null);
         UUID sessionId = request.getSessionId() != null ? request.getSessionId()
                 : RequestContext.getSessionId().orElse(null);
@@ -73,12 +75,13 @@ public class RecommendationService {
 
         BodyProfile body = bodyProfileService.findProfileEntity()
                 .orElseThrow(() -> new BusinessException("Vui lòng cập nhật body profile trước"));
-        StyleProfile style = styleProfileService.findProfileEntity()
-                .orElseThrow(() -> new BusinessException("Vui lòng cập nhật style profile trước"));
 
         String occasion = request.getOccasion() != null && !request.getOccasion().isBlank()
-                ? request.getOccasion() : "Casual hàng ngày";
-        WardrobeMode mode = request.getWardrobeMode() != null ? request.getWardrobeMode() : WardrobeMode.NO_WARDROBE_DATA;
+                ? request.getOccasion()
+                : DEFAULT_OCCASION;
+        WardrobeMode mode = request.getWardrobeMode() != null
+                ? request.getWardrobeMode()
+                : WardrobeMode.NO_WARDROBE_DATA;
 
         UUID selectedProductId = request.getSelectedProductId();
         if (selectedProductId != null && productRepository.findById(selectedProductId).isEmpty()) {
@@ -91,6 +94,8 @@ public class RecommendationService {
                 .selectedProductId(selectedProductId)
                 .occasion(occasion)
                 .desiredVibe(request.getDesiredVibe())
+                .userMessage(request.getUserMessage())
+                .conversationId(request.getConversationId())
                 .wardrobeMode(mode)
                 .budgetMin(request.getBudgetMin())
                 .budgetMax(request.getBudgetMax())
@@ -98,13 +103,10 @@ public class RecommendationService {
         outfitRequest = outfitRequestRepository.save(outfitRequest);
 
         List<WardrobeItem> wardrobe = wardrobeBlendService.loadWardrobe(userId, sessionId, mode);
-        List<Product> eligible = productRepository.findByStatus(ProductStatus.ACTIVE).stream()
+        List<Product> baseEligible = productRepository.findByStatus(ProductStatus.ACTIVE).stream()
                 .filter(eligibilityService::canBeRecommended)
                 .filter(p -> productAudienceService.isRecommendableFor(body, p))
                 .filter(p -> outfitScoringService.withinBudget(p, request.getBudgetMin(), request.getBudgetMax()))
-                .sorted((a, b) -> Double.compare(
-                        outfitScoringService.scoreProduct(b, style, occasion, body),
-                        outfitScoringService.scoreProduct(a, style, occasion, body)))
                 .toList();
 
         Product anchor = selectedProductId != null
@@ -112,6 +114,103 @@ public class RecommendationService {
         if (anchor != null && !productAudienceService.isRecommendableFor(body, anchor)) {
             throw new BusinessException("Sản phẩm đã chọn không phù hợp với giới tính trong hồ sơ của bạn.");
         }
+
+        CreateRecommendationRequest stylistRequest = copyRequest(request, occasion);
+        List<String> styles = resolveStyleLabels(request, body);
+        List<RecommendationOptionsResponse.StyleOptionDto> options = new ArrayList<>();
+
+        for (String styleLabel : styles) {
+            StyleProfile styleForOption = StyleProfile.builder().primaryStyle(styleLabel).build();
+            List<Product> eligible = baseEligible.stream()
+                    .sorted((a, b) -> Double.compare(
+                            outfitScoringService.scoreProduct(b, styleLabel, body, request.getUserMessage()),
+                            outfitScoringService.scoreProduct(a, styleLabel, body, request.getUserMessage())))
+                    .toList();
+
+            RecommendationResponse full = generateSingleStyle(
+                    outfitRequest.getId(),
+                    userId,
+                    sessionId,
+                    body,
+                    styleForOption,
+                    styleLabel,
+                    occasion,
+                    stylistRequest,
+                    wardrobe,
+                    mode,
+                    eligible,
+                    anchor,
+                    selectedProductId);
+
+            String preview = full.getOutfitItems() == null ? null
+                    : full.getOutfitItems().stream()
+                    .map(RecommendationResponse.OutfitItemDto::getImageUrl)
+                    .filter(url -> url != null && !url.isBlank())
+                    .findFirst()
+                    .orElse(null);
+
+            options.add(RecommendationOptionsResponse.StyleOptionDto.builder()
+                    .recommendationId(full.getRecommendationId())
+                    .styleLabel(styleLabel)
+                    .title(full.getTitle())
+                    .previewImageUrl(preview)
+                    .itemCount(full.getOutfitItems() != null ? full.getOutfitItems().size() : 0)
+                    .stylistSource(full.getStylistSource())
+                    .build());
+        }
+
+        analyticsService.track(
+                "RECOMMENDATION_GENERATED", userId, sessionId, null, null,
+                options.isEmpty() ? null : options.getFirst().getRecommendationId(), null, null);
+
+        return RecommendationOptionsResponse.builder()
+                .requestId(outfitRequest.getId())
+                .options(options)
+                .build();
+    }
+
+    /**
+     * Chat-driven generation: uses user message + intent styles, returns options
+     * and full recommendation payloads for inline chat cards.
+     */
+    @Transactional
+    public ChatGenerationResult generateFromChat(CreateRecommendationRequest request) {
+        RecommendationOptionsResponse options = generate(request);
+        List<RecommendationResponse> recommendations = options.getOptions().stream()
+                .map(opt -> getById(opt.getRecommendationId()))
+                .toList();
+        return new ChatGenerationResult(options, recommendations);
+    }
+
+    public record ChatGenerationResult(
+            RecommendationOptionsResponse options,
+            List<RecommendationResponse> recommendations) {
+    }
+
+    private List<String> resolveStyleLabels(CreateRecommendationRequest request, BodyProfile body) {
+        if (request.getStyleLabels() != null && !request.getStyleLabels().isEmpty()) {
+            return userStylingContextService.harmonizeStylesWithProfile(
+                    body,
+                    request.getUserMessage(),
+                    request.getStyleLabels());
+        }
+        return userStylingContextService.suggestDefaultStyles(body, request.getUserMessage(), List.of());
+    }
+
+    private RecommendationResponse generateSingleStyle(
+            UUID outfitRequestId,
+            UUID userId,
+            UUID sessionId,
+            BodyProfile body,
+            StyleProfile style,
+            String styleLabel,
+            String occasion,
+            CreateRecommendationRequest request,
+            List<WardrobeItem> wardrobe,
+            WardrobeMode mode,
+            List<Product> eligible,
+            Product anchor,
+            UUID selectedProductId) {
 
         List<RecommendationResponse.OutfitItemDto> items = null;
         String title = null;
@@ -147,7 +246,7 @@ public class RecommendationService {
             if (explanationBody == null || explanationBody.isBlank()
                     || hasExplanationFragments(explanationStyle, explanationOccasion, explanationColor)) {
                 explanationBody = explanationComposer.composeForCustomer(
-                        body, style, occasion, request.getDesiredVibe(),
+                        body, style, occasion, null,
                         recommendedSize, altSize, recommendedForm, recommendedColor,
                         wardrobe.size(), title, toItemRefs(items));
                 explanationStyle = null;
@@ -158,8 +257,8 @@ public class RecommendationService {
 
         if (items == null) {
             if (stylistOutcome.fallbackReason() != null) {
-                log.info("Stylist fallback to rule engine: reason={} occasion={} candidateCount={}",
-                        stylistOutcome.fallbackReason(), occasion, eligible.size());
+                log.info("Stylist fallback to rule engine: reason={} style={} candidateCount={}",
+                        stylistOutcome.fallbackReason(), styleLabel, eligible.size());
             }
             items = outfitCompositionService.buildOutfit(
                     anchor, eligible, wardrobe, mode, body, style);
@@ -170,12 +269,9 @@ public class RecommendationService {
             recommendedForm = outfitCompositionService.recommendForm(body, style, occasion);
             recommendedColor = outfitCompositionService.recommendColor(style, items);
             confidence = items.size() >= 3 ? Confidence.HIGH : items.size() >= 2 ? Confidence.MEDIUM : Confidence.LOW;
-
-            String styleLabel = style.getPrimaryStyle() != null && !style.getPrimaryStyle().isBlank()
-                    ? style.getPrimaryStyle() : "đa dạng";
-            title = "Outfit " + occasion + " phong cách " + styleLabel;
+            title = "Outfit phong cách " + styleLabel;
             explanationBody = explanationComposer.composeForCustomer(
-                    body, style, occasion, request.getDesiredVibe(),
+                    body, style, occasion, null,
                     recommendedSize, altSize, recommendedForm, recommendedColor,
                     wardrobe.size(), title, toItemRefs(items));
             explanationStyle = null;
@@ -184,11 +280,16 @@ public class RecommendationService {
             explanationWardrobe = null;
         }
 
+        if (title == null || title.isBlank()) {
+            title = "Outfit phong cách " + styleLabel;
+        }
+
         Recommendation rec = Recommendation.builder()
-                .outfitRequestId(outfitRequest.getId())
+                .outfitRequestId(outfitRequestId)
                 .userId(userId)
                 .sessionId(sessionId)
                 .title(title)
+                .styleLabel(styleLabel)
                 .recommendedSize(recommendedSize)
                 .alternativeSize(altSize)
                 .recommendedForm(recommendedForm)
@@ -220,9 +321,43 @@ public class RecommendationService {
                     .build());
         }
 
-        analyticsService.track("RECOMMENDATION_GENERATED", userId, sessionId, null, null, rec.getId(), null, null);
-
         return outfitCompositionService.toResponse(rec, items);
+    }
+
+    public RecommendationOptionsResponse getOptionsByRequestId(UUID requestId) {
+        OutfitRequest request = outfitRequestRepository.findById(requestId)
+                .orElseThrow(() -> new NotFoundException("Outfit request không tồn tại"));
+        OwnershipChecker.verify(request.getUserId(), request.getSessionId());
+
+        List<Recommendation> recs = recommendationRepository.findByOutfitRequestId(requestId).stream()
+                .sorted(Comparator.comparing(Recommendation::getCreatedAt))
+                .toList();
+
+        List<RecommendationOptionsResponse.StyleOptionDto> options = new ArrayList<>();
+        for (Recommendation rec : recs) {
+            List<RecommendationResponse.OutfitItemDto> items = recommendationItemRepository
+                    .findByRecommendationIdOrderBySortOrderAsc(rec.getId()).stream()
+                    .map(outfitCompositionService::toOutfitItem)
+                    .toList();
+            String preview = items.stream()
+                    .map(RecommendationResponse.OutfitItemDto::getImageUrl)
+                    .filter(url -> url != null && !url.isBlank())
+                    .findFirst()
+                    .orElse(null);
+            options.add(RecommendationOptionsResponse.StyleOptionDto.builder()
+                    .recommendationId(rec.getId())
+                    .styleLabel(rec.getStyleLabel() != null ? rec.getStyleLabel() : "Outfit")
+                    .title(rec.getTitle())
+                    .previewImageUrl(preview)
+                    .itemCount(items.size())
+                    .stylistSource(rec.getStylistSource())
+                    .build());
+        }
+
+        return RecommendationOptionsResponse.builder()
+                .requestId(requestId)
+                .options(options)
+                .build();
     }
 
     public RecommendationResponse getById(UUID id) {
@@ -293,6 +428,22 @@ public class RecommendationService {
                         .imageUrl(outfitCompositionService.resolveProductImageUrl(p.getId()))
                         .build())
                 .toList();
+    }
+
+    private static CreateRecommendationRequest copyRequest(CreateRecommendationRequest source, String occasion) {
+        CreateRecommendationRequest copy = new CreateRecommendationRequest();
+        copy.setSessionId(source.getSessionId());
+        copy.setSelectedProductId(source.getSelectedProductId());
+        copy.setOccasion(occasion);
+        copy.setDesiredVibe(source.getDesiredVibe());
+        copy.setWardrobeMode(source.getWardrobeMode());
+        copy.setBudgetMin(source.getBudgetMin());
+        copy.setBudgetMax(source.getBudgetMax());
+        copy.setUserMessage(source.getUserMessage());
+        copy.setConversationId(source.getConversationId());
+        copy.setStyleLabels(source.getStyleLabels());
+        copy.setConversationHistory(source.getConversationHistory());
+        return copy;
     }
 
     private static boolean hasExplanationFragments(String style, String occasion, String color) {

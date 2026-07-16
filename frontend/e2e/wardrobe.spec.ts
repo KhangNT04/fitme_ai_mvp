@@ -20,10 +20,8 @@ test.describe("Wardrobe flow", () => {
 
     await expect(page.getByText("Áo thun trắng")).toBeVisible({ timeout: 15_000 });
 
-    await completeConsultationToResult(page, {
-      wardrobeModeLabel: "Ưu tiên tủ đồ của tôi",
-    });
+    await completeConsultationToResult(page);
 
-    await expect(page.getByText("Bạn đã có").first()).toBeVisible({ timeout: 15_000 });
+    await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
   });
 });

@@ -4,6 +4,7 @@ import com.fitme.common.dto.ApiResponse;
 import com.fitme.feedback.dto.FeedbackRequest;
 import com.fitme.feedback.service.FeedbackService;
 import com.fitme.recommendation.dto.CreateRecommendationRequest;
+import com.fitme.recommendation.dto.RecommendationOptionsResponse;
 import com.fitme.recommendation.dto.RecommendationResponse;
 import com.fitme.recommendation.service.RecommendationService;
 import jakarta.validation.Valid;
@@ -22,8 +23,13 @@ public class RecommendationController {
     private final FeedbackService feedbackService;
 
     @PostMapping
-    public ApiResponse<RecommendationResponse> create(@Valid @RequestBody CreateRecommendationRequest request) {
+    public ApiResponse<RecommendationOptionsResponse> create(@Valid @RequestBody CreateRecommendationRequest request) {
         return ApiResponse.ok(recommendationService.generate(request));
+    }
+
+    @GetMapping("/by-request/{requestId}")
+    public ApiResponse<RecommendationOptionsResponse> getByRequest(@PathVariable UUID requestId) {
+        return ApiResponse.ok(recommendationService.getOptionsByRequestId(requestId));
     }
 
     @GetMapping("/saved")

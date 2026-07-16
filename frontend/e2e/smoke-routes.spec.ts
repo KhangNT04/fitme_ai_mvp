@@ -29,10 +29,10 @@ test.describe("Public route smoke", () => {
   test("AI consultation step pages load with session", async ({ page }) => {
     await ensureSessionViaHome(page);
 
-    await expectPageHeading(page, "/ai/start", "Bắt đầu tư vấn AI");
-    await expectPageHeading(page, "/ai/body-profile", "Thông tin cơ thể");
-    await expectPageHeading(page, "/ai/style-profile", "Gu thời trang");
-    await expectPageHeading(page, "/ai/occasion", "Hoàn cảnh & vibe");
+    await page.goto("/ai/body-profile?required=1");
+    await expect(page.getByRole("heading", { name: "Hồ sơ cơ thể" })).toBeVisible({
+      timeout: 15_000,
+    });
   });
 
   test("similar-products without query shows empty state", async ({ page }) => {

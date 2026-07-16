@@ -7,7 +7,6 @@ import com.fitme.product.entity.Product;
 import com.fitme.product.entity.ProductTag;
 import com.fitme.product.service.ProductAudienceService;
 import com.fitme.userprofile.entity.BodyProfile;
-import com.fitme.userprofile.entity.StyleProfile;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -27,11 +26,9 @@ class OutfitScoringServiceTest {
     @Mock
     private com.fitme.product.repository.ProductTagRepository tagRepository;
     @Mock
-    private com.fitme.admin.repository.StyleRuleRepository styleRuleRepository;
-    @Mock
-    private com.fitme.admin.repository.OccasionRuleRepository occasionRuleRepository;
-    @Mock
     private ProductAudienceService productAudienceService;
+    @Mock
+    private UserStylingContextService userStylingContextService;
 
     @InjectMocks
     private OutfitScoringService outfitScoringService;
@@ -51,17 +48,22 @@ class OutfitScoringServiceTest {
                 .fitType(FitPreference.REGULAR)
                 .stockStatus(StockStatus.IN_STOCK)
                 .build();
-        StyleProfile style = StyleProfile.builder().primaryStyle("Minimal").build();
         BodyProfile body = BodyProfile.builder().fitPreference(FitPreference.REGULAR).build();
 
         when(tagRepository.findByProductId(id)).thenReturn(List.of(
                 ProductTag.builder().tagType("STYLE").tagValue("Minimal").build()
         ));
-        when(styleRuleRepository.findByActiveTrue()).thenReturn(List.of());
-        when(occasionRuleRepository.findByActiveTrue()).thenReturn(List.of());
         when(productAudienceService.resolveTargetGender(p)).thenReturn(ProductTargetGender.UNISEX);
+        when(userStylingContextService.scoreAgeAlignment(
+                org.mockito.ArgumentMatchers.any(),
+                org.mockito.ArgumentMatchers.any(),
+                org.mockito.ArgumentMatchers.any(),
+                org.mockito.ArgumentMatchers.any(),
+                org.mockito.ArgumentMatchers.any(),
+                org.mockito.ArgumentMatchers.any()))
+                .thenReturn(0.0);
 
-        double score = outfitScoringService.scoreProduct(p, style, "Casual", body);
+        double score = outfitScoringService.scoreProduct(p, "Minimal", body);
         assertThat(score).isGreaterThan(30);
     }
 }

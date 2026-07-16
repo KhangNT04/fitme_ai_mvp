@@ -3,12 +3,12 @@ import { completeConsultationToResult } from "./helpers/consultation";
 import { AI_DISCLAIMER } from "../src/utils/constants";
 
 test.describe("Photo preview flow", () => {
-  test.setTimeout(120_000);
+  test.setTimeout(180_000);
 
-  test("result → photo upload consent and disclaimer visible", async ({ page }) => {
-    await completeConsultationToResult(page);
+  test("chat outfit → photo upload consent and disclaimer visible", async ({ page }) => {
+    const recommendationId = await completeConsultationToResult(page);
+    expect(recommendationId).toBeTruthy();
 
-    const recommendationId = page.url().split("/").pop();
     await page.goto(`/ai/photo-upload?recommendation=${recommendationId}`);
 
     await expect(page.getByRole("heading", { name: "Upload ảnh preview 2D" })).toBeVisible();

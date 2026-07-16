@@ -40,6 +40,9 @@ public class BodyProfile {
     @Column(name = "weight_kg", nullable = false, precision = 5, scale = 2)
     private BigDecimal weightKg;
 
+    /** Optional; validated 13–80 when provided via API. */
+    private Integer age;
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     @Builder.Default

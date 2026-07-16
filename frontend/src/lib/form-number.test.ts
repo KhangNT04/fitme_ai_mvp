@@ -47,6 +47,7 @@ describe("formToBodyProfile measurements", () => {
     const data: BodyProfileForm = {
       heightCm: 170,
       weightKg: 60,
+      age: 25,
       gender: "FEMALE",
       fitPreference: "REGULAR",
       chestCm: 90,

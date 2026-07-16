@@ -5,9 +5,9 @@ const REDIRECT_PREFIX = "/redirect";
 
 const BOTTOM_NAV_HIDDEN_AI = [
   "/ai/body-profile",
-  "/ai/style-profile",
-  "/ai/occasion",
+  "/ai/chat",
   "/ai/processing",
+  "/ai/options",
   "/ai/photo-check",
   "/ai/photo-upload",
   "/ai/preview-outfit",
@@ -41,6 +41,7 @@ const NAV_LEVEL_2_ROUTES = new Set([
   "/try-on",
   "/profile",
   "/ai/start",
+  "/ai/chat",
   "/wardrobe",
   "/saved-outfits",
   "/similar-products",
@@ -57,8 +58,6 @@ const NAV_LEVEL_2_ROUTES = new Set([
   "/admin/brands",
   "/admin/products/moderation",
   "/admin/flagged-links",
-  "/admin/rules/styles",
-  "/admin/rules/occasions",
   "/admin/analytics",
   "/admin/privacy",
   "/admin/try-on-monitoring",
@@ -114,7 +113,7 @@ export function getActiveMobileNavTab(
   ) {
     return "discover";
   }
-  if (pathname === "/ai/start" || pathname.startsWith("/ai/start/")) return "ai";
+  if (pathname === "/ai/start" || pathname.startsWith("/ai/start/") || pathname === "/ai/chat" || pathname.startsWith("/ai/chat/")) return "ai";
   if (pathname === "/try-on" || pathname.startsWith("/try-on/brand/")) return "tryon";
   if (
     pathname === "/profile" ||

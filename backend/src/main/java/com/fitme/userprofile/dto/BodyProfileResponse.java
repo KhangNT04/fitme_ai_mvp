@@ -17,6 +17,7 @@ public class BodyProfileResponse {
     private UUID id;
     private Integer heightCm;
     private BigDecimal weightKg;
+    private Integer age;
     private Gender gender;
     private FitPreference fitPreference;
     private SkinTone skinTone;

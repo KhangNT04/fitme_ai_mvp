@@ -13,6 +13,7 @@ import com.fitme.product.repository.ProductTagRepository;
 import com.fitme.product.repository.ProductVariantRepository;
 import com.fitme.recommendation.dto.CreateRecommendationRequest;
 import com.fitme.recommendation.service.OutfitCompositionService;
+import com.fitme.recommendation.service.UserStylingContextService;
 import com.fitme.product.service.ProductAudienceService;
 import com.fitme.userprofile.entity.BodyProfile;
 import com.fitme.userprofile.entity.StyleProfile;
@@ -37,6 +38,7 @@ public class StylistContextBuilder {
     private final ProductVariantRepository variantRepository;
     private final OutfitCompositionService outfitCompositionService;
     private final ProductAudienceService productAudienceService;
+    private final UserStylingContextService userStylingContextService;
 
     public String buildContext(
             BodyProfile body,
@@ -50,29 +52,43 @@ public class StylistContextBuilder {
         Map<String, Object> user = new LinkedHashMap<>();
         user.put("heightCm", body.getHeightCm());
         user.put("weightKg", body.getWeightKg());
+        user.put("age", body.getAge());
         user.put("gender", body.getGender() != null ? body.getGender().name() : null);
         user.put("fitPreference", body.getFitPreference() != null ? body.getFitPreference().name() : null);
         user.put("skinTone", body.getSkinTone() != null ? body.getSkinTone().name() : null);
         user.put("chestCm", body.getChestCm());
         user.put("waistCm", body.getWaistCm());
         user.put("hipCm", body.getHipCm());
+        user.put("shoulderWidthCm", body.getShoulderWidthCm());
+        user.put("goals", body.getGoals());
         root.put("user", user);
 
+        UserStylingContextService.StylingGuidance guidance = userStylingContextService.buildGuidance(
+                body,
+                request.getUserMessage(),
+                request.getStyleLabels());
+        Map<String, Object> stylingGuidance = new LinkedHashMap<>();
+        stylingGuidance.put("ageBand", guidance.ageBand().name());
+        stylingGuidance.put("youthfulLookRequested", guidance.youthfulLookRequested());
+        stylingGuidance.put("preferredStyles", guidance.preferredStyles());
+        stylingGuidance.put("avoidUnlessRequested", guidance.avoidUnlessRequested());
+        stylingGuidance.put("summaryVi", guidance.summaryVi());
+        root.put("stylingGuidance", stylingGuidance);
+
         Map<String, Object> styleMap = new LinkedHashMap<>();
+        styleMap.put("targetStyle", style.getPrimaryStyle());
         styleMap.put("primaryStyle", style.getPrimaryStyle());
-        styleMap.put("secondaryStyles", style.getSecondaryStyles());
-        styleMap.put("preferredColors", style.getPreferredColors());
-        styleMap.put("avoidedColors", style.getAvoidedColors());
-        styleMap.put("riskLevel", style.getRiskLevel() != null ? style.getRiskLevel().name() : null);
         root.put("style", styleMap);
 
         Map<String, Object> req = new LinkedHashMap<>();
-        req.put("occasion", request.getOccasion());
+        req.put("occasion", request.getOccasion() != null ? request.getOccasion() : "Casual hàng ngày");
         req.put("desiredVibe", request.getDesiredVibe());
-        req.put("budgetMin", request.getBudgetMin());
-        req.put("budgetMax", request.getBudgetMax());
         req.put("wardrobeMode", request.getWardrobeMode() != null ? request.getWardrobeMode().name() : null);
         req.put("selectedProductId", selectedProductId != null ? selectedProductId.toString() : null);
+        req.put("userMessage", request.getUserMessage());
+        if (request.getConversationHistory() != null && !request.getConversationHistory().isEmpty()) {
+            req.put("conversationHistory", request.getConversationHistory());
+        }
         root.put("request", req);
 
         List<Map<String, Object>> wardrobeItems = new ArrayList<>();

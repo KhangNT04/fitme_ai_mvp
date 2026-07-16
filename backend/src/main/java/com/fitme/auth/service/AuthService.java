@@ -111,13 +111,17 @@ public class AuthService {
 
     public AuthResponse refreshToken(RefreshTokenRequest request) {
         String token = request.getRefreshToken();
-        if (jwtService.isRefreshTokenRevoked(token) || !jwtService.isRefreshToken(token)) {
-            throw new BusinessException("Refresh token không hợp lệ");
+        try {
+            if (jwtService.isRefreshTokenRevoked(token) || !jwtService.isRefreshToken(token)) {
+                throw new BusinessException("Refresh token không hợp lệ");
+            }
+            UUID userId = jwtService.getUserId(token);
+            UserAccount user = userAccountRepository.findById(userId)
+                    .orElseThrow(() -> new BusinessException("Tài khoản không tồn tại"));
+            return buildAuthResponse(user);
+        } catch (io.jsonwebtoken.JwtException ex) {
+            throw new BusinessException("Refresh token không hợp lệ hoặc đã hết hạn");
         }
-        UUID userId = jwtService.getUserId(token);
-        UserAccount user = userAccountRepository.findById(userId)
-                .orElseThrow(() -> new BusinessException("Tài khoản không tồn tại"));
-        return buildAuthResponse(user);
     }
 
     public void logout(RefreshTokenRequest request) {

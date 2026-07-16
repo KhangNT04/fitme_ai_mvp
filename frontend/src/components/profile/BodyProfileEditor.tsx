@@ -8,28 +8,22 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Checkbox } from "@/components/ui/checkbox";
 import { bodyProfileSchema, type BodyProfileForm } from "@/utils/validators";
-import { FIT_PREFERENCES, GENDERS, SKIN_TONES } from "@/utils/constants";
+import { FIT_PREFERENCES, GENDERS } from "@/utils/constants";
 import {
   optionalNumberRegisterOptions,
   profileSnapshotKey,
   requiredNumberRegisterOptions,
 } from "@/lib/form-number";
 import { cn } from "@/lib/utils";
+import { SkinTonePicker } from "@/components/ui/skin-tone-picker";
 import type { BodyProfile } from "@/types/user";
-const GOAL_OPTIONS = [
-  "Tổng thể cân đối hơn",
-  "Tạo cảm giác gọn hơn",
-  "Thoải mái hơn",
-  "Tạo hiệu ứng kéo dài dáng",
-  "Nổi bật hơn",
-];
 
 export function bodyProfileToForm(profile: BodyProfile): BodyProfileForm {
   return {
     heightCm: profile.heightCm,
     weightKg: profile.weightKg,
+    age: profile.age ?? 25,
     gender: profile.gender,
     fitPreference: profile.fitPreference ?? "REGULAR",
     skinTone: profile.skinTone,
@@ -63,6 +57,7 @@ export function formToBodyProfile(data: BodyProfileForm): BodyProfile {
   return {
     heightCm: data.heightCm,
     weightKg: data.weightKg,
+    age: data.age,
     gender: data.gender,
     ...(data.fitPreference !== undefined ? { fitPreference: data.fitPreference } : {}),
     ...(data.skinTone !== undefined ? { skinTone: data.skinTone } : {}),
@@ -70,8 +65,6 @@ export function formToBodyProfile(data: BodyProfileForm): BodyProfile {
     ...(measurements && Object.keys(measurements).length > 0 ? { measurements } : {}),
   };
 }
-
-const NONE = "__none__";
 
 interface BodyProfileEditorProps {
   initial?: BodyProfile | null;
@@ -93,6 +86,7 @@ export function BodyProfileEditor({
       return {
         heightCm: 165,
         weightKg: 55,
+        age: 25,
         gender: "FEMALE" as const,
         fitPreference: "REGULAR" as const,
         goals: [],
@@ -115,15 +109,9 @@ export function BodyProfileEditor({
       setShowMeasurements(true);
     }
   }, [initial]);
-  const goals = watch("goals") || [];
   const gender = watch("gender");
   const fitPreference = watch("fitPreference");
   const skinTone = watch("skinTone");
-
-  const toggleGoal = (goal: string) => {
-    const next = goals.includes(goal) ? goals.filter((g) => g !== goal) : [...goals, goal];
-    setValue("goals", next, { shouldValidate: true });
-  };
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 sm:space-y-6">
@@ -139,6 +127,11 @@ export function BodyProfileEditor({
             <Label htmlFor="weightKg">Cân nặng (kg)</Label>
             <Input id="weightKg" type="number" step="0.1" {...register("weightKg", requiredNumberRegisterOptions)} className="mt-1" />
             {errors.weightKg && <p className="mt-1 text-xs text-red-600">{errors.weightKg.message}</p>}
+          </div>
+          <div>
+            <Label htmlFor="age">Tuổi</Label>
+            <Input id="age" type="number" step="1" {...register("age", requiredNumberRegisterOptions)} className="mt-1" />
+            {errors.age && <p className="mt-1 text-xs text-red-600">{errors.age.message}</p>}
           </div>
           <div className="sm:col-span-2">
             <Label>Giới tính</Label>
@@ -180,20 +173,10 @@ export function BodyProfileEditor({
         <CardContent className="grid gap-4 sm:grid-cols-2">
           <div>
             <Label>Tông da</Label>
-            <Select
-              value={skinTone ?? NONE}
-              onValueChange={(v) =>
-                setValue("skinTone", v === NONE ? undefined : (v as BodyProfileForm["skinTone"]))
-              }
-            >
-              <SelectTrigger className="mt-1"><SelectValue placeholder="Chưa chọn" /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value={NONE}>Chưa chọn</SelectItem>
-                {SKIN_TONES.map((s) => (
-                  <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <SkinTonePicker
+              value={skinTone}
+              onChange={(v) => setValue("skinTone", v)}
+            />
           </div>
         </CardContent>
       </Card>
@@ -232,17 +215,6 @@ export function BodyProfileEditor({
                 <p className="mt-1 text-xs text-red-600">{errors[field]?.message}</p>
               )}
             </div>
-          ))}
-        </CardContent>      </Card>
-
-      <Card>
-        <CardHeader><CardTitle className="text-base">Mục tiêu phong cách (tùy chọn)</CardTitle></CardHeader>
-        <CardContent className="space-y-3">
-          {GOAL_OPTIONS.map((goal) => (
-            <label key={goal} className="flex cursor-pointer items-center gap-2">
-              <Checkbox checked={goals.includes(goal)} onCheckedChange={() => toggleGoal(goal)} />
-              <span className="text-sm">{goal}</span>
-            </label>
           ))}
         </CardContent>
       </Card>

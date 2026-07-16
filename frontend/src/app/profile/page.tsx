@@ -10,7 +10,6 @@ import {
   Sparkles,
   UserRound,
   Ruler,
-  Palette,
   LogOut,
   Pencil,
 } from "lucide-react";
@@ -23,8 +22,8 @@ import { LoadingSkeleton } from "@/components/common/LoadingSkeleton";
 import { PageShell } from "@/components/layout/PageShell";
 import { CollapsingPageHeader } from "@/components/layout/CollapsingPageHeader";
 import { consumerPageShellClass, consumerGuestPromptClass } from "@/lib/design-tokens";
-import { FIT_PREFERENCES, GENDERS, RISK_LEVELS, SKIN_TONES } from "@/utils/constants";
-import { hasMinimalBodyProfile, hasStyleProfileContent } from "@/lib/profile-prefill";
+import { FIT_PREFERENCES, GENDERS, SKIN_TONES } from "@/utils/constants";
+import { hasMinimalBodyProfile } from "@/lib/profile-prefill";
 import { cn } from "@/lib/utils";
 import type { UserRole } from "@/types/auth";
 
@@ -189,7 +188,7 @@ function GuestProfilePrompt() {
 
 export default function ProfilePage() {
   const { user, isAuthenticated, logout } = useAuthStore();
-  const { bodyProfile, styleProfile, isLoading: profilesLoading } =
+  const { bodyProfile, isLoading: profilesLoading } =
     useSavedProfiles({ enabled: isAuthenticated() });
 
   if (!isAuthenticated()) {
@@ -197,12 +196,10 @@ export default function ProfilePage() {
   }
 
   const hasBody = hasMinimalBodyProfile(bodyProfile);
-  const hasStyle = hasStyleProfileContent(styleProfile);
 
   const fitLabel = FIT_PREFERENCES.find((f) => f.value === bodyProfile?.fitPreference)?.label;
   const skinLabel = SKIN_TONES.find((s) => s.value === bodyProfile?.skinTone)?.label;
   const genderLabel = GENDERS.find((g) => g.value === bodyProfile?.gender)?.label;
-  const riskLabel = RISK_LEVELS.find((r) => r.value === styleProfile?.riskLevel)?.label;
   const roleLabel = user?.role ? ROLE_LABELS[user.role] : "—";
 
   return (
@@ -249,75 +246,43 @@ export default function ProfilePage() {
         {profilesLoading ? (
           <LoadingSkeleton type="card" />
         ) : (
-          <div className="grid gap-3 sm:grid-cols-2 sm:gap-4">
-            <ProfileSection
-              title="Hồ sơ cơ thể"
-              icon={Ruler}
-              editHref="/profile/body"
-            >
-              {hasBody && bodyProfile ? (
-                <dl>
-                  <ProfileDetail label="Chiều cao" value={`${bodyProfile.heightCm} cm`} />
-                  <ProfileDetail label="Cân nặng" value={`${bodyProfile.weightKg} kg`} />
-                  <ProfileDetail label="Giới tính" value={genderLabel ?? bodyProfile.gender} />
-                  {bodyProfile.fitPreference && (
-                    <ProfileDetail label="Form ưa thích" value={fitLabel ?? bodyProfile.fitPreference} />
-                  )}
-                  {bodyProfile.skinTone && (
-                    <ProfileDetail label="Tông da" value={skinLabel ?? bodyProfile.skinTone} />
-                  )}
-                  {bodyProfile.goals && bodyProfile.goals.length > 0 && (
-                    <ProfileDetail label="Mục tiêu" value={bodyProfile.goals.join(", ")} />
-                  )}
-                </dl>
-              ) : (
-                <div className="py-1 text-center sm:py-2">
-                  <p className="text-xs leading-relaxed text-muted-foreground sm:text-sm">
-                    Chưa có số đo — hoàn thành tư vấn AI để gợi ý size chính xác hơn.
-                  </p>
-                  <Button variant="ai" size="sm" className="mt-3 h-9 w-full rounded-full sm:w-auto" asChild>
-                    <Link href="/profile/body">
-                      <Sparkles className="mr-1.5 h-4 w-4" aria-hidden="true" />
-                      Thiết lập hồ sơ cơ thể
-                    </Link>
-                  </Button>
-                </div>
-              )}
-            </ProfileSection>
-
-            <ProfileSection
-              title="Gu thời trang"
-              icon={Palette}
-              editHref="/profile/style"
-            >
-              {hasStyle && styleProfile ? (
-                <dl>
-                  {styleProfile.primaryStyle && (
-                    <ProfileDetail label="Phong cách chính" value={styleProfile.primaryStyle} />
-                  )}
-                  {styleProfile.secondaryStyles && styleProfile.secondaryStyles.length > 0 && (
-                    <ProfileDetail label="Phong cách phụ" value={styleProfile.secondaryStyles.join(", ")} />
-                  )}
-                  {styleProfile.riskLevel && (
-                    <ProfileDetail label="Mức rủi ro" value={riskLabel ?? styleProfile.riskLevel} />
-                  )}
-                  {styleProfile.preferredColors && styleProfile.preferredColors.length > 0 && (
-                    <ProfileDetail label="Màu ưa thích" value={styleProfile.preferredColors.join(", ")} />
-                  )}
-                  {styleProfile.avoidedColors && styleProfile.avoidedColors.length > 0 && (
-                    <ProfileDetail label="Màu tránh" value={styleProfile.avoidedColors.join(", ")} />
-                  )}
-                </dl>
-              ) : (
-                <div className="py-1 text-center sm:py-2">
-                  <p className="text-xs text-muted-foreground sm:text-sm">Chưa thiết lập gu thời trang.</p>
-                  <Button variant="outline" size="sm" className="mt-3 h-9 w-full rounded-full sm:w-auto" asChild>
-                    <Link href="/profile/style">Thiết lập gu</Link>
-                  </Button>
-                </div>
-              )}
-            </ProfileSection>
-          </div>
+          <ProfileSection
+            title="Hồ sơ cơ thể"
+            icon={Ruler}
+            editHref="/profile/body"
+          >
+            {hasBody && bodyProfile ? (
+              <dl>
+                <ProfileDetail label="Chiều cao" value={`${bodyProfile.heightCm} cm`} />
+                <ProfileDetail label="Cân nặng" value={`${bodyProfile.weightKg} kg`} />
+                {bodyProfile.age != null && (
+                  <ProfileDetail label="Tuổi" value={`${bodyProfile.age}`} />
+                )}
+                <ProfileDetail label="Giới tính" value={genderLabel ?? bodyProfile.gender} />
+                {bodyProfile.fitPreference && (
+                  <ProfileDetail label="Form ưa thích" value={fitLabel ?? bodyProfile.fitPreference} />
+                )}
+                {bodyProfile.skinTone && (
+                  <ProfileDetail label="Tông da" value={skinLabel ?? bodyProfile.skinTone} />
+                )}
+                {bodyProfile.goals && bodyProfile.goals.length > 0 && (
+                  <ProfileDetail label="Mục tiêu" value={bodyProfile.goals.join(", ")} />
+                )}
+              </dl>
+            ) : (
+              <div className="py-1 text-center sm:py-2">
+                <p className="text-xs leading-relaxed text-muted-foreground sm:text-sm">
+                  Chưa có số đo — hoàn thành tư vấn AI để gợi ý size chính xác hơn.
+                </p>
+                <Button variant="ai" size="sm" className="mt-3 h-9 w-full rounded-full sm:w-auto" asChild>
+                  <Link href="/profile/body">
+                    <Sparkles className="mr-1.5 h-4 w-4" aria-hidden="true" />
+                    Thiết lập hồ sơ cơ thể
+                  </Link>
+                </Button>
+              </div>
+            )}
+          </ProfileSection>
         )}
 
         {bodyProfile?.measurements &&

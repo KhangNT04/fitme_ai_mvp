@@ -100,7 +100,7 @@ public class GeminiStylistService {
             String title = suggestion.getTitle();
             if (title == null || title.isBlank()) {
                 String styleLabel = style.getPrimaryStyle() != null ? style.getPrimaryStyle() : "đa dạng";
-                title = "Outfit " + request.getOccasion() + " phong cách " + styleLabel;
+                title = "Outfit phong cách " + styleLabel;
             }
 
             return StylistSuggestOutcome.success(new GeminiStylistResult(

@@ -16,6 +16,7 @@ import com.fitme.product.service.ProductAudienceService;
 import com.fitme.product.service.ProductEligibilityService;
 import com.fitme.recommendation.dto.CreateRecommendationRequest;
 import com.fitme.recommendation.service.OutfitCompositionService;
+import com.fitme.recommendation.service.UserStylingContextService;
 import com.fitme.recommendation.service.OutfitExplanationComposer;
 import com.fitme.recommendation.service.SizeResolutionService;
 import com.fitme.userprofile.entity.BodyProfile;
@@ -79,7 +80,8 @@ class GeminiStylistServiceTest {
                 tagRepository,
                 variantRepository,
                 composition,
-                productAudienceService);
+                productAudienceService,
+                new UserStylingContextService());
         GeminiOutfitValidator validator = new GeminiOutfitValidator(
                 composition, sizeResolutionService, eligibilityService, productAudienceService);
         fakeClient = new FakeGeminiStylistClient();

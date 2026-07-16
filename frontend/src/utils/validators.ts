@@ -40,6 +40,7 @@ function optionalMeasurementField(min: number, max: number) {
 export const bodyProfileSchema = z.object({
   heightCm: z.number({ error: "Nhập chiều cao" }).min(100, "Chiều cao tối thiểu 100cm").max(230, "Chiều cao tối đa 230cm"),
   weightKg: z.number({ error: "Nhập cân nặng" }).min(25, "Cân nặng tối thiểu 25kg").max(250, "Cân nặng tối đa 250kg"),
+  age: z.number({ error: "Nhập tuổi" }).int("Tuổi phải là số nguyên").min(13, "Tuổi tối thiểu 13").max(80, "Tuổi tối đa 80"),
   gender: z.enum(["FEMALE", "MALE", "OTHER"], { error: "Chọn giới tính" }),
   fitPreference: z.enum(["SLIM", "REGULAR", "RELAXED", "OVERSIZE", "UNSURE"], { error: "Chọn gu mặc" }),
   skinTone: optionalEnumField(["FAIR", "MEDIUM", "TAN", "DEEP", "UNSURE"]),
@@ -142,6 +143,7 @@ export type FitPreferenceValue = "SLIM" | "REGULAR" | "RELAXED" | "OVERSIZE" | "
 export type BodyProfileForm = {
   heightCm: number;
   weightKg: number;
+  age: number;
   gender: "FEMALE" | "MALE" | "OTHER";
   fitPreference: FitPreferenceValue;
   skinTone?: SkinToneValue;

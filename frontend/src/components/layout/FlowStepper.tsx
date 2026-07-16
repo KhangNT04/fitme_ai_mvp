@@ -101,5 +101,5 @@ export function FlowStepper({ steps, currentStep, className, compact, inline }: 
   );
 }
 
-export const AI_FLOW_STEPS = ["Cơ thể", "Phong cách", "Hoàn cảnh", "Kết quả"];
+export const AI_FLOW_STEPS = ["Hồ sơ", "Tư vấn"];
 export const TRYON_FLOW_STEPS = ["Chọn đồ", "Thông tin", "Kết quả"];

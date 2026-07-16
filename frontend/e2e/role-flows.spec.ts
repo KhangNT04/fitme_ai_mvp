@@ -88,6 +88,9 @@ test.describe("Luồng USER", () => {
       await fillBodyProfile(page);
     }
     await page.waitForURL("**/ai/chat", { timeout: 30_000 });
+    await expect(page.getByRole("heading", { name: "Tư vấn outfit AI" })).toBeVisible({
+      timeout: 15_000,
+    });
 
     await page.getByLabel("Tin nhắn tư vấn").fill("Outfit đi làm văn phòng thanh lịch");
     await page.getByRole("button", { name: "Gửi" }).click();
@@ -126,7 +129,9 @@ test.describe("Luồng USER", () => {
       await fillBodyProfile(page);
     }
     await page.waitForURL("**/ai/chat", { timeout: 30_000 });
-    await expect(page.getByText(/Bạn muốn tôi phối đồ|Tư vấn outfit AI/)).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Tư vấn outfit AI" })).toBeVisible({
+      timeout: 15_000,
+    });
   });
 });
 

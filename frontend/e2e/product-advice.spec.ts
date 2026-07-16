@@ -21,6 +21,8 @@ test.describe("Product advice flow", () => {
     }
 
     await page.waitForURL("**/ai/chat", { timeout: 30_000 });
-    await expect(page.getByText(/Bạn muốn tôi phối đồ|Tư vấn outfit AI/)).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Tư vấn outfit AI" })).toBeVisible({
+      timeout: 15_000,
+    });
   });
 });

@@ -25,7 +25,7 @@ test.setTimeout(120_000);
 test.describe("Luồng công khai (không đăng nhập)", () => {
   test("tư vấn outfit ẩn danh → kết quả AI", async ({ page }) => {
     await completeConsultationToResult(page);
-    await expect(page.getByText(/Tư vấn outfit|Mặc thử outfit/).first()).toBeVisible();
+    await expect(page.getByRole("button", { name: "Mặc thử outfit" }).first()).toBeVisible();
   });
 
   test("thử mặc AI → kết quả preview", async ({ page }) => {

@@ -55,11 +55,13 @@ describe("useEnsureSession", () => {
   });
 
   it("reuses existing session without calling createAnonymous", async () => {
-    useSessionStore.getState().setSession({
+    const existingSession = {
       sessionId: "existing-sess",
       sessionToken: "existing-token",
       privacyVersion: "1.0",
-    });
+    };
+    useSessionStore.getState().setSession(existingSession);
+    getCurrentMock.mockResolvedValue(existingSession);
 
     const { result } = renderHook(() => useEnsureSession());
 
@@ -69,6 +71,30 @@ describe("useEnsureSession", () => {
 
     expect(createAnonymousMock).not.toHaveBeenCalled();
     expect(useConsultationStore.getState().draft.sessionId).toBe("existing-sess");
+  });
+
+  it("replaces an expired persisted session", async () => {
+    useSessionStore.getState().setSession({
+      sessionId: "expired-sess",
+      sessionToken: "expired-token",
+      privacyVersion: "1.0",
+    });
+    getCurrentMock.mockRejectedValue(new Error("expired"));
+    createAnonymousMock.mockResolvedValue({
+      sessionId: "fresh-sess",
+      sessionToken: "fresh-token",
+      privacyVersion: "1.0",
+    });
+
+    const { result } = renderHook(() => useEnsureSession());
+
+    await act(async () => {
+      await result.current.ensureSession();
+    });
+
+    expect(createAnonymousMock).toHaveBeenCalledOnce();
+    expect(useSessionStore.getState().session?.sessionId).toBe("fresh-sess");
+    expect(useConsultationStore.getState().draft.sessionId).toBe("fresh-sess");
   });
 
   it("redirects home when session creation fails", async () => {

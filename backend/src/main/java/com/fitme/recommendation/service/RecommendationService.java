@@ -188,13 +188,16 @@ public class RecommendationService {
     }
 
     private List<String> resolveStyleLabels(CreateRecommendationRequest request, BodyProfile body) {
+        List<String> resolved;
         if (request.getStyleLabels() != null && !request.getStyleLabels().isEmpty()) {
-            return userStylingContextService.harmonizeStylesWithProfile(
+            resolved = userStylingContextService.harmonizeStylesWithProfile(
                     body,
                     request.getUserMessage(),
                     request.getStyleLabels());
+        } else {
+            resolved = userStylingContextService.suggestDefaultStyles(body, request.getUserMessage(), List.of());
         }
-        return userStylingContextService.suggestDefaultStyles(body, request.getUserMessage(), List.of());
+        return request.isSingleStyle() ? resolved.stream().limit(1).toList() : resolved;
     }
 
     private RecommendationResponse generateSingleStyle(
@@ -246,7 +249,7 @@ public class RecommendationService {
             if (explanationBody == null || explanationBody.isBlank()
                     || hasExplanationFragments(explanationStyle, explanationOccasion, explanationColor)) {
                 explanationBody = explanationComposer.composeForCustomer(
-                        body, style, occasion, null,
+                        body, style, occasion, request.getDesiredVibe(),
                         recommendedSize, altSize, recommendedForm, recommendedColor,
                         wardrobe.size(), title, toItemRefs(items));
                 explanationStyle = null;
@@ -271,7 +274,7 @@ public class RecommendationService {
             confidence = items.size() >= 3 ? Confidence.HIGH : items.size() >= 2 ? Confidence.MEDIUM : Confidence.LOW;
             title = "Outfit phong cách " + styleLabel;
             explanationBody = explanationComposer.composeForCustomer(
-                    body, style, occasion, null,
+                    body, style, occasion, request.getDesiredVibe(),
                     recommendedSize, altSize, recommendedForm, recommendedColor,
                     wardrobe.size(), title, toItemRefs(items));
             explanationStyle = null;

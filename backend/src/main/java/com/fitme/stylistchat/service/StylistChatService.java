@@ -39,6 +39,11 @@ public class StylistChatService {
     private static final int RATE_LIMIT_PER_HOUR = 20;
     private static final String OFF_TOPIC_TYPE = "off_topic";
     private static final String OUTFIT_OPTIONS_TYPE = "outfit_options";
+    private static final List<StarterOutfitPreset> STARTER_OUTFITS = List.of(
+            new StarterOutfitPreset("Đi chơi", "Đi chơi cuối tuần", "Thoải mái, có điểm nhấn", "Streetwear"),
+            new StarterOutfitPreset("Đi làm", "Đi làm", "Thanh lịch, gọn gàng", "Office Chic"),
+            new StarterOutfitPreset("Hằng ngày", "Casual hằng ngày", "Đơn giản, dễ mặc", "Minimal")
+    );
 
     private final TopicGuardService topicGuardService;
     private final ChatIntentParser chatIntentParser;
@@ -134,6 +139,73 @@ public class StylistChatService {
                         .type(OUTFIT_OPTIONS_TYPE)
                         .content(assistantContent)
                         .options(options.getOptions())
+                        .build())
+                .recommendations(recommendations)
+                .build();
+    }
+
+    /**
+     * Generates one concise, profile-aware outfit for each common daily context.
+     * This is used once immediately after a body profile is completed.
+     */
+    @Transactional
+    public StylistChatMessageResponse generateStarterOutfits() {
+        UUID userId = RequestContext.getCurrentUserId().orElse(null);
+        UUID sessionId = RequestContext.getSessionId().orElse(null);
+        if (userId == null && sessionId == null) {
+            throw new BusinessException("Yêu cầu đăng nhập hoặc session ẩn danh");
+        }
+
+        enforceRateLimit(userId, sessionId);
+        bodyProfileService.findProfileEntity()
+                .orElseThrow(() -> new BusinessException("Vui lòng cập nhật body profile trước"));
+
+        List<RecommendationOptionsResponse.StyleOptionDto> options = new ArrayList<>();
+        List<RecommendationResponse> recommendations = new ArrayList<>();
+        UUID firstRequestId = null;
+
+        for (StarterOutfitPreset preset : STARTER_OUTFITS) {
+            CreateRecommendationRequest generationRequest = new CreateRecommendationRequest();
+            generationRequest.setSessionId(sessionId);
+            generationRequest.setOccasion(preset.occasion());
+            generationRequest.setDesiredVibe(preset.vibe());
+            generationRequest.setWardrobeMode(WardrobeMode.NO_WARDROBE_DATA);
+            generationRequest.setUserMessage(
+                    "Gợi ý outfit " + preset.label().toLowerCase() + " phù hợp hồ sơ của tôi");
+            generationRequest.setStyleLabels(List.of(preset.style()));
+            generationRequest.setSingleStyle(true);
+
+            RecommendationService.ChatGenerationResult result =
+                    recommendationService.generateFromChat(generationRequest);
+            RecommendationResponse recommendation = result.recommendations().getFirst();
+            RecommendationOptionsResponse.StyleOptionDto generatedOption =
+                    result.options().getOptions().getFirst();
+
+            if (firstRequestId == null) {
+                firstRequestId = result.options().getRequestId();
+            }
+            recommendations.add(recommendation);
+            String occasionTitle = "Outfit " + preset.label().toLowerCase() + " · " + preset.style();
+            if (recommendation.getTitle() == null || recommendation.getTitle().isBlank()
+                    || recommendation.getTitle().startsWith("Outfit phong cách")) {
+                recommendation.setTitle(occasionTitle);
+            }
+            options.add(RecommendationOptionsResponse.StyleOptionDto.builder()
+                    .recommendationId(recommendation.getRecommendationId())
+                    .styleLabel(preset.label())
+                    .title(recommendation.getTitle())
+                    .previewImageUrl(generatedOption.getPreviewImageUrl())
+                    .itemCount(generatedOption.getItemCount())
+                    .stylistSource(generatedOption.getStylistSource())
+                    .build());
+        }
+
+        return StylistChatMessageResponse.builder()
+                .requestId(firstRequestId)
+                .assistantMessage(StylistChatMessageResponse.AssistantMessageDto.builder()
+                        .type(OUTFIT_OPTIONS_TYPE)
+                        .content("Mình đã chuẩn bị 3 outfit cơ bản phù hợp với hồ sơ của bạn. Nhấn vào từng set để xem tư vấn chi tiết nhé.")
+                        .options(options)
                         .build())
                 .recommendations(recommendations)
                 .build();
@@ -278,5 +350,12 @@ public class StylistChatService {
             this.windowStartMs = windowStartMs;
             this.count = count;
         }
+    }
+
+    private record StarterOutfitPreset(
+            String label,
+            String occasion,
+            String vibe,
+            String style) {
     }
 }

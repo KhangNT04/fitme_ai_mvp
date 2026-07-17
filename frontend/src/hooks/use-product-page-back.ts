@@ -10,6 +10,7 @@ import {
   resolveProductPageBack,
   TRYON_FROM_PARAM,
   AI_RESULT_FROM_PARAM,
+  AI_CHAT_FROM_PARAM,
   RECOMMENDATION_PARAM,
 } from "@/lib/nav-context";
 
@@ -33,6 +34,7 @@ export function useProductPageBack(): NavHistoryEntry {
   const searchParams = useSearchParams();
   const fromTryOn = searchParams.get("from") === TRYON_FROM_PARAM;
   const fromAiResult = searchParams.get("from") === AI_RESULT_FROM_PARAM;
+  const fromAiChat = searchParams.get("from") === AI_CHAT_FROM_PARAM;
   const recommendationId = searchParams.get(RECOMMENDATION_PARAM);
   const stack = useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
 
@@ -41,8 +43,9 @@ export function useProductPageBack(): NavHistoryEntry {
       resolveProductPageBack(stack, {
         fromTryOn,
         fromAiResult,
+        fromAiChat,
         recommendationId,
       }),
-    [fromAiResult, fromTryOn, recommendationId, stack],
+    [fromAiChat, fromAiResult, fromTryOn, recommendationId, stack],
   );
 }

@@ -25,6 +25,11 @@ public class StylistChatController {
         return ApiResponse.ok(stylistChatService.sendMessage(request));
     }
 
+    @PostMapping("/starter-outfits")
+    public ApiResponse<StylistChatMessageResponse> generateStarterOutfits() {
+        return ApiResponse.ok(stylistChatService.generateStarterOutfits());
+    }
+
     @GetMapping("/conversations")
     public ApiResponse<List<StylistConversationDto>> listConversations() {
         return ApiResponse.ok(stylistChatService.listConversations());

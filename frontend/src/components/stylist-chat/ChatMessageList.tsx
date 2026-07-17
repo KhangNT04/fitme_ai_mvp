@@ -47,6 +47,7 @@ export function ChatMessageList({
               content={msg.content}
               options={msg.options}
               recommendations={msg.recommendations}
+              compact={msg.compactOutfits}
             />
           ) : (
             <p className="whitespace-pre-line">{msg.content}</p>

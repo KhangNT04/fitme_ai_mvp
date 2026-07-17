@@ -43,7 +43,10 @@ export function useTryOnPoll({
 
   const startedRef = useRef(false);
   const onCompletedRef = useRef(onCompleted);
-  onCompletedRef.current = onCompleted;
+
+  useEffect(() => {
+    onCompletedRef.current = onCompleted;
+  }, [onCompleted]);
 
   const retry = useCallback(() => {
     startedRef.current = false;

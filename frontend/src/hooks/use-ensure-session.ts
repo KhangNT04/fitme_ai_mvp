@@ -30,6 +30,7 @@ export function useEnsureSession() {
   const router = useRouter();
   const session = useSessionStore((s) => s.session);
   const setSession = useSessionStore((s) => s.setSession);
+  const clearSession = useSessionStore((s) => s.clearSession);
   const setSessionId = useConsultationStore((s) => s.setSessionId);
 
   const ensureSession = useCallback(async () => {
@@ -45,9 +46,16 @@ export function useEnsureSession() {
 
     const existing = useSessionStore.getState().session;
     if (existing?.sessionToken) {
-      setSessionId(existing.sessionId);
       persistSessionToken(existing.sessionToken);
-      return existing;
+      try {
+        const current = await sessionApi.getCurrent();
+        setSession(current);
+        setSessionId(current.sessionId);
+        persistSessionToken(current.sessionToken);
+        return current;
+      } catch {
+        clearSession();
+      }
     }
 
     const storedToken =
@@ -72,7 +80,7 @@ export function useEnsureSession() {
       router.push("/");
       return null;
     }
-  }, [setSession, setSessionId, router]);
+  }, [setSession, clearSession, setSessionId, router]);
 
   return { ensureSession, session };
 }

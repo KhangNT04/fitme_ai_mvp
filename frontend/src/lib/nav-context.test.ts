@@ -7,6 +7,7 @@ import {
   resolveSavedResultBack,
   TRYON_HUB,
   DISCOVER_HUB,
+  AI_CHAT_HUB,
   setConsumerNavContext,
   NAV_CONTEXT_STORAGE_KEY,
 } from "./nav-context";
@@ -80,5 +81,18 @@ describe("nav-context", () => {
       href: "/ai/result/rec-99",
       label: "Kết quả tư vấn",
     });
+  });
+
+  it("resolveProductPageBack returns chat when from=ai-chat", () => {
+    expect(resolveProductPageBack([], { fromAiChat: true })).toEqual(AI_CHAT_HUB);
+  });
+
+  it("resolveProductPageBack returns chat when previous stack entry is chat", () => {
+    const stack = [
+      { href: "/ai/body-profile", label: "Hồ sơ cơ thể" },
+      { href: "/ai/chat", label: "Chat stylist" },
+      { href: "/products/abc?from=ai-chat", label: "Thông tin sản phẩm" },
+    ];
+    expect(resolveProductPageBack(stack)).toEqual(AI_CHAT_HUB);
   });
 });

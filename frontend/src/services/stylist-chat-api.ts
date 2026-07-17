@@ -119,6 +119,29 @@ export interface StylistChatApiResult {
   recommendations?: RecommendationResult[];
 }
 
+function mapChatResponse(
+  data: BackendChatResponse,
+  useOptionLabels = false,
+): StylistChatApiResult {
+  const type = (data.assistantMessage?.type || "text") as StylistChatApiResult["type"];
+  const options = mapOptions(data.assistantMessage?.options);
+  const recommendations = (data.recommendations || []).map((recommendation, index) => {
+    const mapped = mapRecommendation(recommendation);
+    if (useOptionLabels && options?.[index]?.styleLabel) {
+      mapped.styleLabel = options[index].styleLabel;
+    }
+    return mapped;
+  });
+  return {
+    conversationId: data.conversationId,
+    requestId: data.requestId,
+    type,
+    content: data.assistantMessage?.content || "",
+    options,
+    recommendations,
+  };
+}
+
 export const stylistChatApi = {
   sendMessage: async (params: SendStylistChatParams): Promise<StylistChatApiResult> => {
     const res = await apiClient.post("/stylist/chat/messages", {
@@ -129,15 +152,12 @@ export const stylistChatApi = {
       wardrobeMode: params.wardrobeMode || "NO_WARDROBE_DATA",
     });
     const data = unwrap(res) as BackendChatResponse;
-    const type = (data.assistantMessage?.type || "text") as StylistChatApiResult["type"];
-    return {
-      conversationId: data.conversationId,
-      requestId: data.requestId,
-      type,
-      content: data.assistantMessage?.content || "",
-      options: mapOptions(data.assistantMessage?.options),
-      recommendations: (data.recommendations || []).map(mapRecommendation),
-    };
+    return mapChatResponse(data);
+  },
+
+  getStarterOutfits: async (): Promise<StylistChatApiResult> => {
+    const res = await apiClient.post("/stylist/chat/starter-outfits");
+    return mapChatResponse(unwrap(res) as BackendChatResponse, true);
   },
 
   getConversation: async (id: string) => {

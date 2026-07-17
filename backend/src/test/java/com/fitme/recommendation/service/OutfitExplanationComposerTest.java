@@ -45,6 +45,9 @@ class OutfitExplanationComposerTest {
         assertThat(text).doesNotContain("đã nhận được thông tin");
         assertThat(text).contains("Về màu sắc");
         assertThat(text).contains("\n\n");
+        assertThat(text).contains("đi cafe");
+        assertThat(text).contains("Korean Casual");
+        assertThat(text).contains("Nhẹ nhàng");
         assertThat(text).doesNotContain("Phù hợp dáng");
         assertThat(text).doesNotContain("Phù hợp gu");
         assertThat(text).doesNotContain("Lý do em chọn");
@@ -60,19 +63,67 @@ class OutfitExplanationComposerTest {
                 .fitPreference(FitPreference.REGULAR)
                 .gender(Gender.FEMALE)
                 .build();
-        StyleProfile style = StyleProfile.builder().primaryStyle("Minimal").build();
+        StyleProfile style = StyleProfile.builder().primaryStyle("Office Chic").build();
 
         String text = composer.composeForCustomer(
-                body, style, "Đi làm công sở", null,
+                body, style, "Đi làm", "Thanh lịch, gọn gàng",
                 "M", "L", "Regular", "Đen", 0,
                 "Outfit công sở", List.of(
                         new OutfitExplanationComposer.OutfitItemRef("Áo sơ mi", "Áo sơ mi", ItemRole.TOP, null),
                         new OutfitExplanationComposer.OutfitItemRef("Quần âu", "Quần âu", ItemRole.BOTTOM, null)));
 
-        assertThat(text).contains("công sở");
-        assertThat(text).contains("giày");
+        assertThat(text).contains("đi làm");
+        assertThat(text).contains("văn phòng");
+        assertThat(text).containsAnyOf("loafer", "giày");
         assertThat(text).contains("vòng hông");
         assertThat(text).contains("Về màu sắc");
+        assertThat(text).contains("chỉn chu");
+        assertThat(text).doesNotContain("đi chơi");
+        assertThat(text).doesNotContain("hằng ngày");
+    }
+
+    @Test
+    void composeForCustomer_differentiatesOutingAndDailyAdvice() {
+        BodyProfile body = BodyProfile.builder()
+                .heightCm(165)
+                .weightKg(BigDecimal.valueOf(55))
+                .fitPreference(FitPreference.REGULAR)
+                .skinTone(SkinTone.MEDIUM)
+                .gender(Gender.FEMALE)
+                .build();
+
+        List<OutfitExplanationComposer.OutfitItemRef> items = List.of(
+                new OutfitExplanationComposer.OutfitItemRef("Áo hoodie", "Áo hoodie", ItemRole.TOP, "Vàng"),
+                new OutfitExplanationComposer.OutfitItemRef("Quần jogger", "Quần jogger", ItemRole.BOTTOM, "Đen"));
+
+        String outing = composer.composeForCustomer(
+                body,
+                StyleProfile.builder().primaryStyle("Streetwear").build(),
+                "Đi chơi cuối tuần",
+                "Thoải mái, có điểm nhấn",
+                "S", "M", "Regular", "Vàng", 0,
+                "Outfit đi chơi", items);
+
+        String daily = composer.composeForCustomer(
+                body,
+                StyleProfile.builder().primaryStyle("Minimal").build(),
+                "Casual hằng ngày",
+                "Đơn giản, dễ mặc",
+                "S", "M", "Regular", "Trắng", 0,
+                "Outfit hằng ngày", items);
+
+        assertThat(outing).contains("đi chơi cuối tuần");
+        assertThat(outing).contains("Streetwear");
+        assertThat(outing).contains("Thoải mái, có điểm nhấn");
+        assertThat(outing).containsAnyOf("đi cafe", "dạo phố", "đi chơi");
+
+        assertThat(daily).contains("hằng ngày");
+        assertThat(daily).contains("Minimal");
+        assertThat(daily).containsAnyOf("tuần", "mặc lại", "mau mặc");
+
+        assertThat(outing).isNotEqualTo(daily);
+        assertThat(outing).doesNotContain("chỉn chu cho giờ làm");
+        assertThat(daily).doesNotContain("đi cafe, dạo phố");
     }
 
     @Test

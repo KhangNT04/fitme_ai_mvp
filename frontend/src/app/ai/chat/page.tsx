@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { PageShell } from "@/components/layout/PageShell";
 import { FlowWizardToolbar } from "@/components/layout/FlowWizardToolbar";
@@ -20,7 +20,11 @@ import { ensureServerBodyProfile } from "@/lib/ensure-server-body-profile";
 import { consumerPageShellClass } from "@/lib/design-tokens";
 import { getUserErrorMessage } from "@/lib/user-error-message";
 import { toast } from "@/stores/toast-store";
-import type { StylistChatMessage } from "@/types/stylist-chat";
+import {
+  STYLIST_STARTER_FOLLOW_UP,
+  STYLIST_STARTER_PENDING_KEY,
+  type StylistChatMessage,
+} from "@/types/stylist-chat";
 
 function newId() {
   return typeof crypto !== "undefined" && crypto.randomUUID
@@ -51,6 +55,7 @@ export default function AiChatPage() {
   const setConversationId = useStylistChatStore((s) => s.setConversationId);
   const [sending, setSending] = useState(false);
   const [chatHydrated, setChatHydrated] = useState(false);
+  const starterStartedRef = useRef(false);
 
   useEffect(() => {
     void Promise.resolve(useStylistChatStore.persist.rehydrate()).finally(() => setChatHydrated(true));
@@ -76,6 +81,69 @@ export default function AiChatPage() {
       router.replace("/ai/body-profile?required=1");
     }
   }, [storesReady, isLoading, ready, router]);
+
+  useEffect(() => {
+    if (
+      starterStartedRef.current ||
+      !storesReady ||
+      !chatHydrated ||
+      isLoading ||
+      !ready ||
+      !profile ||
+      sessionStorage.getItem(STYLIST_STARTER_PENDING_KEY) !== "1"
+    ) {
+      return;
+    }
+
+    starterStartedRef.current = true;
+    sessionStorage.removeItem(STYLIST_STARTER_PENDING_KEY);
+    setSending(true);
+
+    void (async () => {
+      try {
+        await ensureSession();
+        await ensureServerBodyProfile(profile);
+        const result = await stylistChatApi.getStarterOutfits();
+        addMessage({
+          id: newId(),
+          role: "assistant",
+          type: result.type,
+          content: result.content,
+          createdAt: Date.now(),
+          requestId: result.requestId,
+          options: result.options,
+          recommendations: result.recommendations,
+          compactOutfits: true,
+        });
+        addMessage({
+          id: newId(),
+          role: "assistant",
+          type: "text",
+          content: STYLIST_STARTER_FOLLOW_UP,
+          createdAt: Date.now(),
+        });
+      } catch (error) {
+        toast.error(getUserErrorMessage(error, "Không tạo được outfit ban đầu. Bạn vẫn có thể nhập yêu cầu bên dưới."));
+        addMessage({
+          id: newId(),
+          role: "assistant",
+          type: "text",
+          content: `${assistantErrorMessage(error)}\n\n${STYLIST_STARTER_FOLLOW_UP}`,
+          createdAt: Date.now(),
+        });
+      } finally {
+        setSending(false);
+      }
+    })();
+  }, [
+    storesReady,
+    chatHydrated,
+    isLoading,
+    ready,
+    profile,
+    ensureSession,
+    addMessage,
+  ]);
 
   const send = useCallback(
     async (text: string) => {
@@ -120,6 +188,7 @@ export default function AiChatPage() {
           options: result.options,
           recommendations: result.recommendations,
           conversationId: result.conversationId,
+          compactOutfits: true,
         };
         addMessage(assistantMsg);
       } catch (e) {
@@ -156,7 +225,7 @@ export default function AiChatPage() {
     );
   }
 
-  const showWelcome = messages.length === 0;
+  const showWelcome = messages.length === 0 && !sending;
 
   return (
     <PageShell width="full" className={`${consumerPageShellClass} flex min-h-[70vh] flex-col`}>
@@ -178,7 +247,9 @@ export default function AiChatPage() {
           quickPromptsDisabled={sending}
         />
         {sending && (
-          <p className="text-center text-xs text-muted-foreground">Stylist đang phối đồ…</p>
+          <p className="text-center text-xs text-muted-foreground">
+            Stylist đang phân tích hồ sơ và phối đồ…
+          </p>
         )}
         <ChatComposer onSend={(m) => void send(m)} disabled={!ready} sending={sending} />
       </div>

@@ -20,6 +20,8 @@ public class CreateRecommendationRequest {
     private UUID conversationId;
     /** Optional style labels to generate (chat intent). Falls back to catalog defaults. */
     private java.util.List<String> styleLabels;
+    /** Internal chat bootstrap hint: generate only the first resolved style. */
+    private boolean singleStyle;
     /** Compact conversation history for follow-ups. */
     private java.util.List<String> conversationHistory;
 }

@@ -10,6 +10,7 @@ import { AI_FLOW_STEPS } from "@/components/layout/FlowStepper";
 import { BodyProfileEditor, formToBodyProfile } from "@/components/profile/BodyProfileEditor";
 import { useConsultationStore } from "@/stores/consultation-store";
 import { useAuthStore } from "@/stores/auth-store";
+import { useStylistChatStore } from "@/stores/stylist-chat-store";
 import { useHydrateConsultationProfiles } from "@/hooks/use-hydrate-consultation-profiles";
 import { useEnsureSession } from "@/hooks/use-ensure-session";
 import { mergeBodyProfiles } from "@/lib/profile-merge";
@@ -24,6 +25,7 @@ import { consumerPageShellClass } from "@/lib/design-tokens";
 import { getUserErrorMessage } from "@/lib/user-error-message";
 import { toast } from "@/stores/toast-store";
 import type { BodyProfileForm } from "@/utils/validators";
+import { STYLIST_STARTER_PENDING_KEY } from "@/types/stylist-chat";
 
 function BodyProfilePageContent() {
   const router = useRouter();
@@ -33,6 +35,7 @@ function BodyProfilePageContent() {
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated());
   const draftBodyProfile = useConsultationStore((s) => s.draft.bodyProfile);
   const setBodyProfile = useConsultationStore((s) => s.setBodyProfile);
+  const clearChat = useStylistChatStore((s) => s.clearChat);
   const { bodyProfile: savedBodyProfile, isLoading } = useHydrateConsultationProfiles();
   const guestProfile = !isAuthenticated ? getGuestBodyProfile() : null;
   const initial = resolveBodyProfileInitial(
@@ -68,6 +71,8 @@ function BodyProfilePageContent() {
         await ensureServerBodyProfile(next);
       }
 
+      clearChat();
+      sessionStorage.setItem(STYLIST_STARTER_PENDING_KEY, "1");
       router.push("/ai/chat");
     } catch (e) {
       toast.error(getUserErrorMessage(e, "Không lưu được hồ sơ. Vui lòng thử lại."));

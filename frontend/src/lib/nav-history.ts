@@ -53,7 +53,7 @@ export function labelForHref(href: string): string {
     "/profile/body": "Chỉnh sửa hồ sơ cơ thể",
     "/profile/style": "Chỉnh sửa gu thời trang",
     "/ai/start": "Tư vấn AI",
-    "/ai/chat": "Chat stylist",
+    "/ai/chat": "Tư vấn outfit AI",
     "/ai/body-profile": "Hồ sơ cơ thể",
     "/ai/processing": "Đang xử lý tư vấn",
     "/ai/photo-upload": "Upload ảnh",
@@ -83,7 +83,7 @@ export function labelForHref(href: string): string {
   if (path.startsWith("/try-on/decision/")) return "Kết quả thử mặc AI";
   if (path.startsWith("/ai/options/")) return "Chọn phong cách";
   if (path.startsWith("/ai/result/")) return "Kết quả tư vấn";
-  if (path.startsWith("/ai/chat")) return "Chat stylist";
+  if (path.startsWith("/ai/chat")) return "Tư vấn outfit AI";
   if (path.startsWith("/ai/preview/")) return "Preview AI";
   if (path.startsWith("/ai/variants/")) return "Kết quả tư vấn";
   if (path.startsWith("/redirect/confirm/")) return "Chi tiết sản phẩm";

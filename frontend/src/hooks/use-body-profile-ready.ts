@@ -27,11 +27,9 @@ export function useBodyProfileReady() {
   }, []);
 
   useEffect(() => {
-    if (isAuthenticated) {
-      setGuestChecked(true);
-      return;
-    }
-    refreshGuest();
+    if (isAuthenticated) return;
+    const timer = window.setTimeout(refreshGuest, 0);
+    return () => window.clearTimeout(timer);
   }, [isAuthenticated, refreshGuest]);
 
   const profile: BodyProfile | null = isAuthenticated ? dbProfile : guestProfile;

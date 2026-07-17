@@ -13,6 +13,7 @@ export interface StylistChatMessage {
   options?: StyleRecommendationOption[];
   recommendations?: RecommendationResult[];
   conversationId?: string;
+  compactOutfits?: boolean;
 }
 
 export const STYLIST_QUICK_PROMPTS = [
@@ -26,6 +27,11 @@ export const STYLIST_QUICK_PROMPTS = [
 
 export const STYLIST_WELCOME =
   "Bạn muốn tôi phối đồ cho bạn như thế nào?";
+
+export const STYLIST_STARTER_FOLLOW_UP =
+  "Bạn còn cần mình giúp gì không? Hãy nhập điều bạn muốn mặc, ví dụ “đi cafe cuối tuần, thoải mái” hoặc “đi tiệc, thanh lịch”. Mình sẽ phối outfit phù hợp ngay trong khung chat.";
+
+export const STYLIST_STARTER_PENDING_KEY = "fitme-starter-outfits-pending";
 
 export const STYLIST_COMPOSER_PLACEHOLDER =
   "VD: Mình là nghệ sĩ đường phố, muốn outfit streetwear thoải mái đi cafe cuối tuần...";

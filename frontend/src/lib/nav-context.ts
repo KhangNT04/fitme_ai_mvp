@@ -2,6 +2,7 @@ import { getPreviousNavEntry, isTryOnRouteHref, type NavHistoryEntry } from "./n
 
 export const TRYON_FROM_PARAM = "try-on";
 export const AI_RESULT_FROM_PARAM = "ai-result";
+export const AI_CHAT_FROM_PARAM = "ai-chat";
 export const RECOMMENDATION_PARAM = "recommendation";
 export const NAV_CONTEXT_STORAGE_KEY = "fitme-nav-context";
 
@@ -29,6 +30,10 @@ export function productDetailFromAiResultHref(productId: string, recommendationI
   return `/products/${productId}?from=${AI_RESULT_FROM_PARAM}&${RECOMMENDATION_PARAM}=${recommendationId}`;
 }
 
+export function productDetailFromAiChatHref(productId: string): string {
+  return `/products/${productId}?from=${AI_CHAT_FROM_PARAM}`;
+}
+
 export const DISCOVER_HUB: NavHistoryEntry = {
   href: "/discover",
   label: "Khám phá sản phẩm",
@@ -42,6 +47,11 @@ export const TRYON_HUB: NavHistoryEntry = {
 export const AI_START_HUB: NavHistoryEntry = {
   href: "/ai/start",
   label: "Tư vấn AI",
+};
+
+export const AI_CHAT_HUB: NavHistoryEntry = {
+  href: "/ai/chat",
+  label: "Tư vấn outfit AI",
 };
 
 export const SAVED_OUTFITS_HUB: NavHistoryEntry = {
@@ -94,9 +104,16 @@ export function isAiWizardStep(href: string): boolean {
  */
 export function resolveProductPageBack(
   stack: readonly NavHistoryEntry[],
-  options?: { fromTryOn?: boolean; fromAiResult?: boolean; recommendationId?: string | null },
+  options?: {
+    fromTryOn?: boolean;
+    fromAiResult?: boolean;
+    fromAiChat?: boolean;
+    recommendationId?: string | null;
+  },
 ): NavHistoryEntry {
   if (options?.fromTryOn) return TRYON_HUB;
+
+  if (options?.fromAiChat) return AI_CHAT_HUB;
 
   if (options?.fromAiResult && options.recommendationId) {
     return {
@@ -116,6 +133,8 @@ export function resolveProductPageBack(
         return { href: path, label: "Kết quả thử mặc AI" };
       }
     }
+
+    if (path === "/ai/chat" || path.startsWith("/ai/chat")) return AI_CHAT_HUB;
 
     if (isAiWizardStep(prev.href)) return AI_START_HUB;
 

@@ -54,8 +54,10 @@ public class BrandPartnershipService {
         if (brandRepository.findById(brandOne).isEmpty() || brandRepository.findById(brandTwo).isEmpty()) {
             throw new NotFoundException("Brand không tồn tại");
         }
-        UUID a = brandOne.compareTo(brandTwo) < 0 ? brandOne : brandTwo;
-        UUID b = brandOne.compareTo(brandTwo) < 0 ? brandTwo : brandOne;
+        // Order by UUID text so it matches PostgreSQL CHECK (brand_a_id::text < brand_b_id::text).
+        // Java UUID.compareTo uses signed longs and can disagree with Postgres UUID <.
+        UUID a = brandOne.toString().compareTo(brandTwo.toString()) < 0 ? brandOne : brandTwo;
+        UUID b = a.equals(brandOne) ? brandTwo : brandOne;
         return partnershipRepository.findByBrandAIdAndBrandBId(a, b)
                 .map(existing -> {
                     existing.setStatus(BrandPartnershipStatus.ACTIVE);

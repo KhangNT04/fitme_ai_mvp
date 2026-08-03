@@ -3,6 +3,7 @@ import { loginUser, loginBrand, loginAdmin, DEMO_PASSWORD } from "./helpers/auth
 import {
   completeConsultationToResult,
   fillBodyProfile,
+  fillVibeQuiz,
 } from "./helpers/consultation";
 import { fillBrandProductForm } from "./helpers/brand";
 import { BRAND_PAGES, ADMIN_PAGES, expectPageHeading } from "./helpers/portal";
@@ -83,9 +84,11 @@ test.describe("Luồng USER", () => {
     const productId = await getFirstProductIdFromDiscover(page);
     await page.goto(`/products/${productId}`);
     await page.getByRole("button", { name: /Tư vấn size & phối đồ bằng AI/ }).click();
-    await page.waitForURL(/\/ai\/(body-profile|chat|start)/);
-    if (page.url().includes("body-profile") || !page.url().includes("/ai/chat")) {
+    await page.waitForURL(/\/ai\/(body-profile|vibe-quiz|chat|start)/);
+    if (page.url().includes("body-profile")) {
       await fillBodyProfile(page);
+    } else if (page.url().includes("vibe-quiz")) {
+      await fillVibeQuiz(page);
     }
     await page.waitForURL("**/ai/chat", { timeout: 30_000 });
     await expect(page.getByRole("heading", { name: "Tư vấn outfit AI" })).toBeVisible({
@@ -124,9 +127,11 @@ test.describe("Luồng USER", () => {
     await expect(page.getByRole("heading", { name: itemName }).first()).toBeVisible({ timeout: 15_000 });
 
     await page.goto("/ai/start");
-    await page.waitForURL(/\/ai\/(body-profile|chat)/, { timeout: 30_000 });
+    await page.waitForURL(/\/ai\/(body-profile|vibe-quiz|chat)/, { timeout: 30_000 });
     if (page.url().includes("body-profile")) {
       await fillBodyProfile(page);
+    } else if (page.url().includes("vibe-quiz")) {
+      await fillVibeQuiz(page);
     }
     await page.waitForURL("**/ai/chat", { timeout: 30_000 });
     await expect(page.getByRole("heading", { name: "Tư vấn outfit AI" })).toBeVisible({

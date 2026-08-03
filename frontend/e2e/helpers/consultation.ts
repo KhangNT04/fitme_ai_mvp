@@ -4,12 +4,25 @@ import { type Page, expect } from "@playwright/test";
 export async function startAnonymousConsultation(page: Page) {
   await page.goto("/");
   await page.getByRole("button", { name: "Bắt đầu tư vấn outfit" }).first().click();
-  await page.waitForURL(/\/ai\/(start|body-profile|chat)/);
+  await page.waitForURL(/\/ai\/(start|body-profile|vibe-quiz|chat)/);
   await page.waitForFunction(
     () => localStorage.getItem("fitme_session_token") !== null,
     undefined,
     { timeout: 15_000 },
   );
+}
+
+/** Completes vibe quiz (or skips) and lands on chat. */
+export async function fillVibeQuiz(page: Page) {
+  if (!page.url().includes("/ai/vibe-quiz")) {
+    await page.goto("/ai/vibe-quiz");
+  }
+  await expect(page.getByRole("button", { name: /Clean girl/i })).toBeVisible({
+    timeout: 15_000,
+  });
+  await page.getByRole("button", { name: /Clean girl/i }).click();
+  await page.getByRole("button", { name: /Xong — vào tư vấn/ }).click();
+  await page.waitForURL("**/ai/chat", { timeout: 30_000 });
 }
 
 export async function fillBodyProfile(page: Page) {
@@ -28,7 +41,10 @@ export async function fillBodyProfile(page: Page) {
   await page.getByRole("radio", { name: "Trung bình" }).click();
 
   await page.getByRole("button", { name: /Lưu và bắt đầu tư vấn|Tạo gợi ý outfit/ }).click();
-  await page.waitForURL("**/ai/chat", { timeout: 30_000 });
+  await page.waitForURL(/\/ai\/(vibe-quiz|chat)/, { timeout: 30_000 });
+  if (page.url().includes("/ai/vibe-quiz")) {
+    await fillVibeQuiz(page);
+  }
 }
 
 /** @deprecated Style step removed — no-op kept for older e2e imports. */
@@ -46,8 +62,12 @@ export async function fillOccasion(_page: Page, _wardrobeModeLabel?: string) {
  */
 export async function completeConsultationToResult(page: Page): Promise<string | null> {
   await startAnonymousConsultation(page);
-  // Gate may land on body-profile or chat
-  if (!page.url().includes("/ai/chat")) {
+  // Gate may land on body-profile, vibe-quiz, or chat
+  if (page.url().includes("/ai/body-profile")) {
+    await fillBodyProfile(page);
+  } else if (page.url().includes("/ai/vibe-quiz")) {
+    await fillVibeQuiz(page);
+  } else if (!page.url().includes("/ai/chat")) {
     await fillBodyProfile(page);
   }
   await expect(page.getByRole("heading", { name: "Tư vấn outfit AI" })).toBeVisible({
@@ -69,5 +89,5 @@ export async function completeConsultationToResult(page: Page): Promise<string |
 export async function ensureSessionViaHome(page: Page) {
   await page.goto("/");
   await page.getByRole("button", { name: "Bắt đầu tư vấn outfit" }).first().click();
-  await page.waitForURL(/\/ai\/(start|body-profile|chat)/);
+  await page.waitForURL(/\/ai\/(start|body-profile|vibe-quiz|chat)/);
 }

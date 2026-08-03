@@ -16,8 +16,13 @@ import com.fitme.admin.service.AdminRuleService;
 import com.fitme.analytics.dto.AdminDashboardResponse;
 import com.fitme.analytics.service.AnalyticsService;
 import com.fitme.brand.dto.BrandResponse;
+import com.fitme.brand.entity.BrandPartnership;
+import com.fitme.brand.service.BrandPartnershipService;
 import com.fitme.brand.service.BrandService;
 import com.fitme.common.dto.ApiResponse;
+import com.fitme.common.enums.ConsumerPlan;
+import com.fitme.entitlement.dto.ConsumerEntitlementResponse;
+import com.fitme.entitlement.service.ConsumerEntitlementService;
 import com.fitme.privacy.service.PrivacyService;
 import com.fitme.redirect.dto.FlaggedLinkResponse;
 import com.fitme.redirect.service.RedirectService;
@@ -44,6 +49,8 @@ public class AdminController {
     private final AdminPreviewMonitoringService adminPreviewMonitoringService;
     private final AdminDtoMapper adminDtoMapper;
     private final AdminBrandListService adminBrandListService;
+    private final BrandPartnershipService brandPartnershipService;
+    private final ConsumerEntitlementService consumerEntitlementService;
 
     @GetMapping("/dashboard")
     public ApiResponse<AdminDashboardResponse> dashboard() {
@@ -150,5 +157,25 @@ public class AdminController {
     @GetMapping("/try-on/failed-previews")
     public ApiResponse<List<PreviewGenerationDto>> failedPreviews() {
         return ApiResponse.ok(adminPreviewMonitoringService.listFailedPreviews());
+    }
+
+    @GetMapping("/brand-partnerships")
+    public ApiResponse<List<BrandPartnership>> brandPartnerships() {
+        return ApiResponse.ok(brandPartnershipService.listActive());
+    }
+
+    @PostMapping("/brand-partnerships")
+    public ApiResponse<BrandPartnership> createBrandPartnership(@RequestBody Map<String, String> body) {
+        UUID brandA = UUID.fromString(body.get("brandAId"));
+        UUID brandB = UUID.fromString(body.get("brandBId"));
+        return ApiResponse.ok(brandPartnershipService.upsertPartnership(brandA, brandB));
+    }
+
+    @PatchMapping("/users/{id}/consumer-plan")
+    public ApiResponse<ConsumerEntitlementResponse> setConsumerPlan(
+            @PathVariable UUID id,
+            @RequestBody Map<String, String> body) {
+        ConsumerPlan plan = ConsumerPlan.valueOf(body.getOrDefault("plan", "FREE").toUpperCase());
+        return ApiResponse.ok(consumerEntitlementService.setPlan(id, plan));
     }
 }

@@ -13,6 +13,7 @@ import com.fitme.product.repository.ProductTagRepository;
 import com.fitme.product.repository.ProductVariantRepository;
 import com.fitme.recommendation.dto.CreateRecommendationRequest;
 import com.fitme.recommendation.service.OutfitCompositionService;
+import com.fitme.recommendation.service.OutfitScoreContext;
 import com.fitme.recommendation.service.UserStylingContextService;
 import com.fitme.product.service.ProductAudienceService;
 import com.fitme.userprofile.entity.BodyProfile;
@@ -47,6 +48,17 @@ public class StylistContextBuilder {
             List<WardrobeItem> wardrobe,
             List<Product> candidates,
             UUID selectedProductId) throws JsonProcessingException {
+        return buildContext(body, style, request, wardrobe, candidates, selectedProductId, OutfitScoreContext.empty());
+    }
+
+    public String buildContext(
+            BodyProfile body,
+            StyleProfile style,
+            CreateRecommendationRequest request,
+            List<WardrobeItem> wardrobe,
+            List<Product> candidates,
+            UUID selectedProductId,
+            OutfitScoreContext scoreContext) throws JsonProcessingException {
         Map<String, Object> root = new LinkedHashMap<>();
 
         Map<String, Object> user = new LinkedHashMap<>();
@@ -90,6 +102,26 @@ public class StylistContextBuilder {
             req.put("conversationHistory", request.getConversationHistory());
         }
         root.put("request", req);
+
+        OutfitScoreContext ctx = scoreContext != null ? scoreContext : OutfitScoreContext.empty();
+        Map<String, Object> coherence = new LinkedHashMap<>();
+        coherence.put("mode", ctx.coherenceMode() != null ? ctx.coherenceMode().name() : "OFF");
+        coherence.put("preferredBrandId",
+                ctx.preferredBrandId() != null ? ctx.preferredBrandId().toString() : null);
+        coherence.put("partnerBrandIds", ctx.partnerBrandIds().stream().map(UUID::toString).toList());
+        coherence.put("guidanceVi", switch (ctx.coherenceMode() != null ? ctx.coherenceMode() : com.fitme.common.enums.OutfitCoherenceMode.OFF) {
+            case OFF -> "Được mix nhiều brand — ưu tiên vibe và dáng, không ép cùng brand.";
+            case PREFER -> "Ưu tiên outfit cùng brand hoặc brand đối tác khi vẫn hợp vibe.";
+            case STRICT -> "Chỉ chọn sản phẩm cùng brand hoặc brand đối tác với brand neo.";
+        });
+        root.put("outfitCoherence", coherence);
+
+        Map<String, Object> affinity = new LinkedHashMap<>();
+        affinity.put("styles", ctx.styleWeights());
+        affinity.put("brands", ctx.brandWeights());
+        affinity.put("colors", ctx.colorWeights());
+        affinity.put("preferenceScale", ctx.preferenceScale());
+        root.put("userAffinity", affinity);
 
         List<Map<String, Object>> wardrobeItems = new ArrayList<>();
         for (WardrobeItem item : wardrobe) {

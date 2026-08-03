@@ -97,6 +97,18 @@ export const brandApi = {
     const res = await apiClient.get("/brand/analytics/try-on");
     return unwrap(res);
   },
+  getDemandInsights: async (): Promise<{
+    outfitLikes: number;
+    outfitDislikes: number;
+    buyClicks: number;
+    purchasedConfirmed: number;
+    topClickedProducts: { label: string; count: number }[];
+    topLikedSignals: { label: string; count: number }[];
+    summaryVi: string;
+  }> => {
+    const res = await apiClient.get("/brand/insights/demand");
+    return unwrap(res);
+  },
   getProductAnalytics: async (id: string): Promise<BrandAnalytics> => {
     const res = await apiClient.get(`/brand/products/${id}/analytics`);
     return unwrap(res);

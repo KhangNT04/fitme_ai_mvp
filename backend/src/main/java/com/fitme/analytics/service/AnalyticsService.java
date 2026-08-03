@@ -3,6 +3,7 @@ package com.fitme.analytics.service;
 import com.fitme.analytics.dto.AdminDashboardResponse;
 import com.fitme.analytics.dto.BrandAnalyticsResponse;
 import com.fitme.analytics.dto.BrandDashboardResponse;
+import com.fitme.analytics.dto.BrandDemandInsightResponse;
 import com.fitme.analytics.dto.ChartDataPoint;
 import com.fitme.analytics.dto.ProductAnalyticsResponse;
 import com.fitme.analytics.entity.AnalyticsEvent;
@@ -12,7 +13,10 @@ import com.fitme.brand.repository.BrandRepository;
 import com.fitme.common.enums.BrandStatus;
 import com.fitme.common.enums.FlaggedLinkStatus;
 import com.fitme.common.enums.ProductStatus;
+import com.fitme.product.entity.Product;
 import com.fitme.product.repository.ProductRepository;
+import com.fitme.redirect.entity.BuyClickEvent;
+import com.fitme.redirect.repository.BuyClickEventRepository;
 import com.fitme.redirect.repository.FlaggedLinkRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -29,6 +33,7 @@ public class AnalyticsService {
     private final BrandRepository brandRepository;
     private final UserAccountRepository userAccountRepository;
     private final FlaggedLinkRepository flaggedLinkRepository;
+    private final BuyClickEventRepository buyClickEventRepository;
 
     public void track(String eventType, UUID userId, UUID sessionId, UUID brandId,
                       UUID productId, UUID recommendationId, UUID tryOnRequestId,
@@ -83,6 +88,72 @@ public class AnalyticsService {
                 .topStyles(topMetadata(events, "style"))
                 .topColors(topMetadata(events, "color"))
                 .topSizes(topMetadata(events, "size"))
+                .build();
+    }
+
+    public BrandDemandInsightResponse brandDemandInsights(UUID brandId) {
+        List<AnalyticsEvent> events = eventRepository.findByBrandId(brandId);
+        long likes = count(events, "OUTFIT_LIKED");
+        long dislikes = count(events, "OUTFIT_DISLIKED");
+        long buyClicks = count(events, "BUY_CLICKED");
+
+        Map<UUID, Product> productsById = productRepository.findByBrandId(brandId).stream()
+                .collect(Collectors.toMap(Product::getId, p -> p, (a, b) -> a));
+        Set<UUID> productIds = productsById.keySet();
+
+        long purchasedConfirmed = 0;
+        Map<UUID, Long> clickByProduct = new HashMap<>();
+        for (UUID productId : productIds) {
+            List<BuyClickEvent> clicks = buyClickEventRepository.findByProductId(productId);
+            clickByProduct.put(productId, (long) clicks.size());
+            purchasedConfirmed += clicks.stream().filter(BuyClickEvent::isPurchasedConfirmed).count();
+        }
+
+        List<BrandDemandInsightResponse.InsightItem> topClicked = clickByProduct.entrySet().stream()
+                .sorted(Map.Entry.<UUID, Long>comparingByValue().reversed())
+                .limit(5)
+                .map(e -> BrandDemandInsightResponse.InsightItem.builder()
+                        .label(productsById.get(e.getKey()) != null
+                                ? productsById.get(e.getKey()).getName()
+                                : e.getKey().toString())
+                        .count(e.getValue())
+                        .build())
+                .toList();
+
+        Map<UUID, Long> likeByProduct = new HashMap<>();
+        for (AnalyticsEvent e : events) {
+            if (!"OUTFIT_LIKED".equals(e.getEventType()) || e.getProductId() == null) continue;
+            likeByProduct.merge(e.getProductId(), 1L, Long::sum);
+        }
+        List<BrandDemandInsightResponse.InsightItem> topLiked = likeByProduct.entrySet().stream()
+                .sorted(Map.Entry.<UUID, Long>comparingByValue().reversed())
+                .limit(5)
+                .map(e -> BrandDemandInsightResponse.InsightItem.builder()
+                        .label(productsById.containsKey(e.getKey())
+                                ? productsById.get(e.getKey()).getName()
+                                : "Sản phẩm")
+                        .count(e.getValue())
+                        .build())
+                .toList();
+
+        String summary = "Gen Z đang " + (likes >= dislikes ? "thích" : "phản hồi trung bình về")
+                + " look của brand (" + likes + " like / " + dislikes + " dislike). "
+                + buyClicks + " lượt click mua; " + purchasedConfirmed + " xác nhận đã mua.";
+
+        return BrandDemandInsightResponse.builder()
+                .outfitLikes(likes)
+                .outfitDislikes(dislikes)
+                .buyClicks(buyClicks)
+                .purchasedConfirmed(purchasedConfirmed)
+                .topClickedProducts(topClicked.isEmpty()
+                        ? List.of(BrandDemandInsightResponse.InsightItem.builder()
+                        .label("Chưa có dữ liệu").count(0).build())
+                        : topClicked)
+                .topLikedSignals(topLiked.isEmpty()
+                        ? List.of(BrandDemandInsightResponse.InsightItem.builder()
+                        .label("Chưa có dữ liệu").count(0).build())
+                        : topLiked)
+                .summaryVi(summary)
                 .build();
     }
 

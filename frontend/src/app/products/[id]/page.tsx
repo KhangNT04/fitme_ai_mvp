@@ -141,12 +141,6 @@ function ProductDetailContent({
                 ))}
               </div>
 
-              {product.material && (
-                <p className="text-sm leading-relaxed text-muted-foreground">
-                  <strong>Chất liệu:</strong> {product.material}
-                </p>
-              )}
-
               {product.description && (
                 <p className="leading-relaxed text-muted-foreground">{product.description}</p>
               )}

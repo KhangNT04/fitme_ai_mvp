@@ -15,4 +15,6 @@ public class AuthResponse {
     private String accessToken;
     private String refreshToken;
     private boolean emailVerified;
+    /** FREE | PLUS — consumer entitlement stub until PayOS billing. */
+    private String consumerPlan;
 }

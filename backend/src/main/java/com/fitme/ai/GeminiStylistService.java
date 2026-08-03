@@ -8,6 +8,7 @@ import com.fitme.common.enums.Confidence;
 import com.fitme.product.entity.Product;
 import com.fitme.recommendation.dto.CreateRecommendationRequest;
 import com.fitme.recommendation.dto.RecommendationResponse;
+import com.fitme.recommendation.service.OutfitScoreContext;
 import com.fitme.recommendation.service.SizeResolutionService;
 import com.fitme.userprofile.entity.BodyProfile;
 import com.fitme.userprofile.entity.StyleProfile;
@@ -41,6 +42,17 @@ public class GeminiStylistService {
             List<WardrobeItem> wardrobe,
             List<Product> candidates,
             UUID selectedProductId) {
+        return suggest(body, style, request, wardrobe, candidates, selectedProductId, OutfitScoreContext.empty());
+    }
+
+    public StylistSuggestOutcome suggest(
+            BodyProfile body,
+            StyleProfile style,
+            CreateRecommendationRequest request,
+            List<WardrobeItem> wardrobe,
+            List<Product> candidates,
+            UUID selectedProductId,
+            OutfitScoreContext scoreContext) {
         if (!properties.getAi().isGeminiStylistEnabled()) {
             return StylistSuggestOutcome.fallback("stylist_disabled");
         }
@@ -49,7 +61,7 @@ public class GeminiStylistService {
             List<Product> limitedCandidates = buildLimitedCandidates(candidates, selectedProductId, limit);
 
             String contextJson = contextBuilder.buildContext(
-                    body, style, request, wardrobe, limitedCandidates, selectedProductId);
+                    body, style, request, wardrobe, limitedCandidates, selectedProductId, scoreContext);
             var raw = geminiStylistClient.suggestOutfit(contextJson);
             if (raw.isEmpty()) {
                 return StylistSuggestOutcome.fallback("gemini_empty");

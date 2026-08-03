@@ -1,5 +1,8 @@
 package com.fitme.recommendation.service;
 
+import com.fitme.brand.entity.Brand;
+import com.fitme.brand.repository.BrandRepository;
+import com.fitme.brand.service.BrandPartnershipService;
 import com.fitme.common.constants.FitMeConstants;
 import com.fitme.common.enums.ItemRole;
 import com.fitme.common.enums.SourceType;
@@ -8,6 +11,7 @@ import com.fitme.product.entity.Product;
 import com.fitme.product.entity.ProductImage;
 import com.fitme.product.entity.ProductVariant;
 import com.fitme.product.repository.ProductImageRepository;
+import com.fitme.product.repository.ProductRepository;
 import com.fitme.product.repository.ProductVariantRepository;
 import com.fitme.product.service.ProductEligibilityService;
 import com.fitme.product.service.ProductAudienceService;
@@ -30,6 +34,9 @@ public class OutfitCompositionService {
 
     private final ProductVariantRepository variantRepository;
     private final ProductImageRepository imageRepository;
+    private final ProductRepository productRepository;
+    private final BrandRepository brandRepository;
+    private final BrandPartnershipService brandPartnershipService;
     private final WardrobeItemRepository wardrobeItemRepository;
     private final ProductEligibilityService eligibilityService;
     private final SizeResolutionService sizeResolutionService;
@@ -109,6 +116,9 @@ public class OutfitCompositionService {
         List<ProductVariant> variants = variantRepository.findByProductId(p.getId());
         String color = variants.stream().map(ProductVariant::getColorName).filter(Objects::nonNull).findFirst().orElse("Đen");
         String size = sizeResolutionService.resolveSize(body, p.getId());
+        String brandName = p.getBrandId() != null
+                ? brandRepository.findById(p.getBrandId()).map(Brand::getName).orElse(null)
+                : null;
         return RecommendationResponse.OutfitItemDto.builder()
                 .productId(p.getId())
                 .role(role)
@@ -119,6 +129,8 @@ public class OutfitCompositionService {
                 .price(p.getPrice())
                 .canBuy(eligibilityService.canShowBuyButton(p))
                 .imageUrl(primaryProductImageUrl(p.getId()))
+                .brandId(p.getBrandId())
+                .brandName(brandName)
                 .build();
     }
 
@@ -185,6 +197,17 @@ public class OutfitCompositionService {
 
     public RecommendationResponse.OutfitItemDto toOutfitItem(RecommendationItem item) {
         boolean canBuy = item.getSourceType() == SourceType.BRAND_PRODUCT && item.getProductId() != null;
+        UUID brandId = null;
+        String brandName = null;
+        if (item.getProductId() != null) {
+            Optional<Product> product = productRepository.findById(item.getProductId());
+            if (product.isPresent()) {
+                brandId = product.get().getBrandId();
+                if (brandId != null) {
+                    brandName = brandRepository.findById(brandId).map(Brand::getName).orElse(null);
+                }
+            }
+        }
         return RecommendationResponse.OutfitItemDto.builder()
                 .productId(item.getProductId())
                 .wardrobeItemId(item.getWardrobeItemId())
@@ -196,6 +219,8 @@ public class OutfitCompositionService {
                 .price(item.getPrice())
                 .canBuy(canBuy)
                 .imageUrl(resolveStoredItemImageUrl(item.getProductId(), item.getWardrobeItemId(), item.getSourceType()))
+                .brandId(brandId)
+                .brandName(brandName)
                 .build();
     }
 
@@ -210,6 +235,7 @@ public class OutfitCompositionService {
                 .recommendedColor(rec.getRecommendedColor())
                 .confidence(rec.getConfidence())
                 .stylistSource(rec.getStylistSource())
+                .coherenceLabel(resolveCoherenceLabel(items))
                 .outfitItems(items)
                 .explanation(RecommendationResponse.ExplanationDto.builder()
                         .summary(explanationComposer.resolveSummary(rec))
@@ -225,5 +251,29 @@ public class OutfitCompositionService {
                         .disclaimer(FitMeConstants.AI_DISCLAIMER_SHORT)
                         .build())
                 .build();
+    }
+
+    /** Vietnamese UX badge for same-brand / partner outfits. */
+    public String resolveCoherenceLabel(List<RecommendationResponse.OutfitItemDto> items) {
+        if (items == null || items.isEmpty()) {
+            return null;
+        }
+        List<UUID> brandIds = items.stream()
+                .filter(i -> i.getSourceType() != SourceType.USER_WARDROBE)
+                .map(RecommendationResponse.OutfitItemDto::getBrandId)
+                .filter(Objects::nonNull)
+                .distinct()
+                .toList();
+        if (brandIds.isEmpty()) {
+            return null;
+        }
+        if (brandIds.size() == 1) {
+            return "Cùng brand";
+        }
+        UUID anchor = brandIds.getFirst();
+        Set<UUID> partners = brandPartnershipService.findPartnerBrandIds(anchor);
+        boolean partnerLook = brandIds.stream()
+                .allMatch(id -> id.equals(anchor) || partners.contains(id));
+        return partnerLook ? "Partner look" : null;
     }
 }

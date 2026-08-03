@@ -270,7 +270,7 @@ export function BrandProductForm({
       </div>
       <div className="grid gap-4 sm:grid-cols-2">
         <div>
-          <Label>Chất liệu</Label>
+          <Label>Chất liệu (tùy chọn — không dùng cho AI stylist)</Label>
           <Input value={form.material} onChange={(e) => setForm({ ...form, material: e.target.value })} className="mt-1" placeholder="Cotton, Polyester..." />
         </div>
         <div>

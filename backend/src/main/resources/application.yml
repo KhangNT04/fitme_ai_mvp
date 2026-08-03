@@ -60,6 +60,12 @@ fitme:
     checksum-key: ${PAYOS_CHECKSUM_KEY:}
     return-url: ${PAYOS_RETURN_URL:http://localhost:3000/brand/billing/return?status=success}
     cancel-url: ${PAYOS_CANCEL_URL:http://localhost:3000/brand/billing/return?status=cancel}
+  consumer:
+    entitlement-enabled: ${FITME_CONSUMER_ENTITLEMENT_ENABLED:true}
+    free-coherence-mode: ${FITME_FREE_COHERENCE_MODE:OFF}
+    plus-coherence-mode: ${FITME_PLUS_COHERENCE_MODE:PREFER}
+    free-preference-scale: ${FITME_FREE_PREFERENCE_SCALE:1.0}
+    plus-preference-scale: ${FITME_PLUS_PREFERENCE_SCALE:1.75}
   ai:
     mode: ${FITME_AI_MODE:mock}
     vton-base-url: ${AI_VTON_URL:http://localhost:8001}

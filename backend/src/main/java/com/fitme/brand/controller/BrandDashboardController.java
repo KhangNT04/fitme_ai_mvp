@@ -2,6 +2,7 @@ package com.fitme.brand.controller;
 
 import com.fitme.analytics.dto.BrandAnalyticsResponse;
 import com.fitme.analytics.dto.BrandDashboardResponse;
+import com.fitme.analytics.dto.BrandDemandInsightResponse;
 import com.fitme.analytics.dto.ProductAnalyticsResponse;
 import com.fitme.analytics.service.AnalyticsService;
 import com.fitme.billing.service.BrandQuotaService;
@@ -28,6 +29,13 @@ public class BrandDashboardController {
         UUID brandId = brandService.getBrandForOwner(principal.getUserId()).getId();
         brandQuotaService.assertDashboardAccess(brandId);
         return ApiResponse.ok(analyticsService.brandDashboard(brandId));
+    }
+
+    @GetMapping("/insights/demand")
+    public ApiResponse<BrandDemandInsightResponse> demandInsights(@AuthenticationPrincipal FitMeUserPrincipal principal) {
+        UUID brandId = brandService.getBrandForOwner(principal.getUserId()).getId();
+        brandQuotaService.assertDashboardAccess(brandId);
+        return ApiResponse.ok(analyticsService.brandDemandInsights(brandId));
     }
 
     @GetMapping("/analytics/redirect")

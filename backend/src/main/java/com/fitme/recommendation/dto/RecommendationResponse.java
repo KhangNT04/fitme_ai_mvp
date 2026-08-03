@@ -22,6 +22,8 @@ public class RecommendationResponse {
     private String recommendedColor;
     private Confidence confidence;
     private String stylistSource;
+    /** UX badge: "Cùng brand" | "Partner look" when outfit brands cohere. */
+    private String coherenceLabel;
     private List<OutfitItemDto> outfitItems;
     private ExplanationDto explanation;
     private PreviewDto preview;
@@ -39,6 +41,8 @@ public class RecommendationResponse {
         private BigDecimal price;
         private boolean canBuy;
         private String imageUrl;
+        private UUID brandId;
+        private String brandName;
     }
 
     @Data

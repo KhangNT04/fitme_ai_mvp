@@ -1,7 +1,7 @@
 export const API_URL = process.env.NEXT_PUBLIC_API_URL || "/api/v1";
 
 export const AI_DISCLAIMER =
-  "Ảnh minh họa bằng AI, dùng để tham khảo. Form thực tế có thể khác tùy chất liệu, bảng size và cách mặc.";
+  "Ảnh minh họa bằng AI, dùng để tham khảo. Form thực tế có thể khác tùy bảng size và cách mặc.";
 
 export const FIT_PREFERENCES = [
   { value: "SLIM", label: "Ôm (Slim)" },
@@ -76,6 +76,73 @@ export const WARDROBE_MODES = [
   { value: "MIX_WARDROBE_AND_BRAND", label: "Kết hợp tủ đồ & thương hiệu" },
   { value: "USE_WARDROBE_FIRST", label: "Ưu tiên tủ đồ của tôi" },
   { value: "NO_WARDROBE_DATA", label: "Không dùng tủ đồ" },
+] as const;
+
+/** Gen Z vibe quiz — maps to style + soft risk for recommendations. */
+export const VIBE_QUIZ_OPTIONS = [
+  {
+    id: "clean",
+    label: "Clean girl",
+    hint: "Gọn, sáng, dễ mặc đi học / cafe",
+    style: "Minimal",
+    riskLevel: "SAFE" as const,
+    mood: "clean",
+  },
+  {
+    id: "soft",
+    label: "Soft girl",
+    hint: "Nhẹ nhàng, pastel, nữ tính",
+    style: "Romantic",
+    riskLevel: "BALANCED" as const,
+    mood: "soft",
+  },
+  {
+    id: "office",
+    label: "Office siren",
+    hint: "Thanh lịch, đi làm fresher",
+    style: "Office Chic",
+    riskLevel: "BALANCED" as const,
+    mood: "office",
+  },
+  {
+    id: "street",
+    label: "Street / cool",
+    hint: "Layer, sneaker, có điểm nhấn",
+    style: "Streetwear",
+    riskLevel: "BOLD" as const,
+    mood: "street",
+  },
+  {
+    id: "korean",
+    label: "Korean casual",
+    hint: "Hàn nhẹ, phối set đồng bộ",
+    style: "Korean Casual",
+    riskLevel: "BALANCED" as const,
+    mood: "korean",
+  },
+  {
+    id: "sporty",
+    label: "Sporty chill",
+    hint: "Thoải mái, năng động cuối tuần",
+    style: "Sporty",
+    riskLevel: "SAFE" as const,
+    mood: "sporty",
+  },
+] as const;
+
+export const BUDGET_BANDS = [
+  { value: "under-300", label: "Dưới 300k" },
+  { value: "300-500", label: "300–500k" },
+  { value: "500-800", label: "500–800k" },
+  { value: "800-plus", label: "800k+" },
+] as const;
+
+export const CLOSET_GOAL_OPTIONS = [
+  "Capsule tối giản",
+  "Đi học / đi làm",
+  "Đi chơi cuối tuần",
+  "Mix với tủ đang có",
+  "Thử vibe mới",
 ] as const;
 
 export const PRODUCT_CATEGORIES = [

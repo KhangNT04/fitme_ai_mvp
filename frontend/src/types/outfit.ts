@@ -40,6 +40,7 @@ export interface RecommendationResult {
   recommendedColor?: string;
   confidence: ConfidenceLevel;
   stylistSource?: "gemini" | "rule";
+  coherenceLabel?: string | null;
   outfitItems: OutfitItem[];
   explanation: RecommendationExplanation;
   preview?: PreviewInfo;

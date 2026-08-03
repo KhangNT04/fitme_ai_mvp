@@ -31,6 +31,7 @@ interface BackendRecommendation {
   recommendedColor?: string;
   confidence: string;
   stylistSource?: string;
+  coherenceLabel?: string | null;
   outfitItems: BackendOutfitItem[];
   explanation?: {
     summary?: string;
@@ -88,6 +89,7 @@ function mapRecommendation(data: BackendRecommendation): RecommendationResult {
     recommendedColor: data.recommendedColor,
     confidence: data.confidence as RecommendationResult["confidence"],
     stylistSource: data.stylistSource as RecommendationResult["stylistSource"],
+    coherenceLabel: data.coherenceLabel || null,
     outfitItems: (data.outfitItems || []).map(mapOutfitItem),
     explanation: {
       summary: data.explanation?.summary,

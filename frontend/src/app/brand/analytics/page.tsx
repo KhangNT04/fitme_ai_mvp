@@ -11,6 +11,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 
 const sections = [
+  { href: "/brand/insights/demand", label: "Nhu cầu Gen Z", desc: "Like, click mua, xác nhận mua (anonymized)", icon: Shirt },
   { href: "/brand/analytics/redirect", label: "Chuyển hướng mua", desc: "Click theo kênh Shopee, website...", icon: MousePointerClick },
   { href: "/brand/analytics/dropoff", label: "Điểm rời bỏ", desc: "Bước người dùng bỏ luồng", icon: GitBranch },
   { href: "/brand/analytics/hesitation", label: "Do dự", desc: "Sản phẩm xem lâu nhưng ít mua", icon: Hourglass },

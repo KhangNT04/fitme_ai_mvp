@@ -4,7 +4,9 @@ import com.fitme.ai.GeminiStylistService;
 import com.fitme.ai.StylistSuggestOutcome;
 import com.fitme.ai.dto.GeminiStylistResult;
 import com.fitme.analytics.service.AnalyticsService;
+import com.fitme.brand.service.BrandPartnershipService;
 import com.fitme.common.enums.Confidence;
+import com.fitme.common.enums.OutfitCoherenceMode;
 import com.fitme.common.enums.ProductStatus;
 import com.fitme.common.enums.RecommendationStatus;
 import com.fitme.common.enums.SourceType;
@@ -13,6 +15,8 @@ import com.fitme.common.exception.BusinessException;
 import com.fitme.common.exception.NotFoundException;
 import com.fitme.common.security.OwnershipChecker;
 import com.fitme.common.security.RequestContext;
+import com.fitme.entitlement.service.ConsumerEntitlementService;
+import com.fitme.preference.service.PreferenceLearningService;
 import com.fitme.product.entity.Product;
 import com.fitme.product.repository.ProductRepository;
 import com.fitme.product.service.ProductAudienceService;
@@ -39,6 +43,7 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 @Service
@@ -63,6 +68,9 @@ public class RecommendationService {
     private final OutfitExplanationComposer explanationComposer;
     private final ProductAudienceService productAudienceService;
     private final UserStylingContextService userStylingContextService;
+    private final ConsumerEntitlementService consumerEntitlementService;
+    private final BrandPartnershipService brandPartnershipService;
+    private final PreferenceLearningService preferenceLearningService;
 
     @Transactional
     public RecommendationOptionsResponse generate(CreateRecommendationRequest request) {
@@ -115,17 +123,16 @@ public class RecommendationService {
             throw new BusinessException("Sản phẩm đã chọn không phù hợp với giới tính trong hồ sơ của bạn.");
         }
 
+        OutfitScoreContext scoreContext = buildScoreContext(anchor);
+
         CreateRecommendationRequest stylistRequest = copyRequest(request, occasion);
         List<String> styles = resolveStyleLabels(request, body);
         List<RecommendationOptionsResponse.StyleOptionDto> options = new ArrayList<>();
 
         for (String styleLabel : styles) {
             StyleProfile styleForOption = StyleProfile.builder().primaryStyle(styleLabel).build();
-            List<Product> eligible = baseEligible.stream()
-                    .sorted((a, b) -> Double.compare(
-                            outfitScoringService.scoreProduct(b, styleLabel, body, request.getUserMessage()),
-                            outfitScoringService.scoreProduct(a, styleLabel, body, request.getUserMessage())))
-                    .toList();
+            List<Product> eligible = applyCoherenceAndSort(
+                    baseEligible, styleLabel, body, request.getUserMessage(), scoreContext);
 
             RecommendationResponse full = generateSingleStyle(
                     outfitRequest.getId(),
@@ -140,7 +147,8 @@ public class RecommendationService {
                     mode,
                     eligible,
                     anchor,
-                    selectedProductId);
+                    selectedProductId,
+                    scoreContext);
 
             String preview = full.getOutfitItems() == null ? null
                     : full.getOutfitItems().stream()
@@ -213,7 +221,8 @@ public class RecommendationService {
             WardrobeMode mode,
             List<Product> eligible,
             Product anchor,
-            UUID selectedProductId) {
+            UUID selectedProductId,
+            OutfitScoreContext scoreContext) {
 
         List<RecommendationResponse.OutfitItemDto> items = null;
         String title = null;
@@ -230,7 +239,7 @@ public class RecommendationService {
         String stylistSource = "rule";
 
         StylistSuggestOutcome stylistOutcome = geminiStylistService.suggest(
-                body, style, request, wardrobe, eligible, selectedProductId);
+                body, style, request, wardrobe, eligible, selectedProductId, scoreContext);
         if (stylistOutcome.result().isPresent()) {
             GeminiStylistResult gemini = stylistOutcome.result().get();
             stylistSource = "gemini";
@@ -382,6 +391,7 @@ public class RecommendationService {
         });
         rec.setSaved(true);
         recommendationRepository.save(rec);
+        preferenceLearningService.applySaveSignal(id, rec.getStyleLabel());
         analyticsService.track("OUTFIT_SAVED", rec.getUserId(), rec.getSessionId(), null, null, id, null, null);
     }
 
@@ -430,6 +440,60 @@ public class RecommendationService {
                         .canBuy(eligibilityService.canShowBuyButton(p))
                         .imageUrl(outfitCompositionService.resolveProductImageUrl(p.getId()))
                         .build())
+                .toList();
+    }
+
+    private OutfitScoreContext buildScoreContext(Product anchor) {
+        OutfitCoherenceMode mode = consumerEntitlementService.resolveCoherenceModeForCurrentUser();
+        double preferenceScale = consumerEntitlementService.resolvePreferenceScaleForCurrentUser();
+        UUID preferredBrandId = resolvePreferredBrandId(anchor);
+        Set<UUID> partners = brandPartnershipService.findPartnerBrandIds(preferredBrandId);
+        return new OutfitScoreContext(
+                mode,
+                preferredBrandId,
+                partners,
+                preferenceLearningService.styleWeights(),
+                preferenceLearningService.brandWeights(),
+                preferenceLearningService.colorWeights(),
+                preferenceScale);
+    }
+
+    private UUID resolvePreferredBrandId(Product anchor) {
+        if (anchor != null && anchor.getBrandId() != null) {
+            return anchor.getBrandId();
+        }
+        return preferenceLearningService.brandWeights().entrySet().stream()
+                .max(Comparator.comparingDouble(java.util.Map.Entry::getValue))
+                .map(e -> {
+                    try {
+                        return UUID.fromString(e.getKey());
+                    } catch (IllegalArgumentException ex) {
+                        return null;
+                    }
+                })
+                .orElse(null);
+    }
+
+    private List<Product> applyCoherenceAndSort(
+            List<Product> baseEligible,
+            String styleLabel,
+            BodyProfile body,
+            String userMessage,
+            OutfitScoreContext scoreContext) {
+        List<Product> pool = baseEligible;
+        if (scoreContext.coherenceMode() == OutfitCoherenceMode.STRICT
+                && scoreContext.preferredBrandId() != null) {
+            List<Product> filtered = baseEligible.stream()
+                    .filter(p -> outfitScoringService.matchesCoherenceFilter(p, scoreContext))
+                    .toList();
+            if (!filtered.isEmpty()) {
+                pool = filtered;
+            }
+        }
+        return pool.stream()
+                .sorted((a, b) -> Double.compare(
+                        outfitScoringService.scoreProduct(b, styleLabel, body, userMessage, scoreContext),
+                        outfitScoringService.scoreProduct(a, styleLabel, body, userMessage, scoreContext)))
                 .toList();
     }
 

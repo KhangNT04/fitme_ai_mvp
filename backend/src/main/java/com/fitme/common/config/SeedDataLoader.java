@@ -9,6 +9,7 @@ import com.fitme.auth.repository.UserAccountRepository;
 import com.fitme.billing.service.BrandBillingService;
 import com.fitme.brand.entity.Brand;
 import com.fitme.brand.repository.BrandRepository;
+import com.fitme.brand.service.BrandPartnershipService;
 import com.fitme.common.enums.*;
 import com.fitme.product.entity.Product;
 import com.fitme.product.repository.ProductRepository;
@@ -46,6 +47,7 @@ public class SeedDataLoader implements CommandLineRunner {
     private final FashionCatalogLoader fashionCatalogLoader;
     private final FashionCatalogSeeder fashionCatalogSeeder;
     private final BrandBillingService brandBillingService;
+    private final BrandPartnershipService brandPartnershipService;
 
     @Value("${fitme.seed.admin-email:admin@fitme.ai}")
     private String adminEmail;
@@ -138,6 +140,7 @@ public class SeedDataLoader implements CommandLineRunner {
 
         seedRulesIfEmpty();
         seedFlaggedLinksIfEmpty();
+        seedBrandPartnershipsIfNeeded();
 
         log.info(
                 "Seed complete: {} fashion products across {} brands. Admin: {} / {}",
@@ -158,6 +161,7 @@ public class SeedDataLoader implements CommandLineRunner {
 
         seedRulesIfEmpty();
         seedFlaggedLinksIfEmpty();
+        seedBrandPartnershipsIfNeeded();
 
         int activeCount = productRepository.findByStatus(ProductStatus.ACTIVE).size();
         log.info("Catalog status: {} active products", activeCount);
@@ -318,5 +322,19 @@ public class SeedDataLoader implements CommandLineRunner {
         }
 
         log.info("Seeded sample flagged purchase links for admin review");
+    }
+
+    /** Demo partner graph: K-Style House ↔ Seoul Basic (same Gen Z lane). */
+    private void seedBrandPartnershipsIfNeeded() {
+        Optional<Brand> kStyle = brandRepository.findByName("K-Style House");
+        Optional<Brand> seoul = brandRepository.findByName("Seoul Basic");
+        if (kStyle.isEmpty() || seoul.isEmpty()) {
+            return;
+        }
+        if (brandPartnershipService.arePartners(kStyle.get().getId(), seoul.get().getId())) {
+            return;
+        }
+        brandPartnershipService.upsertPartnership(kStyle.get().getId(), seoul.get().getId());
+        log.info("Seeded brand partnership: K-Style House ↔ Seoul Basic");
     }
 }

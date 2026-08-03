@@ -1,9 +1,12 @@
 package com.fitme.recommendation.service;
 
+import com.fitme.brand.repository.BrandRepository;
+import com.fitme.brand.service.BrandPartnershipService;
 import com.fitme.common.enums.ItemRole;
 import com.fitme.common.enums.WardrobeMode;
 import com.fitme.product.entity.Product;
 import com.fitme.product.repository.ProductImageRepository;
+import com.fitme.product.repository.ProductRepository;
 import com.fitme.product.repository.ProductTagRepository;
 import com.fitme.product.repository.ProductVariantRepository;
 import com.fitme.product.service.ProductAudienceService;
@@ -24,6 +27,8 @@ import org.mockito.quality.Strictness;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -38,6 +43,12 @@ class OutfitCompositionServiceTest {
     private ProductVariantRepository variantRepository;
     @Mock
     private ProductImageRepository imageRepository;
+    @Mock
+    private ProductRepository productRepository;
+    @Mock
+    private BrandRepository brandRepository;
+    @Mock
+    private BrandPartnershipService brandPartnershipService;
     @Mock
     private WardrobeItemRepository wardrobeItemRepository;
     @Mock
@@ -56,9 +67,12 @@ class OutfitCompositionServiceTest {
         SizeResolutionService sizeResolutionService = new SizeResolutionService(sizeChartRepository, variantRepository);
         ProductAudienceService audienceService = new ProductAudienceService(tagRepository);
         service = new OutfitCompositionService(
-                variantRepository, imageRepository, wardrobeItemRepository, eligibilityService, sizeResolutionService,
+                variantRepository, imageRepository, productRepository, brandRepository, brandPartnershipService,
+                wardrobeItemRepository, eligibilityService, sizeResolutionService,
                 new OutfitExplanationComposer(), audienceService);
         when(tagRepository.findByProductId(any())).thenReturn(List.of());
+        when(brandRepository.findById(any())).thenReturn(Optional.empty());
+        when(brandPartnershipService.findPartnerBrandIds(any())).thenReturn(Set.of());
         body = BodyProfile.builder().heightCm(165).weightKg(BigDecimal.valueOf(55)).build();
         style = StyleProfile.builder().primaryStyle("Casual").build();
         when(variantRepository.findByProductId(any())).thenReturn(List.of());

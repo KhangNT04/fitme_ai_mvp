@@ -25,7 +25,6 @@ import { consumerPageShellClass } from "@/lib/design-tokens";
 import { getUserErrorMessage } from "@/lib/user-error-message";
 import { toast } from "@/stores/toast-store";
 import type { BodyProfileForm } from "@/utils/validators";
-import { STYLIST_STARTER_PENDING_KEY } from "@/types/stylist-chat";
 
 function BodyProfilePageContent() {
   const router = useRouter();
@@ -72,8 +71,7 @@ function BodyProfilePageContent() {
       }
 
       clearChat();
-      sessionStorage.setItem(STYLIST_STARTER_PENDING_KEY, "1");
-      router.push("/ai/chat");
+      router.push("/ai/vibe-quiz");
     } catch (e) {
       toast.error(getUserErrorMessage(e, "Không lưu được hồ sơ. Vui lòng thử lại."));
     } finally {

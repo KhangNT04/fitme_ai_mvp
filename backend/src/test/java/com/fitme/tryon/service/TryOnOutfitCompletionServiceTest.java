@@ -44,7 +44,7 @@ class TryOnOutfitCompletionServiceTest {
                 mock(SizeChartRepository.class),
                 null);
         OutfitCompositionService composition = new OutfitCompositionService(
-                null, null, null, null, null, new OutfitExplanationComposer(),
+                null, null, null, null, null, null, null, null, new OutfitExplanationComposer(),
                 new ProductAudienceService(mock(com.fitme.product.repository.ProductTagRepository.class)));
         service = new TryOnOutfitCompletionService(
                 productRepository, eligibilityService, composition, brandRepository, null);

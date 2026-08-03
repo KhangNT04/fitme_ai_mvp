@@ -3,7 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Camera, ChevronDown, Save } from "lucide-react";
+import { Camera, ChevronDown, Save, ThumbsDown, ThumbsUp } from "lucide-react";
 import { ProductCard } from "@/components/common/ProductCard";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -15,6 +15,7 @@ import { productDetailFromAiChatHref } from "@/lib/nav-context";
 import { productApi } from "@/services/product-api";
 import { recommendationApi } from "@/services/recommendation-api";
 import { toast } from "@/stores/toast-store";
+import { getUserErrorMessage } from "@/lib/user-error-message";
 import type { OutfitItem, RecommendationResult } from "@/types/outfit";
 
 function RecommendedProductCard({ item }: { item: OutfitItem }) {
@@ -103,6 +104,7 @@ export function ChatOutfitCard({
 }: ChatOutfitCardProps) {
   const router = useRouter();
   const [saving, setSaving] = useState(false);
+  const [feedback, setFeedback] = useState<"LIKE" | "DISLIKE" | null>(null);
   const [expanded, setExpanded] = useState(() =>
     initialExpanded(recommendation.id, defaultExpanded),
   );
@@ -122,11 +124,26 @@ export function ChatOutfitCard({
     setSaving(true);
     try {
       await recommendationApi.save(recommendation.id);
-      toast.success("Đã lưu gợi ý");
+      toast.success("Đã lưu gợi ý — FitMe sẽ nhớ vibe này hơn");
     } catch {
       toast.error("Không lưu được gợi ý.");
     } finally {
       setSaving(false);
+    }
+  };
+
+  const handleFeedback = async (rating: "LIKE" | "DISLIKE") => {
+    if (feedback) return;
+    try {
+      await recommendationApi.feedback(recommendation.id, rating);
+      setFeedback(rating);
+      toast.success(
+        rating === "LIKE"
+          ? "Đã thích — lần sau FitMe nghiêng về vibe này hơn"
+          : "Đã ghi nhận — sẽ ít gợi ý kiểu này hơn",
+      );
+    } catch (e) {
+      toast.error(getUserErrorMessage(e, "Không gửi được feedback."));
     }
   };
 
@@ -149,6 +166,11 @@ export function ChatOutfitCard({
         </div>
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-1.5">
+            {recommendation.coherenceLabel && (
+              <Badge className="bg-primary/15 text-[10px] text-primary hover:bg-primary/15">
+                {recommendation.coherenceLabel}
+              </Badge>
+            )}
             {recommendation.styleLabel && (
               <Badge variant="secondary" className="text-[10px]">
                 {recommendation.styleLabel}
@@ -235,6 +257,30 @@ export function ChatOutfitCard({
             >
               <Save className="h-3.5 w-3.5" />
               Lưu
+            </Button>
+            <Button
+              type="button"
+              size="sm"
+              variant={feedback === "LIKE" ? "secondary" : "ghost"}
+              className="gap-1.5"
+              disabled={feedback !== null}
+              onClick={() => void handleFeedback("LIKE")}
+              aria-label="Thích outfit"
+            >
+              <ThumbsUp className="h-3.5 w-3.5" />
+              Thích
+            </Button>
+            <Button
+              type="button"
+              size="sm"
+              variant={feedback === "DISLIKE" ? "secondary" : "ghost"}
+              className="gap-1.5"
+              disabled={feedback !== null}
+              onClick={() => void handleFeedback("DISLIKE")}
+              aria-label="Không thích outfit"
+            >
+              <ThumbsDown className="h-3.5 w-3.5" />
+              Pass
             </Button>
           </div>
         </>

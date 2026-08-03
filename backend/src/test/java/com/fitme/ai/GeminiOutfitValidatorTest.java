@@ -33,6 +33,7 @@ import java.util.UUID;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -63,7 +64,10 @@ class GeminiOutfitValidatorTest {
     @BeforeEach
     void setUp() {
         OutfitCompositionService composition = new OutfitCompositionService(
-                variantRepository, imageRepository, wardrobeItemRepository, eligibilityService, sizeResolutionService,
+                variantRepository, imageRepository, mock(com.fitme.product.repository.ProductRepository.class),
+                mock(com.fitme.brand.repository.BrandRepository.class),
+                mock(com.fitme.brand.service.BrandPartnershipService.class),
+                wardrobeItemRepository, eligibilityService, sizeResolutionService,
                 new OutfitExplanationComposer(), new ProductAudienceService(tagRepository));
         validator = new GeminiOutfitValidator(
                 composition, sizeResolutionService, eligibilityService, productAudienceService);

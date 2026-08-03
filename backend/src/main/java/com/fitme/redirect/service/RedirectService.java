@@ -23,8 +23,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.fitme.common.util.UrlValidator;
+import com.fitme.preference.service.PreferenceLearningService;
 
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 @Service
@@ -37,6 +39,7 @@ public class RedirectService {
     private final FlaggedLinkRepository flaggedLinkRepository;
     private final ProductRepository productRepository;
     private final AnalyticsService analyticsService;
+    private final PreferenceLearningService preferenceLearningService;
 
     @Transactional
     public BuyClickResponse processBuyClick(BuyClickRequest request) {
@@ -71,7 +74,11 @@ public class RedirectService {
 
         analyticsService.track("BUY_CLICKED", event.getUserId(), event.getSessionId(),
                 product.getBrandId(), product.getId(), request.getRecommendationId(),
-                request.getTryOnRequestId(), null);
+                request.getTryOnRequestId(), Map.of("channel", event.getChannel()));
+        analyticsService.track("REDIRECT_CLICK", event.getUserId(), event.getSessionId(),
+                product.getBrandId(), product.getId(), request.getRecommendationId(),
+                request.getTryOnRequestId(), Map.of("channel", event.getChannel()));
+        preferenceLearningService.applyRedirectSignal(product.getBrandId(), request.getSelectedColor());
 
         return BuyClickResponse.builder()
                 .eventId(event.getId())

@@ -36,6 +36,7 @@ import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -68,7 +69,9 @@ class StylistContextBuilderTest {
         FitMeProperties properties = new FitMeProperties();
         properties.getAi().setStylistCandidateLimit(2);
         OutfitCompositionService composition = new OutfitCompositionService(
-                variantRepository, imageRepository, wardrobeItemRepository, eligibilityService, sizeResolutionService,
+                variantRepository, imageRepository, mock(com.fitme.product.repository.ProductRepository.class),
+                brandRepository, mock(com.fitme.brand.service.BrandPartnershipService.class),
+                wardrobeItemRepository, eligibilityService, sizeResolutionService,
                 new OutfitExplanationComposer(), productAudienceService);
         builder = new StylistContextBuilder(
                 new ObjectMapper(),

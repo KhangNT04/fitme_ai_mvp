@@ -36,6 +36,7 @@ import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -71,7 +72,9 @@ class GeminiStylistServiceTest {
         properties.getAi().setGeminiApiKey("test-key");
 
         OutfitCompositionService composition = new OutfitCompositionService(
-                variantRepository, imageRepository, wardrobeItemRepository, eligibilityService, sizeResolutionService,
+                variantRepository, imageRepository, mock(com.fitme.product.repository.ProductRepository.class),
+                brandRepository, mock(com.fitme.brand.service.BrandPartnershipService.class),
+                wardrobeItemRepository, eligibilityService, sizeResolutionService,
                 new OutfitExplanationComposer(), productAudienceService);
         StylistContextBuilder contextBuilder = new StylistContextBuilder(
                 new ObjectMapper(),

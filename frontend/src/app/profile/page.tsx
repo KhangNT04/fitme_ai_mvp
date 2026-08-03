@@ -12,6 +12,7 @@ import {
   Ruler,
   LogOut,
   Pencil,
+  Wallet,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { useAuthStore } from "@/stores/auth-store";
@@ -34,6 +35,20 @@ const hubLinks = [
     description: "Quản lý item cá nhân",
     icon: Shirt,
     accent: "bg-violet-500/10 text-violet-700",
+  },
+  {
+    href: "/profile/purchases",
+    label: "Tủ chi tiêu",
+    description: "Click mua & nơi mua lại",
+    icon: Wallet,
+    accent: "bg-amber-500/10 text-amber-700",
+  },
+  {
+    href: "/pricing",
+    label: "FitMe Free & Plus",
+    description: "Demo toggle gói curated brand",
+    icon: Sparkles,
+    accent: "bg-sky-500/10 text-sky-700",
   },
   {
     href: "/saved-outfits",

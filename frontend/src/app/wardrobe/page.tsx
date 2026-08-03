@@ -27,7 +27,6 @@ const EMPTY_FORM = {
   itemType: "",
   category: "",
   color: "",
-  material: "",
   fit: "",
   styleTags: "",
 };
@@ -72,7 +71,6 @@ export default function WardrobePage() {
         itemType: form.itemType.trim(),
         category: form.category,
         color: form.color.trim(),
-        material: form.material.trim() || undefined,
         fit: form.fit.trim() || undefined,
         styleTags: form.styleTags.split(",").map((t) => t.trim()).filter(Boolean),
       });

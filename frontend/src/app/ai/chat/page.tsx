@@ -8,6 +8,7 @@ import { AI_FLOW_STEPS } from "@/components/layout/FlowStepper";
 import { LoadingSkeleton } from "@/components/common/LoadingSkeleton";
 import { ChatMessageList } from "@/components/stylist-chat/ChatMessageList";
 import { ChatComposer } from "@/components/stylist-chat/ChatComposer";
+import { PlusUpsellBanner } from "@/components/stylist-chat/PlusUpsellBanner";
 import { useEnsureSession } from "@/hooks/use-ensure-session";
 import { useBodyProfileReady } from "@/hooks/use-body-profile-ready";
 import { useConsumerStoresReady } from "@/hooks/use-consumer-stores-ready";
@@ -231,15 +232,16 @@ export default function AiChatPage() {
     <PageShell width="full" className={`${consumerPageShellClass} flex min-h-[70vh] flex-col`}>
       <FlowWizardToolbar
         steps={AI_FLOW_STEPS}
-        currentStep={2}
+        currentStep={3}
         title="Tư vấn outfit AI"
         subtitle="Chat với stylist — mô tả vibe, dịp mặc, nhận gợi ý ngay trong khung chat"
         showAiBadge
-        backHref="/ai/body-profile"
-        backLabel="Hồ sơ"
+        backHref="/ai/vibe-quiz"
+        backLabel="Vibe"
       />
 
       <div className="flex min-h-0 flex-1 flex-col gap-3">
+        <PlusUpsellBanner />
         <ChatMessageList
           messages={messages}
           showWelcome={showWelcome}

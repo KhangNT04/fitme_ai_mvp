@@ -49,6 +49,13 @@ public class BuyClickEvent {
 
     private String channel;
 
+    @Column(name = "purchased_confirmed", nullable = false)
+    @Builder.Default
+    private boolean purchasedConfirmed = false;
+
+    @Column(name = "purchased_confirmed_at")
+    private Instant purchasedConfirmedAt;
+
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;

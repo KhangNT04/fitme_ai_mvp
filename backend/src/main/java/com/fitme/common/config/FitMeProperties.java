@@ -15,6 +15,18 @@ public class FitMeProperties {
     private Payos payos = new Payos();
     private Ai ai = new Ai();
     private Storage storage = new Storage();
+    private Consumer consumer = new Consumer();
+
+    @Data
+    public static class Consumer {
+        /** When false, all users get Plus coherence (dev escape hatch). */
+        private boolean entitlementEnabled = true;
+        private String freeCoherenceMode = "OFF";
+        private String plusCoherenceMode = "PREFER";
+        /** Multiplier on learned preference weights (Free vs Plus personalization depth). */
+        private double freePreferenceScale = 1.0;
+        private double plusPreferenceScale = 1.75;
+    }
 
     @Data
     public static class Ai {

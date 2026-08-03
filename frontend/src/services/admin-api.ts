@@ -127,7 +127,25 @@ export const adminApi = {
     const res = await apiClient.get("/admin/try-on/failed-previews");
     return unwrap(res);
   },
+  getBrandPartnerships: async (): Promise<BrandPartnership[]> => {
+    const res = await apiClient.get("/admin/brand-partnerships");
+    const data = unwrap(res) as BrandPartnership[];
+    return Array.isArray(data) ? data : [];
+  },
+  createBrandPartnership: async (brandAId: string, brandBId: string): Promise<BrandPartnership> => {
+    const res = await apiClient.post("/admin/brand-partnerships", { brandAId, brandBId });
+    return unwrap(res);
+  },
 };
+
+export interface BrandPartnership {
+  id: string;
+  brandAId: string;
+  brandBId: string;
+  status: string;
+  createdAt?: string;
+  updatedAt?: string;
+}
 
 export function getProductModerationWarnings(product: Product): string[] {
   const warnings: string[] = [];

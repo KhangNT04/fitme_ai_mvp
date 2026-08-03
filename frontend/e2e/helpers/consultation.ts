@@ -57,6 +57,48 @@ export async function fillOccasion(_page: Page, _wardrobeModeLabel?: string) {
   /* no-op */
 }
 
+/** Resolve /ai/start gate and complete body/vibe steps until chat is ready. */
+export async function ensureReachedAiChat(page: Page) {
+  if (!page.url().includes("/ai/")) {
+    await page.goto("/ai/start");
+  }
+
+  // Never treat /ai/start as done — wait until the gate redirects.
+  if (page.url().includes("/ai/start")) {
+    await page.waitForURL(/\/ai\/(body-profile|vibe-quiz|chat)/, { timeout: 45_000 });
+  } else if (!/\/ai\/(body-profile|vibe-quiz|chat)/.test(page.url())) {
+    await page.waitForURL(/\/ai\/(body-profile|vibe-quiz|chat|start)/, { timeout: 30_000 });
+    if (page.url().includes("/ai/start")) {
+      await page.waitForURL(/\/ai\/(body-profile|vibe-quiz|chat)/, { timeout: 45_000 });
+    }
+  }
+
+  // Chat can bounce to body-profile when the account has no usable profile yet.
+  if (page.url().includes("/ai/chat")) {
+    const bouncedToBody = await page
+      .waitForURL(/\/ai\/body-profile/, { timeout: 5_000 })
+      .then(() => true)
+      .catch(() => false);
+    if (!bouncedToBody) {
+      await expect(page.getByRole("heading", { name: "Tư vấn outfit AI" })).toBeVisible({
+        timeout: 15_000,
+      });
+      return;
+    }
+  }
+
+  if (page.url().includes("/ai/body-profile")) {
+    await fillBodyProfile(page);
+  } else if (page.url().includes("/ai/vibe-quiz")) {
+    await fillVibeQuiz(page);
+  }
+
+  await expect(page).toHaveURL(/\/ai\/chat/, { timeout: 30_000 });
+  await expect(page.getByRole("heading", { name: "Tư vấn outfit AI" })).toBeVisible({
+    timeout: 15_000,
+  });
+}
+
 /** Expand a collapsed chat outfit card so Try-on / Save actions are visible. */
 export async function expandOutfitCard(page: Page, card = page.locator("[data-recommendation-id]").first()) {
   const expandBtn = card.getByRole("button", { name: "Xem chi tiết" });

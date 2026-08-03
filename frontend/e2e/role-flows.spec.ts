@@ -2,9 +2,8 @@ import { test, expect } from "@playwright/test";
 import { loginUser, loginBrand, loginAdmin, DEMO_PASSWORD } from "./helpers/auth";
 import {
   completeConsultationToResult,
-  expandOutfitCard,
-  fillBodyProfile,
-  fillVibeQuiz,
+  ensureReachedAiChat,
+  waitForExpandedOutfitResult,
 } from "./helpers/consultation";
 import { fillBrandProductForm } from "./helpers/brand";
 import { BRAND_PAGES, ADMIN_PAGES, expectPageHeading } from "./helpers/portal";
@@ -85,29 +84,10 @@ test.describe("Luồng USER", () => {
     const productId = await getFirstProductIdFromDiscover(page);
     await page.goto(`/products/${productId}`);
     await page.getByRole("button", { name: /Tư vấn size & phối đồ bằng AI/ }).click();
-    await page.waitForURL(/\/ai\/(body-profile|vibe-quiz|chat|start)/);
-    if (page.url().includes("body-profile")) {
-      await fillBodyProfile(page);
-    } else if (page.url().includes("vibe-quiz")) {
-      await fillVibeQuiz(page);
-    }
-    await page.waitForURL("**/ai/chat", { timeout: 30_000 });
-    await expect(page.getByRole("heading", { name: "Tư vấn outfit AI" })).toBeVisible({
-      timeout: 15_000,
-    });
+    await ensureReachedAiChat(page);
 
     const outfitCard = page.locator("[data-recommendation-id]").first();
-    const hasStarter = await outfitCard
-      .waitFor({ state: "visible", timeout: 90_000 })
-      .then(() => true)
-      .catch(() => false);
-    if (!hasStarter) {
-      await expect(page.getByLabel("Tin nhắn tư vấn")).toBeEnabled({ timeout: 30_000 });
-      await page.getByLabel("Tin nhắn tư vấn").fill("Outfit đi làm văn phòng thanh lịch");
-      await page.getByRole("button", { name: "Gửi" }).click();
-      await expect(outfitCard).toBeVisible({ timeout: 120_000 });
-    }
-    await expandOutfitCard(page, outfitCard);
+    await waitForExpandedOutfitResult(page);
     await expect(outfitCard.getByRole("button", { name: "Lưu" })).toBeVisible({
       timeout: 15_000,
     });
@@ -138,16 +118,7 @@ test.describe("Luồng USER", () => {
     await expect(page.getByRole("heading", { name: itemName }).first()).toBeVisible({ timeout: 15_000 });
 
     await page.goto("/ai/start");
-    await page.waitForURL(/\/ai\/(body-profile|vibe-quiz|chat)/, { timeout: 30_000 });
-    if (page.url().includes("body-profile")) {
-      await fillBodyProfile(page);
-    } else if (page.url().includes("vibe-quiz")) {
-      await fillVibeQuiz(page);
-    }
-    await page.waitForURL("**/ai/chat", { timeout: 30_000 });
-    await expect(page.getByRole("heading", { name: "Tư vấn outfit AI" })).toBeVisible({
-      timeout: 15_000,
-    });
+    await ensureReachedAiChat(page);
   });
 });
 

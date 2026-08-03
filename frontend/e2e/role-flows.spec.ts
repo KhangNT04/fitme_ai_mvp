@@ -2,6 +2,7 @@ import { test, expect } from "@playwright/test";
 import { loginUser, loginBrand, loginAdmin, DEMO_PASSWORD } from "./helpers/auth";
 import {
   completeConsultationToResult,
+  expandOutfitCard,
   fillBodyProfile,
   fillVibeQuiz,
 } from "./helpers/consultation";
@@ -21,7 +22,7 @@ import {
 } from "./helpers/roles";
 
 test.describe.configure({ mode: "serial" });
-test.setTimeout(120_000);
+test.setTimeout(180_000);
 
 test.describe("Luồng công khai (không đăng nhập)", () => {
   test("tư vấn outfit ẩn danh → kết quả AI", async ({ page }) => {
@@ -95,10 +96,20 @@ test.describe("Luồng USER", () => {
       timeout: 15_000,
     });
 
-    await page.getByLabel("Tin nhắn tư vấn").fill("Outfit đi làm văn phòng thanh lịch");
-    await page.getByRole("button", { name: "Gửi" }).click();
-    await expect(page.getByRole("button", { name: "Lưu" }).first()).toBeVisible({
-      timeout: 120_000,
+    const outfitCard = page.locator("[data-recommendation-id]").first();
+    const hasStarter = await outfitCard
+      .waitFor({ state: "visible", timeout: 90_000 })
+      .then(() => true)
+      .catch(() => false);
+    if (!hasStarter) {
+      await expect(page.getByLabel("Tin nhắn tư vấn")).toBeEnabled({ timeout: 30_000 });
+      await page.getByLabel("Tin nhắn tư vấn").fill("Outfit đi làm văn phòng thanh lịch");
+      await page.getByRole("button", { name: "Gửi" }).click();
+      await expect(outfitCard).toBeVisible({ timeout: 120_000 });
+    }
+    await expandOutfitCard(page, outfitCard);
+    await expect(outfitCard.getByRole("button", { name: "Lưu" })).toBeVisible({
+      timeout: 15_000,
     });
 
     const saveResponse = page.waitForResponse(
@@ -108,7 +119,7 @@ test.describe("Luồng USER", () => {
         resp.request().method() === "POST" &&
         resp.status() === 200,
     );
-    await page.getByRole("button", { name: "Lưu" }).first().click();
+    await outfitCard.getByRole("button", { name: "Lưu" }).click();
     await saveResponse;
     await page.goto("/saved-outfits");
     await expect(page.getByRole("heading", { name: "Đã lưu" })).toBeVisible({ timeout: 15_000 });

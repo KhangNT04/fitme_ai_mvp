@@ -1,5 +1,5 @@
 import { test, expect } from "@playwright/test";
-import { completeConsultationToResult } from "./helpers/consultation";
+import { completeConsultationToResult, expandOutfitCard } from "./helpers/consultation";
 
 test.describe.configure({ mode: "serial" });
 
@@ -26,6 +26,7 @@ test.describe("AI chat outfit actions", () => {
 
   test("mặc thử outfit navigates to try-on input", async ({ page }) => {
     await completeConsultationToResult(page);
+    await expandOutfitCard(page);
     await page.getByRole("button", { name: "Mặc thử outfit" }).first().click();
     await page.waitForURL("**/try-on/input", { timeout: 15_000 });
     await expect(page.getByRole("heading", { name: /thông tin|thử mặc/i }).or(

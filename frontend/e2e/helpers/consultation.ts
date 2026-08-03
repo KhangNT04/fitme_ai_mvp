@@ -57,7 +57,37 @@ export async function fillOccasion(_page: Page, _wardrobeModeLabel?: string) {
   /* no-op */
 }
 
-/** Full anonymous consultation through body profile → chat with an outfit reply.
+/** Expand a collapsed chat outfit card so Try-on / Save actions are visible. */
+export async function expandOutfitCard(page: Page, card = page.locator("[data-recommendation-id]").first()) {
+  const expandBtn = card.getByRole("button", { name: "Xem chi tiết" });
+  if (await expandBtn.isVisible().catch(() => false)) {
+    await expandBtn.click();
+  }
+  await expect(card.getByRole("button", { name: "Mặc thử outfit" })).toBeVisible({
+    timeout: 15_000,
+  });
+  return card;
+}
+
+/** Wait for an outfit card (starter or chat reply), expand it, return recommendation id. */
+export async function waitForExpandedOutfitResult(page: Page): Promise<string | null> {
+  const card = page.locator("[data-recommendation-id]").first();
+  const appeared = await card
+    .waitFor({ state: "visible", timeout: 60_000 })
+    .then(() => true)
+    .catch(() => false);
+  if (!appeared) {
+    await expect(page.getByLabel("Tin nhắn tư vấn")).toBeEnabled({ timeout: 30_000 });
+    const prompt = "Mình muốn outfit streetwear thoải mái đi cafe cuối tuần";
+    await page.getByLabel("Tin nhắn tư vấn").fill(prompt);
+    await page.getByRole("button", { name: "Gửi" }).click();
+    await expect(card).toBeVisible({ timeout: 120_000 });
+  }
+  await expandOutfitCard(page, card);
+  return (await card.getAttribute("data-recommendation-id")) ?? null;
+}
+
+/** Full anonymous consultation through body profile → vibe → chat with an outfit reply.
  * Returns first recommendation id when available.
  */
 export async function completeConsultationToResult(page: Page): Promise<string | null> {
@@ -74,16 +104,8 @@ export async function completeConsultationToResult(page: Page): Promise<string |
     timeout: 15_000,
   });
 
-  const prompt = "Mình muốn outfit streetwear thoải mái đi cafe cuối tuần";
-  await page.getByLabel("Tin nhắn tư vấn").fill(prompt);
-  await page.getByRole("button", { name: "Gửi" }).click();
-
-  await expect(page.getByRole("button", { name: "Mặc thử outfit" }).first()).toBeVisible({
-    timeout: 120_000,
-  });
-
-  const card = page.locator("[data-recommendation-id]").first();
-  return (await card.getAttribute("data-recommendation-id")) ?? null;
+  // Vibe quiz sets starter-outfits pending — prefer those; fall back to sending a prompt.
+  return waitForExpandedOutfitResult(page);
 }
 
 export async function ensureSessionViaHome(page: Page) {

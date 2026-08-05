@@ -34,6 +34,8 @@ import java.util.concurrent.ThreadLocalRandom;
 public class BrandBillingService {
 
     private static final Logger log = LoggerFactory.getLogger(BrandBillingService.class);
+    /** Demo brands keep a year of runway so seeded databases never show an expired plan. */
+    private static final int SEED_SUBSCRIPTION_DAYS = 365;
 
     private final BillingPlanRepository planRepository;
     private final BrandBillingOrderRepository orderRepository;
@@ -157,22 +159,30 @@ public class BrandBillingService {
         quotaService.grantFromOrder(order);
     }
 
+    /**
+     * Demo entitlement for seeded brands: grants quota when missing and keeps the plan
+     * far from expiry so brand dashboards work on databases seeded months earlier.
+     * Brands an admin cancelled are left untouched.
+     */
     @Transactional
     public void grantSeedEntitlement(UUID brandId, String planCode) {
-        if (quotaService.hasTryOnQuota(brandId)) {
+        if (quotaService.isBillingCancelled(brandId)) {
             return;
         }
-        BillingPlan plan = planRepository.findByCode(planCode)
-                .orElseThrow(() -> new NotFoundException("Gói seed không tồn tại: " + planCode));
-        BrandBillingOrder order = BrandBillingOrder.builder()
-                .brandId(brandId)
-                .planId(plan.getId())
-                .amountVnd(0)
-                .status(BillingOrderStatus.PENDING)
-                .payosOrderCode(nextOrderCode())
-                .build();
-        order = orderRepository.save(order);
-        quotaService.grantFromOrder(order);
+        if (!quotaService.hasTryOnQuota(brandId) || !quotaService.hasDashboardAccess(brandId)) {
+            BillingPlan plan = planRepository.findByCode(planCode)
+                    .orElseThrow(() -> new NotFoundException("Gói seed không tồn tại: " + planCode));
+            BrandBillingOrder order = BrandBillingOrder.builder()
+                    .brandId(brandId)
+                    .planId(plan.getId())
+                    .amountVnd(0)
+                    .status(BillingOrderStatus.PENDING)
+                    .payosOrderCode(nextOrderCode())
+                    .build();
+            order = orderRepository.save(order);
+            quotaService.grantFromOrder(order);
+        }
+        quotaService.extendSeedSubscription(brandId, SEED_SUBSCRIPTION_DAYS);
     }
 
     private long nextOrderCode() {

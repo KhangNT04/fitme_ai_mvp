@@ -2,7 +2,10 @@ package com.fitme.billing;
 
 import com.fitme.AbstractIntegrationTest;
 import com.fitme.billing.repository.BillingPlanRepository;
+import com.fitme.billing.repository.BrandSubscriptionRepository;
+import com.fitme.billing.service.BrandBillingService;
 import com.fitme.billing.service.BrandQuotaService;
+import com.fitme.common.enums.BrandSubscriptionStatus;
 import com.fitme.common.security.FitMeUserPrincipal;
 import com.fitme.product.entity.Product;
 import com.fitme.product.repository.ProductRepository;
@@ -12,6 +15,8 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -31,6 +36,10 @@ class BrandBillingIntegrationTest extends AbstractIntegrationTest {
     private BrandQuotaService brandQuotaService;
     @Autowired
     private ProductRepository productRepository;
+    @Autowired
+    private BrandBillingService brandBillingService;
+    @Autowired
+    private BrandSubscriptionRepository brandSubscriptionRepository;
 
     private FitMeUserPrincipal brandPrincipal;
     private UUID brandId;
@@ -86,6 +95,37 @@ class BrandBillingIntegrationTest extends AbstractIntegrationTest {
         brandQuotaService.refreshBrandProductEligibility(productBrandId);
         Product refreshed = productRepository.findById(product.getId()).orElseThrow();
         assertThat(refreshed.isAiTryOnEligible()).isTrue();
+    }
+
+    @Test
+    void grantSeedEntitlement_renewsExpiredDemoSubscription() {
+        brandBillingService.grantSeedEntitlement(brandId, "SUB_GROWTH");
+        assertThat(brandQuotaService.hasDashboardAccess(brandId)).isTrue();
+
+        var subscription = brandSubscriptionRepository.findByBrandId(brandId).orElseThrow();
+        subscription.setStatus(BrandSubscriptionStatus.EXPIRED);
+        subscription.setExpiresAt(Instant.now().minus(5, ChronoUnit.DAYS));
+        brandSubscriptionRepository.save(subscription);
+        assertThat(brandQuotaService.hasDashboardAccess(brandId)).isFalse();
+
+        brandBillingService.grantSeedEntitlement(brandId, "SUB_GROWTH");
+
+        assertThat(brandQuotaService.hasDashboardAccess(brandId)).isTrue();
+        assertThat(brandSubscriptionRepository.findByBrandId(brandId).orElseThrow().getExpiresAt())
+                .isAfter(Instant.now().plus(300, ChronoUnit.DAYS));
+    }
+
+    @Test
+    void grantSeedEntitlement_doesNotRevivePlanCancelledByAdmin() {
+        brandBillingService.grantSeedEntitlement(brandId, "SUB_GROWTH");
+        brandQuotaService.deactivateBrandBilling(brandId, "admin revoke");
+
+        brandBillingService.grantSeedEntitlement(brandId, "SUB_GROWTH");
+
+        assertThat(brandQuotaService.hasDashboardAccess(brandId)).isFalse();
+        assertThat(brandQuotaService.hasTryOnQuota(brandId)).isFalse();
+        assertThat(brandSubscriptionRepository.findByBrandId(brandId).orElseThrow().getStatus())
+                .isEqualTo(BrandSubscriptionStatus.CANCELLED);
     }
 
     @Test

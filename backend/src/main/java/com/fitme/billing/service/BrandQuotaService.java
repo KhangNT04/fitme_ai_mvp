@@ -54,6 +54,39 @@ public class BrandQuotaService {
         return getOrCreateBalance(brandId).totalRemaining() > 0;
     }
 
+    /** True when an admin cancelled billing for this brand; seed must not revive it. */
+    public boolean isBillingCancelled(UUID brandId) {
+        return subscriptionRepository.findByBrandId(brandId)
+                .map(s -> s.getStatus() == BrandSubscriptionStatus.CANCELLED)
+                .orElse(false);
+    }
+
+    /**
+     * Keeps a demo/seed subscription valid for at least {@code minRemainingDays} so brand
+     * dashboards stay open across long-lived local and staging databases.
+     */
+    @Transactional
+    public void extendSeedSubscription(UUID brandId, int minRemainingDays) {
+        subscriptionRepository.findByBrandId(brandId).ifPresent(subscription -> {
+            if (subscription.getStatus() == BrandSubscriptionStatus.CANCELLED) {
+                return;
+            }
+            Instant minExpiry = Instant.now().plus(minRemainingDays, ChronoUnit.DAYS);
+            boolean changed = false;
+            if (subscription.getStatus() != BrandSubscriptionStatus.ACTIVE) {
+                subscription.setStatus(BrandSubscriptionStatus.ACTIVE);
+                changed = true;
+            }
+            if (subscription.getExpiresAt() == null || subscription.getExpiresAt().isBefore(minExpiry)) {
+                subscription.setExpiresAt(minExpiry);
+                changed = true;
+            }
+            if (changed) {
+                subscriptionRepository.save(subscription);
+            }
+        });
+    }
+
     public boolean hasDashboardAccess(UUID brandId) {
         return subscriptionRepository.findByBrandId(brandId)
                 .filter(s -> s.getStatus() == BrandSubscriptionStatus.ACTIVE)

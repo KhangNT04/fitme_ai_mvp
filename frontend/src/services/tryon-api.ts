@@ -147,10 +147,6 @@ export const tryonApi = {
     const res = await apiClient.post(`/try-on/requests/${id}/variants/size`, { size });
     return mapTryOnResult(unwrap(res) as RawTryOnResult);
   },
-  variantForm: async (id: string, form: string): Promise<TryOnResult> => {
-    const res = await apiClient.post(`/try-on/requests/${id}/variants/form`, { form });
-    return mapTryOnResult(unwrap(res) as RawTryOnResult);
-  },
   save: async (id: string): Promise<void> => {
     await apiClient.post(`/try-on/requests/${id}/save`);
   },

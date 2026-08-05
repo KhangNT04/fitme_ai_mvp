@@ -5,7 +5,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { useSearchParams } from "next/navigation";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Save, Palette, Ruler, Shirt } from "lucide-react";
+import { Save, Palette, Ruler } from "lucide-react";
 import { tryonApi } from "@/services/tryon-api";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -152,7 +152,7 @@ export default function TryOnResultPage({
           ) : (
             <Card>
               <CardContent className="p-6 text-sm text-muted-foreground">
-                Set đồ hiện tại đã cân đối — bạn có thể thử màu, size hoặc form khác bằng các nút bên dưới.
+                Set đồ hiện tại đã cân đối — bạn có thể thử màu hoặc size khác bằng các nút bên dưới.
               </CardContent>
             </Card>
           )}
@@ -161,10 +161,9 @@ export default function TryOnResultPage({
 
       <Disclaimer className="mt-6" />
 
-      <div className="mt-8 grid gap-3 sm:grid-cols-2">
+      <div className="mt-8 grid gap-3 sm:grid-cols-3">
         <Button variant="outline" asChild><Link href={`/try-on/color/${id}`}><Palette className="mr-2 h-4 w-4" />Thử màu khác</Link></Button>
         <Button variant="outline" asChild><Link href={`/try-on/size/${id}`}><Ruler className="mr-2 h-4 w-4" />Thử size khác</Link></Button>
-        <Button variant="outline" asChild><Link href={`/try-on/form/${id}`}><Shirt className="mr-2 h-4 w-4" />Thử form khác</Link></Button>
         <Button
           onClick={async () => {
             try {

@@ -17,21 +17,21 @@ export interface StylistChatMessage {
 }
 
 export const STYLIST_QUICK_PROMPTS = [
-  "Mình là nghệ sĩ đường phố, muốn outfit streetwear thoải mái đi cafe cuối tuần",
   "Đi làm văn phòng — thanh lịch nhưng không cứng",
-  "Weekend chill, phong cách minimal basic dễ mặc",
+  "Đi chơi cafe cuối tuần, thoải mái có điểm nhấn",
+  "Đi tập / thể thao, năng động cả ngày",
   "Hẹn hò buổi tối, muốn nổi bật tinh tế",
-  "Đi du lịch vài ngày, thoải mái và dễ mix",
-  "Tập gym / sporty, năng động cả ngày",
+  "Về quê vài ngày, dễ mặc và thoải mái",
+  "Mix với tủ đang có, ít mua thêm",
 ] as const;
 
 export const STYLIST_WELCOME =
-  "Bạn muốn tôi phối đồ cho bạn như thế nào?";
+  "Bạn muốn mình phối đồ thêm theo hướng nào?";
 
 export const STYLIST_STARTER_FOLLOW_UP =
-  "Bạn còn cần mình giúp gì không? Hãy nhập điều bạn muốn mặc, ví dụ “đi cafe cuối tuần, thoải mái” hoặc “đi tiệc, thanh lịch”. Mình sẽ phối outfit phù hợp ngay trong khung chat.";
+  "Còn cần chỉnh gì không? Gõ dịp mặc hoặc yêu cầu bên dưới — ví dụ “đi cafe, nhẹ nhàng” hoặc “họp sáng, lịch sự”. Mình sẽ phối thêm ngay trong khung chat.";
 
 export const STYLIST_STARTER_PENDING_KEY = "fitme-starter-outfits-pending";
 
 export const STYLIST_COMPOSER_PLACEHOLDER =
-  "VD: Mình là nghệ sĩ đường phố, muốn outfit streetwear thoải mái đi cafe cuối tuần...";
+  "VD: Đi làm fresher, thanh lịch nhưng vẫn năng động...";

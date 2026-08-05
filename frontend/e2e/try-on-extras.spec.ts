@@ -4,7 +4,7 @@ import { completeTryOnToResult } from "./helpers/tryon";
 test.describe("Try-on sub-pages", () => {
   test.setTimeout(180_000);
 
-  test("color, size, form comparison pages load from result", async ({ page }) => {
+  test("color and size comparison pages load from result", async ({ page }) => {
     const tryOnId = await completeTryOnToResult(page);
 
     await Promise.all([
@@ -19,13 +19,6 @@ test.describe("Try-on sub-pages", () => {
       page.getByRole("link", { name: "Thử size khác" }).click(),
     ]);
     await expect(page.getByRole("heading", { name: "So sánh size" })).toBeVisible();
-
-    await page.goto(`/try-on/result/${tryOnId}`);
-    await Promise.all([
-      page.waitForURL(new RegExp(`/try-on/form/${tryOnId}`)),
-      page.getByRole("link", { name: "Thử form khác" }).click(),
-    ]);
-    await expect(page.getByRole("heading", { name: "So sánh form" })).toBeVisible();
   });
 
   test("decision page loads from result", async ({ page }) => {

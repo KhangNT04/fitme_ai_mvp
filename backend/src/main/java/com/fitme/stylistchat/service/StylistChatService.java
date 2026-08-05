@@ -40,9 +40,9 @@ public class StylistChatService {
     private static final String OFF_TOPIC_TYPE = "off_topic";
     private static final String OUTFIT_OPTIONS_TYPE = "outfit_options";
     private static final List<StarterOutfitPreset> STARTER_OUTFITS = List.of(
-            new StarterOutfitPreset("Đi chơi", "Đi chơi cuối tuần", "Thoải mái, có điểm nhấn", "Streetwear"),
             new StarterOutfitPreset("Đi làm", "Đi làm", "Thanh lịch, gọn gàng", "Office Chic"),
-            new StarterOutfitPreset("Hằng ngày", "Casual hằng ngày", "Đơn giản, dễ mặc", "Minimal")
+            new StarterOutfitPreset("Đi chơi", "Đi chơi", "Thoải mái, có điểm nhấn", "Streetwear"),
+            new StarterOutfitPreset("Thể thao", "Tập gym", "Năng động, thoải mái", "Sporty")
     );
 
     private final TopicGuardService topicGuardService;
@@ -185,9 +185,10 @@ public class StylistChatService {
                 firstRequestId = result.options().getRequestId();
             }
             recommendations.add(recommendation);
-            String occasionTitle = "Outfit " + preset.label().toLowerCase() + " · " + preset.style();
+            String occasionTitle = "Outfit " + preset.label().toLowerCase();
             if (recommendation.getTitle() == null || recommendation.getTitle().isBlank()
-                    || recommendation.getTitle().startsWith("Outfit phong cách")) {
+                    || recommendation.getTitle().startsWith("Outfit phong cách")
+                    || recommendation.getTitle().contains(" · ")) {
                 recommendation.setTitle(occasionTitle);
             }
             options.add(RecommendationOptionsResponse.StyleOptionDto.builder()
@@ -204,7 +205,7 @@ public class StylistChatService {
                 .requestId(firstRequestId)
                 .assistantMessage(StylistChatMessageResponse.AssistantMessageDto.builder()
                         .type(OUTFIT_OPTIONS_TYPE)
-                        .content("Mình đã chuẩn bị 3 outfit cơ bản phù hợp với hồ sơ của bạn. Nhấn vào từng set để xem tư vấn chi tiết nhé.")
+                        .content("Mình đã chuẩn bị 3 style cơ bản: đi làm, đi chơi và thể thao — phù hợp hồ sơ của bạn. Xem set bên trên rồi chat thêm nếu cần nhé.")
                         .options(options)
                         .build())
                 .recommendations(recommendations)

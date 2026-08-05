@@ -99,7 +99,7 @@ export default function VibeQuizPage() {
       <div className="mx-auto max-w-lg space-y-8 pb-10">
         <section className="space-y-3">
           <h2 className="text-sm font-semibold text-foreground">Vibe gần bạn nhất</h2>
-          <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+          <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
             {VIBE_QUIZ_OPTIONS.map((opt) => {
               const selected = vibeId === opt.id;
               return (
@@ -140,9 +140,9 @@ export default function VibeQuizPage() {
 
         <section className="space-y-3">
           <div>
-            <h2 className="text-sm font-semibold text-foreground">Closet goal</h2>
+            <h2 className="text-sm font-semibold text-foreground">Mục tiêu tủ đồ</h2>
             <p className="mt-0.5 text-[11px] text-muted-foreground">
-              Bạn muốn tủ đồ đi theo hướng nào? (chọn nhiều, tùy chọn)
+              Tủ đồ muốn đi hướng nào thêm? (chọn nhiều, tùy chọn)
             </p>
           </div>
           <div className="flex flex-wrap gap-2">

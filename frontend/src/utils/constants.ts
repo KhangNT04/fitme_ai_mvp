@@ -78,52 +78,28 @@ export const WARDROBE_MODES = [
   { value: "NO_WARDROBE_DATA", label: "Không dùng tủ đồ" },
 ] as const;
 
-/** Gen Z vibe quiz — maps to style + soft risk for recommendations. */
+/** Gen Z vibe quiz — 3 dịp mặc chính; maps to style + soft risk for recommendations. */
 export const VIBE_QUIZ_OPTIONS = [
   {
-    id: "clean",
-    label: "Clean girl",
-    hint: "Gọn, sáng, dễ mặc đi học / cafe",
-    style: "Minimal",
-    riskLevel: "SAFE" as const,
-    mood: "clean",
-  },
-  {
-    id: "soft",
-    label: "Soft girl",
-    hint: "Nhẹ nhàng, pastel, nữ tính",
-    style: "Romantic",
-    riskLevel: "BALANCED" as const,
-    mood: "soft",
-  },
-  {
     id: "office",
-    label: "Office siren",
-    hint: "Thanh lịch, đi làm fresher",
+    label: "Văn phòng",
+    hint: "Thanh lịch, đi làm fresher vẫn thoải mái",
     style: "Office Chic",
     riskLevel: "BALANCED" as const,
     mood: "office",
   },
   {
-    id: "street",
-    label: "Street / cool",
-    hint: "Layer, sneaker, có điểm nhấn",
+    id: "outing",
+    label: "Đi chơi",
+    hint: "Cafe, hẹn hò, cuối tuần có điểm nhấn",
     style: "Streetwear",
-    riskLevel: "BOLD" as const,
-    mood: "street",
-  },
-  {
-    id: "korean",
-    label: "Korean casual",
-    hint: "Hàn nhẹ, phối set đồng bộ",
-    style: "Korean Casual",
     riskLevel: "BALANCED" as const,
-    mood: "korean",
+    mood: "outing",
   },
   {
     id: "sporty",
-    label: "Sporty chill",
-    hint: "Thoải mái, năng động cuối tuần",
+    label: "Thể thao",
+    hint: "Năng động, dễ vận động cả ngày",
     style: "Sporty",
     riskLevel: "SAFE" as const,
     mood: "sporty",
@@ -137,12 +113,11 @@ export const BUDGET_BANDS = [
   { value: "800-plus", label: "800k+" },
 ] as const;
 
+/** Optional closet goals — không trùng 3 vibe chính (văn phòng / đi chơi / thể thao). */
 export const CLOSET_GOAL_OPTIONS = [
-  "Capsule tối giản",
-  "Đi học / đi làm",
-  "Đi chơi cuối tuần",
   "Mix với tủ đang có",
-  "Thử vibe mới",
+  "Ít mua — chọn đồ bền",
+  "Ưu tiên mặc lại đồ cũ",
 ] as const;
 
 export const PRODUCT_CATEGORIES = [

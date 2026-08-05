@@ -22,7 +22,6 @@ const BOTTOM_NAV_HIDDEN_TRYON = [
   "/try-on/processing",
   "/try-on/result",
   "/try-on/size",
-  "/try-on/form",
   "/try-on/color",
   "/try-on/decision",
 ];

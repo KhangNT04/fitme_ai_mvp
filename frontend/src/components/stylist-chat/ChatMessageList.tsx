@@ -33,7 +33,7 @@ export function ChatMessageList({
           <ChatBubble role="assistant">
             <p>{STYLIST_WELCOME}</p>
             <p className="mt-2 text-xs text-muted-foreground">
-              Chọn gợi ý nhanh bên dưới hoặc mô tả vibe / dịp mặc của bạn.
+              Chọn gợi ý nhanh bên dưới hoặc mô tả dịp mặc / phong cách bạn muốn.
             </p>
           </ChatBubble>
           <ChatQuickPrompts onSelect={onQuickPrompt} disabled={quickPromptsDisabled} />

@@ -9,6 +9,7 @@ import { LoadingSkeleton } from "@/components/common/LoadingSkeleton";
 import { ChatMessageList } from "@/components/stylist-chat/ChatMessageList";
 import { ChatComposer } from "@/components/stylist-chat/ChatComposer";
 import { PlusUpsellBanner } from "@/components/stylist-chat/PlusUpsellBanner";
+import { StyleResultsBoard } from "@/components/stylist-chat/StyleResultsBoard";
 import { useEnsureSession } from "@/hooks/use-ensure-session";
 import { useBodyProfileReady } from "@/hooks/use-body-profile-ready";
 import { useConsumerStoresReady } from "@/hooks/use-consumer-stores-ready";
@@ -52,9 +53,12 @@ export default function AiChatPage() {
   const selectedProductId = useConsultationStore((s) => s.draft.selectedProductId);
   const messages = useStylistChatStore((s) => s.messages);
   const conversationId = useStylistChatStore((s) => s.conversationId);
+  const starterRecommendations = useStylistChatStore((s) => s.starterRecommendations);
   const addMessage = useStylistChatStore((s) => s.addMessage);
   const setConversationId = useStylistChatStore((s) => s.setConversationId);
+  const setStarterRecommendations = useStylistChatStore((s) => s.setStarterRecommendations);
   const [sending, setSending] = useState(false);
+  const [starterLoading, setStarterLoading] = useState(false);
   const [chatHydrated, setChatHydrated] = useState(false);
   const starterStartedRef = useRef(false);
 
@@ -99,30 +103,34 @@ export default function AiChatPage() {
     starterStartedRef.current = true;
     sessionStorage.removeItem(STYLIST_STARTER_PENDING_KEY);
     setSending(true);
+    setStarterLoading(true);
 
     void (async () => {
       try {
         await ensureSession();
         await ensureServerBodyProfile(profile);
         const result = await stylistChatApi.getStarterOutfits();
-        addMessage({
-          id: newId(),
-          role: "assistant",
-          type: result.type,
-          content: result.content,
-          createdAt: Date.now(),
-          requestId: result.requestId,
-          options: result.options,
-          recommendations: result.recommendations,
-          compactOutfits: true,
-        });
+        const boards = result.recommendations?.length
+          ? result.recommendations
+          : [];
+        setStarterRecommendations(boards);
         addMessage({
           id: newId(),
           role: "assistant",
           type: "text",
-          content: STYLIST_STARTER_FOLLOW_UP,
+          content: result.content || STYLIST_STARTER_FOLLOW_UP,
           createdAt: Date.now(),
+          requestId: result.requestId,
         });
+        if (result.content && result.content !== STYLIST_STARTER_FOLLOW_UP) {
+          addMessage({
+            id: newId(),
+            role: "assistant",
+            type: "text",
+            content: STYLIST_STARTER_FOLLOW_UP,
+            createdAt: Date.now(),
+          });
+        }
       } catch (error) {
         toast.error(getUserErrorMessage(error, "Không tạo được outfit ban đầu. Bạn vẫn có thể nhập yêu cầu bên dưới."));
         addMessage({
@@ -134,6 +142,7 @@ export default function AiChatPage() {
         });
       } finally {
         setSending(false);
+        setStarterLoading(false);
       }
     })();
   }, [
@@ -144,6 +153,7 @@ export default function AiChatPage() {
     profile,
     ensureSession,
     addMessage,
+    setStarterRecommendations,
   ]);
 
   const send = useCallback(
@@ -226,7 +236,8 @@ export default function AiChatPage() {
     );
   }
 
-  const showWelcome = messages.length === 0 && !sending;
+  const showBoards = starterLoading || starterRecommendations.length > 0;
+  const showWelcome = messages.length === 0 && !sending && !showBoards;
 
   return (
     <PageShell width="full" className={`${consumerPageShellClass} flex min-h-[70vh] flex-col`}>
@@ -234,26 +245,47 @@ export default function AiChatPage() {
         steps={AI_FLOW_STEPS}
         currentStep={3}
         title="Tư vấn outfit AI"
-        subtitle="Chat với stylist — mô tả vibe, dịp mặc, nhận gợi ý ngay trong khung chat"
+        subtitle="Xem 3 style cơ bản phía trên — chat thêm bên dưới nếu cần chỉnh"
         showAiBadge
         backHref="/ai/vibe-quiz"
         backLabel="Vibe"
       />
 
-      <div className="flex min-h-0 flex-1 flex-col gap-3">
+      <div className="flex min-h-0 flex-1 flex-col gap-4">
         <PlusUpsellBanner />
-        <ChatMessageList
-          messages={messages}
-          showWelcome={showWelcome}
-          onQuickPrompt={(p) => void send(p)}
-          quickPromptsDisabled={sending}
-        />
-        {sending && (
-          <p className="text-center text-xs text-muted-foreground">
-            Stylist đang phân tích hồ sơ và phối đồ…
-          </p>
+
+        {showBoards && (
+          <StyleResultsBoard
+            recommendations={starterRecommendations}
+            loading={starterLoading && starterRecommendations.length === 0}
+          />
         )}
-        <ChatComposer onSend={(m) => void send(m)} disabled={!ready} sending={sending} />
+
+        <div className="flex min-h-0 flex-1 flex-col gap-3 rounded-2xl border border-border/50 bg-background p-3 sm:p-4">
+          <div>
+            <h2 className="text-sm font-semibold text-foreground">Chat với stylist AI</h2>
+            <p className="text-[11px] text-muted-foreground">
+              Hỏi thêm về size, dịp mặc, hoặc muốn phối set khác
+            </p>
+          </div>
+          <ChatMessageList
+            messages={messages}
+            showWelcome={showWelcome}
+            onQuickPrompt={(p) => void send(p)}
+            quickPromptsDisabled={sending}
+          />
+          {sending && !starterLoading && (
+            <p className="text-center text-xs text-muted-foreground">
+              Stylist đang phân tích hồ sơ và phối đồ…
+            </p>
+          )}
+          {starterLoading && (
+            <p className="text-center text-xs text-muted-foreground">
+              Đang chuẩn bị 3 style cơ bản cho bạn…
+            </p>
+          )}
+          <ChatComposer onSend={(m) => void send(m)} disabled={!ready} sending={sending} />
+        </div>
       </div>
     </PageShell>
   );

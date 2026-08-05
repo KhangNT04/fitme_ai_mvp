@@ -78,7 +78,6 @@ export function labelForHref(href: string): string {
   if (path.startsWith("/products/")) return "Thông tin sản phẩm";
   if (path.startsWith("/try-on/result/")) return "Kết quả thử mặc AI";
   if (path.startsWith("/try-on/size/")) return "Kết quả thử mặc AI";
-  if (path.startsWith("/try-on/form/")) return "Kết quả thử mặc AI";
   if (path.startsWith("/try-on/color/")) return "Kết quả thử mặc AI";
   if (path.startsWith("/try-on/decision/")) return "Kết quả thử mặc AI";
   if (path.startsWith("/ai/options/")) return "Chọn phong cách";

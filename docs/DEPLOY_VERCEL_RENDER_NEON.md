@@ -90,7 +90,7 @@ Giữ `DB_USERNAME` và `DB_PASSWORD` riêng (không nhét vào URL).
 | `GEMINI_TIMEOUT_MS` | `25000` *(khuyến nghị trên Render)* |
 | `FITME_AI_MODE` | `hf` *(gọi ai-vton; `mock` chỉ dev local)* |
 | `AI_VTON_URL` | `https://fitme-ai-vton.onrender.com` |
-| `FITME_PUBLIC_BASE_URL` | URL backend Render (vd. `https://fitme-api.onrender.com`) |
+| `FITME_PUBLIC_BASE_URL` | URL backend Render (vd. `https://fitme-ai-mvp.onrender.com`) |
 | `FITME_STORAGE_MODE` | `r2` *(production VTON; `local` chỉ dev)* |
 | `R2_ENDPOINT` | `https://<account-id>.r2.cloudflarestorage.com` |
 | `R2_BUCKET` | `fitme-uploads` |
@@ -122,7 +122,7 @@ Giữ `DB_USERNAME` và `DB_PASSWORD` riêng (không nhét vào URL).
 3. Đăng ký webhook URL:
 
 ```
-https://fitme-api.onrender.com/api/v1/webhooks/payos
+https://fitme-ai-mvp.onrender.com/api/v1/webhooks/payos
 ```
 
 *(Thay `fitme-api` bằng URL Render thực tế nếu khác.)*
@@ -133,7 +133,7 @@ PayOS chỉ chờ ~10 giây; service free **ngủ** sau ~15 phút và cold start
 
 | Bước | Việc cần làm |
 |------|----------------|
-| 1 | Mở `https://fitme-api.onrender.com/actuator/health` — đợi `{"status":"UP"}` |
+| 1 | Mở `https://fitme-ai-mvp.onrender.com/actuator/health` — đợi `{"status":"UP"}` |
 | 2 | Trong **1–2 phút**, vào my.payos.vn → dán webhook URL → **Lưu** |
 | 3 | Không để tab PayOS idle lâu rồi mới bấm Lưu (service có thể ngủ lại) |
 
@@ -142,9 +142,9 @@ PayOS chỉ chờ ~10 giây; service free **ngủ** sau ~15 phút và cold start
 **Giữ service ấm (tùy chọn):** [UptimeRobot](https://uptimerobot.com) ping `/actuator/health` mỗi 5 phút. **Lâu dài:** nâng Render Starter nếu cần webhook thanh toán ổn định.
 
 5. **Create Web Service** — đợi build ~5–10 phút.
-6. Lấy URL backend, ví dụ: `https://fitme-api.onrender.com`
-7. Kiểm tra health: `https://fitme-api.onrender.com/actuator/health` → `{"status":"UP"}`
-8. Kiểm tra API: `https://fitme-api.onrender.com/api/v1/products` → JSON `success: true`.
+6. Lấy URL backend, ví dụ: `https://fitme-ai-mvp.onrender.com`
+7. Kiểm tra health: `https://fitme-ai-mvp.onrender.com/actuator/health` → `{"status":"UP"}`
+8. Kiểm tra API: `https://fitme-ai-mvp.onrender.com/api/v1/products` → JSON `success: true`.
 
 **Blueprint (tùy chọn):** repo có `render.yaml` → Render → **New Blueprint** → connect repo.
 
@@ -167,7 +167,7 @@ PayOS chỉ chờ ~10 giây; service free **ngủ** sau ~15 phút và cold start
 | Key | Value |
 |-----|--------|
 | `NEXT_PUBLIC_API_URL` | `/api/v1` |
-| `BACKEND_INTERNAL_URL` | `https://fitme-api.onrender.com` *(URL Render, không slash cuối)* |
+| `BACKEND_INTERNAL_URL` | `https://fitme-ai-mvp.onrender.com` *(URL Render, không slash cuối)* |
 | `JWT_SECRET` | **cùng giá trị với Render** *(portal middleware verify JWT; không dùng `NEXT_PUBLIC_`)* |
 
 4. **Deploy** → nhận URL ví dụ `https://fitme-ai-mvp.vercel.app`.
@@ -188,8 +188,8 @@ https://fitme-ai-mvp.vercel.app
 
 | Check | URL / cách |
 |-------|------------|
-| Backend health | `https://fitme-api.onrender.com/actuator/health` |
-| API trực tiếp | `https://fitme-api.onrender.com/api/v1/products` |
+| Backend health | `https://fitme-ai-mvp.onrender.com/actuator/health` |
+| API trực tiếp | `https://fitme-ai-mvp.onrender.com/api/v1/products` |
 | API qua Vercel proxy | `https://YOUR.vercel.app/api/v1/products` |
 | Trang chủ | `https://YOUR.vercel.app` |
 | Brand billing | `https://fitme-ai-mvp.vercel.app/brand/billing` |
@@ -317,6 +317,27 @@ Sau khi deploy xong, kiểm tra log Render có dòng `Refreshing fashion catalog
 | `VTON_PUBLIC_BASE_URL` | `https://fitme-ai-vton.onrender.com` |
 
 **Vercel:** `BACKEND_INTERNAL_URL` phải trùng URL Render để proxy `/api/v1` và `/uploads`.
+
+---
+
+## Troubleshooting AI stylist (chat & 3 set mở đầu)
+
+| Triệu chứng | Nguyên nhân thường gặp | Cách xử lý |
+|-------------|------------------------|------------|
+| `/ai/chat` chỉ hiện toast lỗi, không có bảng "3 style cơ bản" | `POST /stylist/chat/starter-outfits` sinh 3 outfit tuần tự; trên Render free (cold start + Gemini) vượt timeout 30s của client cũ | Đã fix: client dùng timeout riêng cho starter/generate; backend bỏ qua preset lỗi và vẫn trả các set còn lại |
+| Set gợi ý luôn `stylistSource: "rule"` | `GEMINI_API_KEY` chưa set trên Render → stylist Gemini bị tắt, fallback rule engine | Set `GEMINI_API_KEY` trong Render dashboard (blueprint để `sync: false`) rồi redeploy |
+| Starter trả thông báo "chưa phối được set gợi ý mở đầu" | Cả 3 preset fail (catalog rỗng, brand hết quota, Gemini lỗi) | Kiểm tra `/api/v1/products` có sản phẩm ACTIVE và brand còn quota try-on |
+| Brand analytics báo "Gói tháng đã hết hạn" | Subscription seed 30 ngày đã hết hạn trên DB seed từ lâu | Đã fix: seed tự gia hạn gói demo 365 ngày khi boot; redeploy backend hoặc admin cấp gói lại |
+
+**Checklist env Render (AI stylist):**
+
+| Biến | Bắt buộc |
+|------|----------|
+| `FITME_AI_STYLIST_MODE` | `gemini` (mặc định `rule`) |
+| `GEMINI_API_KEY` | **Có** — thiếu key thì mọi outfit dùng rule engine |
+| `GEMINI_MODEL` | `gemini-2.0-flash` |
+| `GEMINI_TIMEOUT_MS` | `25000` (Render free chậm) |
+| `GEMINI_CANDIDATE_LIMIT` | `30` |
 
 ---
 

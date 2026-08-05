@@ -144,21 +144,34 @@ function mapChatResponse(
   };
 }
 
+/**
+ * Outfit generation calls Gemini per style, so it runs far past the default client
+ * timeout on cold cloud instances. Starter builds three styles in one request.
+ */
+const CHAT_TIMEOUT_MS = 90_000;
+const STARTER_TIMEOUT_MS = 180_000;
+
 export const stylistChatApi = {
   sendMessage: async (params: SendStylistChatParams): Promise<StylistChatApiResult> => {
-    const res = await apiClient.post("/stylist/chat/messages", {
-      message: params.message,
-      conversationId: params.conversationId || undefined,
-      history: params.history,
-      selectedProductId: params.selectedProductId || undefined,
-      wardrobeMode: params.wardrobeMode || "NO_WARDROBE_DATA",
-    });
+    const res = await apiClient.post(
+      "/stylist/chat/messages",
+      {
+        message: params.message,
+        conversationId: params.conversationId || undefined,
+        history: params.history,
+        selectedProductId: params.selectedProductId || undefined,
+        wardrobeMode: params.wardrobeMode || "NO_WARDROBE_DATA",
+      },
+      { timeout: CHAT_TIMEOUT_MS },
+    );
     const data = unwrap(res) as BackendChatResponse;
     return mapChatResponse(data);
   },
 
   getStarterOutfits: async (): Promise<StylistChatApiResult> => {
-    const res = await apiClient.post("/stylist/chat/starter-outfits");
+    const res = await apiClient.post("/stylist/chat/starter-outfits", undefined, {
+      timeout: STARTER_TIMEOUT_MS,
+    });
     return mapChatResponse(unwrap(res) as BackendChatResponse, true);
   },
 

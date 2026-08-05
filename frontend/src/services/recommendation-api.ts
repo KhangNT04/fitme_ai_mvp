@@ -144,9 +144,14 @@ function mapSimilarProduct(item: BackendOutfitItem): Product {
   };
 }
 
+/** Generation runs one Gemini call per style option, well past the default client timeout. */
+const GENERATE_TIMEOUT_MS = 180_000;
+
 export const recommendationApi = {
   create: async (data: CreateRecommendationRequest): Promise<RecommendationOptionsResult> => {
-    const res = await apiClient.post("/recommendations", data);
+    const res = await apiClient.post("/recommendations", data, {
+      timeout: GENERATE_TIMEOUT_MS,
+    });
     return mapOptions(unwrap(res));
   },
   getOptionsByRequestId: async (requestId: string): Promise<RecommendationOptionsResult> => {

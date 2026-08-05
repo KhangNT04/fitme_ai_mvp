@@ -20,6 +20,7 @@ import com.fitme.stylistchat.repository.StylistMessageRepository;
 import com.fitme.userprofile.entity.BodyProfile;
 import com.fitme.userprofile.service.BodyProfileService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -33,12 +34,16 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class StylistChatService {
 
     private static final int MAX_HISTORY = 10;
     private static final int RATE_LIMIT_PER_HOUR = 20;
     private static final String OFF_TOPIC_TYPE = "off_topic";
     private static final String OUTFIT_OPTIONS_TYPE = "outfit_options";
+    private static final String STARTER_UNAVAILABLE_REPLY =
+            "Mình chưa phối được set gợi ý mở đầu ngay lúc này. Bạn nhắn dịp mặc hoặc phong cách mong muốn, "
+                    + "mình sẽ phối ngay nhé.";
     private static final List<StarterOutfitPreset> STARTER_OUTFITS = List.of(
             new StarterOutfitPreset("Đi làm", "Đi làm", "Thanh lịch, gọn gàng", "Office Chic"),
             new StarterOutfitPreset("Đi chơi", "Đi chơi", "Thoải mái, có điểm nhấn", "Streetwear"),
@@ -147,8 +152,10 @@ public class StylistChatService {
     /**
      * Generates one concise, profile-aware outfit for each common daily context.
      * This is used once immediately after a body profile is completed.
+     *
+     * <p>Each preset runs in its own transaction so one failing style (Gemini outage,
+     * thin catalog) still leaves the other boards usable.
      */
-    @Transactional
     public StylistChatMessageResponse generateStarterOutfits() {
         UUID userId = RequestContext.getCurrentUserId().orElse(null);
         UUID sessionId = RequestContext.getSessionId().orElse(null);
@@ -175,8 +182,19 @@ public class StylistChatService {
             generationRequest.setStyleLabels(List.of(preset.style()));
             generationRequest.setSingleStyle(true);
 
-            RecommendationService.ChatGenerationResult result =
-                    recommendationService.generateFromChat(generationRequest);
+            RecommendationService.ChatGenerationResult result;
+            try {
+                result = recommendationService.generateFromChat(generationRequest);
+            } catch (RuntimeException ex) {
+                log.warn("Starter outfit generation failed for preset={}: {}", preset.label(), ex.getMessage());
+                continue;
+            }
+            if (result.recommendations().isEmpty()
+                    || result.options().getOptions() == null
+                    || result.options().getOptions().isEmpty()) {
+                log.warn("Starter outfit generation returned no outfit for preset={}", preset.label());
+                continue;
+            }
             RecommendationResponse recommendation = result.recommendations().getFirst();
             RecommendationOptionsResponse.StyleOptionDto generatedOption =
                     result.options().getOptions().getFirst();
@@ -201,11 +219,21 @@ public class StylistChatService {
                     .build());
         }
 
+        if (options.isEmpty()) {
+            return StylistChatMessageResponse.builder()
+                    .assistantMessage(StylistChatMessageResponse.AssistantMessageDto.builder()
+                            .type("text")
+                            .content(STARTER_UNAVAILABLE_REPLY)
+                            .build())
+                    .recommendations(List.of())
+                    .build();
+        }
+
         return StylistChatMessageResponse.builder()
                 .requestId(firstRequestId)
                 .assistantMessage(StylistChatMessageResponse.AssistantMessageDto.builder()
                         .type(OUTFIT_OPTIONS_TYPE)
-                        .content("Mình đã chuẩn bị 3 style cơ bản: đi làm, đi chơi và thể thao — phù hợp hồ sơ của bạn. Xem set bên trên rồi chat thêm nếu cần nhé.")
+                        .content(buildStarterIntro(options))
                         .options(options)
                         .build())
                 .recommendations(recommendations)
@@ -313,6 +341,15 @@ public class StylistChatService {
             recentUser.forEach(m -> lines.add("user: " + m));
         }
         return lines;
+    }
+
+    private static String buildStarterIntro(List<RecommendationOptionsResponse.StyleOptionDto> options) {
+        String labels = options.stream()
+                .map(RecommendationOptionsResponse.StyleOptionDto::getStyleLabel)
+                .map(label -> label.toLowerCase(java.util.Locale.ROOT))
+                .collect(Collectors.joining(", "));
+        return "Mình đã chuẩn bị " + options.size() + " style cơ bản: " + labels
+                + " — phù hợp hồ sơ của bạn. Xem set bên trên rồi chat thêm nếu cần nhé.";
     }
 
     private static String buildOutfitIntro(

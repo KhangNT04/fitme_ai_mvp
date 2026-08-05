@@ -237,9 +237,13 @@ export function StyleResultsBoard({ recommendations, loading }: StyleResultsBoar
   return (
     <div className="space-y-6 rounded-2xl border border-border/50 bg-background p-3 sm:p-4">
       <div>
-        <h2 className="font-display text-lg font-bold text-foreground">3 style cơ bản cho bạn</h2>
+        <h2 className="font-display text-lg font-bold text-foreground">
+          {recommendations.length} style cơ bản cho bạn
+        </h2>
         <p className="mt-0.5 text-xs text-muted-foreground">
-          Đi làm · Đi chơi · Thể thao — xem set trước, chat thêm bên dưới nếu cần
+          {recommendations.map((rec) => rec.styleLabel).filter(Boolean).join(" · ") ||
+            "Đi làm · Đi chơi · Thể thao"}{" "}
+          — xem set trước, chat thêm bên dưới nếu cần
         </p>
       </div>
       {recommendations.map((rec) => (

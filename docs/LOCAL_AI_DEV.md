@@ -134,7 +134,7 @@ docker compose --env-file .env.local -f docker-compose.local.yml down -v
 | `GEMINI_API_KEY` | Cùng tên |
 | `FITME_AI_MODE=hf` | Cùng tên |
 | `AI_VTON_URL=http://ai-vton:8001` | `https://fitme-ai-vton.onrender.com` |
-| `FITME_PUBLIC_BASE_URL=http://localhost:8080` | `https://fitme-api.onrender.com` |
+| `FITME_PUBLIC_BASE_URL=http://localhost:8080` | `https://fitme-ai-mvp.onrender.com` |
 
 Sau khi test local OK → copy **cùng bộ biến AI** sang Render dashboard (đổi URL cho đúng production).
 

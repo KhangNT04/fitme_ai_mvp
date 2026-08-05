@@ -73,6 +73,8 @@ services:
       - "3000:3000"
     environment:
       NODE_ENV: production
+      # Must match backend JWT_SECRET so /api/auth/session can verify portal tokens
+      JWT_SECRET: ${JWT_SECRET:-fitme-dev-secret-change-in-production-min-256-bits-long-key-here}
     depends_on:
       - backend
 

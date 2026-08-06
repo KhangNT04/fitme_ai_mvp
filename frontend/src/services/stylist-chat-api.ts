@@ -1,5 +1,6 @@
 import apiClient, { unwrap } from "./api-client";
 import { resolveOptionalImageSrc } from "@/lib/media-url";
+import { toStyleDisplayLabel } from "@/lib/style-display-label";
 import type { RecommendationResult, StyleRecommendationOption } from "@/types/outfit";
 import type { WardrobeMode } from "@/types/user";
 
@@ -61,7 +62,7 @@ function mapRecommendation(data: BackendRecommendation): RecommendationResult {
   return {
     id: data.recommendationId,
     title: data.title,
-    styleLabel: data.styleLabel,
+    styleLabel: toStyleDisplayLabel(data.styleLabel) || data.styleLabel,
     recommendedSize: data.recommendedSize,
     alternativeSize: data.alternativeSize,
     recommendedForm: data.recommendedForm,
@@ -96,7 +97,7 @@ function mapOptions(options?: BackendStyleOption[]): StyleRecommendationOption[]
   if (!options) return undefined;
   return options.map((option) => ({
     recommendationId: option.recommendationId,
-    styleLabel: option.styleLabel,
+    styleLabel: toStyleDisplayLabel(option.styleLabel) || option.styleLabel,
     title: option.title,
     previewImageUrl: resolveOptionalImageSrc(option.previewImageUrl) ?? undefined,
     itemCount: option.itemCount,
@@ -127,20 +128,28 @@ function mapChatResponse(
 ): StylistChatApiResult {
   const type = (data.assistantMessage?.type || "text") as StylistChatApiResult["type"];
   const options = mapOptions(data.assistantMessage?.options);
-  const recommendations = (data.recommendations || []).map((recommendation, index) => {
-    const mapped = mapRecommendation(recommendation);
-    if (useOptionLabels && options?.[index]?.styleLabel) {
-      mapped.styleLabel = options[index].styleLabel;
-    }
-    return mapped;
-  });
+  const recommendations = (data.recommendations || [])
+    .map((recommendation, index) => {
+      const mapped = mapRecommendation(recommendation);
+      if (useOptionLabels && options?.[index]?.styleLabel) {
+        mapped.styleLabel = options[index].styleLabel;
+      }
+      return mapped;
+    })
+    .filter((recommendation) => recommendation.outfitItems.length > 0);
+
+  const hasHydratableOptions = (options || []).some(
+    (option) => option.recommendationId && option.itemCount > 0,
+  );
+  const showOutfits = recommendations.length > 0 || (type === "outfit_options" && hasHydratableOptions);
+
   return {
     conversationId: data.conversationId,
     requestId: data.requestId,
-    type,
+    type: showOutfits ? "outfit_options" : type === "outfit_options" ? "text" : type,
     content: data.assistantMessage?.content || "",
-    options,
-    recommendations,
+    options: showOutfits ? options : undefined,
+    recommendations: recommendations.length > 0 ? recommendations : undefined,
   };
 }
 

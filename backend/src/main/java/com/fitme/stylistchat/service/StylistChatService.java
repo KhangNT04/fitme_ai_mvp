@@ -118,7 +118,41 @@ public class StylistChatService {
 
         RecommendationService.ChatGenerationResult result = recommendationService.generateFromChat(genRequest);
         RecommendationOptionsResponse options = result.options();
-        List<RecommendationResponse> recommendations = result.recommendations();
+        List<RecommendationResponse> recommendations = result.recommendations() == null
+                ? List.of()
+                : result.recommendations().stream()
+                .filter(rec -> rec.getOutfitItems() != null && !rec.getOutfitItems().isEmpty())
+                .toList();
+
+        applyOccasionDisplayLabels(intent, options, recommendations);
+
+        if (recommendations.isEmpty()) {
+            String emptyReply = "Mình chưa ghép được set sản phẩm phù hợp ngay lúc này. "
+                    + "Bạn thử mô tả cụ thể hơn (vd: áo sơ mi đi làm, đi cafe tối giản) nhé.";
+            if (conversation != null) {
+                saveMessage(conversation.getId(), "assistant", "text", emptyReply, null);
+                touchConversation(conversation);
+            }
+            return StylistChatMessageResponse.builder()
+                    .conversationId(conversation != null ? conversation.getId() : null)
+                    .requestId(options.getRequestId())
+                    .assistantMessage(StylistChatMessageResponse.AssistantMessageDto.builder()
+                            .type("text")
+                            .content(emptyReply)
+                            .build())
+                    .recommendations(List.of())
+                    .build();
+        }
+
+        // Keep options aligned with non-empty recommendations only.
+        if (options.getOptions() != null) {
+            java.util.Set<UUID> keptIds = recommendations.stream()
+                    .map(RecommendationResponse::getRecommendationId)
+                    .collect(Collectors.toSet());
+            options.setOptions(options.getOptions().stream()
+                    .filter(opt -> keptIds.contains(opt.getRecommendationId()))
+                    .toList());
+        }
 
         String assistantContent = buildOutfitIntro(intent, options);
         String contentForStore = assistantContent;
@@ -196,6 +230,10 @@ public class StylistChatService {
                 continue;
             }
             RecommendationResponse recommendation = result.recommendations().getFirst();
+            if (recommendation.getOutfitItems() == null || recommendation.getOutfitItems().isEmpty()) {
+                log.warn("Starter outfit generation returned empty items for preset={}", preset.label());
+                continue;
+            }
             RecommendationOptionsResponse.StyleOptionDto generatedOption =
                     result.options().getOptions().getFirst();
 
@@ -363,6 +401,55 @@ public class StylistChatService {
         return "Mình gợi ý " + count + " outfit cho bạn"
                 + (styles.isBlank() ? "" : " (" + styles + ")")
                 + " — chọn set nào hợp gu nhất nhé.";
+    }
+
+    /**
+     * Maps catalog English style keys (Office Chic, …) to the VN occasion language
+     * used on the starter StyleResultsBoard (Đi làm / Đi chơi / Thể thao).
+     */
+    private static void applyOccasionDisplayLabels(
+            ChatIntentParser.ChatIntent intent,
+            RecommendationOptionsResponse options,
+            List<RecommendationResponse> recommendations) {
+        if (options.getOptions() != null) {
+            for (RecommendationOptionsResponse.StyleOptionDto option : options.getOptions()) {
+                option.setStyleLabel(toDisplayStyleLabel(option.getStyleLabel(), intent.occasion()));
+            }
+        }
+        for (RecommendationResponse recommendation : recommendations) {
+            recommendation.setStyleLabel(
+                    toDisplayStyleLabel(recommendation.getStyleLabel(), intent.occasion()));
+            if (recommendation.getTitle() != null
+                    && recommendation.getTitle().startsWith("Outfit phong cách ")) {
+                String label = recommendation.getStyleLabel();
+                if (label != null && !label.isBlank()) {
+                    recommendation.setTitle("Outfit " + label.toLowerCase(java.util.Locale.ROOT));
+                }
+            }
+        }
+    }
+
+    static String toDisplayStyleLabel(String styleLabel, String occasion) {
+        if (styleLabel == null || styleLabel.isBlank()) {
+            return occasion != null && !occasion.isBlank() ? occasion : styleLabel;
+        }
+        String normalized = styleLabel.trim();
+        return switch (normalized) {
+            case "Office Chic" -> occasionNotBlank(occasion) ? occasion : "Đi làm";
+            case "Streetwear" -> "Đi chơi";
+            case "Sporty" -> "Thể thao";
+            case "Korean Casual" -> "Hàn nhẹ";
+            case "Minimal" -> "Tối giản";
+            case "Romantic" -> "Hẹn hò";
+            case "Vintage" -> "Vintage";
+            case "Artistic" -> "Nghệ";
+            default -> normalized;
+        };
+    }
+
+    private static boolean occasionNotBlank(String occasion) {
+        return occasion != null && !occasion.isBlank()
+                && !"Casual hàng ngày".equalsIgnoreCase(occasion);
     }
 
     private void enforceRateLimit(UUID userId, UUID sessionId) {

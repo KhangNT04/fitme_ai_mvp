@@ -1,6 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { resolveOutfitExplanationSummary } from "@/lib/outfit-explanation";
+import { confidenceLabelVi } from "@/lib/style-display-label";
 import type { RecommendationResult } from "@/types/outfit";
 
 interface OutfitAiExplanationCardProps {
@@ -43,7 +44,7 @@ export function OutfitAiExplanationCard({
             <Badge variant="outline">Màu: {recommendation.recommendedColor}</Badge>
           )}
           <Badge variant={recommendation.confidence === "HIGH" ? "success" : "warning"}>
-            Độ tin cậy: {recommendation.confidence}
+            Độ tin cậy: {confidenceLabelVi(recommendation.confidence)}
           </Badge>
         </div>
 

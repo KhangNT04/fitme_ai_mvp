@@ -40,20 +40,22 @@ export function ChatMessageList({
         </>
       )}
 
-      {messages.map((msg) => (
-        <ChatBubble key={msg.id} role={msg.role}>
-          {msg.type === "outfit_options" ? (
+      {messages.map((msg) =>
+        msg.type === "outfit_options" ? (
+          <div key={msg.id} className="w-full max-w-full">
             <ChatOutfitOptions
               content={msg.content}
               options={msg.options}
               recommendations={msg.recommendations}
               compact={msg.compactOutfits}
             />
-          ) : (
+          </div>
+        ) : (
+          <ChatBubble key={msg.id} role={msg.role}>
             <p className="whitespace-pre-line">{msg.content}</p>
-          )}
-        </ChatBubble>
-      ))}
+          </ChatBubble>
+        ),
+      )}
       <div ref={endRef} />
     </div>
   );

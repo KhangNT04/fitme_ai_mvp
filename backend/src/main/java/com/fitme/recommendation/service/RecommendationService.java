@@ -74,6 +74,19 @@ public class RecommendationService {
 
     @Transactional
     public RecommendationOptionsResponse generate(CreateRecommendationRequest request) {
+        return generateInternal(request).options();
+    }
+
+    /**
+     * Chat-driven generation: uses user message + intent styles, returns options
+     * and full recommendation payloads for inline chat cards.
+     */
+    @Transactional
+    public ChatGenerationResult generateFromChat(CreateRecommendationRequest request) {
+        return generateInternal(request);
+    }
+
+    private ChatGenerationResult generateInternal(CreateRecommendationRequest request) {
         UUID userId = RequestContext.getCurrentUserId().orElse(null);
         UUID sessionId = request.getSessionId() != null ? request.getSessionId()
                 : RequestContext.getSessionId().orElse(null);
@@ -128,6 +141,7 @@ public class RecommendationService {
         CreateRecommendationRequest stylistRequest = copyRequest(request, occasion);
         List<String> styles = resolveStyleLabels(request, body);
         List<RecommendationOptionsResponse.StyleOptionDto> options = new ArrayList<>();
+        List<RecommendationResponse> recommendations = new ArrayList<>();
 
         for (String styleLabel : styles) {
             StyleProfile styleForOption = StyleProfile.builder().primaryStyle(styleLabel).build();
@@ -146,12 +160,20 @@ public class RecommendationService {
                     wardrobe,
                     mode,
                     eligible,
+                    baseEligible,
                     anchor,
                     selectedProductId,
                     scoreContext);
 
-            String preview = full.getOutfitItems() == null ? null
-                    : full.getOutfitItems().stream()
+            if (full == null
+                    || full.getOutfitItems() == null
+                    || full.getOutfitItems().isEmpty()) {
+                log.warn("Skipping empty outfit recommendation for style={} occasion={}",
+                        styleLabel, occasion);
+                continue;
+            }
+
+            String preview = full.getOutfitItems().stream()
                     .map(RecommendationResponse.OutfitItemDto::getImageUrl)
                     .filter(url -> url != null && !url.isBlank())
                     .findFirst()
@@ -162,32 +184,21 @@ public class RecommendationService {
                     .styleLabel(styleLabel)
                     .title(full.getTitle())
                     .previewImageUrl(preview)
-                    .itemCount(full.getOutfitItems() != null ? full.getOutfitItems().size() : 0)
+                    .itemCount(full.getOutfitItems().size())
                     .stylistSource(full.getStylistSource())
                     .build());
+            recommendations.add(full);
         }
 
         analyticsService.track(
                 "RECOMMENDATION_GENERATED", userId, sessionId, null, null,
                 options.isEmpty() ? null : options.getFirst().getRecommendationId(), null, null);
 
-        return RecommendationOptionsResponse.builder()
+        RecommendationOptionsResponse optionsResponse = RecommendationOptionsResponse.builder()
                 .requestId(outfitRequest.getId())
                 .options(options)
                 .build();
-    }
-
-    /**
-     * Chat-driven generation: uses user message + intent styles, returns options
-     * and full recommendation payloads for inline chat cards.
-     */
-    @Transactional
-    public ChatGenerationResult generateFromChat(CreateRecommendationRequest request) {
-        RecommendationOptionsResponse options = generate(request);
-        List<RecommendationResponse> recommendations = options.getOptions().stream()
-                .map(opt -> getById(opt.getRecommendationId()))
-                .toList();
-        return new ChatGenerationResult(options, recommendations);
+        return new ChatGenerationResult(optionsResponse, recommendations);
     }
 
     public record ChatGenerationResult(
@@ -208,6 +219,9 @@ public class RecommendationService {
         return request.isSingleStyle() ? resolved.stream().limit(1).toList() : resolved;
     }
 
+    /**
+     * @return full recommendation, or {@code null} when no products could be composed
+     */
     private RecommendationResponse generateSingleStyle(
             UUID outfitRequestId,
             UUID userId,
@@ -220,6 +234,7 @@ public class RecommendationService {
             List<WardrobeItem> wardrobe,
             WardrobeMode mode,
             List<Product> eligible,
+            List<Product> baseEligible,
             Product anchor,
             UUID selectedProductId,
             OutfitScoreContext scoreContext) {
@@ -242,38 +257,48 @@ public class RecommendationService {
                 body, style, request, wardrobe, eligible, selectedProductId, scoreContext);
         if (stylistOutcome.result().isPresent()) {
             GeminiStylistResult gemini = stylistOutcome.result().get();
-            stylistSource = "gemini";
-            items = gemini.items();
-            title = gemini.title();
-            recommendedSize = gemini.recommendedSize();
-            altSize = gemini.alternativeSize();
-            recommendedForm = gemini.recommendedForm();
-            recommendedColor = gemini.recommendedColor();
-            confidence = gemini.confidence();
-            explanationBody = gemini.explanationBody();
-            explanationStyle = gemini.explanationStyle();
-            explanationOccasion = gemini.explanationOccasion();
-            explanationColor = gemini.explanationColor();
-            explanationWardrobe = gemini.explanationWardrobe();
-            if (explanationBody == null || explanationBody.isBlank()
-                    || hasExplanationFragments(explanationStyle, explanationOccasion, explanationColor)) {
-                explanationBody = explanationComposer.composeForCustomer(
-                        body, style, occasion, request.getDesiredVibe(),
-                        recommendedSize, altSize, recommendedForm, recommendedColor,
-                        wardrobe.size(), title, toItemRefs(items));
-                explanationStyle = null;
-                explanationOccasion = null;
-                explanationColor = null;
+            if (gemini.items() != null && !gemini.items().isEmpty()) {
+                stylistSource = "gemini";
+                items = gemini.items();
+                title = gemini.title();
+                recommendedSize = gemini.recommendedSize();
+                altSize = gemini.alternativeSize();
+                recommendedForm = gemini.recommendedForm();
+                recommendedColor = gemini.recommendedColor();
+                confidence = gemini.confidence();
+                explanationBody = gemini.explanationBody();
+                explanationStyle = gemini.explanationStyle();
+                explanationOccasion = gemini.explanationOccasion();
+                explanationColor = gemini.explanationColor();
+                explanationWardrobe = gemini.explanationWardrobe();
+                if (explanationBody == null || explanationBody.isBlank()
+                        || hasExplanationFragments(explanationStyle, explanationOccasion, explanationColor)) {
+                    explanationBody = explanationComposer.composeForCustomer(
+                            body, style, occasion, request.getDesiredVibe(),
+                            recommendedSize, altSize, recommendedForm, recommendedColor,
+                            wardrobe.size(), title, toItemRefs(items));
+                    explanationStyle = null;
+                    explanationOccasion = null;
+                    explanationColor = null;
+                }
+            } else {
+                log.info("Gemini returned no mappable items for style={}, falling back to rules", styleLabel);
             }
         }
 
-        if (items == null) {
+        if (items == null || items.isEmpty()) {
             if (stylistOutcome.fallbackReason() != null) {
                 log.info("Stylist fallback to rule engine: reason={} style={} candidateCount={}",
                         stylistOutcome.fallbackReason(), styleLabel, eligible.size());
             }
             items = outfitCompositionService.buildOutfit(
                     anchor, eligible, wardrobe, mode, body, style);
+            // Wider catalog retry when style/coherence scoring left the pool too thin.
+            if (items.isEmpty() && baseEligible != null && baseEligible != eligible && !baseEligible.isEmpty()) {
+                log.info("Retrying outfit composition with full eligible pool for style={}", styleLabel);
+                items = outfitCompositionService.buildOutfit(
+                        anchor, baseEligible, wardrobe, mode, body, style);
+            }
             recommendedSize = anchor != null
                     ? sizeResolutionService.resolveSize(body, anchor.getId())
                     : sizeResolutionService.recommendSize(body, items);
@@ -290,6 +315,11 @@ public class RecommendationService {
             explanationOccasion = null;
             explanationColor = null;
             explanationWardrobe = null;
+            stylistSource = "rule";
+        }
+
+        if (items == null || items.isEmpty()) {
+            return null;
         }
 
         if (title == null || title.isBlank()) {

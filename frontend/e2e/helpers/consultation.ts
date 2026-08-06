@@ -101,6 +101,7 @@ export async function ensureReachedAiChat(page: Page) {
 
 /** Expand a collapsed chat outfit card so Try-on / Save actions are visible. */
 export async function expandOutfitCard(page: Page, card = page.locator("[data-recommendation-id]").first()) {
+  // Legacy collapsed ChatOutfitCard; StyleResultsBoard sections are always expanded.
   const expandBtn = card.getByRole("button", { name: "Xem chi tiết" });
   if (await expandBtn.isVisible().catch(() => false)) {
     await expandBtn.click();

@@ -127,6 +127,9 @@ class StylistChatStarterOutfitsTest {
         RecommendationResponse recommendation = RecommendationResponse.builder()
                 .recommendationId(recommendationId)
                 .title("Outfit phong cách Minimal")
+                .outfitItems(List.of(RecommendationResponse.OutfitItemDto.builder()
+                        .displayName("Áo thun trắng")
+                        .build()))
                 .build();
         RecommendationOptionsResponse options = RecommendationOptionsResponse.builder()
                 .requestId(UUID.randomUUID())
@@ -134,7 +137,7 @@ class StylistChatStarterOutfitsTest {
                         .recommendationId(recommendationId)
                         .styleLabel("Minimal")
                         .title("Outfit phong cách Minimal")
-                        .itemCount(3)
+                        .itemCount(1)
                         .stylistSource("rule")
                         .build()))
                 .build();

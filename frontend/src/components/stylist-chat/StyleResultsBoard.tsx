@@ -16,6 +16,7 @@ import { productApi } from "@/services/product-api";
 import { recommendationApi } from "@/services/recommendation-api";
 import { toast } from "@/stores/toast-store";
 import { getUserErrorMessage } from "@/lib/user-error-message";
+import { toStyleDisplayLabel } from "@/lib/style-display-label";
 import type { OutfitItem, RecommendationResult } from "@/types/outfit";
 
 function BoardProductCard({ item }: { item: OutfitItem }) {
@@ -76,13 +77,14 @@ function sizeTip(recommendation: RecommendationResult): string | null {
   return `Size gợi ý: ${recommendation.recommendedSize}${alt}`;
 }
 
-function StyleBoardSection({ recommendation }: { recommendation: RecommendationResult }) {
+export function StyleBoardSection({ recommendation }: { recommendation: RecommendationResult }) {
   const router = useRouter();
   const [saving, setSaving] = useState(false);
   const [feedback, setFeedback] = useState<"LIKE" | "DISLIKE" | null>(null);
   const buyable = recommendation.outfitItems.filter((i) => i.productId && !i.fromWardrobe);
   const tip = sizeTip(recommendation);
-  const label = recommendation.styleLabel || recommendation.title;
+  const label =
+    toStyleDisplayLabel(recommendation.styleLabel) || recommendation.styleLabel || recommendation.title;
 
   const handleTryOn = () => {
     const count = seedTryOnFromOutfitItems(recommendation.outfitItems);
@@ -241,14 +243,18 @@ export function StyleResultsBoard({ recommendations, loading }: StyleResultsBoar
           {recommendations.length} style cơ bản cho bạn
         </h2>
         <p className="mt-0.5 text-xs text-muted-foreground">
-          {recommendations.map((rec) => rec.styleLabel).filter(Boolean).join(" · ") ||
-            "Đi làm · Đi chơi · Thể thao"}{" "}
+          {recommendations
+            .map((rec) => toStyleDisplayLabel(rec.styleLabel) || rec.styleLabel)
+            .filter(Boolean)
+            .join(" · ") || "Đi làm · Đi chơi · Thể thao"}{" "}
           — xem set trước, chat thêm bên dưới nếu cần
         </p>
       </div>
-      {recommendations.map((rec) => (
-        <StyleBoardSection key={rec.id} recommendation={rec} />
-      ))}
+      {recommendations
+        .filter((rec) => rec.outfitItems.length > 0)
+        .map((rec) => (
+          <StyleBoardSection key={rec.id} recommendation={rec} />
+        ))}
     </div>
   );
 }

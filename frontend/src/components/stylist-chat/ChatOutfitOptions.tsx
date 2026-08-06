@@ -1,48 +1,104 @@
 "use client";
 
-import { ChatOutfitCard } from "./ChatOutfitCard";
+import { useEffect, useState } from "react";
+import { StyleBoardSection } from "./StyleResultsBoard";
+import { recommendationApi } from "@/services/recommendation-api";
+import { toStyleDisplayLabel } from "@/lib/style-display-label";
 import type { RecommendationResult, StyleRecommendationOption } from "@/types/outfit";
 
 interface ChatOutfitOptionsProps {
   content: string;
   options?: StyleRecommendationOption[];
   recommendations?: RecommendationResult[];
+  /** Kept for call-site compatibility; chat now always uses the board layout. */
   compact?: boolean;
+}
+
+function withDisplayLabels(rec: RecommendationResult): RecommendationResult {
+  const styleLabel = toStyleDisplayLabel(rec.styleLabel) || rec.styleLabel;
+  return styleLabel === rec.styleLabel ? rec : { ...rec, styleLabel };
+}
+
+function usableRecommendations(list?: RecommendationResult[]): RecommendationResult[] {
+  return (list || [])
+    .filter((rec) => (rec.outfitItems?.length ?? 0) > 0)
+    .map(withDisplayLabels);
 }
 
 export function ChatOutfitOptions({
   content,
   options,
   recommendations,
-  compact = true,
 }: ChatOutfitOptionsProps) {
-  const cards =
-    recommendations && recommendations.length > 0
-      ? recommendations
-      : (options || []).map(
-          (opt): RecommendationResult => ({
-            id: opt.recommendationId,
-            title: opt.title,
-            styleLabel: opt.styleLabel,
-            confidence: "MEDIUM",
-            outfitItems: [],
-            explanation: {
-              bodyFit: "",
-              styleFit: "",
-              occasionFit: "",
-              colorFit: "",
-            },
+  const initial = usableRecommendations(recommendations);
+  const [cards, setCards] = useState<RecommendationResult[]>(initial);
+  const [hydrating, setHydrating] = useState(false);
+
+  useEffect(() => {
+    const fromPayload = usableRecommendations(recommendations);
+    if (fromPayload.length > 0) {
+      setCards(fromPayload);
+      return;
+    }
+
+    const ids = (options || [])
+      .map((opt) => opt.recommendationId)
+      .filter(Boolean);
+    if (ids.length === 0) {
+      setCards([]);
+      return;
+    }
+
+    let cancelled = false;
+    setHydrating(true);
+    void Promise.all(
+      ids.map((id) =>
+        recommendationApi.getById(id).catch(() => null),
+      ),
+    )
+      .then((loaded) => {
+        if (cancelled) return;
+        const next = usableRecommendations(
+          loaded.filter((rec): rec is RecommendationResult => Boolean(rec)),
+        );
+        // Prefer option display labels (already VN from starter/chat) when present.
+        setCards(
+          next.map((rec, index) => {
+            const optLabel = options?.[index]?.styleLabel;
+            const styleLabel =
+              toStyleDisplayLabel(optLabel) || optLabel || toStyleDisplayLabel(rec.styleLabel) || rec.styleLabel;
+            return styleLabel ? { ...rec, styleLabel } : rec;
           }),
         );
+      })
+      .finally(() => {
+        if (!cancelled) setHydrating(false);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [recommendations, options]);
 
   return (
     <div className="space-y-3">
       <p className="whitespace-pre-line text-sm leading-relaxed">{content}</p>
-      <div className="space-y-3">
-        {cards.map((rec) => (
-          <ChatOutfitCard key={rec.id} recommendation={rec} defaultExpanded={!compact} />
-        ))}
-      </div>
+      {hydrating && cards.length === 0 && (
+        <p className="text-xs text-muted-foreground">Đang tải sản phẩm trong set…</p>
+      )}
+      {cards.length > 0 ? (
+        <div className="space-y-5 rounded-2xl border border-border/50 bg-background p-3 sm:p-4">
+          {cards.map((rec) => (
+            <StyleBoardSection key={rec.id} recommendation={rec} />
+          ))}
+        </div>
+      ) : (
+        !hydrating && (
+          <p className="text-xs text-muted-foreground">
+            Chưa có sản phẩm trong gợi ý này — bạn thử nhắn lại dịp mặc cụ thể hơn nhé.
+          </p>
+        )
+      )}
     </div>
   );
 }

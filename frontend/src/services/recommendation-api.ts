@@ -1,5 +1,6 @@
 import apiClient, { unwrap, type ApiError } from "./api-client";
 import { resolveOptionalImageSrc } from "@/lib/media-url";
+import { toStyleDisplayLabel } from "@/lib/style-display-label";
 import type {
   CreateRecommendationRequest,
   RecommendationResult,
@@ -82,7 +83,7 @@ function mapRecommendation(data: BackendRecommendation): RecommendationResult {
   return {
     id: data.recommendationId,
     title: data.title,
-    styleLabel: data.styleLabel,
+    styleLabel: toStyleDisplayLabel(data.styleLabel) || data.styleLabel,
     recommendedSize: data.recommendedSize,
     alternativeSize: data.alternativeSize,
     recommendedForm: data.recommendedForm,

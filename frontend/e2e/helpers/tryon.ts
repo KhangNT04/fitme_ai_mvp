@@ -47,6 +47,24 @@ export async function waitForTryOnResult(page: Page) {
   }
 }
 
+/**
+ * "Chỉ xem outfit board" (the try-on form's default input mode) is locked behind a
+ * "feature not available" toast — only "Dùng ảnh cá nhân" is demo-ready end-to-end.
+ * Switches to that mode, gives consent, and uploads a fixture photo so the CTA is
+ * unlocked. Must run before fillTryOnInputMetrics, since uploading resets the
+ * reactive form defaults.
+ */
+export async function selectUserPhotoModeAndUpload(page: Page) {
+  await page.getByRole("button", { name: "Dùng ảnh cá nhân" }).click();
+  await page.getByRole("checkbox").click();
+  await page.locator('input[type="file"]').setInputFiles({
+    name: "tryon-fixture.jpg",
+    mimeType: "image/jpeg",
+    buffer: Buffer.from([0xff, 0xd8, 0xff, 0xd9]),
+  });
+  await expect(page.getByText(/Ảnh đạt chất lượng tốt/i)).toBeVisible({ timeout: 30_000 });
+}
+
 /** Select first eligible product and open the selected-outfit step. */
 export async function startTryOnWithFirstProduct(page: Page): Promise<string> {
   await ensureSessionViaHome(page);
@@ -65,6 +83,7 @@ export async function completeTryOnToResult(page: Page): Promise<string> {
   await page.getByRole("button", { name: "Tiếp tục nhập thông tin" }).click();
   await page.waitForURL(/\/try-on\/input/);
 
+  await selectUserPhotoModeAndUpload(page);
   await fillTryOnInputMetrics(page);
   await page.getByRole("button", { name: "Tạo preview thử mặc" }).click();
   await waitForTryOnResult(page);

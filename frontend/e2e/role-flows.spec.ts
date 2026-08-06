@@ -10,6 +10,7 @@ import { BRAND_PAGES, ADMIN_PAGES, expectPageHeading } from "./helpers/portal";
 import {
   getFirstProductIdFromDiscover,
   startTryOnWithFirstProduct,
+  selectUserPhotoModeAndUpload,
   fillTryOnInputMetrics,
   waitForTryOnResult,
 } from "./helpers/tryon";
@@ -33,6 +34,7 @@ test.describe("Luồng công khai (không đăng nhập)", () => {
     await startTryOnWithFirstProduct(page);
     await page.getByRole("button", { name: "Tiếp tục nhập thông tin" }).click();
     await page.waitForURL("**/try-on/input");
+    await selectUserPhotoModeAndUpload(page);
     await fillTryOnInputMetrics(page);
     await page.getByRole("button", { name: "Tạo preview thử mặc" }).click();
     await waitForTryOnResult(page);

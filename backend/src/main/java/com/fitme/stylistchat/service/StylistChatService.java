@@ -18,7 +18,9 @@ import com.fitme.stylistchat.entity.StylistMessage;
 import com.fitme.stylistchat.repository.StylistConversationRepository;
 import com.fitme.stylistchat.repository.StylistMessageRepository;
 import com.fitme.userprofile.entity.BodyProfile;
+import com.fitme.userprofile.entity.StyleProfile;
 import com.fitme.userprofile.service.BodyProfileService;
+import com.fitme.userprofile.service.StyleProfileService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -26,8 +28,10 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
@@ -44,16 +48,33 @@ public class StylistChatService {
     private static final String STARTER_UNAVAILABLE_REPLY =
             "Mình chưa phối được set gợi ý mở đầu ngay lúc này. Bạn nhắn dịp mặc hoặc phong cách mong muốn, "
                     + "mình sẽ phối ngay nhé.";
+    private static final String OCCASION_CASUAL_DAILY = "Casual hàng ngày";
+    /** Default catalog used when the user has no saved StyleProfile yet — also the fill order
+     * used to top up personalized presets to 3 when the profile only has 1-2 styles. */
     private static final List<StarterOutfitPreset> STARTER_OUTFITS = List.of(
             new StarterOutfitPreset("Đi làm", "Đi làm", "Thanh lịch, gọn gàng", "Office Chic"),
             new StarterOutfitPreset("Đi chơi", "Đi chơi", "Thoải mái, có điểm nhấn", "Streetwear"),
             new StarterOutfitPreset("Thể thao", "Tập gym", "Năng động, thoải mái", "Sporty")
     );
 
+    /** Occasion + vibe copy for styles a user may have picked via the style profile editor
+     * (beyond the 3 vibe-quiz presets above). Keeps starter outfits sensible for any StyleProfile. */
+    private static final Map<String, StarterOutfitPreset> STYLE_PRESET_DEFAULTS = Map.of(
+            "Office Chic", new StarterOutfitPreset("Đi làm", "Đi làm", "Thanh lịch, gọn gàng", "Office Chic"),
+            "Streetwear", new StarterOutfitPreset("Đi chơi", "Đi chơi", "Thoải mái, có điểm nhấn", "Streetwear"),
+            "Sporty", new StarterOutfitPreset("Thể thao", "Tập gym", "Năng động, thoải mái", "Sporty"),
+            "Minimal", new StarterOutfitPreset("Tối giản", OCCASION_CASUAL_DAILY, "Tối giản, tinh gọn", "Minimal"),
+            "Korean Casual", new StarterOutfitPreset("Hàn nhẹ", "Đi chơi", "Nhẹ nhàng, trẻ trung kiểu Hàn", "Korean Casual"),
+            "Romantic", new StarterOutfitPreset("Hẹn hò", "Hẹn hò", "Nữ tính, lãng mạn", "Romantic"),
+            "Vintage", new StarterOutfitPreset("Vintage", "Đi chơi", "Hoài cổ, có cá tính", "Vintage"),
+            "Artistic", new StarterOutfitPreset("Nghệ", "Đi chơi", "Cá tính, sáng tạo", "Artistic")
+    );
+
     private final TopicGuardService topicGuardService;
     private final ChatIntentParser chatIntentParser;
     private final RecommendationService recommendationService;
     private final BodyProfileService bodyProfileService;
+    private final StyleProfileService styleProfileService;
     private final StylistConversationRepository conversationRepository;
     private final StylistMessageRepository messageRepository;
     private final ObjectMapper objectMapper;
@@ -205,7 +226,7 @@ public class StylistChatService {
         List<RecommendationResponse> recommendations = new ArrayList<>();
         UUID firstRequestId = null;
 
-        for (StarterOutfitPreset preset : STARTER_OUTFITS) {
+        for (StarterOutfitPreset preset : resolveStarterPresets()) {
             CreateRecommendationRequest generationRequest = new CreateRecommendationRequest();
             generationRequest.setSessionId(sessionId);
             generationRequest.setOccasion(preset.occasion());
@@ -276,6 +297,58 @@ public class StylistChatService {
                         .build())
                 .recommendations(recommendations)
                 .build();
+    }
+
+    /**
+     * Personalizes the starter outfit boards from the user's saved {@link StyleProfile}
+     * (primary style picked in the vibe quiz / style editor, then secondary styles), instead of
+     * always generating the same 3 hardcoded presets regardless of what the user told us they like.
+     * Falls back to the default catalog when no profile is saved yet (e.g. skipped the quiz).
+     */
+    private List<StarterOutfitPreset> resolveStarterPresets() {
+        Optional<StyleProfile> profile = styleProfileService.findProfileEntity();
+        if (profile.isEmpty()) {
+            return STARTER_OUTFITS;
+        }
+
+        LinkedHashSet<String> orderedStyles = new LinkedHashSet<>();
+        String primaryStyle = profile.get().getPrimaryStyle();
+        if (primaryStyle != null && !primaryStyle.isBlank()) {
+            orderedStyles.add(primaryStyle.trim());
+        }
+        List<String> secondaryStyles = profile.get().getSecondaryStyles();
+        if (secondaryStyles != null) {
+            secondaryStyles.stream()
+                    .filter(style -> style != null && !style.isBlank())
+                    .map(String::trim)
+                    .forEach(orderedStyles::add);
+        }
+        // Top up to 3 boards using the default catalog order (vibe-quiz order) so users still see
+        // a few related looks even when the profile only has 1-2 styles saved.
+        for (StarterOutfitPreset base : STARTER_OUTFITS) {
+            if (orderedStyles.size() >= 3) {
+                break;
+            }
+            orderedStyles.add(base.style());
+        }
+
+        if (orderedStyles.isEmpty()) {
+            return STARTER_OUTFITS;
+        }
+        return orderedStyles.stream()
+                .limit(3)
+                .map(StylistChatService::toStarterPreset)
+                .toList();
+    }
+
+    private static StarterOutfitPreset toStarterPreset(String style) {
+        StarterOutfitPreset known = STYLE_PRESET_DEFAULTS.get(style);
+        if (known != null) {
+            return known;
+        }
+        // Unknown style saved directly via the style profile editor — fall back to a generic
+        // preset but keep the display label consistent with toDisplayStyleLabel elsewhere.
+        return new StarterOutfitPreset(toDisplayStyleLabel(style, null), OCCASION_CASUAL_DAILY, "Thoải mái, hợp gu", style);
     }
 
     public List<StylistConversationDto> listConversations() {
@@ -449,7 +522,7 @@ public class StylistChatService {
 
     private static boolean occasionNotBlank(String occasion) {
         return occasion != null && !occasion.isBlank()
-                && !"Casual hàng ngày".equalsIgnoreCase(occasion);
+                && !OCCASION_CASUAL_DAILY.equalsIgnoreCase(occasion);
     }
 
     private void enforceRateLimit(UUID userId, UUID sessionId) {

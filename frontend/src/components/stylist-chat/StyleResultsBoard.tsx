@@ -9,7 +9,12 @@ import { AppImage } from "@/components/common/AppImage";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { OutfitAiExplanationCard } from "@/components/ai/OutfitAiExplanationCard";
-import { catalogProductRowClass, catalogProductRowItemClass } from "@/lib/design-tokens";
+import {
+  aiOutfitBoardShellClass,
+  aiOutfitCardStackClass,
+  catalogProductRowClass,
+  catalogProductRowItemClass,
+} from "@/lib/design-tokens";
 import { seedTryOnFromOutfitItems } from "@/lib/seed-tryon-from-recommendation";
 import { productDetailFromAiChatHref } from "@/lib/nav-context";
 import { productApi } from "@/services/product-api";
@@ -77,7 +82,13 @@ function sizeTip(recommendation: RecommendationResult): string | null {
   return `Size gợi ý: ${recommendation.recommendedSize}${alt}`;
 }
 
-export function StyleBoardSection({ recommendation }: { recommendation: RecommendationResult }) {
+interface StyleBoardSectionProps {
+  recommendation: RecommendationResult;
+  /** Position within the current list of outfit cards — renders a small number badge for quick scanning. */
+  index?: number;
+}
+
+export function StyleBoardSection({ recommendation, index }: StyleBoardSectionProps) {
   const router = useRouter();
   const [saving, setSaving] = useState(false);
   const [feedback, setFeedback] = useState<"LIKE" | "DISLIKE" | null>(null);
@@ -125,16 +136,26 @@ export function StyleBoardSection({ recommendation }: { recommendation: Recommen
 
   return (
     <section
-      className="space-y-2.5"
+      className="overflow-hidden rounded-2xl border border-border/60 bg-card shadow-sm"
       data-recommendation-id={recommendation.id}
       aria-label={`Gợi ý ${label}`}
     >
-      <div className="flex flex-wrap items-end justify-between gap-2 border-b border-border/40 pb-1.5">
-        <div className="min-w-0">
-          <h3 className="font-display text-base font-bold text-foreground">{label}</h3>
-          <p className="text-xs text-muted-foreground">
-            {recommendation.title !== label ? recommendation.title : `${recommendation.outfitItems.length} món trong set`}
-          </p>
+      <header className="flex flex-wrap items-center justify-between gap-2 border-b border-border/60 bg-muted/50 px-3 py-2.5 sm:px-4">
+        <div className="flex min-w-0 items-center gap-2.5">
+          {typeof index === "number" && (
+            <span
+              className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-accent text-xs font-bold text-accent-foreground"
+              aria-hidden
+            >
+              {index + 1}
+            </span>
+          )}
+          <div className="min-w-0">
+            <h3 className="truncate font-display text-base font-bold text-foreground">{label}</h3>
+            <p className="truncate text-xs text-muted-foreground">
+              {recommendation.title !== label ? recommendation.title : `${recommendation.outfitItems.length} món trong set`}
+            </p>
+          </div>
         </div>
         {tip && (
           <Badge
@@ -144,62 +165,64 @@ export function StyleBoardSection({ recommendation }: { recommendation: Recommen
             {tip}
           </Badge>
         )}
-      </div>
+      </header>
 
-      {buyable.length > 0 ? (
-        <div className={catalogProductRowClass} aria-label={`Sản phẩm ${label}`}>
-          {buyable.map((item) => (
-            <div key={item.id} className={catalogProductRowItemClass}>
-              <BoardProductCard item={item} />
-            </div>
-          ))}
+      <div className="space-y-3 p-3 sm:p-4">
+        {buyable.length > 0 ? (
+          <div className={catalogProductRowClass} aria-label={`Sản phẩm ${label}`}>
+            {buyable.map((item) => (
+              <div key={item.id} className={catalogProductRowItemClass}>
+                <BoardProductCard item={item} />
+              </div>
+            ))}
+          </div>
+        ) : (
+          <p className="text-xs text-muted-foreground">Chưa có sản phẩm thương hiệu trong set này.</p>
+        )}
+
+        <OutfitAiExplanationCard recommendation={recommendation} className="border-0 bg-transparent shadow-none" />
+
+        <div className="flex flex-wrap gap-2">
+          <Button type="button" size="sm" variant="ai" className="gap-1.5" onClick={handleTryOn}>
+            <Camera className="h-3.5 w-3.5" />
+            Mặc thử outfit
+          </Button>
+          <Button
+            type="button"
+            size="sm"
+            variant="ghost"
+            className="gap-1.5"
+            disabled={saving}
+            onClick={() => void handleSave()}
+          >
+            <Save className="h-3.5 w-3.5" />
+            Lưu
+          </Button>
+          <Button
+            type="button"
+            size="sm"
+            variant={feedback === "LIKE" ? "secondary" : "ghost"}
+            className="gap-1.5"
+            disabled={feedback !== null}
+            onClick={() => void handleFeedback("LIKE")}
+            aria-label="Thích outfit"
+          >
+            <ThumbsUp className="h-3.5 w-3.5" />
+            Thích
+          </Button>
+          <Button
+            type="button"
+            size="sm"
+            variant={feedback === "DISLIKE" ? "secondary" : "ghost"}
+            className="gap-1.5"
+            disabled={feedback !== null}
+            onClick={() => void handleFeedback("DISLIKE")}
+            aria-label="Không thích outfit"
+          >
+            <ThumbsDown className="h-3.5 w-3.5" />
+            Pass
+          </Button>
         </div>
-      ) : (
-        <p className="text-xs text-muted-foreground">Chưa có sản phẩm thương hiệu trong set này.</p>
-      )}
-
-      <OutfitAiExplanationCard recommendation={recommendation} className="border-border/50 shadow-none" />
-
-      <div className="flex flex-wrap gap-2">
-        <Button type="button" size="sm" variant="ai" className="gap-1.5" onClick={handleTryOn}>
-          <Camera className="h-3.5 w-3.5" />
-          Mặc thử outfit
-        </Button>
-        <Button
-          type="button"
-          size="sm"
-          variant="ghost"
-          className="gap-1.5"
-          disabled={saving}
-          onClick={() => void handleSave()}
-        >
-          <Save className="h-3.5 w-3.5" />
-          Lưu
-        </Button>
-        <Button
-          type="button"
-          size="sm"
-          variant={feedback === "LIKE" ? "secondary" : "ghost"}
-          className="gap-1.5"
-          disabled={feedback !== null}
-          onClick={() => void handleFeedback("LIKE")}
-          aria-label="Thích outfit"
-        >
-          <ThumbsUp className="h-3.5 w-3.5" />
-          Thích
-        </Button>
-        <Button
-          type="button"
-          size="sm"
-          variant={feedback === "DISLIKE" ? "secondary" : "ghost"}
-          className="gap-1.5"
-          disabled={feedback !== null}
-          onClick={() => void handleFeedback("DISLIKE")}
-          aria-label="Không thích outfit"
-        >
-          <ThumbsDown className="h-3.5 w-3.5" />
-          Pass
-        </Button>
       </div>
     </section>
   );
@@ -213,31 +236,35 @@ interface StyleResultsBoardProps {
 export function StyleResultsBoard({ recommendations, loading }: StyleResultsBoardProps) {
   if (loading) {
     return (
-      <div className="space-y-6 rounded-2xl border border-border/50 bg-background p-4">
+      <div className={aiOutfitBoardShellClass}>
         <div>
           <div className="h-5 w-48 animate-pulse rounded bg-muted" />
           <div className="mt-2 h-3 w-64 animate-pulse rounded bg-muted" />
         </div>
-        {[0, 1, 2].map((i) => (
-          <div key={i} className="space-y-2">
-            <div className="h-4 w-24 animate-pulse rounded bg-muted" />
-            <div className="flex gap-2.5 overflow-hidden">
-              {[0, 1, 2].map((j) => (
-                <div key={j} className="w-[10.75rem] shrink-0 sm:w-48">
-                  <div className="aspect-[4/5] animate-pulse rounded-xl bg-muted" />
-                </div>
-              ))}
+        <div className={aiOutfitCardStackClass}>
+          {[0, 1, 2].map((i) => (
+            <div key={i} className="overflow-hidden rounded-2xl border border-border/60 bg-card shadow-sm">
+              <div className="h-11 animate-pulse bg-muted/50" />
+              <div className="flex gap-2.5 overflow-hidden p-3 sm:p-4">
+                {[0, 1, 2].map((j) => (
+                  <div key={j} className="w-[10.75rem] shrink-0 sm:w-48">
+                    <div className="aspect-[4/5] animate-pulse rounded-xl bg-muted" />
+                  </div>
+                ))}
+              </div>
             </div>
-          </div>
-        ))}
+          ))}
+        </div>
       </div>
     );
   }
 
   if (recommendations.length === 0) return null;
 
+  const usable = recommendations.filter((rec) => rec.outfitItems.length > 0);
+
   return (
-    <div className="space-y-6 rounded-2xl border border-border/50 bg-background p-3 sm:p-4">
+    <div className={aiOutfitBoardShellClass}>
       <div>
         <h2 className="font-display text-lg font-bold text-foreground">
           {recommendations.length} style cơ bản cho bạn
@@ -250,11 +277,11 @@ export function StyleResultsBoard({ recommendations, loading }: StyleResultsBoar
           — xem set trước, chat thêm bên dưới nếu cần
         </p>
       </div>
-      {recommendations
-        .filter((rec) => rec.outfitItems.length > 0)
-        .map((rec) => (
-          <StyleBoardSection key={rec.id} recommendation={rec} />
+      <div className={aiOutfitCardStackClass}>
+        {usable.map((rec, index) => (
+          <StyleBoardSection key={rec.id} recommendation={rec} index={index} />
         ))}
+      </div>
     </div>
   );
 }

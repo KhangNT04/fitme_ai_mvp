@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { StyleBoardSection } from "./StyleResultsBoard";
 import { recommendationApi } from "@/services/recommendation-api";
 import { toStyleDisplayLabel } from "@/lib/style-display-label";
+import { aiOutfitBoardShellClass, aiOutfitCardStackClass } from "@/lib/design-tokens";
 import type { RecommendationResult, StyleRecommendationOption } from "@/types/outfit";
 
 interface ChatOutfitOptionsProps {
@@ -87,10 +88,12 @@ export function ChatOutfitOptions({
         <p className="text-xs text-muted-foreground">Đang tải sản phẩm trong set…</p>
       )}
       {cards.length > 0 ? (
-        <div className="space-y-5 rounded-2xl border border-border/50 bg-background p-3 sm:p-4">
-          {cards.map((rec) => (
-            <StyleBoardSection key={rec.id} recommendation={rec} />
-          ))}
+        <div className={aiOutfitBoardShellClass}>
+          <div className={aiOutfitCardStackClass}>
+            {cards.map((rec, index) => (
+              <StyleBoardSection key={rec.id} recommendation={rec} index={index} />
+            ))}
+          </div>
         </div>
       ) : (
         !hydrating && (

@@ -36,6 +36,16 @@ export const catalogProductRowClass =
 export const catalogProductRowItemClass =
   "w-[10.75rem] shrink-0 snap-start sm:w-48 md:w-[14.25rem] lg:w-[15rem]";
 
+/**
+ * AI stylist chat — shared outer shell for a *group* of outfit boards, used by both the
+ * starter `StyleResultsBoard` (above the chat) and in-chat `ChatOutfitOptions` replies, so the
+ * two contexts never drift out of sync.
+ */
+export const aiOutfitBoardShellClass =
+  "space-y-4 rounded-2xl border border-border/50 bg-background p-3 sm:p-4";
+/** Vertical rhythm between individual outfit cards inside an `aiOutfitBoardShellClass` shell. */
+export const aiOutfitCardStackClass = "space-y-4";
+
 /** Brand / admin portal shell */
 export const portalLayoutRowClass = "flex min-h-0 flex-1 gap-6 sm:gap-8";
 export const portalContentClass = "min-w-0 flex-1 space-y-6";

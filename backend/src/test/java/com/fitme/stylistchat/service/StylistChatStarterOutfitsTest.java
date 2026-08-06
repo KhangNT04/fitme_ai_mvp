@@ -6,6 +6,7 @@ import com.fitme.common.enums.UserRole;
 import com.fitme.common.enums.UserStatus;
 import com.fitme.common.exception.BusinessException;
 import com.fitme.common.security.FitMeUserPrincipal;
+import com.fitme.recommendation.dto.CreateRecommendationRequest;
 import com.fitme.recommendation.dto.RecommendationOptionsResponse;
 import com.fitme.recommendation.dto.RecommendationResponse;
 import com.fitme.recommendation.service.RecommendationService;
@@ -13,12 +14,16 @@ import com.fitme.stylistchat.dto.StylistChatMessageResponse;
 import com.fitme.stylistchat.repository.StylistConversationRepository;
 import com.fitme.stylistchat.repository.StylistMessageRepository;
 import com.fitme.userprofile.entity.BodyProfile;
+import com.fitme.userprofile.entity.StyleProfile;
 import com.fitme.userprofile.service.BodyProfileService;
+import com.fitme.userprofile.service.StyleProfileService;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
@@ -46,6 +51,8 @@ class StylistChatStarterOutfitsTest {
     @Mock
     private BodyProfileService bodyProfileService;
     @Mock
+    private StyleProfileService styleProfileService;
+    @Mock
     private StylistConversationRepository conversationRepository;
     @Mock
     private StylistMessageRepository messageRepository;
@@ -59,6 +66,7 @@ class StylistChatStarterOutfitsTest {
                 chatIntentParser,
                 recommendationService,
                 bodyProfileService,
+                styleProfileService,
                 conversationRepository,
                 messageRepository,
                 new ObjectMapper());
@@ -73,6 +81,7 @@ class StylistChatStarterOutfitsTest {
                 new UsernamePasswordAuthenticationToken(new FitMeUserPrincipal(user), null, List.of()));
 
         when(bodyProfileService.findProfileEntity()).thenReturn(Optional.of(new BodyProfile()));
+        when(styleProfileService.findProfileEntity()).thenReturn(Optional.empty());
     }
 
     @AfterEach
@@ -104,6 +113,23 @@ class StylistChatStarterOutfitsTest {
         assertThat(response.getAssistantMessage().getType()).isEqualTo("text");
         assertThat(response.getAssistantMessage().getOptions()).isNull();
         assertThat(response.getRecommendations()).isEmpty();
+    }
+
+    @Test
+    void generateStarterOutfits_usesStyleProfilePrimaryStyleFirst() {
+        // User picked "Sporty" in the vibe quiz — the first generated preset must reflect that,
+        // instead of always starting with the hardcoded "Office Chic" preset.
+        when(styleProfileService.findProfileEntity()).thenReturn(Optional.of(
+                StyleProfile.builder().primaryStyle("Sporty").build()));
+        when(recommendationService.generateFromChat(any())).thenReturn(chatResult());
+
+        service.generateStarterOutfits();
+
+        ArgumentCaptor<CreateRecommendationRequest> captor =
+                ArgumentCaptor.forClass(CreateRecommendationRequest.class);
+        Mockito.verify(recommendationService, Mockito.atLeastOnce()).generateFromChat(captor.capture());
+        assertThat(captor.getAllValues().get(0).getStyleLabels()).containsExactly("Sporty");
+        assertThat(captor.getAllValues().get(0).getOccasion()).isEqualTo("Tập gym");
     }
 
     @Test

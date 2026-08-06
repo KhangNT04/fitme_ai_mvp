@@ -25,6 +25,16 @@ class ChatIntentParserTest {
     }
 
     @Test
+    void thanhLichAloneMapsToConsistentOccasionVibeAndStyle() {
+        // Regression test: "thanh lịch" used to only set vibe + style, leaving occasion at the
+        // generic "Casual hàng ngày" default while the display label still claimed "Đi làm".
+        var intent = parser.parse("Mình muốn phong cách thanh lịch một chút");
+        assertEquals("Đi làm", intent.occasion());
+        assertEquals("Thanh lịch", intent.desiredVibe());
+        assertTrue(intent.styleLabels().contains("Office Chic"));
+    }
+
+    @Test
     void fallsBackToAgeAppropriateStylesForMatureUser() {
         BodyProfile body = BodyProfile.builder().age(50).build();
         var intent = parser.parse("Gợi ý đồ đẹp cho mình", body);

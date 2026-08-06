@@ -1,5 +1,8 @@
 # Deploy FitMe AI — Free cloud (Vercel + Render + Neon)
 
+> **Cần backend always-on cho tuần demo (không muốn Render free bị sleep 15 phút)?**
+> Xem [`DEPLOY_HETZNER_VPS.md`](./DEPLOY_HETZNER_VPS.md) — dùng Hetzner VPS (Docker) làm backend **chính**, Render vẫn giữ làm **backup**. Vercel + Neon trong tài liệu này **không đổi**.
+
 Hướng dẫn deploy **0 đồng** với link public dạng `https://xxx.vercel.app`.
 
 ```
@@ -304,15 +307,16 @@ Sau khi deploy xong, kiểm tra log Render có dòng `Refreshing fashion catalog
 | `FITME_FRONTEND_BASE_URL` | URL Vercel (vd. `https://fitme-ai-mvp.vercel.app`) — cho ảnh catalog |
 | `FITME_STORAGE_MODE` | `r2` |
 | `R2_ENDPOINT`, `R2_BUCKET`, `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY` | Có |
-| `FITME_AI_MODE` | `hf` |
+| `FITME_AI_MODE` | `hf` hoặc `api` (FASHN hosted — phải khớp `AI_MODE` bên ai-vton) |
 | `AI_VTON_URL` | `https://fitme-ai-vton.onrender.com` |
 
 **Checklist env Render (ai-vton service):**
 
 | Biến | Bắt buộc |
 |------|----------|
-| `AI_MODE` | `hf` |
-| `HF_TOKEN` | Khuyến nghị |
+| `AI_MODE` | `hf` hoặc `api` |
+| `FASHN_API_KEY` | Bắt buộc nếu `AI_MODE=api` — [app.fashn.ai/api](https://app.fashn.ai/api), không commit key thật |
+| `HF_TOKEN` | Khuyến nghị nếu `AI_MODE=hf` |
 | `HF_FALLBACK_COMPOSITE` | `true` |
 | `VTON_PUBLIC_BASE_URL` | `https://fitme-ai-vton.onrender.com` |
 

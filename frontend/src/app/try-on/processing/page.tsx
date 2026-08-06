@@ -28,7 +28,7 @@ export default function TryOnProcessingPage() {
   const inputMode = useTryOnStore((s) => (s.input.inputMode ?? "OUTFIT_BOARD_ONLY") as TryOnInputMode);
   const navigatedRef = useRef(false);
 
-  const { phase, error, elapsedMs, retry } = useTryOnPoll({
+  const { phase, error, elapsedMs, stepLabel, retry } = useTryOnPoll({
     requestId,
     onCompleted: () => {
       if (navigatedRef.current || !requestId) return;
@@ -90,7 +90,7 @@ export default function TryOnProcessingPage() {
         backLabel="Thông tin thử mặc"
       />
       <div className="flex flex-col items-center py-16 text-center">
-        <TryOnProgressBar phase={phase} elapsedMs={elapsedMs} inputMode={inputMode} />
+        <TryOnProgressBar phase={phase} elapsedMs={elapsedMs} inputMode={inputMode} stepLabel={stepLabel} />
         <Disclaimer className="mt-8" compact />
       </div>
     </PageShell>

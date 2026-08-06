@@ -12,6 +12,12 @@ class VtonJobResult:
     error_code: str | None = None
     error_message: str | None = None
     fallback_mode: str | None = None
+    # Populated by SequentialVtonRunner for multi-garment jobs so callers (Spring
+    # Boot) can show "Đang mặc áo... (1/2)" style progress instead of one generic
+    # spinner for the whole outfit. `step` is 1-indexed; unset for single-garment jobs.
+    step: int | None = None
+    total_steps: int | None = None
+    current_category: str | None = None
 
 
 class VtonProvider(Protocol):

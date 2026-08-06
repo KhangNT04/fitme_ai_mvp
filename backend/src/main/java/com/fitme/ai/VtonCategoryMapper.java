@@ -8,7 +8,7 @@ import com.fitme.tryon.entity.TryOnItem;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
-import java.util.Comparator;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -17,25 +17,39 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class VtonCategoryMapper {
 
-    private static final List<ItemRole> PRIORITY = List.of(
-            ItemRole.ONE_PIECE,
-            ItemRole.TOP,
-            ItemRole.BOTTOM,
-            ItemRole.OUTERWEAR
-    );
-
     private final ProductRepository productRepository;
     private final OutfitCompositionService outfitCompositionService;
     private final MediaUrlResolver mediaUrlResolver;
 
-    public Optional<GarmentSelection> selectGarment(List<TryOnItem> items) {
-        return items.stream()
-                .filter(item -> isSupportedRole(item.getRole()))
-                .sorted(Comparator.comparingInt(item -> PRIORITY.indexOf(item.getRole())))
-                .map(this::toSelection)
-                .filter(Optional::isPresent)
-                .map(Optional::get)
-                .findFirst();
+    /**
+     * Selects the garment(s) to render for a try-on request, in call order.
+     *
+     * <p>FASHN (and every other VTON provider wired in ai-vton) only accepts one
+     * garment per prediction, so a full outfit is rendered as a <b>sequence</b> of
+     * calls, each one applied on top of the previous step's output image:
+     * ONE_PIECE alone (it already covers the full body), otherwise an upper
+     * garment (TOP, falling back to OUTERWEAR) followed by BOTTOM. SHOES and
+     * ACCESSORY are not supported by the current VTON category mapping and are
+     * skipped — see docs/FASHN_VTON_INTEGRATION.md §2.
+     */
+    public List<GarmentSelection> selectGarments(List<TryOnItem> items) {
+        Optional<TryOnItem> onePiece = findByRole(items, ItemRole.ONE_PIECE);
+        if (onePiece.isPresent()) {
+            return toSelection(onePiece.get()).map(List::of).orElse(List.of());
+        }
+
+        List<GarmentSelection> ordered = new ArrayList<>();
+        findUpperItem(items).flatMap(this::toSelection).ifPresent(ordered::add);
+        findByRole(items, ItemRole.BOTTOM).flatMap(this::toSelection).ifPresent(ordered::add);
+        return ordered;
+    }
+
+    private Optional<TryOnItem> findUpperItem(List<TryOnItem> items) {
+        return findByRole(items, ItemRole.TOP).or(() -> findByRole(items, ItemRole.OUTERWEAR));
+    }
+
+    private static Optional<TryOnItem> findByRole(List<TryOnItem> items, ItemRole role) {
+        return items.stream().filter(item -> item.getRole() == role).findFirst();
     }
 
     private Optional<GarmentSelection> toSelection(TryOnItem item) {

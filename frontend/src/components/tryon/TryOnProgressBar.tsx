@@ -8,6 +8,9 @@ type TryOnProgressBarProps = {
   elapsedMs: number;
   inputMode: TryOnInputMode;
   timeoutMs?: number;
+  /** Step-aware backend copy (e.g. "Đang mặc áo... (1/2)") for multi-garment outfits —
+   * shown instead of the generic per-phase label while polling, when available. */
+  stepLabel?: string | null;
 };
 
 const PHASE_LABELS: Record<TryOnInputMode, Record<TryOnPollPhase, string>> = {
@@ -42,9 +45,10 @@ export function TryOnProgressBar({
   elapsedMs,
   inputMode,
   timeoutMs = 120_000,
+  stepLabel,
 }: TryOnProgressBarProps) {
   const labels = PHASE_LABELS[inputMode] ?? PHASE_LABELS.OUTFIT_BOARD_ONLY;
-  const label = labels[phase] ?? labels.polling;
+  const label = (phase === "polling" && stepLabel) || labels[phase] || labels.polling;
   const progress = Math.min(100, Math.round((elapsedMs / timeoutMs) * 100));
   const indeterminate = phase === "starting" || phase === "polling";
 

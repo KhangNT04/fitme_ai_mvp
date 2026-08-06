@@ -21,6 +21,8 @@ export type UseTryOnPollResult = {
   result: TryOnResult | null;
   error: string | null;
   elapsedMs: number;
+  /** Step-aware copy while a multi-garment VTON job is processing, e.g. "Đang mặc áo... (1/2)". */
+  stepLabel: string | null;
   retry: () => void;
 };
 
@@ -39,6 +41,7 @@ export function useTryOnPoll({
   const [result, setResult] = useState<TryOnResult | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [elapsedMs, setElapsedMs] = useState(0);
+  const [stepLabel, setStepLabel] = useState<string | null>(null);
   const [runToken, setRunToken] = useState(0);
 
   const startedRef = useRef(false);
@@ -55,6 +58,7 @@ export function useTryOnPoll({
     setResult(null);
     setError(null);
     setElapsedMs(0);
+    setStepLabel(null);
     setRunToken((t) => t + 1);
   }, []);
 
@@ -90,6 +94,7 @@ export function useTryOnPoll({
       let latest = initial;
       setStatus(latest.status);
       setResult(latest);
+      setStepLabel(latest.processingStepLabel ?? null);
 
       if (latest.status === "COMPLETED") {
         finish("completed");
@@ -114,6 +119,7 @@ export function useTryOnPoll({
           latest = await tryonApi.getById(requestId);
           setStatus(latest.status);
           setResult(latest);
+          setStepLabel(latest.processingStepLabel ?? null);
 
           if (latest.status === "COMPLETED") {
             finish("completed");
@@ -160,5 +166,5 @@ export function useTryOnPoll({
     };
   }, [enabled, requestId, pollIntervalMs, timeoutMs, runToken]);
 
-  return { phase, status, result, error, elapsedMs, retry };
+  return { phase, status, result, error, elapsedMs, stepLabel, retry };
 }

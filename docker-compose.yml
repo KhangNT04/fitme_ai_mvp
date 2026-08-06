@@ -56,11 +56,21 @@ services:
       - "8001:8001"
     environment:
       AI_MODE: ${FITME_AI_MODE:-mock}
+      FASHN_API_KEY: ${FASHN_API_KEY:-}
+      FASHN_MODEL_NAME: ${FASHN_MODEL_NAME:-tryon-v1.6}
       HF_TOKEN: ${HF_TOKEN:-}
       HF_SPACE: ${HF_SPACE:-yisol/IDM-VTON}
       HF_MAX_RETRIES: ${HF_MAX_RETRIES:-2}
       HF_FALLBACK_COMPOSITE: ${HF_FALLBACK_COMPOSITE:-true}
       VTON_PUBLIC_BASE_URL: ${VTON_PUBLIC_BASE_URL:-http://localhost:8001}
+      # Lets ai-vton fetch the backend's own `http://localhost:8080/uploads/...` person-photo
+      # URLs (unreachable by FASHN's servers, and by "localhost" from inside this container)
+      # by rewriting them to the backend's Docker-internal address and inlining the bytes as
+      # base64 — see ai-services/vton/app/local_image_inline.py. Removes the need for ngrok
+      # when testing `FITME_AI_MODE=api` (FASHN) locally.
+      AI_VTON_INTERNAL_FETCH_BASE_URL: http://backend:8080
+    depends_on:
+      - backend
 
   frontend:
     build:

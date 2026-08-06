@@ -18,6 +18,10 @@ def get_provider() -> VtonProvider:
         from app.providers.hf_idmvton import HfIdmVtonProvider
 
         _provider = HfIdmVtonProvider()
+    elif mode == "api":
+        from app.providers.fashn_api import FashnApiProvider
+
+        _provider = FashnApiProvider()
     elif mode == "local":
         from app.providers.fashn_local import FashnLocalProvider
 

@@ -80,14 +80,40 @@ chmod +x scripts/dev-local.sh
 
 | `FITME_AI_MODE` | Hành vi |
 |-----------------|---------|
-| `mock` | Preview nhanh, không gọi HF |
+| `mock` | Preview nhanh, không gọi API/HF nào |
+| `api` | Gọi `ai-vton` → **FASHN hosted API** (`https://api.fashn.ai`) — cần `FASHN_API_KEY` |
 | `hf` | Gọi `ai-vton` → Space `yisol/IDM-VTON` |
 
-1. Chọn sản phẩm brand có **quota try-on**
+1. Chọn sản phẩm brand có **quota try-on** (chỉ mode **Dùng ảnh cá nhân** gọi VTON thật —
+   avatar mẫu/outfit board đang khoá ở frontend)
 2. Upload ảnh toàn thân → **Thử mặc** → chế độ **Ảnh của tôi**
-3. Trang processing poll đến `COMPLETED`
+3. Chọn cả áo + quần trong outfit để test luồng ghép tuần tự 2 bước (xem
+   [FASHN_VTON_INTEGRATION.md](FASHN_VTON_INTEGRATION.md))
+4. Trang processing poll đến `COMPLETED`
 
-**Lưu ý local:** ảnh user lưu tại `backend_local_uploads` volume; URL public `http://localhost:8080/uploads/...` — HF Space **không** fetch được localhost từ internet. VTON `hf` trên máy dev thường cần **ngrok** hoặc test VTON trên Render. Dùng `mock` để test flow UI local.
+**Lưu ý local:** ảnh user lưu tại `backend_local_uploads` volume; URL mặc định là
+`http://localhost:8080/uploads/...`. `api.fashn.ai` chạy trên internet công khai và không
+tự fetch được `localhost` — nhưng **ai-vton tự động xử lý việc này, không cần ngrok**:
+`app/local_image_inline.py` tải ảnh `localhost`/`127.0.0.1` **từ chính nó** (ai-vton có
+thể gọi thẳng backend — cùng máy khi chạy native, hoặc qua `AI_VTON_INTERNAL_FETCH_BASE_URL=
+http://backend:8080` khi chạy Docker Compose, đã set sẵn trong `docker-compose.local.yml`)
+rồi gửi FASHN dưới dạng base64 data URI thay vì URL — FASHN's `model_image`/`garment_image`
+chấp nhận cả hai (xem [tryon-v1.6 docs](https://docs.fashn.ai/api-reference/tryon-v1-6#input-parameters)).
+Chỉ cần set `FASHN_API_KEY` là chạy được thẳng trên `localhost`, không cần tunnel.
+
+HF Space (`AI_MODE=hf`) cũng nhận base64 tương tự qua `gradio_client`, nên cách trên áp
+dụng chung cho cả hai provider. Dùng `mock` nếu chỉ muốn test luồng UI mà không gọi AI thật.
+
+Để bật `api` (FASHN) trong `.env.local`:
+
+```env
+FITME_AI_MODE=api
+FASHN_API_KEY=fa-xxx   # https://app.fashn.ai/api
+```
+
+**Vẫn cần ngrok khi nào?** Chỉ khi bạn tắt tính năng trên (`FASHN_INLINE_LOCAL_IMAGES=false`
+trên service `ai-vton`) hoặc muốn FASHN tải ảnh trực tiếp thay vì qua ai-vton (ảnh lớn hơn
+10MB mặc định `FASHN_INLINE_MAX_BYTES` sẽ tự fallback về URL thô và cần public URL thật).
 
 ---
 

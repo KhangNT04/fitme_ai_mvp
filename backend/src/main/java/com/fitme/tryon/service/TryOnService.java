@@ -96,6 +96,7 @@ public class TryOnService {
         TryOnResponse response = toResponse(tryOn);
         attachItemDetails(tryOn, response);
         attachPreviewIfReady(tryOn, response);
+        attachProcessingProgress(tryOn, response);
         return response;
     }
 
@@ -161,6 +162,7 @@ public class TryOnService {
         attachItemDetails(tryOn, response);
         attachPreviewIfReady(tryOn, response);
         attachOutfitCompletion(id, response);
+        attachProcessingProgress(tryOn, response);
         return response;
     }
 
@@ -338,6 +340,17 @@ public class TryOnService {
         response.setMissingRoles(completion.getMissingRoles());
         response.setImprovementSuggestions(completion.getImprovementSuggestions());
         response.setSuggestedItems(completion.getSuggestedItems());
+    }
+
+    /** Surfaces sequential multi-garment VTON progress (e.g. "Đang mặc áo... (1/2)") while
+     * still PROCESSING, so the frontend can show step-aware copy instead of one generic
+     * spinner — see VtonTryOnService.getProcessingStepLabel. */
+    private void attachProcessingProgress(TryOnRequest tryOn, TryOnResponse response) {
+        if (tryOn.getStatus() != TryOnStatus.PROCESSING) {
+            return;
+        }
+        vtonTryOnService.getProcessingStepLabel(tryOn.getId())
+                .ifPresent(response::setProcessingStepLabel);
     }
 
     private void attachPreviewIfReady(TryOnRequest tryOn, TryOnResponse response) {

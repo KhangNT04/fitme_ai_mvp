@@ -35,20 +35,26 @@ flowchart LR
 
 | Mode | Mô tả | Khi nào dùng |
 |------|--------|--------------|
-| `mock` | Không gọi HF; outfit board / placeholder sync | CI, local dev |
+| `mock` | Không gọi provider nào; outfit board / placeholder sync | CI, local dev |
+| `api` | `ai-vton` gọi **FASHN hosted API** (`https://api.fashn.ai`, cần `FASHN_API_KEY`) | Dev/staging/production — gói đã mua tại [app.fashn.ai/api](https://app.fashn.ai/api) |
 | `hf` | `ai-vton` gọi Hugging Face Space IDM-VTON | Dev/staging/production $0 |
 | `local` | `ai-vton` chạy model self-host (GPU) | Production worker riêng (tùy chọn) |
+
+`FITME_AI_MODE` (backend) phải khớp với `AI_MODE` (ai-vton) — cả hai đọc chung giá trị này
+qua `AI_VTON_URL`, backend chỉ quyết định có bật polling async hay không
+(`AiVtonClient.isVtonEnabled()`), còn `AI_MODE` trên ai-vton mới chọn provider thật.
+**`FASHN_API_KEY` chỉ tồn tại trên service `ai-vton`** — Spring Boot không có property này
+và không bao giờ gọi thẳng `api.fashn.ai`.
 
 Cấu hình Spring (`application.yml`):
 
 ```yaml
 fitme:
   ai:
-    mode: mock          # mock | hf | local
+    mode: mock          # mock | api | hf | local
     vton-base-url: http://ai-vton:8001
     embeddings-base-url: http://ai-embeddings:8002
     public-base-url: http://localhost:8080
-    fashn-api-key: ${FASHN_API_KEY:}
     job-timeout-seconds: 120
     semantic-score-weight: 20
     stylist-mode: rule   # rule | gemini
@@ -58,6 +64,14 @@ fitme:
     stylist-timeout-ms: 15000
 ```
 
+Cấu hình ai-vton (env, không phải Spring):
+
+```bash
+AI_MODE=api
+FASHN_API_KEY=fa-xxx           # https://app.fashn.ai/api
+FASHN_MODEL_NAME=tryon-v1.6    # mặc định; tryon-max cho 4K / giày-mũ-túi
+```
+
 ---
 
 ## 3. Luồng try-on (async)
@@ -65,7 +79,11 @@ fitme:
 1. User upload ảnh → `user_photo_uploads` (local `/uploads`).
 2. User tạo try-on request + items → `POST /try-on/requests/{id}/generate`.
 3. Backend tạo `preview_generations` (`PROCESSING`), gán `preview_generation_id` cho try-on.
-4. Backend gọi `POST /v1/try-on` trên `ai-vton` (person URL + garment URL + category).
+4. Backend gọi `POST /v1/try-on` trên `ai-vton` (person URL + 1 hoặc nhiều garment —
+   `VtonCategoryMapper.selectGarments()` chọn TOP/OUTERWEAR + BOTTOM tuần tự, hoặc
+   ONE_PIECE một mình). Với ≥2 garment, `ai-vton` tự chạy tuần tự từng bước nội bộ
+   (`app/sequence.py`) và vẫn trả về đúng 1 `job_id` — xem
+   [FASHN_VTON_INTEGRATION.md](FASHN_VTON_INTEGRATION.md) mục 1b.
 5. `TryOnJobPoller` poll job → cập nhật preview URL / lỗi → try-on `COMPLETED` hoặc `FAILED`.
 6. Frontend poll `GET /try-on/requests/{id}` hoặc `/result` đến khi xong.
 

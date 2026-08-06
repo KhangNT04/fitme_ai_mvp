@@ -28,9 +28,11 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 
 @Service
 @RequiredArgsConstructor
@@ -41,6 +43,14 @@ public class VtonTryOnService {
             "Ảnh thử mặc được tạo bằng AI — tham khảo phối đồ. Form thực tế có thể khác tùy size và chất liệu.";
     private static final String VTON_COMPOSITE_DISCLAIMER =
             "Ảnh ghép minh họa tạm thời — dịch vụ AI thử mặc đang gián đoạn. Tham khảo phối đồ, form thực tế có thể khác.";
+
+    /**
+     * In-memory step progress for sequential multi-garment jobs (top → bottom), keyed by
+     * try-on request id. Not persisted — purely to let the frontend show "Đang mặc áo...
+     * (1/2)" instead of one opaque spinner while polling; safe to lose on restart since the
+     * next poll just re-fetches from ai-vton. Cleared once the job leaves PROCESSING.
+     */
+    private final Map<UUID, String> vtonProgressLabels = new ConcurrentHashMap<>();
 
     private final TryOnRequestRepository tryOnRequestRepository;
     private final TryOnItemRepository tryOnItemRepository;
@@ -108,6 +118,26 @@ public class VtonTryOnService {
         return Optional.of(previews.getLast());
     }
 
+    /**
+     * Step-aware progress label for a sequential (2+ garment) VTON job currently
+     * PROCESSING, e.g. "Đang mặc áo... (1/2)". Empty for single-garment jobs or once the
+     * step info hasn't arrived yet — callers should fall back to a generic loading message.
+     */
+    public Optional<String> getProcessingStepLabel(UUID tryOnRequestId) {
+        return Optional.ofNullable(vtonProgressLabels.get(tryOnRequestId));
+    }
+
+    private static String buildProgressLabel(Integer step, Integer totalSteps, String currentCategory) {
+        String garmentLabel = switch (currentCategory == null ? "" : currentCategory) {
+            case "tops" -> "áo";
+            case "bottoms" -> "quần";
+            case "one-pieces" -> "váy/đầm";
+            default -> "trang phục";
+        };
+        int safeStep = step != null && step > 0 ? step : 1;
+        return "Đang mặc %s... (%d/%d)".formatted(garmentLabel, safeStep, totalSteps);
+    }
+
     private boolean shouldUseAsyncVton(TryOnRequest tryOn) {
         if (!aiVtonClient.isVtonEnabled()) {
             return false;
@@ -118,8 +148,8 @@ public class VtonTryOnService {
 
     private void dispatchAsyncVton(TryOnRequest tryOn, PreviewGeneration preview) {
         List<TryOnItem> items = tryOnItemRepository.findByTryOnRequestId(tryOn.getId());
-        Optional<VtonCategoryMapper.GarmentSelection> garment = vtonCategoryMapper.selectGarment(items);
-        if (garment.isEmpty()) {
+        List<VtonCategoryMapper.GarmentSelection> garments = vtonCategoryMapper.selectGarments(items);
+        if (garments.isEmpty()) {
             log.info("No VTON-eligible garment for try-on {}, falling back to outfit board", tryOn.getId());
             completeSyncPreview(tryOn, preview);
             return;
@@ -127,22 +157,26 @@ public class VtonTryOnService {
 
         try {
             String personUrl = vtonImageUrlResolver.resolvePersonUrl(tryOn);
-            VtonCategoryMapper.GarmentSelection selected = garment.get();
-            log.info("VTON dispatch try-on {} product={} personUrl={} garmentUrl={}",
-                    tryOn.getId(), selected.productName(), personUrl, selected.garmentImageUrl());
-            VtonJobResponse job = aiVtonClient.submitJob(
-                    personUrl,
-                    selected.garmentImageUrl(),
-                    selected.category(),
-                    selected.productName());
+            log.info("VTON dispatch try-on {} garments={} personUrl={}",
+                    tryOn.getId(),
+                    garments.stream().map(VtonCategoryMapper.GarmentSelection::productName).toList(),
+                    personUrl);
+            VtonJobResponse job = garments.size() == 1
+                    ? aiVtonClient.submitJob(
+                            personUrl,
+                            garments.get(0).garmentImageUrl(),
+                            garments.get(0).category(),
+                            garments.get(0).productName())
+                    : aiVtonClient.submitSequentialJob(personUrl, garments);
 
             if (job == null || "failed".equalsIgnoreCase(job.getStatus())) {
-                applyVtonFailure(tryOn, preview, job != null ? job.getErrorMessage() : "VTON submit failed");
+                applyVtonFailure(tryOn, preview, job != null ? job.getErrorCode() : "PROVIDER_ERROR",
+                        job != null ? job.getErrorMessage() : "VTON submit failed");
                 return;
             }
 
             if (job.getJobId() == null || job.getJobId().isBlank()) {
-                applyVtonFailure(tryOn, preview, "VTON provider did not return job id");
+                applyVtonFailure(tryOn, preview, "PROVIDER_ERROR", "VTON provider did not return job id");
                 return;
             }
             preview.setVtonJobId(job.getJobId());
@@ -151,8 +185,8 @@ public class VtonTryOnService {
             tryOn.setStatus(TryOnStatus.PROCESSING);
         } catch (Exception ex) {
             log.warn("Async VTON dispatch failed for try-on {}: reason={} message={}",
-                    tryOn.getId(), classifyVtonFailure(ex.getMessage()), ex.getMessage());
-            applyVtonFailure(tryOn, preview, ex.getMessage());
+                    tryOn.getId(), classifyVtonFailure(null, ex.getMessage()), ex.getMessage());
+            applyVtonFailure(tryOn, preview, null, ex.getMessage());
         }
     }
 
@@ -175,6 +209,11 @@ public class VtonTryOnService {
 
         String status = response.getStatus().toLowerCase();
         if ("processing".equals(status)) {
+            if (preview.getTryOnRequestId() != null && response.getTotalSteps() != null) {
+                vtonProgressLabels.put(
+                        preview.getTryOnRequestId(),
+                        buildProgressLabel(response.getStep(), response.getTotalSteps(), response.getCurrentCategory()));
+            }
             return;
         }
 
@@ -183,6 +222,9 @@ public class VtonTryOnService {
                 : null;
         if (tryOn == null) {
             return;
+        }
+        if (tryOn.getId() != null) {
+            vtonProgressLabels.remove(tryOn.getId());
         }
         if (tryOn.getStatus() == TryOnStatus.COMPLETED || tryOn.getStatus() == TryOnStatus.FAILED) {
             return;
@@ -208,7 +250,7 @@ public class VtonTryOnService {
             tryOn.setStatus(TryOnStatus.COMPLETED);
             consumeQuotaForTryOn(tryOn.getId());
         } else if ("failed".equals(status)) {
-            applyVtonFailure(tryOn, preview,
+            applyVtonFailure(tryOn, preview, response.getErrorCode(),
                     response.getErrorMessage() != null ? response.getErrorMessage() : "VTON job failed");
         } else {
             log.warn("Unexpected VTON status '{}' for preview {}", status, preview.getId());
@@ -219,7 +261,10 @@ public class VtonTryOnService {
         tryOnRequestRepository.save(tryOn);
     }
 
-    private void applyVtonFailure(TryOnRequest tryOn, PreviewGeneration preview, String message) {
+    private void applyVtonFailure(TryOnRequest tryOn, PreviewGeneration preview, String errorCode, String message) {
+        if (tryOn.getId() != null) {
+            vtonProgressLabels.remove(tryOn.getId());
+        }
         try {
             PreviewGenerator.PreviewResult fallback = previewGenerator.generate(
                     new PreviewGenerator.PreviewRequest(null, tryOn.getId(), tryOn.getPhotoUploadId(),
@@ -228,7 +273,7 @@ public class VtonTryOnService {
             preview.setDisclaimer(fallback.disclaimer() + " (Fallback minh họa khi VTON thất bại.)");
             preview.setStatus(PreviewStatus.SUCCEEDED);
             preview.setPreviewSource(resolveSyncPreviewSource(tryOn.getPreviewMode()));
-            preview.setErrorMessage(sanitizeVtonErrorMessage(message));
+            preview.setErrorMessage(sanitizeVtonErrorMessage(errorCode, message));
             tryOn.setStatus(TryOnStatus.COMPLETED);
             consumeQuotaForTryOn(tryOn.getId());
         } catch (Exception ex) {
@@ -245,7 +290,7 @@ public class VtonTryOnService {
         if (tryOn == null) {
             return;
         }
-        applyVtonFailure(tryOn, preview, "VTON timeout — vượt quá thời gian chờ");
+        applyVtonFailure(tryOn, preview, "TIMEOUT", "VTON timeout — vượt quá thời gian chờ");
         previewRepository.save(preview);
         tryOnRequestRepository.save(tryOn);
     }
@@ -317,7 +362,28 @@ public class VtonTryOnService {
         };
     }
 
-    private static String sanitizeVtonErrorMessage(String message) {
+    /**
+     * Maps a VTON failure to a Vietnamese toast message. Prefers ai-vton's structured
+     * {@code error_code} (see docs/FASHN_VTON_INTEGRATION.md §1 "Error codes" — RATE_LIMIT,
+     * OUT_OF_CREDITS, UNAUTHORIZED, INVALID_IMAGE, UNSUPPORTED_CATEGORY, TIMEOUT,
+     * PROVIDER_ERROR) over pattern-matching the raw message, which only kicks in when no
+     * code is available (e.g. a network-level exception before ai-vton ever responded).
+     */
+    private static String sanitizeVtonErrorMessage(String errorCode, String message) {
+        if (errorCode != null && !errorCode.isBlank()) {
+            String mapped = switch (errorCode.trim().toUpperCase(java.util.Locale.ROOT)) {
+                case "RATE_LIMIT" -> "AI thử mặc đang quá tải (giới hạn tốc độ) — thử lại sau ít phút hoặc xem ảnh minh họa.";
+                case "OUT_OF_CREDITS" -> "AI thử mặc đã hết credit — thử lại sau hoặc xem ảnh minh họa.";
+                case "UNAUTHORIZED" -> "Cấu hình API key AI thử mặc chưa đúng — xem ảnh minh họa thay thế.";
+                case "INVALID_IMAGE" -> "Ảnh không hợp lệ để AI ghép đồ — vui lòng upload ảnh rõ mặt/toàn thân khác.";
+                case "UNSUPPORTED_CATEGORY" -> "Món đồ này chưa hỗ trợ thử mặc AI — xem ảnh minh họa phối đồ.";
+                case "TIMEOUT" -> "AI thử mặc mất quá nhiều thời gian — xem ảnh minh họa thay thế.";
+                default -> null;
+            };
+            if (mapped != null) {
+                return mapped;
+            }
+        }
         if (message == null || message.isBlank()) {
             return "Dịch vụ AI thử mặc tạm thời không khả dụng.";
         }
@@ -325,31 +391,50 @@ public class VtonTryOnService {
         if (lower.contains("gradio") || lower.contains("upstream")) {
             return "Dịch vụ AI thử mặc đang gặp sự cố. Bạn vẫn xem được ảnh minh họa bên dưới.";
         }
-        if (lower.contains("429") || lower.contains("quota") || lower.contains("rate limit")) {
-            return "AI thử mặc đã hết quota — thử lại sau hoặc xem ảnh minh họa.";
+        if (lower.contains("429") || lower.contains("quota") || lower.contains("rate limit")
+                || lower.contains("outofcredits") || lower.contains("out of credits") || lower.contains("credit")) {
+            return "AI thử mặc đã hết quota/credit — thử lại sau hoặc xem ảnh minh họa.";
+        }
+        if (lower.contains("unauthorized") || lower.contains("invalid token") || lower.contains("api key")) {
+            return "Cấu hình API key AI thử mặc chưa đúng — xem ảnh minh họa thay thế.";
         }
         if (lower.contains("timeout") || lower.contains("timed out")) {
             return "AI thử mặc mất quá nhiều thời gian — xem ảnh minh họa thay thế.";
         }
-        if (lower.contains("url") || lower.contains("fetch") || lower.contains("404")) {
+        if (lower.contains("url") || lower.contains("fetch") || lower.contains("404")
+                || lower.contains("imageloaderror")) {
             return "Không truy cập được ảnh để ghép đồ — kiểm tra lại ảnh đã upload.";
         }
         return message.length() > 200 ? message.substring(0, 200) + "…" : message;
     }
 
-    private static String classifyVtonFailure(String message) {
+    private static String classifyVtonFailure(String errorCode, String message) {
+        if (errorCode != null && !errorCode.isBlank()) {
+            return switch (errorCode.trim().toUpperCase(java.util.Locale.ROOT)) {
+                case "RATE_LIMIT", "OUT_OF_CREDITS" -> "quota_exceeded";
+                case "UNAUTHORIZED" -> "unauthorized";
+                case "TIMEOUT" -> "timeout";
+                case "INVALID_IMAGE" -> "person_url_unreachable";
+                case "UNSUPPORTED_CATEGORY" -> "unsupported_category";
+                default -> "provider_error";
+            };
+        }
         if (message == null || message.isBlank()) {
             return "unknown";
         }
         String lower = message.toLowerCase();
-        if (lower.contains("429") || lower.contains("quota") || lower.contains("rate limit")) {
+        if (lower.contains("429") || lower.contains("quota") || lower.contains("rate limit")
+                || lower.contains("credit")) {
             return "quota_exceeded";
+        }
+        if (lower.contains("unauthorized") || lower.contains("invalid token") || lower.contains("api key")) {
+            return "unauthorized";
         }
         if (lower.contains("timeout") || lower.contains("timed out")) {
             return "timeout";
         }
         if (lower.contains("url") || lower.contains("fetch") || lower.contains("download")
-                || lower.contains("404") || lower.contains("not found")) {
+                || lower.contains("404") || lower.contains("not found") || lower.contains("imageloaderror")) {
             return "person_url_unreachable";
         }
         return "provider_error";

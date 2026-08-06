@@ -27,6 +27,9 @@ public class TryOnResponse {
     private String disclaimer;
     private String errorMessage;
     private String previewSource;
+    /** Step-aware progress label while a multi-garment VTON job is PROCESSING, e.g.
+     * "Đang mặc áo... (1/2)". Null for single-garment jobs or outfit-board/avatar-only flows. */
+    private String processingStepLabel;
     private String recommendedSize;
     private String alternativeSize;
     private String recommendedForm;

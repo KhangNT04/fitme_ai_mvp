@@ -49,7 +49,10 @@ services:
         sync: false
       - key: PAYOS_CHECKSUM_KEY
         sync: false
-      # AI VTON — production: FITME_AI_MODE=hf + AI_VTON_URL + FITME_PUBLIC_BASE_URL
+      # AI VTON — production: FITME_AI_MODE=hf (default, $0) or api (FASHN hosted,
+      # paid — set FASHN_API_KEY on fitme-ai-vton below, then flip this to "api")
+      # + AI_VTON_URL + FITME_PUBLIC_BASE_URL. FASHN_API_KEY is never needed here
+      # on the backend — only ai-vton calls FASHN directly.
       - key: FITME_AI_MODE
         value: hf
       - key: AI_VTON_URL
@@ -90,6 +93,10 @@ services:
     envVars:
       - key: AI_MODE
         value: hf
+      # FASHN hosted API (https://app.fashn.ai/api) — set this + change AI_MODE
+      # (above, and FITME_AI_MODE on fitme-api) to "api" to use it in production.
+      - key: FASHN_API_KEY
+        sync: false
       - key: HF_TOKEN
         sync: false
       - key: HF_SPACE

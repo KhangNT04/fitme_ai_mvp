@@ -48,6 +48,13 @@ const INPUT_MODES = [
   { value: "OUTFIT_BOARD_ONLY", label: "Chỉ xem outfit board" },
 ] as const;
 
+// "Dùng avatar mẫu" và "Chỉ xem outfit board" chưa sẵn sàng — chặn hành động tạo/tiếp tục thử mặc.
+const LOCKED_INPUT_MODES: ReadonlySet<TryOnInputForm["inputMode"]> = new Set([
+  "AVATAR",
+  "OUTFIT_BOARD_ONLY",
+]);
+const FEATURE_LOCKED_MESSAGE = "Tính năng đang được phát triển, hiện tại chưa thể sử dụng.";
+
 export default function TryOnInputPage() {
   const router = useRouter();
   const queryClient = useQueryClient();
@@ -232,6 +239,10 @@ export default function TryOnInputPage() {
   };
 
   const onSubmit = async (data: TryOnInputForm) => {
+    if (LOCKED_INPUT_MODES.has(data.inputMode)) {
+      toast.info(FEATURE_LOCKED_MESSAGE);
+      return;
+    }
     setInput({
       inputMode: data.inputMode,
       ...(data.usualSize ? { usualSize: data.usualSize } : {}),
@@ -514,7 +525,18 @@ export default function TryOnInputPage() {
             <Button type="button" variant="outline" asChild>
               <Link href="/try-on/selected">Quay lại</Link>
             </Button>
-            <Button type="submit" className="flex-1" variant="ai" disabled={isSubmitting || !storesReady}>
+            <Button
+              type="submit"
+              className="flex-1"
+              variant="ai"
+              disabled={isSubmitting || !storesReady}
+              onClick={(e) => {
+                if (LOCKED_INPUT_MODES.has(inputMode)) {
+                  e.preventDefault();
+                  toast.info(FEATURE_LOCKED_MESSAGE);
+                }
+              }}
+            >
               {isSubmitting ? "Đang tạo..." : "Tạo preview thử mặc"}
             </Button>
           </div>

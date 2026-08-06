@@ -56,6 +56,9 @@ export interface TryOnResult {
   previewImageUrl?: string;
   previewSource?: TryOnPreviewSource;
   errorMessage?: string;
+  /** Step-aware progress while a multi-garment VTON job is processing, e.g.
+   * "Đang mặc áo... (1/2)". Only set for USER_PHOTO/AVATAR outfits with 2+ VTON-eligible items. */
+  processingStepLabel?: string;
   recommendedSize?: string;
   alternativeSize?: string;
   recommendedForm?: string;

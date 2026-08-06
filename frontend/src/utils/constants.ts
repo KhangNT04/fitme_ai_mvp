@@ -78,34 +78,6 @@ export const WARDROBE_MODES = [
   { value: "NO_WARDROBE_DATA", label: "Không dùng tủ đồ" },
 ] as const;
 
-/** Gen Z vibe quiz — 3 dịp mặc chính; maps to style + soft risk for recommendations. */
-export const VIBE_QUIZ_OPTIONS = [
-  {
-    id: "office",
-    label: "Văn phòng",
-    hint: "Thanh lịch, đi làm fresher vẫn thoải mái",
-    style: "Office Chic",
-    riskLevel: "BALANCED" as const,
-    mood: "office",
-  },
-  {
-    id: "outing",
-    label: "Đi chơi",
-    hint: "Cafe, hẹn hò, cuối tuần có điểm nhấn",
-    style: "Streetwear",
-    riskLevel: "BALANCED" as const,
-    mood: "outing",
-  },
-  {
-    id: "sporty",
-    label: "Thể thao",
-    hint: "Năng động, dễ vận động cả ngày",
-    style: "Sporty",
-    riskLevel: "SAFE" as const,
-    mood: "sporty",
-  },
-] as const;
-
 export const BUDGET_BANDS = [
   { value: "under-300", label: "Dưới 300k" },
   { value: "300-500", label: "300–500k" },
@@ -113,7 +85,7 @@ export const BUDGET_BANDS = [
   { value: "800-plus", label: "800k+" },
 ] as const;
 
-/** Optional closet goals — không trùng 3 vibe chính (văn phòng / đi chơi / thể thao). */
+/** Optional closet goals shown after body profile — helps stylist bias suggestions. */
 export const CLOSET_GOAL_OPTIONS = [
   "Mix với tủ đang có",
   "Ít mua — chọn đồ bền",

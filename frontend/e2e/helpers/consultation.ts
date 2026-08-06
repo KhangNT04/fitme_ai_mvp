@@ -12,15 +12,14 @@ export async function startAnonymousConsultation(page: Page) {
   );
 }
 
-/** Completes vibe quiz (or skips) and lands on chat. */
+/** Completes the post-body-profile quiz (budget/goals, no vibe picker) and lands on chat. */
 export async function fillVibeQuiz(page: Page) {
   if (!page.url().includes("/ai/vibe-quiz")) {
     await page.goto("/ai/vibe-quiz");
   }
-  await expect(page.getByRole("button", { name: /Văn phòng/i })).toBeVisible({
+  await expect(page.getByRole("button", { name: /Xong — vào tư vấn/ })).toBeVisible({
     timeout: 15_000,
   });
-  await page.getByRole("button", { name: /Văn phòng/i }).click();
   await page.getByRole("button", { name: /Xong — vào tư vấn/ }).click();
   await page.waitForURL("**/ai/chat", { timeout: 30_000 });
 }

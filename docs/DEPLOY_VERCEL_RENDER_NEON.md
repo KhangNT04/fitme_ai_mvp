@@ -1,18 +1,20 @@
-# Deploy FitMe AI — Free cloud (Vercel + Render + Neon)
+# Deploy FitMe AI — Vercel + Render (backup) + Neon
 
-> **Cần backend always-on cho tuần demo (không muốn Render free bị sleep 15 phút)?**
-> Xem [`DEPLOY_HETZNER_VPS.md`](./DEPLOY_HETZNER_VPS.md) — dùng Hetzner VPS (Docker) làm backend **chính**, Render vẫn giữ làm **backup**. Vercel + Neon trong tài liệu này **không đổi**.
+> ⚠️ **Backend production/demo chính chạy trên Hetzner VPS, không phải Render.**
+> Xem [`DEPLOY_HETZNER_VPS.md`](./DEPLOY_HETZNER_VPS.md) — hướng dẫn đầy đủ backend chính (Docker trên Hetzner, always-on), bao gồm cutover từ Render sang Hetzner.
+>
+> Tài liệu **này** mô tả: (1) Vercel (FE) + Neon (DB) — dùng chung, không đổi dù backend nào đang active, và (2) Render — nay chỉ còn vai trò **backup lạnh** (cold standby) khi Hetzner VPS gặp sự cố, hoặc làm môi trường dev/test nhanh không cần quản lý VPS. Đừng dùng tài liệu này làm hướng dẫn deploy production chính.
 
-Hướng dẫn deploy **0 đồng** với link public dạng `https://xxx.vercel.app`.
+Hướng dẫn deploy **0 đồng** với link public dạng `https://xxx.vercel.app` — phù hợp làm **backup** hoặc dev/test, không khuyến nghị làm backend chính cho production/demo (xem lý do ở [mục "So sánh"](#so-sánh-với-hetzner-vps) và [`DEPLOY_HETZNER_VPS.md#10-chi-phí`](./DEPLOY_HETZNER_VPS.md#10-chi-phí-hetzner-vs-render-free)).
 
 ```
 Người dùng → Vercel (Next.js)
                 ├─ pages: SSR/static
-                └─ /api/v1/* → rewrite → Render (Spring Boot)
-                                              └─ Neon (PostgreSQL)
+                └─ /api/v1/* → rewrite → Render (Spring Boot, BACKUP)
+                                              └─ Neon (PostgreSQL) — dùng chung với Hetzner
 ```
 
-Frontend gọi **`/api/v1`** (same-origin trên Vercel), Next.js proxy sang Render — tránh lỗi CORS phức tạp trên browser.
+Frontend gọi **`/api/v1`** (same-origin trên Vercel), Next.js proxy sang Render — tránh lỗi CORS phức tạp trên browser. Khi Hetzner là backend chính, proxy này trỏ `BACKEND_INTERNAL_URL` tới `https://api.yourdomain.com` thay vì Render — xem [mục 6.4 của `DEPLOY_HETZNER_VPS.md`](./DEPLOY_HETZNER_VPS.md#64-chuyển-traffic-thật-vercel).
 
 ---
 
@@ -50,7 +52,9 @@ Giữ `DB_USERNAME` và `DB_PASSWORD` riêng (không nhét vào URL).
 
 ---
 
-## Bước 2 — Render (Backend Java)
+## Bước 2 — Render (Backend Java, backup)
+
+> Bước này tạo backend **backup**. Nếu bạn đang setup backend **chính**, làm theo [`DEPLOY_HETZNER_VPS.md`](./DEPLOY_HETZNER_VPS.md) thay vì bước này (vẫn dùng chung Neon ở Bước 1 và Vercel ở Bước 3).
 
 1. [dashboard.render.com](https://dashboard.render.com) → **New +** → **Web Service**.
 2. Connect GitHub repo `fitme_ai_mvp`.
@@ -276,15 +280,19 @@ Sau khi deploy xong, kiểm tra log Render có dòng `Refreshing fashion catalog
 
 ---
 
-## So sánh với Docker local/VPS
+## So sánh với Hetzner VPS
 
-| | Vercel+Render+Neon | Docker VPS |
+| | Vercel + Render (backup) + Neon | Vercel + **Hetzner VPS (chính)** + Neon |
 |---|-------------------|------------|
-| Chi phí | Free | Free (Oracle) |
-| Link public | Có ngay | Cần IP + port |
-| Backend sleep | Có (Render free) | Không |
-| Upload file | Tạm | Volume ổn định |
-| Độ phức tạp | 3 dashboard | 1 VPS + SSH |
+| Vai trò | Backup lạnh / dev-test | **Production/demo chính** |
+| Chi phí | $0 (free tier) | ~$4/tháng (CX22) |
+| Link public | Có ngay (`*.onrender.com`) | Cần domain riêng (`api.yourdomain.com`) + DNS |
+| Backend sleep | Có (Render free, ~15 phút không request) | Không — always-on |
+| Upload file | Ephemeral (`/tmp`) | Volume Docker ổn định (khuyến nghị vẫn dùng R2 cho ảnh) |
+| Độ phức tạp vận hành | 3 dashboard (Vercel/Render/Neon), gần như zero-ops | 1 VPS + SSH + Docker + Caddy — cần tự vận hành |
+| Hướng dẫn | Tài liệu này | [`DEPLOY_HETZNER_VPS.md`](./DEPLOY_HETZNER_VPS.md) |
+
+**Kết luận:** dùng Render khi cần link demo nhanh $0 hoặc test cloud không muốn quản lý VPS. Dùng **Hetzner** khi cần backend luôn online, không cold-start, cho production hoặc tuần demo quan trọng — xem chi tiết chi phí & cutover tại [`DEPLOY_HETZNER_VPS.md`](./DEPLOY_HETZNER_VPS.md).
 
 ---
 

@@ -1,0 +1,33 @@
+# FitMe AI — Caddy reverse proxy example (Hetzner VPS)
+# Copy to /etc/caddy/Caddyfile on the VPS, replace api.yourdomain.com with your real
+# domain, then: systemctl restart caddy && systemctl enable caddy
+# See docs/DEPLOY_HETZNER_VPS.md section 2.5 and 5 (DNS must point here first).
+
+api.yourdomain.com {
+    reverse_proxy 127.0.0.1:8080
+
+    encode gzip
+
+    header {
+        Strict-Transport-Security "max-age=31536000; includeSubDomains"
+        X-Content-Type-Options "nosniff"
+        X-Frame-Options "DENY"
+        # Remove server identification leakage
+        -Server
+    }
+
+    log {
+        output file /var/log/caddy/fitme-api.log {
+            roll_size 20mb
+            roll_keep 5
+        }
+        format json
+    }
+}
+
+# Optional: only add this if you need to reach ai-vton directly from outside the
+# VPS for debugging. Normally NOT needed — the backend calls ai-vton over the
+# internal Docker network at http://ai-vton:8001 (see docker-compose.hetzner.yml).
+# vton.yourdomain.com {
+#     reverse_proxy 127.0.0.1:8001
+# }

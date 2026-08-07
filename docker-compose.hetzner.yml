@@ -1,0 +1,64 @@
+# FitMe AI — Hetzner VPS production compose (backend = primary, Render = cold backup)
+# Docs: docs/DEPLOY_HETZNER_VPS.md · Env template: deploy/hetzner/.env.hetzner.example
+# Usage (on the VPS, from repo root):
+#   cp deploy/hetzner/.env.hetzner.example .env.hetzner   # fill in real values, do NOT commit
+#   ./deploy/hetzner/scripts/deploy-hetzner.sh             # backend only (ai-vton stays on Render)
+#   ./deploy/hetzner/scripts/deploy-hetzner.sh --with-ai-vton   # also self-host ai-vton on this VPS
+#
+# Both services bind to 127.0.0.1 only — never expose 8080/8001 publicly.
+# A reverse proxy (Caddy — see deploy/hetzner/Caddyfile.example) terminates TLS on 80/443
+# and forwards to 127.0.0.1:8080.
+
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    image: fitme-backend:hetzner
+    container_name: fitme-hetzner-backend
+    restart: unless-stopped
+    env_file:
+      - .env.hetzner
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
+    ports:
+      - "127.0.0.1:8080:8080"
+    volumes:
+      - backend_uploads:/app/uploads
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://localhost:8080/actuator/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 60s
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  # Optional: self-host FASHN try-on on this same VPS instead of keeping it on Render.
+  # Disabled by default — only starts with `--profile ai` (see deploy-hetzner.sh above).
+  # See docs/DEPLOY_HETZNER_VPS.md section 7 for the tradeoffs vs keeping ai-vton on Render.
+  ai-vton:
+    profiles: ["ai"]
+    build:
+      context: ./ai-services/vton
+      dockerfile: Dockerfile
+    image: fitme-ai-vton:hetzner
+    container_name: fitme-hetzner-ai-vton
+    restart: unless-stopped
+    env_file:
+      - .env.hetzner
+    ports:
+      - "127.0.0.1:8001:8001"
+    depends_on:
+      - backend
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+volumes:
+  backend_uploads:

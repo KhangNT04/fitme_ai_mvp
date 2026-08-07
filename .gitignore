@@ -23,6 +23,7 @@ backend/uploads/
 .env.local
 .env.test
 .env.*.local
+.env.hetzner
 
 # Logs
 *.log

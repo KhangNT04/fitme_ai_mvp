@@ -90,14 +90,27 @@ cp .env.test.example .env.test   # chỉnh PUBLIC_APP_URL + secrets
 
 Chi tiết: [`docs/DEPLOY_TEST.md`](docs/DEPLOY_TEST.md) · Hướng dẫn user truy cập URL deploy: [`docs/USER_GUIDE.md`](docs/USER_GUIDE.md#1-truy-cập-app--đường-dẫn-deploy)
 
-## Deploy free cloud (Vercel + Render + Neon)
+## Deploy production (Vercel + Hetzner VPS + Neon) — backend chính
 
-Stack **0 đồng**, link public `https://*.vercel.app`:
+Backend Spring Boot chạy **always-on** trên Hetzner Cloud VPS (Docker), không sleep — dùng cho production/demo:
 
 | Dịch vụ | Vai trò |
 |---------|---------|
 | [Vercel](https://vercel.com) | Frontend Next.js |
-| [Render](https://render.com) free | Backend Spring Boot (Docker) |
+| **Hetzner Cloud VPS** (Docker) | **Backend Spring Boot — chính, always-on** |
+| [Neon](https://neon.tech) | PostgreSQL |
+| [Render](https://render.com) free | Backend — **backup lạnh** khi VPS gặp sự cố |
+
+Hướng dẫn đầy đủ (kiến trúc, cutover từ Render, FASHN try-on, ops): [`docs/DEPLOY_HETZNER_VPS.md`](docs/DEPLOY_HETZNER_VPS.md)
+
+## Deploy free cloud (Vercel + Render + Neon) — backup / dev nhanh
+
+Stack **0 đồng**, link public `https://*.vercel.app` — dùng làm **backup** cho backend chính ở trên, hoặc để dev/test nhanh không cần quản lý VPS:
+
+| Dịch vụ | Vai trò |
+|---------|---------|
+| [Vercel](https://vercel.com) | Frontend Next.js |
+| [Render](https://render.com) free | Backend Spring Boot (Docker) — **backup** |
 | [Neon](https://neon.tech) free | PostgreSQL |
 
 Hướng dẫn từng bước: [`docs/DEPLOY_VERCEL_RENDER_NEON.md`](docs/DEPLOY_VERCEL_RENDER_NEON.md) · User dùng link deploy: [`docs/USER_GUIDE.md`](docs/USER_GUIDE.md#1-truy-cập-app--đường-dẫn-deploy)

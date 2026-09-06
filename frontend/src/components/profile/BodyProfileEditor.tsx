@@ -23,9 +23,9 @@ export function bodyProfileToForm(profile: BodyProfile): BodyProfileForm {
   return {
     heightCm: profile.heightCm,
     weightKg: profile.weightKg,
-    age: profile.age ?? 25,
+    age: profile.age,
     gender: profile.gender,
-    fitPreference: profile.fitPreference ?? "REGULAR",
+    fitPreference: profile.fitPreference,
     skinTone: profile.skinTone,
     goals: profile.goals ?? [],
     shoulderWidthCm: profile.measurements?.shoulderWidthCm,
@@ -83,14 +83,15 @@ export function BodyProfileEditor({
 }: BodyProfileEditorProps) {
   const formValues = useMemo((): BodyProfileForm => {
     if (!initial) {
+      // Empty form — no demo prefill; user must enter their own numbers.
       return {
-        heightCm: 165,
-        weightKg: 55,
-        age: 25,
-        gender: "FEMALE" as const,
-        fitPreference: "REGULAR" as const,
+        heightCm: undefined,
+        weightKg: undefined,
+        age: undefined,
+        gender: undefined,
+        fitPreference: undefined,
         goals: [],
-      };
+      } as unknown as BodyProfileForm;
     }
     return bodyProfileToForm(initial);
   }, [initial ? profileSnapshotKey(bodyProfileToForm(initial)) : "empty"]);

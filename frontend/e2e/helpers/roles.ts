@@ -29,8 +29,8 @@ export async function registerUser(
   const answer = String(Number(parts[0].trim()) + Number(parts[1].trim()));
   await page.getByPlaceholder("Nhập kết quả").fill(answer);
 
-  // Anti-bot timing requires >= 2s on the form
-  await page.waitForTimeout(2200);
+  // Anti-bot timing — production default is 2s; CI backend uses FITME_AUTH_MIN_FORM_MS=0
+  await page.waitForTimeout(process.env.CI ? 100 : 2200);
   await page.getByRole("button", { name: /Đăng ký/ }).click();
 
   await expect(page.getByRole("heading", { name: "Xác nhận tài khoản" })).toBeVisible({

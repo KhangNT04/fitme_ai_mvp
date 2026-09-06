@@ -126,6 +126,8 @@ jobs:
           JWT_SECRET: ci-jwt-secret-min-256-bits-long-for-testing-only
           CORS_ORIGINS: http://localhost:3000
           FITME_SEED_ENABLED: "true"
+          FITME_AUTH_EXPOSE_VERIFICATION_CODE: "true"
+          FITME_AUTH_MIN_FORM_MS: "0"
         run: |
           mvn spring-boot:run -q &
           echo $! > ../backend.pid
@@ -143,16 +145,38 @@ jobs:
           echo "Backend failed to start"
           exit 1
 
+      - name: Start frontend
+        working-directory: frontend
+        env:
+          JWT_SECRET: ci-jwt-secret-min-256-bits-long-for-testing-only
+        run: |
+          npm run dev > ../frontend.log 2>&1 &
+          echo $! > ../frontend.pid
+          for i in $(seq 1 60); do
+            if curl -sf http://localhost:3000 >/dev/null 2>&1; then
+              echo "Frontend ready"
+              exit 0
+            fi
+            sleep 2
+          done
+          echo "Frontend failed to start"
+          tail -n 80 ../frontend.log || true
+          exit 1
+
       - name: Run E2E tests
         working-directory: frontend
         env:
-          PLAYWRIGHT_START_SERVER: "1"
           CI: "true"
           JWT_SECRET: ci-jwt-secret-min-256-bits-long-for-testing-only
         run: |
-          npx playwright test e2e/smoke-routes.spec.ts e2e/role-flows.spec.ts --workers=1 --retries=2
-          npx playwright test e2e/rbac.spec.ts --workers=1 --retries=2
+          # Frontend already running — do not restart webServer between suites
+          npx playwright test e2e/smoke-routes.spec.ts e2e/role-flows.spec.ts e2e/rbac.spec.ts --workers=1 --retries=2
           npx playwright test e2e/mobile-nav.spec.ts --project=mobile-chrome --workers=1 --retries=2
+
+      - name: Stop frontend
+        if: always()
+        run: |
+          if [ -f frontend.pid ]; then kill "$(cat frontend.pid)" 2>/dev/null || true; fi
 
       - name: Stop backend
         if: always()

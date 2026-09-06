@@ -11,6 +11,11 @@ import { Label } from "@/components/ui/label";
 import { AuthCardShell } from "@/components/layout/AuthCardShell";
 import { getUserErrorMessage } from "@/lib/user-error-message";
 
+function safeInternalRedirect(raw: string | null): string {
+  if (!raw || !raw.startsWith("/") || raw.startsWith("//")) return "/profile";
+  return raw;
+}
+
 export default function VerifyEmailPage() {
   return (
     <Suspense fallback={<div className="flex min-h-[80vh] items-center justify-center px-4 text-muted-foreground">Đang tải...</div>}>
@@ -25,6 +30,7 @@ function VerifyEmailForm() {
   const { user, setAuth } = useAuthStore();
   const emailFromQuery = searchParams.get("email") || "";
   const hint = searchParams.get("hint") || "";
+  const redirectTo = safeInternalRedirect(searchParams.get("redirect"));
   const [email, setEmail] = useState(emailFromQuery || user?.email || "");
   const [code, setCode] = useState(hint);
   const [error, setError] = useState("");
@@ -48,7 +54,7 @@ function VerifyEmailForm() {
     try {
       const res = await authApi.verifyEmail({ email: email.trim(), code: code.trim() });
       await setAuth(res.user, res.accessToken, res.refreshToken);
-      router.push("/profile");
+      router.push(redirectTo);
     } catch (e: unknown) {
       setError(getUserErrorMessage(e, "Mã xác minh không hợp lệ"));
     } finally {

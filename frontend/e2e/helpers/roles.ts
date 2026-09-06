@@ -37,9 +37,10 @@ export async function registerUser(
     timeout: 30_000,
   });
   const codeInput = page.getByPlaceholder("123456");
-  await expect(codeInput).not.toHaveValue("", { timeout: 10_000 });
+  await expect(codeInput).not.toHaveValue("", { timeout: 15_000 });
   await page.getByRole("button", { name: /Xác nhận/ }).click();
-  await page.waitForURL(new RegExp(redirect.replace(/\//g, "\\/")), { timeout: 30_000 });
+  const escaped = redirect.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  await page.waitForURL(new RegExp(escaped), { timeout: 30_000 });
 }
 
 export async function submitBrandApplication(

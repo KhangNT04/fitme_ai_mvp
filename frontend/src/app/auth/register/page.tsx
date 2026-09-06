@@ -2,7 +2,7 @@
 
 import { Suspense, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { authApi } from "@/services/auth-api";
@@ -12,6 +12,11 @@ import { Label } from "@/components/ui/label";
 import { AuthCardShell } from "@/components/layout/AuthCardShell";
 import { getUserErrorMessage } from "@/lib/user-error-message";
 import { registerSchema, type RegisterForm } from "@/utils/validators";
+
+function safeInternalRedirect(raw: string | null): string | null {
+  if (!raw || !raw.startsWith("/") || raw.startsWith("//")) return null;
+  return raw;
+}
 
 export default function RegisterPage() {
   return (
@@ -23,6 +28,8 @@ export default function RegisterPage() {
 
 function RegisterForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const redirectAfterVerify = safeInternalRedirect(searchParams.get("redirect"));
   const [error, setError] = useState("");
   const [captchaId, setCaptchaId] = useState("");
   const [captchaQuestion, setCaptchaQuestion] = useState("Đang tải câu hỏi...");
@@ -76,6 +83,9 @@ function RegisterForm() {
       const params = new URLSearchParams({ email: data.email });
       if (res.verificationCode) {
         params.set("hint", res.verificationCode);
+      }
+      if (redirectAfterVerify) {
+        params.set("redirect", redirectAfterVerify);
       }
       router.push(`/auth/verify-email?${params.toString()}`);
     } catch (e: unknown) {

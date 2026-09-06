@@ -98,10 +98,4 @@ class AuthControllerTest extends AbstractIntegrationTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.accessToken").isNotEmpty());
     }
-
-    private static int parseCaptchaAnswer(String question) {
-        // "3 + 5 = ?"
-        String[] parts = question.replace("= ?", "").trim().split("\\+");
-        return Integer.parseInt(parts[0].trim()) + Integer.parseInt(parts[1].trim());
-    }
 }

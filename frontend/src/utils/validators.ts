@@ -144,11 +144,12 @@ export type RiskLevelValue = "SAFE" | "BALANCED" | "BOLD" | "EXPERIMENTAL";
 export type FitPreferenceValue = "SLIM" | "REGULAR" | "RELAXED" | "OVERSIZE" | "UNSURE";
 
 export type BodyProfileForm = {
-  heightCm: number;
-  weightKg: number;
-  age: number;
-  gender: "FEMALE" | "MALE" | "OTHER";
-  fitPreference: FitPreferenceValue;
+  /** May be empty until the user fills the form; validated by bodyProfileSchema on submit. */
+  heightCm?: number;
+  weightKg?: number;
+  age?: number;
+  gender?: "FEMALE" | "MALE" | "OTHER";
+  fitPreference?: FitPreferenceValue;
   skinTone?: SkinToneValue;
   goals?: string[];
   shoulderWidthCm?: number;

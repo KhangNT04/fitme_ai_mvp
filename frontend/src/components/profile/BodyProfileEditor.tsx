@@ -55,10 +55,10 @@ export function formToBodyProfile(data: BodyProfileForm): BodyProfile {
   ) as BodyProfile["measurements"];
 
   return {
-    heightCm: data.heightCm,
-    weightKg: data.weightKg,
+    heightCm: data.heightCm!,
+    weightKg: data.weightKg!,
     age: data.age,
-    gender: data.gender,
+    gender: data.gender!,
     ...(data.fitPreference !== undefined ? { fitPreference: data.fitPreference } : {}),
     ...(data.skinTone !== undefined ? { skinTone: data.skinTone } : {}),
     ...(data.goals !== undefined ? { goals: data.goals } : {}),
@@ -85,13 +85,8 @@ export function BodyProfileEditor({
     if (!initial) {
       // Empty form — no demo prefill; user must enter their own numbers.
       return {
-        heightCm: undefined,
-        weightKg: undefined,
-        age: undefined,
-        gender: undefined,
-        fitPreference: undefined,
         goals: [],
-      } as unknown as BodyProfileForm;
+      };
     }
     return bodyProfileToForm(initial);
   }, [initial ? profileSnapshotKey(bodyProfileToForm(initial)) : "empty"]);

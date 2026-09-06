@@ -43,6 +43,12 @@ public class UserAccount {
     @Builder.Default
     private boolean emailVerified = false;
 
+    @Column(name = "email_verification_code", length = 16)
+    private String emailVerificationCode;
+
+    @Column(name = "email_verification_expires_at")
+    private Instant emailVerificationExpiresAt;
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     @Builder.Default

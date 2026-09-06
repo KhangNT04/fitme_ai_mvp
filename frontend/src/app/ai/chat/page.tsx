@@ -94,9 +94,15 @@ export default function AiChatPage() {
       !chatHydrated ||
       isLoading ||
       !ready ||
-      !profile ||
-      sessionStorage.getItem(STYLIST_STARTER_PENDING_KEY) !== "1"
+      !profile
     ) {
+      return;
+    }
+
+    const pending = sessionStorage.getItem(STYLIST_STARTER_PENDING_KEY) === "1";
+    const shouldAutoload =
+      pending || (messages.length === 0 && starterRecommendations.length === 0);
+    if (!shouldAutoload) {
       return;
     }
 
@@ -151,6 +157,8 @@ export default function AiChatPage() {
     isLoading,
     ready,
     profile,
+    messages.length,
+    starterRecommendations.length,
     ensureSession,
     addMessage,
     setStarterRecommendations,

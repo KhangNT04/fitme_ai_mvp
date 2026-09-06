@@ -13,7 +13,7 @@ test.describe("Public route smoke", () => {
     { path: "/auth/login", heading: "Đăng nhập" },
     { path: "/auth/register", heading: "Đăng ký tài khoản" },
     { path: "/auth/forgot-password", heading: "Quên mật khẩu" },
-    { path: "/auth/verify-email", heading: "Xác minh email" },
+    { path: "/auth/verify-email", heading: "Xác nhận tài khoản" },
     { path: "/brand/login", heading: "Brand Portal — Đăng nhập" },
     { path: "/brand/onboarding", heading: "Đăng ký đối tác Brand" },
     { path: "/admin/login", heading: "Admin — Đăng nhập" },

@@ -126,7 +126,31 @@ public class TryOnService {
 
     @Transactional
     public TryOnResponse generate(UUID id) {
+        return generate(id, null);
+    }
+
+    @Transactional
+    public TryOnResponse generate(UUID id, GenerateTryOnRequest request) {
         TryOnRequest tryOn = getOwned(id);
+        if (request != null) {
+            if (request.getPreviewMode() != null) {
+                tryOn.setPreviewMode(request.getPreviewMode());
+            }
+            if (request.getPhotoUploadId() != null) {
+                tryOn.setPhotoUploadId(request.getPhotoUploadId());
+            }
+            if (request.getAvatarKey() != null && !request.getAvatarKey().isBlank()) {
+                tryOn.setAvatarKey(request.getAvatarKey());
+            }
+            CreateTryOnRequest validation = new CreateTryOnRequest();
+            validation.setPreviewMode(tryOn.getPreviewMode());
+            validation.setPhotoUploadId(tryOn.getPhotoUploadId());
+            validation.setAvatarKey(tryOn.getAvatarKey());
+            validatePreviewMode(validation, tryOn.getPreviewMode() != null
+                    ? tryOn.getPreviewMode()
+                    : TryOnPreviewMode.OUTFIT_BOARD_ONLY);
+            tryOnRequestRepository.save(tryOn);
+        }
         var items = tryOnItemRepository.findByTryOnRequestId(id);
         if (items.isEmpty()) {
             throw new BusinessException("Cần thêm ít nhất một sản phẩm");

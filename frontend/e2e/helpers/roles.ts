@@ -16,12 +16,29 @@ export async function registerUser(
   await expect(page.getByRole("heading", { name: "Đăng ký tài khoản" })).toBeVisible({
     timeout: 30_000,
   });
-  const inputs = page.locator("form input");
-  await inputs.nth(0).fill(options?.fullName ?? "E2E Test User");
-  await inputs.nth(1).fill(email);
-  await inputs.nth(2).fill(password);
-  await inputs.nth(3).fill(password);
-  await page.getByRole("button", { name: "Đăng ký" }).click();
+
+  await page.getByLabel("Họ tên", { exact: true }).fill(options?.fullName ?? "E2E Test User");
+  await page.getByLabel("Email", { exact: true }).fill(email);
+  await page.getByLabel("Mật khẩu", { exact: true }).fill(password);
+  await page.getByLabel("Xác nhận mật khẩu", { exact: true }).fill(password);
+
+  const captchaQuestion = page.locator("form p.text-sm.text-muted-foreground").filter({ hasText: "=" });
+  await expect(captchaQuestion).toBeVisible({ timeout: 15_000 });
+  const questionText = (await captchaQuestion.innerText()).trim();
+  const parts = questionText.replace("= ?", "").split("+");
+  const answer = String(Number(parts[0].trim()) + Number(parts[1].trim()));
+  await page.getByPlaceholder("Nhập kết quả").fill(answer);
+
+  // Anti-bot timing requires >= 2s on the form
+  await page.waitForTimeout(2200);
+  await page.getByRole("button", { name: /Đăng ký/ }).click();
+
+  await expect(page.getByRole("heading", { name: "Xác nhận tài khoản" })).toBeVisible({
+    timeout: 30_000,
+  });
+  const codeInput = page.getByPlaceholder("123456");
+  await expect(codeInput).not.toHaveValue("", { timeout: 10_000 });
+  await page.getByRole("button", { name: /Xác nhận/ }).click();
   await page.waitForURL(new RegExp(redirect.replace(/\//g, "\\/")), { timeout: 30_000 });
 }
 

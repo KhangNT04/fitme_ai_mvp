@@ -82,6 +82,9 @@ export const registerSchema = z.object({
   email: z.string().email("Email không hợp lệ"),
   password: z.string().min(6, "Mật khẩu tối thiểu 6 ký tự"),
   confirmPassword: z.string(),
+  captchaAnswer: z.string().min(1, "Nhập đáp án xác nhận"),
+  website: z.string().optional(),
+  formStartedAtMs: z.number().optional(),
 }).refine((data) => data.password === data.confirmPassword, {
   message: "Mật khẩu không khớp",
   path: ["confirmPassword"],

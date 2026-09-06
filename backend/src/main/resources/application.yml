@@ -53,6 +53,10 @@ fitme:
     expose-details: false
   test:
     expose-reset-tokens: ${FITME_TEST_EXPOSE_RESET_TOKENS:false}
+  auth:
+    expose-verification-code: ${FITME_AUTH_EXPOSE_VERIFICATION_CODE:true}
+    min-form-ms: ${FITME_AUTH_MIN_FORM_MS:2000}
+    verification-ttl-seconds: ${FITME_AUTH_VERIFICATION_TTL_SECONDS:1800}
   payos:
     mock: ${PAYOS_MOCK:true}
     client-id: ${PAYOS_CLIENT_ID:}
@@ -75,7 +79,7 @@ fitme:
     job-timeout-seconds: ${FITME_AI_JOB_TIMEOUT_SECONDS:120}
     stylist-mode: ${FITME_AI_STYLIST_MODE:rule}
     gemini-api-key: ${GEMINI_API_KEY:}
-    gemini-model: ${GEMINI_MODEL:gemini-2.0-flash}
+    gemini-model: ${GEMINI_MODEL:gemini-2.5-flash}
     stylist-candidate-limit: ${GEMINI_CANDIDATE_LIMIT:30}
     stylist-timeout-ms: ${GEMINI_TIMEOUT_MS:15000}
   storage:

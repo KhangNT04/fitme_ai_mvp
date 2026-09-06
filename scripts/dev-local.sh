@@ -33,7 +33,7 @@ case "${1:-up}" in
   native)
     docker compose --env-file "$ENV_FILE" -f "$COMPOSE" up -d postgres
     PG_PORT="$(read_env POSTGRES_PORT)"
-    PG_PORT="${PG_PORT:-5433}"
+    PG_PORT="${PG_PORT:-5432}"
     cat <<EOF
 
 Postgres: localhost:${PG_PORT}

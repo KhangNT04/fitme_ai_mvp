@@ -2,6 +2,7 @@ import apiClient, { unwrap } from "./api-client";
 import type {
   AuthResponse,
   AuthUser,
+  CaptchaChallenge,
   LoginRequest,
   RegisterRequest,
   VerifyEmailRequest,
@@ -15,9 +16,12 @@ interface BackendAuthResponse {
   email: string;
   displayName: string;
   role: string;
-  accessToken: string;
-  refreshToken: string;
+  accessToken?: string | null;
+  refreshToken?: string | null;
   emailVerified: boolean;
+  requiresEmailVerification?: boolean;
+  verificationCode?: string | null;
+  message?: string | null;
 }
 
 function mapRole(role: string): AuthUser["role"] {
@@ -28,8 +32,11 @@ function mapRole(role: string): AuthUser["role"] {
 
 function mapAuthResponse(data: BackendAuthResponse): AuthResponse {
   return {
-    accessToken: data.accessToken,
-    refreshToken: data.refreshToken,
+    accessToken: data.accessToken || "",
+    refreshToken: data.refreshToken || "",
+    requiresEmailVerification: Boolean(data.requiresEmailVerification),
+    verificationCode: data.verificationCode || undefined,
+    message: data.message || undefined,
     user: {
       id: data.userId,
       email: data.email,
@@ -41,7 +48,7 @@ function mapAuthResponse(data: BackendAuthResponse): AuthResponse {
 }
 
 function storeTokens(accessToken: string, refreshToken: string) {
-  if (typeof window !== "undefined") {
+  if (typeof window !== "undefined" && accessToken && refreshToken) {
     localStorage.setItem(AUTH_TOKEN_KEY, accessToken);
     localStorage.setItem(AUTH_REFRESH_KEY, refreshToken);
   }
@@ -61,6 +68,10 @@ async function linkAnonymousSession() {
 export { linkAnonymousSession };
 
 export const authApi = {
+  getCaptcha: async (): Promise<CaptchaChallenge> => {
+    const res = await apiClient.get("/auth/captcha");
+    return unwrap(res) as CaptchaChallenge;
+  },
   login: async (data: LoginRequest): Promise<AuthResponse> => {
     const res = await apiClient.post("/auth/login", data);
     const auth = mapAuthResponse(unwrap(res));
@@ -73,14 +84,28 @@ export const authApi = {
       email: data.email,
       password: data.password,
       displayName: data.fullName,
+      website: data.website || "",
+      captchaId: data.captchaId,
+      captchaAnswer: data.captchaAnswer,
+      formStartedAtMs: data.formStartedAtMs,
+    });
+    return mapAuthResponse(unwrap(res));
+  },
+  verifyEmail: async (data: VerifyEmailRequest): Promise<AuthResponse> => {
+    const res = await apiClient.post("/auth/verify-email", {
+      token: data.code,
+      email: data.email,
     });
     const auth = mapAuthResponse(unwrap(res));
     storeTokens(auth.accessToken, auth.refreshToken);
     await linkAnonymousSession();
     return auth;
   },
-  verifyEmail: async (data: VerifyEmailRequest): Promise<void> => {
-    await apiClient.post("/auth/verify-email", { token: data.code });
+  resendVerification: async (
+    email: string,
+  ): Promise<{ message: string; verificationCode?: string }> => {
+    const res = await apiClient.post("/auth/resend-verification", { email });
+    return unwrap(res) as { message: string; verificationCode?: string };
   },
   forgotPassword: async (data: ForgotPasswordRequest): Promise<void> => {
     await apiClient.post("/auth/forgot-password", data);

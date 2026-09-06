@@ -46,13 +46,13 @@ Infrastructure (V12, entities, entitlement API, PreferenceLearningService) đã 
 
 | Check | Kết quả |
 |-------|---------|
-| `docker compose --env-file .env.local -f docker-compose.local.yml up -d --build` | OK — FE :3000, API :8080 healthy, PG :5433 |
+| `docker compose --env-file .env.local -f docker-compose.local.yml up -d --build` | OK — FE :3000, API :8080 healthy, PG :5432 |
 | Frontend `npm run lint` | 0 errors (warnings pre-existing) |
 | Frontend `npm test` | **168 passed** (43 files); + helpers test sau polish |
 | Frontend `npm run build` | OK (gồm `/pricing`, `/admin/partnerships`, …) |
-| Backend `mvn test` | **149 passed**, 0 fail (stop local PG / `fitme-test-postgres` nếu chiếm 5433) |
+| Backend `mvn test` | **149 passed**, 0 fail (`fitme-test-postgres` bind **55432**, không trùng local PG :5432) |
 
-Lưu ý: Testcontainers `fitme-test-postgres` bind **5433** — trước `mvn test` cần `docker compose … stop postgres` (và `docker stop fitme-test-postgres` nếu còn sót), sau đó `up -d` lại stack local.
+Lưu ý: Test fallback `fitme-test-postgres` bind **55432** — không trùng `docker-compose.local.yml` Postgres trên **5432**, nên không cần stop local PG trước `mvn test`.
 
 ## Deferred
 - Full B2C PayOS billing & subscription renewals / trial 7 ngày

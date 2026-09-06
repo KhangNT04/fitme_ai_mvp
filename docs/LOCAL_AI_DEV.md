@@ -127,7 +127,7 @@ Chỉ chạy Postgres trong Docker, còn lại native:
 
 Rồi mở 3 terminal theo hướng dẫn in ra (backend `mvn spring-boot:run`, frontend `npm run dev`, ai-vton `uvicorn`).
 
-`DB_URL` khi native: `jdbc:postgresql://localhost:5433/fitme` (port từ `POSTGRES_PORT` trong `.env.local`).
+`DB_URL` khi native: `jdbc:postgresql://localhost:5432/fitme` (port từ `POSTGRES_PORT` trong `.env.local`).
 
 ---
 

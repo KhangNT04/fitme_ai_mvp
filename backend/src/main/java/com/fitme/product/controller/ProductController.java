@@ -28,6 +28,7 @@ public class ProductController {
             @RequestParam(required = false) String occasion,
             @RequestParam(required = false) String color,
             @RequestParam(required = false) FitPreference fitType,
+            @RequestParam(required = false) String sizeLabel,
             @RequestParam(required = false) String size,
             @RequestParam(required = false) String search,
             @RequestParam(required = false, defaultValue = "false") boolean aiTryOnEligible) {
@@ -40,10 +41,27 @@ public class ProductController {
         filter.setOccasion(occasion);
         filter.setColor(color);
         filter.setFitType(fitType);
-        filter.setSize(size);
+        // Prefer sizeLabel. Ignore bare "size" values that look like page sizes (e.g. size=20).
+        String garmentSize = sizeLabel;
+        if (garmentSize == null || garmentSize.isBlank()) {
+            garmentSize = sanitizeGarmentSizeParam(size);
+        }
+        filter.setSize(garmentSize);
         filter.setSearch(search);
         filter.setAiTryOnEligible(aiTryOnEligible);
         return ApiResponse.ok(productService.listPublicProducts(filter));
+    }
+
+    /** Treat numeric page-size lookalikes as absent so /products?size=20 does not empty the catalog. */
+    private static String sanitizeGarmentSizeParam(String size) {
+        if (size == null || size.isBlank()) {
+            return null;
+        }
+        String trimmed = size.trim();
+        if (trimmed.matches("(?i)^(10|20|25|50|100|200)$")) {
+            return null;
+        }
+        return trimmed;
     }
 
     @GetMapping("/{id}")

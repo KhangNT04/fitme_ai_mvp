@@ -44,7 +44,7 @@ if ($Native) {
     if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
     $pgPort = Read-EnvValue "POSTGRES_PORT"
-    if (-not $pgPort) { $pgPort = "5433" }
+    if (-not $pgPort) { $pgPort = "5432" }
 
     Write-Host ""
     Write-Host "Postgres: localhost:$pgPort" -ForegroundColor Green

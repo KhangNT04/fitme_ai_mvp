@@ -16,6 +16,17 @@ public class FitMeProperties {
     private Ai ai = new Ai();
     private Storage storage = new Storage();
     private Consumer consumer = new Consumer();
+    private Auth auth = new Auth();
+
+    @Data
+    public static class Auth {
+        /** When true, register response includes verification code (MVP without SMTP). */
+        private boolean exposeVerificationCode = true;
+        /** Minimum form fill time in ms before register is accepted (anti-bot). */
+        private long minFormMs = 2000;
+        /** Email verification code TTL in seconds. */
+        private long verificationTtlSeconds = 1800;
+    }
 
     @Data
     public static class Consumer {
@@ -38,7 +49,7 @@ public class FitMeProperties {
         private int jobTimeoutSeconds = 120;
         private String stylistMode = "rule";
         private String geminiApiKey;
-        private String geminiModel = "gemini-2.0-flash";
+        private String geminiModel = "gemini-2.5-flash";
         private int stylistCandidateLimit = 30;
         private int stylistTimeoutMs = 15000;
 

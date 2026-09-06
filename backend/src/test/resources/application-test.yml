@@ -22,6 +22,10 @@ fitme:
     expose-details: true
   test:
     expose-reset-tokens: true
+  auth:
+    expose-verification-code: true
+    min-form-ms: 0
+    verification-ttl-seconds: 1800
   payos:
     mock: true
   ai:

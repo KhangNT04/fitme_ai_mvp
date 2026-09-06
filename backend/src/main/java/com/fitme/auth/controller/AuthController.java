@@ -16,6 +16,11 @@ public class AuthController {
 
     private final AuthService authService;
 
+    @GetMapping("/captcha")
+    public ApiResponse<CaptchaChallengeResponse> captcha() {
+        return ApiResponse.ok(authService.createCaptchaChallenge());
+    }
+
     @PostMapping("/register")
     public ApiResponse<AuthResponse> register(@Valid @RequestBody RegisterRequest request) {
         return ApiResponse.ok(authService.register(request));
@@ -27,9 +32,14 @@ public class AuthController {
     }
 
     @PostMapping("/verify-email")
-    public ApiResponse<Void> verifyEmail(@Valid @RequestBody TokenRequest request) {
-        authService.verifyEmail(request);
-        return ApiResponse.ok(null);
+    public ApiResponse<AuthResponse> verifyEmail(@Valid @RequestBody TokenRequest request) {
+        return ApiResponse.ok(authService.verifyEmail(request));
+    }
+
+    @PostMapping("/resend-verification")
+    public ApiResponse<Map<String, String>> resendVerification(
+            @Valid @RequestBody ResendVerificationRequest request) {
+        return ApiResponse.ok(authService.resendVerification(request));
     }
 
     @PostMapping("/forgot-password")

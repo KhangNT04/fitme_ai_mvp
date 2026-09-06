@@ -17,12 +17,24 @@ export interface RegisterRequest {
   email: string;
   password: string;
   fullName: string;
+  website?: string;
+  captchaId: string;
+  captchaAnswer: string;
+  formStartedAtMs: number;
 }
 
 export interface AuthResponse {
   accessToken: string;
   refreshToken: string;
   user: AuthUser;
+  requiresEmailVerification?: boolean;
+  verificationCode?: string;
+  message?: string;
+}
+
+export interface CaptchaChallenge {
+  captchaId: string;
+  question: string;
 }
 
 export interface VerifyEmailRequest {

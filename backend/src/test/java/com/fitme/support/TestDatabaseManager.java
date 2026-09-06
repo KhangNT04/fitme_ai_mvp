@@ -20,7 +20,8 @@ public final class TestDatabaseManager {
     private static final Logger log = LoggerFactory.getLogger(TestDatabaseManager.class);
 
     private static final String CONTAINER_NAME = "fitme-test-postgres";
-    private static final String JDBC_URL = "jdbc:postgresql://localhost:5433/fitme_test";
+    // 55432 avoids colliding with docker-compose.local.yml Postgres on 5432
+    private static final String JDBC_URL = "jdbc:postgresql://localhost:55432/fitme_test";
     private static final String USERNAME = "fitme";
     private static final String PASSWORD = "fitme123";
 
@@ -40,7 +41,7 @@ public final class TestDatabaseManager {
         if (isReachable(JDBC_URL, USERNAME, PASSWORD)) {
             return;
         }
-        log.warn("Testcontainers unavailable; starting fallback PostgreSQL via Docker CLI on port 5433");
+        log.warn("Testcontainers unavailable; starting fallback PostgreSQL via Docker CLI on port 55432");
         removeExistingContainer();
         runDocker(
                 "run", "-d",
@@ -48,7 +49,7 @@ public final class TestDatabaseManager {
                 "-e", "POSTGRES_DB=fitme_test",
                 "-e", "POSTGRES_USER=" + USERNAME,
                 "-e", "POSTGRES_PASSWORD=" + PASSWORD,
-                "-p", "5433:5432",
+                "-p", "55432:5432",
                 "postgres:16-alpine"
         );
         awaitDatabase(JDBC_URL, USERNAME, PASSWORD);

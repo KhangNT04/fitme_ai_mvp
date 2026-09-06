@@ -38,7 +38,8 @@ test.describe("User auth flow", () => {
     await expect(page.getByRole("heading", { name: "Đăng ký tài khoản" })).toBeVisible();
     await expect(page.locator('input[type="email"]')).toBeVisible();
     await expect(page.locator('input[type="password"]').first()).toBeVisible();
-    await expect(page.getByRole("button", { name: "Đăng ký" })).toBeVisible();
+    await expect(page.getByRole("button", { name: /Đăng ký/ })).toBeVisible();
+    await expect(page.getByText(/Xác nhận chống spam/)).toBeVisible();
   });
 
   test("invalid login shows error", async ({ page }) => {

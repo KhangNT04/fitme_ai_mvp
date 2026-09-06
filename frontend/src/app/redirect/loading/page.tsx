@@ -21,21 +21,32 @@ export default function RedirectLoadingPage() {
   );
 }
 
+function isSafeExternalHttpUrl(raw: string): boolean {
+  try {
+    const decoded = decodeURIComponent(raw);
+    const parsed = new URL(decoded);
+    return parsed.protocol === "http:" || parsed.protocol === "https:";
+  } catch {
+    return false;
+  }
+}
+
 function RedirectLoadingContent() {
   const searchParams = useSearchParams();
   const url = searchParams.get("url");
   const eventId = searchParams.get("event");
   const [confirming, setConfirming] = useState(false);
   const [marked, setMarked] = useState(false);
+  const safeUrl = url && isSafeExternalHttpUrl(url) ? url : null;
 
   useEffect(() => {
-    if (url) {
+    if (safeUrl) {
       const timer = setTimeout(() => {
-        window.location.href = decodeURIComponent(url);
+        window.location.href = decodeURIComponent(safeUrl);
       }, 2200);
       return () => clearTimeout(timer);
     }
-  }, [url]);
+  }, [safeUrl]);
 
   const onPurchased = async () => {
     if (!eventId || marked) return;
@@ -50,6 +61,22 @@ function RedirectLoadingContent() {
       setConfirming(false);
     }
   };
+
+  if (url && !safeUrl) {
+    return (
+      <PageShell width="full" className={cn(consumerPageShellClass, "flex flex-col items-center py-16 text-center sm:py-24")}>
+        <PageHeader
+          title="Liên kết không hợp lệ"
+          subtitle="URL chuyển hướng phải bắt đầu bằng http:// hoặc https://"
+          sticky={false}
+          className="mt-6 text-center [&_h1]:text-xl [&_h1]:font-semibold"
+        />
+        <Button asChild className="mt-6 rounded-full">
+          <Link href="/discover">Về khám phá</Link>
+        </Button>
+      </PageShell>
+    );
+  }
 
   return (
     <PageShell width="full" className={cn(consumerPageShellClass, "flex flex-col items-center py-16 text-center sm:py-24")}>

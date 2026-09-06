@@ -68,7 +68,7 @@ cp .env.local.example .env.local
 ./scripts/dev-local.sh
 ```
 
-- App: http://localhost:3000 (Postgres port **5433** — không trùng compose mặc định)
+- App: http://localhost:3000 (Postgres port **5432**)
 - Hot-reload: `.\scripts\dev-local.ps1 -Native`
 
 Chi tiết: [`docs/LOCAL_AI_DEV.md`](docs/LOCAL_AI_DEV.md)

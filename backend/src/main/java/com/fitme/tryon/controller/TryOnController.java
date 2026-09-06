@@ -36,8 +36,9 @@ public class TryOnController {
     }
 
     @PostMapping("/{id}/generate")
-    public ApiResponse<TryOnResponse> generate(@PathVariable UUID id) {
-        return ApiResponse.ok(tryOnService.generate(id));
+    public ApiResponse<TryOnResponse> generate(@PathVariable UUID id,
+                                               @RequestBody(required = false) GenerateTryOnRequest request) {
+        return ApiResponse.ok(tryOnService.generate(id, request));
     }
 
     @GetMapping("/{id}/result")

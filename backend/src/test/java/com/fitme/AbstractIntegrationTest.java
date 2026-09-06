@@ -16,6 +16,7 @@ import org.springframework.test.web.servlet.MvcResult;
 import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -73,5 +74,56 @@ public abstract class AbstractIntegrationTest {
                 .andReturn();
         JsonNode data = objectMapper.readTree(result.getResponse().getContentAsString()).get("data");
         return data.get("sessionToken").asText();
+    }
+
+    /**
+     * Registers via captcha + email verification and returns the verify-email payload
+     * (includes {@code accessToken} and {@code userId}).
+     */
+    protected JsonNode registerVerifiedUser(String email, String password, String displayName) throws Exception {
+        MvcResult captchaResult = mockMvc.perform(get("/api/v1/auth/captcha"))
+                .andExpect(status().isOk())
+                .andReturn();
+        JsonNode captcha = objectMapper.readTree(captchaResult.getResponse().getContentAsString()).get("data");
+        String captchaId = captcha.get("captchaId").asText();
+        int answer = parseCaptchaAnswer(captcha.get("question").asText());
+
+        MvcResult registerResult = mockMvc.perform(post("/api/v1/auth/register")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "email": "%s",
+                                  "password": "%s",
+                                  "displayName": "%s",
+                                  "website": "",
+                                  "captchaId": "%s",
+                                  "captchaAnswer": "%d",
+                                  "formStartedAtMs": %d
+                                }
+                                """.formatted(
+                                email,
+                                password,
+                                displayName,
+                                captchaId,
+                                answer,
+                                System.currentTimeMillis() - 5_000)))
+                .andExpect(status().isOk())
+                .andReturn();
+        String code = objectMapper.readTree(registerResult.getResponse().getContentAsString())
+                .get("data").get("verificationCode").asText();
+
+        MvcResult verifyResult = mockMvc.perform(post("/api/v1/auth/verify-email")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"email":"%s","token":"%s"}
+                                """.formatted(email, code)))
+                .andExpect(status().isOk())
+                .andReturn();
+        return objectMapper.readTree(verifyResult.getResponse().getContentAsString()).get("data");
+    }
+
+    protected static int parseCaptchaAnswer(String question) {
+        String[] parts = question.replace("= ?", "").trim().split("\\+");
+        return Integer.parseInt(parts[0].trim()) + Integer.parseInt(parts[1].trim());
     }
 }

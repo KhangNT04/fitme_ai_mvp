@@ -120,22 +120,11 @@ class TryOnControllerTest extends AbstractIntegrationTest {
                         .header(SESSION_HEADER, sessionToken))
                 .andExpect(status().isOk());
 
-        String registerResponse = mockMvc.perform(post("/api/v1/auth/register")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content("""
-                                {
-                                  "email": "tryon-saved-%s@fitme.ai",
-                                  "password": "fitme123",
-                                  "displayName": "TryOn Saved"
-                                }
-                                """.formatted(System.nanoTime())))
-                .andExpect(status().isOk())
-                .andReturn()
-                .getResponse()
-                .getContentAsString();
-
-        String accessToken = objectMapper.readTree(registerResponse)
-                .get("data").get("accessToken").asText();
+        JsonNode auth = registerVerifiedUser(
+                "tryon-saved-%s@fitme.ai".formatted(System.nanoTime()),
+                "fitme123",
+                "TryOn Saved");
+        String accessToken = auth.get("accessToken").asText();
 
         mockMvc.perform(post("/api/v1/try-on/requests/{id}/save", requestId)
                         .header(SESSION_HEADER, sessionToken)
@@ -154,22 +143,11 @@ class TryOnControllerTest extends AbstractIntegrationTest {
         Product product = testDataHelper.createEligibleProduct("Try-on JWT unsave top", "Áo thun");
         String sessionToken = createAnonymousSessionToken();
 
-        String registerResponse = mockMvc.perform(post("/api/v1/auth/register")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content("""
-                                {
-                                  "email": "tryon-unsave-%s@fitme.ai",
-                                  "password": "fitme123",
-                                  "displayName": "TryOn Unsave"
-                                }
-                                """.formatted(System.nanoTime())))
-                .andExpect(status().isOk())
-                .andReturn()
-                .getResponse()
-                .getContentAsString();
-
-        String accessToken = objectMapper.readTree(registerResponse)
-                .get("data").get("accessToken").asText();
+        JsonNode auth = registerVerifiedUser(
+                "tryon-unsave-%s@fitme.ai".formatted(System.nanoTime()),
+                "fitme123",
+                "TryOn Unsave");
+        String accessToken = auth.get("accessToken").asText();
 
         String createResponse = mockMvc.perform(post("/api/v1/try-on/requests")
                         .header(SESSION_HEADER, sessionToken)

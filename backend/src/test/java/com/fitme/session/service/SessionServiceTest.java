@@ -40,22 +40,11 @@ class SessionServiceTest extends AbstractIntegrationTest {
                                 """))
                 .andExpect(status().isOk());
 
-        String registerResponse = mockMvc.perform(post("/api/v1/auth/register")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content("""
-                                {
-                                  "email": "migrate-test-%s@fitme.ai",
-                                  "password": "fitme123",
-                                  "displayName": "Migrate Test"
-                                }
-                                """.formatted(System.nanoTime())))
-                .andExpect(status().isOk())
-                .andReturn()
-                .getResponse()
-                .getContentAsString();
-
-        String accessToken = objectMapper.readTree(registerResponse)
-                .get("data").get("accessToken").asText();
+        var auth = registerVerifiedUser(
+                "migrate-test-%s@fitme.ai".formatted(System.nanoTime()),
+                "fitme123",
+                "Migrate Test");
+        String accessToken = auth.get("accessToken").asText();
 
         mockMvc.perform(post("/api/v1/sessions/link-to-user")
                         .header("Authorization", "Bearer " + accessToken)
@@ -73,7 +62,7 @@ class SessionServiceTest extends AbstractIntegrationTest {
                         .header("Authorization", "Bearer " + accessToken))
                 .andExpect(status().isOk());
 
-        var userId = objectMapper.readTree(registerResponse).get("data").get("userId").asText();
+        var userId = auth.get("userId").asText();
         assertFalse(bodyProfileRepository.findByUserId(java.util.UUID.fromString(userId)).isEmpty());
         assertFalse(styleProfileRepository.findByUserId(java.util.UUID.fromString(userId)).isEmpty());
     }

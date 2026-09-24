@@ -150,10 +150,15 @@ function RegisterForm() {
           />
           {errors.captchaAnswer && <p className="mt-1 text-xs text-red-600">{errors.captchaAnswer.message}</p>}
         </div>
-        {error && <p className="text-sm text-red-600">{error}</p>}
+        {error && <p className="text-sm text-red-600" role="alert">{error}</p>}
         <Button type="submit" className="w-full" disabled={isSubmitting || captchaLoading}>
           {isSubmitting ? "Đang đăng ký..." : "Đăng ký & xác nhận"}
         </Button>
+        {isSubmitting && (
+          <p className="text-xs text-muted-foreground">
+            Đang tạo tài khoản và gửi mã tới email… Nếu quá lâu, kiểm tra cấu hình SMTP trên server.
+          </p>
+        )}
         <p className="text-xs text-muted-foreground">
           Sau khi đăng ký bạn sẽ nhập mã xác nhận để kích hoạt tài khoản — giúp hạn chế bot và spam.
         </p>

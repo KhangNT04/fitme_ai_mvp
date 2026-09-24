@@ -2,13 +2,15 @@ package com.fitme.auth.service;
 
 import com.fitme.common.config.FitMeProperties;
 import com.fitme.common.exception.BusinessException;
+import jakarta.mail.internet.InternetAddress;
+import jakarta.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -49,17 +51,19 @@ public class AuthEmailService {
             throw new BusinessException("Không gửi được email xác nhận. Thử lại sau.");
         }
 
-        String from = fitMeProperties.getAuth().getMailFrom();
-        if (from == null || from.isBlank()) {
-            from = "noreply@fitme.ai";
+        String fromRaw = fitMeProperties.getAuth().getMailFrom();
+        if (fromRaw == null || fromRaw.isBlank()) {
+            fromRaw = "noreply@fitme.ai";
         }
 
         try {
-            SimpleMailMessage message = new SimpleMailMessage();
-            message.setFrom(from);
-            message.setTo(toEmail);
-            message.setSubject("Mã xác nhận FitMe AI");
-            message.setText(
+            InternetAddress from = parseFrom(fromRaw);
+            MimeMessage mimeMessage = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, false, "UTF-8");
+            helper.setFrom(from);
+            helper.setTo(toEmail);
+            helper.setSubject("Mã xác nhận FitMe AI");
+            helper.setText(
                     """
                     Xin chào,
 
@@ -71,13 +75,35 @@ public class AuthEmailService {
                     """
                             .formatted(
                                     code,
-                                    Math.max(1, fitMeProperties.getAuth().getVerificationTtlSeconds() / 60)));
-            mailSender.send(message);
+                                    Math.max(1, fitMeProperties.getAuth().getVerificationTtlSeconds() / 60)),
+                    false);
+            mailSender.send(mimeMessage);
             log.info("[AUTH] Verification email sent to {}", toEmail);
+        } catch (BusinessException ex) {
+            throw ex;
         } catch (Exception ex) {
-            log.error("[AUTH] Failed to send verification email to {}: {}", toEmail, ex.getMessage());
+            log.error("[AUTH] Failed to send verification email to {}: {}", toEmail, ex.toString());
+            String detail = ex.getMessage() != null ? ex.getMessage() : ex.getClass().getSimpleName();
             throw new BusinessException(
-                    "Không gửi được email xác nhận. Kiểm tra địa chỉ email hoặc thử lại sau.");
+                    "Không gửi được email xác nhận (" + shorten(detail) + "). Kiểm tra SMTP trên server.");
         }
+    }
+
+    private static InternetAddress parseFrom(String raw) throws Exception {
+        String trimmed = raw.trim();
+        // Prefer RFC 5322 parsing: "Name <email@host>" or bare email.
+        InternetAddress[] parsed = InternetAddress.parse(trimmed, false);
+        if (parsed.length == 0) {
+            throw new BusinessException("SMTP_FROM không hợp lệ");
+        }
+        return parsed[0];
+    }
+
+    private static String shorten(String detail) {
+        String cleaned = detail.replaceAll("\\s+", " ").trim();
+        if (cleaned.length() > 120) {
+            return cleaned.substring(0, 117) + "...";
+        }
+        return cleaned;
     }
 }

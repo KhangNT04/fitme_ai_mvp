@@ -152,7 +152,7 @@ function RegisterForm() {
         </div>
         {error && <p className="text-sm text-red-600" role="alert">{error}</p>}
         <Button type="submit" className="w-full" disabled={isSubmitting || captchaLoading}>
-          {isSubmitting ? "Đang đăng ký..." : "Đăng ký & xác nhận"}
+          {isSubmitting ? "Đang đăng ký..." : "Đăng ký"}
         </Button>
         {isSubmitting && (
           <p className="text-xs text-muted-foreground">

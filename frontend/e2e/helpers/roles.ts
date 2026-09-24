@@ -31,13 +31,25 @@ export async function registerUser(
 
   // Anti-bot timing — production default is 2s; CI backend uses FITME_AUTH_MIN_FORM_MS=0
   await page.waitForTimeout(process.env.CI ? 100 : 2200);
+
+  const registerResponsePromise = page.waitForResponse(
+    (r) => r.url().includes("/auth/register") && r.request().method() === "POST",
+    { timeout: 30_000 },
+  );
   await page.getByRole("button", { name: /Đăng ký/ }).click();
+  const registerResponse = await registerResponsePromise;
+  expect(registerResponse.ok()).toBeTruthy();
+  const registerJson = (await registerResponse.json()) as {
+    data?: { verificationCode?: string };
+  };
+  const verificationCode = registerJson.data?.verificationCode;
+  expect(verificationCode, "CI must expose verificationCode when SMTP is off").toBeTruthy();
 
   await expect(page.getByRole("heading", { name: "Xác nhận tài khoản" })).toBeVisible({
     timeout: 30_000,
   });
   const codeInput = page.getByPlaceholder("123456");
-  await expect(codeInput).not.toHaveValue("", { timeout: 15_000 });
+  await codeInput.fill(String(verificationCode));
   await page.getByRole("button", { name: /Xác nhận/ }).click();
   const escaped = redirect.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
   await page.waitForURL(new RegExp(escaped), { timeout: 30_000 });

@@ -71,7 +71,7 @@ function RegisterForm() {
       return;
     }
     try {
-      const res = await authApi.register({
+      await authApi.register({
         email: data.email,
         password: data.password,
         fullName: data.fullName,
@@ -81,9 +81,6 @@ function RegisterForm() {
         formStartedAtMs,
       });
       const params = new URLSearchParams({ email: data.email });
-      if (res.verificationCode) {
-        params.set("hint", res.verificationCode);
-      }
       if (redirectAfterVerify) {
         params.set("redirect", redirectAfterVerify);
       }

@@ -104,6 +104,16 @@ Giữ `DB_USERNAME` và `DB_PASSWORD` riêng (không nhét vào URL).
 | `R2_ACCESS_KEY_ID` | Cloudflare R2 API token |
 | `R2_SECRET_ACCESS_KEY` | Cloudflare R2 API secret |
 | `R2_PUBLIC_BASE_URL` | Public bucket URL (vd. `https://pub-xxxx.r2.dev`) |
+| `FITME_AUTH_EXPOSE_VERIFICATION_CODE` | `false` *(bắt buộc prod — không trả mã về API/UI)* |
+| `SMTP_HOST` | vd. `smtp.gmail.com` / `smtp.resend.com` |
+| `SMTP_PORT` | `587` |
+| `SMTP_USERNAME` | tài khoản SMTP |
+| `SMTP_PASSWORD` | mật khẩu / app password / API key |
+| `SMTP_FROM` | `FitMe AI <noreply@yourdomain.com>` |
+| `SMTP_AUTH` | `true` |
+| `SMTP_STARTTLS` | `true` |
+
+**Email xác nhận đăng ký:** mã 6 số chỉ gửi qua SMTP — user mở mail và nhập tại `/auth/verify-email`. Không cấu hình SMTP thì đăng ký sẽ báo lỗi (trừ khi `FITME_AUTH_EXPOSE_VERIFICATION_CODE=true` cho CI/local).
 
 **Cloudflare R2 (bắt buộc cho try-on USER_PHOTO trên Render):**
 

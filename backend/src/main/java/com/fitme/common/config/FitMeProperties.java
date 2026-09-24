@@ -20,12 +20,17 @@ public class FitMeProperties {
 
     @Data
     public static class Auth {
-        /** When true, register response includes verification code (MVP without SMTP). */
-        private boolean exposeVerificationCode = true;
+        /**
+         * When true, register/resend API may include verificationCode (tests/CI only).
+         * Production must keep false and send codes via SMTP.
+         */
+        private boolean exposeVerificationCode = false;
         /** Minimum form fill time in ms before register is accepted (anti-bot). */
         private long minFormMs = 2000;
         /** Email verification code TTL in seconds. */
         private long verificationTtlSeconds = 1800;
+        /** From address for auth emails (SMTP). */
+        private String mailFrom = "noreply@fitme.ai";
     }
 
     @Data

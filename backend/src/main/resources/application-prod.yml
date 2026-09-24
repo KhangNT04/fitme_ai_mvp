@@ -5,6 +5,8 @@ fitme:
     top-up-enabled: true
   test:
     expose-reset-tokens: false
+  auth:
+    expose-verification-code: false
   ai:
     public-base-url: ${FITME_PUBLIC_BASE_URL:https://fitme-ai-mvp.onrender.com}
   frontend:

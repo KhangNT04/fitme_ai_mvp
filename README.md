@@ -179,6 +179,7 @@ Base path: `/api/v1`
 - `POST /recommendations` — tạo gợi ý outfit
 - `POST /redirects/buy-click` — track click + redirect URL
 - `POST /auth/login` — đăng nhập JWT
+- `POST /auth/register` → gửi mã xác nhận tới email (SMTP) → `POST /auth/verify-email`
 
 Header cho session ẩn danh: `X-Anonymous-Session: <token>`
 

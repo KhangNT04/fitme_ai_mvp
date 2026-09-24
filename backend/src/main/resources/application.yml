@@ -20,6 +20,17 @@ spring:
     multipart:
       max-file-size: 5MB
       max-request-size: 5MB
+  mail:
+    host: ${SMTP_HOST:}
+    port: ${SMTP_PORT:587}
+    username: ${SMTP_USERNAME:}
+    password: ${SMTP_PASSWORD:}
+    properties:
+      mail:
+        smtp:
+          auth: ${SMTP_AUTH:true}
+          starttls:
+            enable: ${SMTP_STARTTLS:true}
 
 server:
   port: ${PORT:${SERVER_PORT:8080}}
@@ -54,9 +65,10 @@ fitme:
   test:
     expose-reset-tokens: ${FITME_TEST_EXPOSE_RESET_TOKENS:false}
   auth:
-    expose-verification-code: ${FITME_AUTH_EXPOSE_VERIFICATION_CODE:true}
+    expose-verification-code: ${FITME_AUTH_EXPOSE_VERIFICATION_CODE:false}
     min-form-ms: ${FITME_AUTH_MIN_FORM_MS:2000}
     verification-ttl-seconds: ${FITME_AUTH_VERIFICATION_TTL_SECONDS:1800}
+    mail-from: ${SMTP_FROM:noreply@fitme.ai}
   payos:
     mock: ${PAYOS_MOCK:true}
     client-id: ${PAYOS_CLIENT_ID:}
@@ -107,6 +119,8 @@ management:
       show-details: when_authorized
   health:
     show-details: when_authorized
+    mail:
+      enabled: ${SMTP_HEALTH_ENABLED:false}
 
 logging:
   level:

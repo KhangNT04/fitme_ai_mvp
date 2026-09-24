@@ -29,22 +29,21 @@ function VerifyEmailForm() {
   const searchParams = useSearchParams();
   const { user, setAuth } = useAuthStore();
   const emailFromQuery = searchParams.get("email") || "";
-  const hint = searchParams.get("hint") || "";
   const redirectTo = safeInternalRedirect(searchParams.get("redirect"));
   const [email, setEmail] = useState(emailFromQuery || user?.email || "");
-  const [code, setCode] = useState(hint);
+  const [code, setCode] = useState("");
   const [error, setError] = useState("");
-  const [info, setInfo] = useState("");
+  const [info, setInfo] = useState(
+    emailFromQuery
+      ? "Chúng tôi đã gửi mã xác nhận tới email của bạn. Mở hộp thư (và Spam) rồi nhập mã bên dưới."
+      : "",
+  );
   const [loading, setLoading] = useState(false);
   const [resending, setResending] = useState(false);
 
   useEffect(() => {
     if (emailFromQuery) setEmail(emailFromQuery);
   }, [emailFromQuery]);
-
-  useEffect(() => {
-    if (hint) setCode(hint);
-  }, [hint]);
 
   const handleVerify = async () => {
     if (!email.trim() || !code.trim()) return;
@@ -72,10 +71,8 @@ function VerifyEmailForm() {
     setInfo("");
     try {
       const result = await authApi.resendVerification(email.trim());
-      setInfo(result.message);
-      if (result.verificationCode) {
-        setCode(result.verificationCode);
-      }
+      setInfo(result.message || "Nếu email hợp lệ, mã mới đã được gửi tới hộp thư.");
+      setCode("");
     } catch (e: unknown) {
       setError(getUserErrorMessage(e, "Không gửi lại được mã"));
     } finally {
@@ -86,8 +83,8 @@ function VerifyEmailForm() {
   return (
     <AuthCardShell
       title="Xác nhận tài khoản"
-      backHref="/auth/login"
-      backLabel="Đăng nhập"
+      backHref="/auth/register"
+      backLabel="Đăng ký"
       footer={
         <p className="mt-4 text-center text-sm text-muted-foreground">
           Đã xác nhận? <Link href="/auth/login" className="underline">Đăng nhập</Link>
@@ -95,8 +92,7 @@ function VerifyEmailForm() {
       }
     >
       <p className="text-sm text-muted-foreground">
-        Nhập mã xác nhận để kích hoạt tài khoản và hạn chế đăng ký tự động.
-        {hint ? " Mã demo đã được điền sẵn (môi trường không gửi email)." : ""}
+        Nhập mã 6 số được gửi tới email của bạn để kích hoạt tài khoản. Không thấy mail? Kiểm tra mục Spam hoặc bấm gửi lại.
       </p>
       <div className="mt-4 space-y-4">
         <div>
@@ -133,7 +129,7 @@ function VerifyEmailForm() {
         onClick={() => void handleResend()}
         disabled={resending || !email}
       >
-        {resending ? "Đang tạo mã..." : "Gửi lại mã"}
+        {resending ? "Đang gửi..." : "Gửi lại mã"}
       </Button>
     </AuthCardShell>
   );

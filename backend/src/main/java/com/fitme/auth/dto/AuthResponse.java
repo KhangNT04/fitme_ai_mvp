@@ -18,8 +18,8 @@ public class AuthResponse {
     /** True when register succeeded but email confirmation is still required. */
     private boolean requiresEmailVerification;
     /**
-     * One-time confirmation code for MVP without SMTP.
-     * Only populated when fitme.auth.expose-verification-code=true.
+     * Only populated when fitme.auth.expose-verification-code=true (tests/CI).
+     * Production delivers the code by email only — never prefill in the UI.
      */
     private String verificationCode;
     private String message;

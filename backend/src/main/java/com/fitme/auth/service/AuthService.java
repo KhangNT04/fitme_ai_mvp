@@ -37,6 +37,7 @@ public class AuthService {
     private final JwtService jwtService;
     private final AuthenticationManager authenticationManager;
     private final FitMeProperties fitMeProperties;
+    private final AuthEmailService authEmailService;
     private final SecureRandom secureRandom = new SecureRandom();
 
     private final ConcurrentHashMap<String, PasswordResetEntry> passwordResetTokens = new ConcurrentHashMap<>();
@@ -90,9 +91,7 @@ public class AuthService {
         registerCooldownByEmail.put(email, Instant.now().plusSeconds(REGISTER_COOLDOWN_SECONDS));
 
         log.info("[AUTH] Registered pending verification email={} expiresAt={}", email, expiresAt);
-        if (fitMeProperties.getAuth().isExposeVerificationCode()) {
-            log.info("[AUTH] Verification code for {}: {}", email, code);
-        }
+        authEmailService.sendVerificationCode(email, code);
 
         AuthResponse.AuthResponseBuilder builder = AuthResponse.builder()
                 .userId(user.getId())
@@ -101,7 +100,7 @@ public class AuthService {
                 .role(user.getRole().name())
                 .emailVerified(false)
                 .requiresEmailVerification(true)
-                .message("Đăng ký thành công. Nhập mã xác nhận để kích hoạt tài khoản.")
+                .message("Đăng ký thành công. Kiểm tra email và nhập mã xác nhận để kích hoạt tài khoản.")
                 .consumerPlan(user.getConsumerPlan() != null ? user.getConsumerPlan().name() : "FREE");
 
         if (fitMeProperties.getAuth().isExposeVerificationCode()) {
@@ -150,13 +149,13 @@ public class AuthService {
         user.setEmailVerificationExpiresAt(Instant.now().plusSeconds(
                 Math.max(60, fitMeProperties.getAuth().getVerificationTtlSeconds())));
         userAccountRepository.save(user);
+        authEmailService.sendVerificationCode(email, code);
         if (fitMeProperties.getAuth().isExposeVerificationCode()) {
-            log.info("[AUTH] Resent verification code for {}: {}", email, code);
             return Map.of(
-                    "message", "Mã xác minh mới đã được tạo.",
+                    "message", "Đã gửi mã xác minh mới tới email của bạn.",
                     "verificationCode", code);
         }
-        return Map.of("message", "Nếu email tồn tại và chưa xác minh, mã mới đã được tạo.");
+        return Map.of("message", "Nếu email tồn tại và chưa xác minh, mã mới đã được gửi tới hộp thư.");
     }
 
     public Map<String, String> forgotPassword(ForgotPasswordRequest request) {

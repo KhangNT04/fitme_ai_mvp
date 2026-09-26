@@ -76,8 +76,12 @@ class AuthEmailServiceTest {
         assertThat(greenMail.waitForIncomingEmail(5_000, 1)).isTrue();
         MimeMessage[] messages = greenMail.getReceivedMessages();
         assertThat(messages).hasSize(1);
-        assertThat(messages[0].getSubject()).contains("FitMe");
-        assertThat(GreenMailUtil.getBody(messages[0])).contains("654321");
+        assertThat(messages[0].getSubject()).contains("FitMe AI");
+        assertThat(messages[0].getSubject()).contains("Xác nhận");
+        String body = GreenMailUtil.getBody(messages[0]);
+        assertThat(body).contains("654321");
+        assertThat(body).contains("FitMe AI");
+        assertThat(body).contains("outfit");
         assertThat(GreenMailUtil.getAddressList(messages[0].getAllRecipients())).contains("user@example.com");
     }
 
@@ -115,6 +119,8 @@ class AuthEmailServiceTest {
         assertThat(requestBody.get()).contains("112233");
         assertThat(requestBody.get()).contains("user@example.com");
         assertThat(requestBody.get()).contains("onboarding@resend.dev");
+        assertThat(requestBody.get()).contains("\"html\"");
+        assertThat(requestBody.get()).contains("Xác nhận email");
     }
 
     @Test

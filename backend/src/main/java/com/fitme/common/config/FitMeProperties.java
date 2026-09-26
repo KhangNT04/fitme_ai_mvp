@@ -22,15 +22,20 @@ public class FitMeProperties {
     public static class Auth {
         /**
          * When true, register/resend API may include verificationCode (tests/CI only).
-         * Production must keep false and send codes via SMTP.
+         * Production must keep false and send codes via email.
          */
         private boolean exposeVerificationCode = false;
         /** Minimum form fill time in ms before register is accepted (anti-bot). */
         private long minFormMs = 2000;
         /** Email verification code TTL in seconds. */
         private long verificationTtlSeconds = 1800;
-        /** From address for auth emails (SMTP). */
+        /** From address for auth emails (Resend / SMTP). */
         private String mailFrom = "noreply@fitme.ai";
+        /**
+         * Resend API key (HTTPS). Prefer this on Render — outbound SMTP :587 is often blocked.
+         * When blank, AuthEmailService also accepts spring.mail.password values starting with re_.
+         */
+        private String resendApiKey = "";
     }
 
     @Data

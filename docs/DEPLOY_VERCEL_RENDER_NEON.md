@@ -105,15 +105,18 @@ Giữ `DB_USERNAME` và `DB_PASSWORD` riêng (không nhét vào URL).
 | `R2_SECRET_ACCESS_KEY` | Cloudflare R2 API secret |
 | `R2_PUBLIC_BASE_URL` | Public bucket URL (vd. `https://pub-xxxx.r2.dev`) |
 | `FITME_AUTH_EXPOSE_VERIFICATION_CODE` | `false` *(bắt buộc prod — không trả mã về API/UI)* |
-| `SMTP_HOST` | vd. `smtp.gmail.com` / `smtp.resend.com` |
+| `RESEND_API_KEY` | (khuyến nghị trên Render) `re_...` — gửi qua HTTPS, tránh block SMTP |
+| `SMTP_HOST` | vd. `smtp.resend.com` (fallback local/MailHog; Render thường block :587) |
 | `SMTP_PORT` | `587` |
-| `SMTP_USERNAME` | tài khoản SMTP |
-| `SMTP_PASSWORD` | mật khẩu / app password / API key |
-| `SMTP_FROM` | `FitMe AI <noreply@yourdomain.com>` |
+| `SMTP_USERNAME` | tài khoản SMTP (Resend: `resend`) |
+| `SMTP_PASSWORD` | mật khẩu / app password / API key (`re_...` → tự dùng Resend HTTP) |
+| `SMTP_FROM` | `FitMe AI <onboarding@resend.dev>` hoặc domain đã verify |
 | `SMTP_AUTH` | `true` |
 | `SMTP_STARTTLS` | `true` |
 
-**Email xác nhận đăng ký:** mã 6 số chỉ gửi qua SMTP — user mở mail và nhập tại `/auth/verify-email`. Không cấu hình SMTP thì đăng ký sẽ báo lỗi (trừ khi `FITME_AUTH_EXPOSE_VERIFICATION_CODE=true` cho CI/local).
+**Email xác nhận đăng ký:** mã 6 số gửi qua **Resend HTTPS** (ưu tiên) hoặc SMTP. User mở mail và nhập tại `/auth/verify-email`. Không cấu hình email thì đăng ký sẽ báo lỗi (trừ khi `FITME_AUTH_EXPOSE_VERIFICATION_CODE=true` cho CI/local).
+
+> **Render:** outbound tới `smtp.resend.com:587` thường timeout. Giữ `SMTP_PASSWORD=re_...` (hoặc set `RESEND_API_KEY`) để app gọi `https://api.resend.com/emails`.
 
 **Cloudflare R2 (bắt buộc cho try-on USER_PHOTO trên Render):**
 

@@ -1,42 +1,38 @@
 # Test gửi mail xác nhận (local)
 
-## Cách nhanh (đã chạy OK trên máy này)
+## Unit (khuyến nghị)
 
-Không cần Docker / Gmail. Dùng SMTP giả **GreenMail** trong JUnit:
+Không cần Docker / Gmail. Dùng SMTP giả **GreenMail** + mock Resend HTTP trong JUnit:
 
-```powershell
+```bash
 cd backend
 mvn -Dtest=AuthEmailServiceTest test
 ```
 
-Kỳ vọng: `Tests run: 2, Failures: 0` — mail chứa mã `654321` được “gửi” vào inbox GreenMail.
+Kỳ vọng: `Tests run: 3, Failures: 0` — SMTP GreenMail + Resend HTTPS mock.
 
-## Cách đầy đủ API (cần Docker Postgres)
+## MailHog (SMTP thật trong Docker)
 
-```powershell
-mvn -Dtest=AuthVerificationEmailDeliveryTest test
+```bash
+docker run -d --name fitme-mailhog -p 1025:1025 -p 8025:8025 mailhog/mailhog
 ```
 
-Test này gọi `POST /auth/register` thật rồi đọc mã từ GreenMail. **Cần Docker ổn** (Testcontainers / fallback CLI).
-
-## MailHog + chạy app tay (khi Docker OK)
-
 ```powershell
-docker run -d --name fitme-mailhog -p 1025:1025 -p 8025:8025 mailhog/mailhog
-# + Postgres, rồi:
-cd backend
 $env:SMTP_HOST="localhost"
 $env:SMTP_PORT="1025"
 $env:SMTP_AUTH="false"
 $env:SMTP_STARTTLS="false"
 $env:SMTP_FROM="FitMe AI <noreply@fitme.local>"
-$env:FITME_AUTH_EXPOSE_VERIFICATION_CODE="false"
-$env:FITME_AUTH_MIN_FORM_MS="0"
-# + DB_* rồi mvn spring-boot:run
+# Không set SMTP_PASSWORD bắt đầu bằng re_ (sẽ đi Resend HTTP)
 ```
 
-UI inbox: http://localhost:8025
+Mở UI MailHog: http://localhost:8025
 
-## Gmail / Resend thật
+## Resend / production (Render)
 
-Set `SMTP_*` như production rồi `mvn spring-boot:run` và đăng ký bằng email thật.
+Render thường **chặn outbound SMTP :587**. App ưu tiên **Resend HTTPS API** khi:
+
+- `RESEND_API_KEY=re_...`, hoặc
+- `SMTP_PASSWORD` bắt đầu bằng `re_` (cùng key Resend)
+
+`SMTP_FROM` phải là địa chỉ Resend cho phép (vd. `FitMe AI <onboarding@resend.dev>` hoặc domain đã verify).

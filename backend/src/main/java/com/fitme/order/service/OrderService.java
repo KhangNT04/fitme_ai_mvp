@@ -1,5 +1,7 @@
 package com.fitme.order.service;
 
+import com.fitme.auth.entity.UserAccount;
+import com.fitme.auth.repository.UserAccountRepository;
 import com.fitme.common.enums.OrderStatus;
 import com.fitme.common.enums.SellerOrderStatus;
 import com.fitme.common.exception.BusinessException;
@@ -20,8 +22,11 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.EnumSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 /** Customer order history, cancellation and PayOS re-payment, plus the admin order monitor. */
 @Service
@@ -33,6 +38,7 @@ public class OrderService {
     private final OrderFulfillmentService fulfillmentService;
     private final OrderPaymentService paymentService;
     private final OrderViewAssembler assembler;
+    private final UserAccountRepository userAccountRepository;
 
     public List<OrderSummaryDto> list(UUID userId, String status) {
         if (status == null) {
@@ -90,11 +96,28 @@ public class OrderService {
 
     public List<OrderSummaryDto> adminList(String status) {
         if (status == null) {
-            return assembler.summaries(orderRepository.findAllByOrderByCreatedAtDesc());
+            return withBuyers(orderRepository.findAllByOrderByCreatedAtDesc());
         }
         return parseStatus(status)
-                .map(parsed -> assembler.summaries(orderRepository.findByStatusOrderByCreatedAtDesc(parsed)))
+                .map(parsed -> withBuyers(orderRepository.findByStatusOrderByCreatedAtDesc(parsed)))
                 .orElse(List.of());
+    }
+
+    private List<OrderSummaryDto> withBuyers(List<Order> orders) {
+        List<OrderSummaryDto> summaries = assembler.summaries(orders);
+        Map<UUID, UserAccount> users = userAccountRepository
+                .findAllById(orders.stream().map(Order::getUserId).collect(Collectors.toSet())).stream()
+                .collect(Collectors.toMap(UserAccount::getId, Function.identity()));
+        for (int i = 0; i < summaries.size(); i++) {
+            Order order = orders.get(i);
+            UserAccount buyer = users.get(order.getUserId());
+            String accountName = buyer == null ? null : buyer.getDisplayName();
+            summaries.get(i).setBuyerName(accountName != null && !accountName.isBlank()
+                    ? accountName : order.getRecipientName());
+            summaries.get(i).setBuyerEmail(buyer == null ? null : buyer.getEmail());
+            summaries.get(i).setBuyerPhone(order.getPhone());
+        }
+        return summaries;
     }
 
     public OrderDetailDto adminDetail(UUID orderId) {

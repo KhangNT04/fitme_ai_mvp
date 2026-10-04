@@ -24,9 +24,11 @@ import com.fitme.common.exception.BusinessException;
 import com.fitme.common.exception.NotFoundException;
 import com.fitme.common.time.AppClock;
 import com.fitme.fitken.service.FitkenService;
+import com.fitme.notification.PlanPurchasedEvent;
 import com.fitme.voucher.service.VoucherService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -57,6 +59,7 @@ public class ConsumerSubscriptionService {
     private final FitMeProperties properties;
     private final BillingDtoMapper dtoMapper;
     private final AppClock clock;
+    private final ApplicationEventPublisher events;
 
     public Optional<ConsumerSubscription> findActive(UUID userId) {
         if (userId == null) {
@@ -162,6 +165,7 @@ public class ConsumerSubscriptionService {
         order.setStatus(BillingOrderStatus.PAID);
         order.setPaidAt(now);
         orderRepository.save(order);
+        events.publishEvent(new PlanPurchasedEvent(order.getId()));
 
         if (plan.getPlanType() == BillingPlanType.TOPUP) {
             fitkenService.grant(order.getUserId(), FitkenEntryType.TOPUP_GRANT, plan.getQuotaAmount(),

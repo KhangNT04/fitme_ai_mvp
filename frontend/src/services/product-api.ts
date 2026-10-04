@@ -27,6 +27,14 @@ export const productApi = {
     const data = unwrap(res) as BackendProduct[];
     return (Array.isArray(data) ? data : []).map(mapProduct);
   },
+  /** Best-effort view tracking for brand analytics; never surfaces errors. */
+  recordView: async (id: string): Promise<void> => {
+    try {
+      await apiClient.post(`/products/${id}/view`);
+    } catch {
+      // Analytics must not affect browsing.
+    }
+  },
 };
 
 export { mapProduct, toBackendProductRequest } from "./product-mapper";

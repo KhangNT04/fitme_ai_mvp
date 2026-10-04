@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { portalFormCardClass } from "@/lib/design-tokens";
-import type { BillingPlan, BillingPlanWrite } from "@/types/billing";
+import type { BillingPlan, BillingPlanType, BillingPlanWrite } from "@/types/billing";
 
 export type BillingPlanFormValues = BillingPlanWrite;
 
@@ -33,7 +33,7 @@ export function planToFormValues(plan: BillingPlan): BillingPlanFormValues {
     fitkenAmount: plan.fitkenAmount,
     freeshipVouchers: plan.freeshipVouchers,
     freeshipMaxDiscountVnd: plan.freeshipMaxDiscountVnd,
-    billingPeriodDays: plan.billingPeriodDays ?? 30,
+    billingPeriodDays: plan.planType === "TOPUP" ? null : (plan.billingPeriodDays ?? 30),
     active: plan.active,
     sortOrder: plan.sortOrder,
   };
@@ -56,6 +56,7 @@ export function BillingPlanForm({
   submitLabel = "Lưu",
   codeReadOnly,
 }: BillingPlanFormProps) {
+  const isTopup = form.planType === "TOPUP";
   return (
     <form
       className={portalFormCardClass}
@@ -65,6 +66,25 @@ export function BillingPlanForm({
       }}
     >
       <div className="grid gap-4 sm:grid-cols-2">
+        <div className="space-y-2 sm:col-span-2">
+          <Label htmlFor="plan-type">Loại gói</Label>
+          <select
+            id="plan-type"
+            className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+            value={form.planType ?? "SUBSCRIPTION"}
+            onChange={(e) => {
+              const planType = e.target.value as BillingPlanType;
+              setForm(
+                planType === "TOPUP"
+                  ? { ...form, planType, freeshipVouchers: 0, billingPeriodDays: null }
+                  : { ...form, planType, billingPeriodDays: form.billingPeriodDays ?? 30 },
+              );
+            }}
+          >
+            <option value="SUBSCRIPTION">Gói tháng (Pro)</option>
+            <option value="TOPUP">Gói mua thêm Fitken (top-up, dùng một lần)</option>
+          </select>
+        </div>
         <div className="space-y-2">
           <Label htmlFor="plan-code">Mã gói</Label>
           <Input
@@ -105,7 +125,7 @@ export function BillingPlanForm({
           />
         </div>
         <div className="space-y-2">
-          <Label htmlFor="plan-fitken">Số Fitken / chu kỳ</Label>
+          <Label htmlFor="plan-fitken">{isTopup ? "Số Fitken cộng vào ví" : "Số Fitken / chu kỳ"}</Label>
           <Input
             id="plan-fitken"
             type="number"
@@ -114,40 +134,44 @@ export function BillingPlanForm({
             onChange={(e) => setForm({ ...form, fitkenAmount: Number(e.target.value) })}
           />
         </div>
-        <div className="space-y-2">
-          <Label htmlFor="plan-freeship-count">Voucher freeship / chu kỳ</Label>
-          <Input
-            id="plan-freeship-count"
-            type="number"
-            min={0}
-            value={form.freeshipVouchers}
-            onChange={(e) => setForm({ ...form, freeshipVouchers: Number(e.target.value) })}
-          />
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor="plan-freeship-max">Giảm tối đa freeship (VNĐ)</Label>
-          <Input
-            id="plan-freeship-max"
-            type="number"
-            min={0}
-            value={form.freeshipMaxDiscountVnd}
-            onChange={(e) =>
-              setForm({ ...form, freeshipMaxDiscountVnd: Number(e.target.value) })
-            }
-          />
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor="plan-period">Chu kỳ (ngày)</Label>
-          <Input
-            id="plan-period"
-            type="number"
-            min={1}
-            value={form.billingPeriodDays ?? 30}
-            onChange={(e) =>
-              setForm({ ...form, billingPeriodDays: Number(e.target.value) })
-            }
-          />
-        </div>
+        {!isTopup && (
+          <>
+            <div className="space-y-2">
+              <Label htmlFor="plan-freeship-count">Voucher freeship / chu kỳ</Label>
+              <Input
+                id="plan-freeship-count"
+                type="number"
+                min={0}
+                value={form.freeshipVouchers}
+                onChange={(e) => setForm({ ...form, freeshipVouchers: Number(e.target.value) })}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="plan-freeship-max">Giảm tối đa freeship (VNĐ)</Label>
+              <Input
+                id="plan-freeship-max"
+                type="number"
+                min={0}
+                value={form.freeshipMaxDiscountVnd}
+                onChange={(e) =>
+                  setForm({ ...form, freeshipMaxDiscountVnd: Number(e.target.value) })
+                }
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="plan-period">Chu kỳ (ngày)</Label>
+              <Input
+                id="plan-period"
+                type="number"
+                min={1}
+                value={form.billingPeriodDays ?? 30}
+                onChange={(e) =>
+                  setForm({ ...form, billingPeriodDays: Number(e.target.value) })
+                }
+              />
+            </div>
+          </>
+        )}
       </div>
 
       <label className="flex items-center gap-2 text-sm">

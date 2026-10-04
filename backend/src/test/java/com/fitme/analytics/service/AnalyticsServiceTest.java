@@ -36,7 +36,7 @@ class AnalyticsServiceTest extends AbstractIntegrationTest {
         BrandDashboardResponse dashboard = analyticsService.brandDashboard(brandId);
 
         assertThat(dashboard.getBuyClicks()).isEqualTo(1);
-        assertThat(dashboard.getTryOnAttempts()).isEqualTo(1);
+        assertThat(dashboard.getTryOnAttempts()).isZero();
         assertThat(dashboard.getAiRecommendedProducts()).isEqualTo(1);
     }
 

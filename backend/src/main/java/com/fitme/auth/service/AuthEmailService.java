@@ -102,6 +102,24 @@ public class AuthEmailService {
                 passwordResetHtml(resetUrl, ttlMinutes), "password reset");
     }
 
+    /** Customer notification that must never break the calling flow: failures are logged and swallowed. */
+    public boolean sendNotification(String toEmail, String subject, String text, String html, String kind) {
+        if (toEmail == null || toEmail.isBlank() || !isMailConfigured()) {
+            return false;
+        }
+        try {
+            deliver(toEmail, subject, text, html, kind);
+            return true;
+        } catch (RuntimeException ex) {
+            log.warn("[MAIL] {} email to {} not delivered: {}", kind, toEmail, ex.getMessage());
+            return false;
+        }
+    }
+
+    public String frontendLink(String pathAndQuery) {
+        return frontendUrl(pathAndQuery);
+    }
+
     private void deliver(String toEmail, String subject, String text, String html, String kind) {
         String fromRaw = fitMeProperties.getAuth().getMailFrom();
         if (fromRaw == null || fromRaw.isBlank()) {

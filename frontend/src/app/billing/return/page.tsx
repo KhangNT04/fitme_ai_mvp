@@ -73,7 +73,8 @@ function BillingReturnContent() {
             </div>
             <h1 className="text-2xl font-bold">Thanh toán thành công!</h1>
             <p className="text-muted-foreground">
-              Cảm ơn bạn đã nâng cấp FitMe Pro. Fitken và Voucher đã được cộng vào tài khoản.
+              Cảm ơn bạn đã mua {returnMutation.data?.planName ?? "gói FitMe"}. Quyền lợi của gói đã được cộng
+              vào tài khoản.
             </p>
             <div className="flex flex-col sm:flex-row gap-3 w-full max-w-sm mt-4">
               <Button asChild className="w-full rounded-full">

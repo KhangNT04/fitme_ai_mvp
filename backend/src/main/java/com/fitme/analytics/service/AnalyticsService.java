@@ -17,9 +17,15 @@ import com.fitme.product.repository.ProductRepository;
 import com.fitme.redirect.entity.BuyClickEvent;
 import com.fitme.redirect.repository.BuyClickEventRepository;
 import com.fitme.redirect.repository.FlaggedLinkRepository;
+import com.fitme.common.security.RequestContext;
+import com.fitme.common.time.AppClock;
+import com.fitme.tryon.repository.TryOnItemRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Duration;
+import java.time.Instant;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -27,7 +33,12 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class AnalyticsService {
 
+    public static final String PRODUCT_VIEWED = "PRODUCT_VIEWED";
+    static final Duration VIEW_DEDUP_WINDOW = Duration.ofMinutes(30);
+
     private final AnalyticsEventRepository eventRepository;
+    private final TryOnItemRepository tryOnItemRepository;
+    private final AppClock clock;
     private final ProductRepository productRepository;
     private final BrandRepository brandRepository;
     private final FlaggedLinkRepository flaggedLinkRepository;
@@ -49,14 +60,39 @@ public class AnalyticsService {
                 .build());
     }
 
+    /**
+     * Records a product detail view. Repeat views of the same product by the same user or anonymous session
+     * within {@link #VIEW_DEDUP_WINDOW} count once.
+     */
+    @Transactional
+    public void recordProductView(UUID productId) {
+        Product product = productRepository.findById(productId)
+                .filter(p -> p.getStatus() == ProductStatus.ACTIVE)
+                .orElse(null);
+        if (product == null) {
+            return;
+        }
+        UUID userId = RequestContext.getCurrentUserId().orElse(null);
+        UUID sessionId = userId == null ? RequestContext.getSessionId().orElse(null) : null;
+        Instant since = clock.now().minus(VIEW_DEDUP_WINDOW);
+        boolean duplicate = userId != null
+                ? eventRepository.existsByEventTypeAndProductIdAndUserIdAndCreatedAtAfter(
+                        PRODUCT_VIEWED, productId, userId, since)
+                : sessionId != null && eventRepository.existsByEventTypeAndProductIdAndSessionIdAndCreatedAtAfter(
+                        PRODUCT_VIEWED, productId, sessionId, since);
+        if (!duplicate) {
+            track(PRODUCT_VIEWED, userId, sessionId, product.getBrandId(), productId, null, null, null);
+        }
+    }
+
     public BrandDashboardResponse brandDashboard(UUID brandId) {
         List<AnalyticsEvent> events = eventRepository.findByBrandId(brandId);
         long totalProducts = productRepository.findByBrandId(brandId).size();
         long activeProducts = productRepository.findByBrandIdAndStatus(brandId, ProductStatus.ACTIVE).size();
         long buyClicks = count(events, "BUY_CLICKED");
         long recommendations = count(events, "RECOMMENDATION_GENERATED");
-        long tryOnStarted = count(events, "TRY_ON_STARTED");
-        long views = count(events, "PRODUCT_VIEWED");
+        long tryOnStarted = tryOnItemRepository.countBrandTryOns(brandId, false);
+        long views = count(events, PRODUCT_VIEWED);
         double ctr = views > 0 ? (double) buyClicks / views : 0;
         double tryOnToBuy = tryOnStarted > 0 ? (double) buyClicks / tryOnStarted : 0;
         return BrandDashboardResponse.builder()
@@ -81,8 +117,8 @@ public class AnalyticsService {
                         point("Size compared", count(events, "SIZE_COMPARED")),
                         point("Color compared", count(events, "COLOR_COMPARED"))))
                 .tryOnStats(List.of(
-                        point("Started", count(events, "TRY_ON_STARTED")),
-                        point("Generated", count(events, "TRY_ON_GENERATED"))))
+                        point("Started", tryOnItemRepository.countBrandTryOns(brandId, false)),
+                        point("Generated", tryOnItemRepository.countBrandTryOns(brandId, true))))
                 .topOccasions(topMetadata(events, "occasion"))
                 .topStyles(topMetadata(events, "style"))
                 .topColors(topMetadata(events, "color"))
@@ -175,9 +211,9 @@ public class AnalyticsService {
     public ProductAnalyticsResponse productAnalytics(UUID brandId, UUID productId) {
         List<AnalyticsEvent> events = eventRepository.findByBrandIdAndProductId(brandId, productId);
         return ProductAnalyticsResponse.builder()
-                .views(count(events, "PRODUCT_VIEWED"))
+                .views(count(events, PRODUCT_VIEWED))
                 .buyClicks(count(events, "BUY_CLICKED"))
-                .tryOns(count(events, "TRY_ON_STARTED"))
+                .tryOns(tryOnItemRepository.countProductTryOns(productId, false))
                 .redirectClicks(chartByEventType(events, "BUY_CLICKED"))
                 .build();
     }

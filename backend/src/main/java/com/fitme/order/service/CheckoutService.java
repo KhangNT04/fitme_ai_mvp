@@ -15,6 +15,7 @@ import com.fitme.common.exception.BusinessException;
 import com.fitme.common.exception.NotFoundException;
 import com.fitme.common.time.AppClock;
 import com.fitme.common.util.EnumParser;
+import com.fitme.notification.OrderConfirmedEvent;
 import com.fitme.order.dto.OrderPreviewDto;
 import com.fitme.order.dto.PlaceOrderRequest;
 import com.fitme.order.dto.PlaceOrderResponse;
@@ -30,6 +31,7 @@ import com.fitme.voucher.entity.UserVoucher;
 import com.fitme.voucher.repository.UserVoucherRepository;
 import com.fitme.voucher.service.VoucherService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -58,6 +60,7 @@ public class CheckoutService {
     private final OrderViewAssembler assembler;
     private final FitMeProperties properties;
     private final AppClock clock;
+    private final ApplicationEventPublisher events;
 
     private record Pricing(long subtotalVnd, long shippingFeeVnd, long discountVnd, UserVoucher voucher,
                            Map<UUID, List<CartLine>> groups) {
@@ -138,6 +141,8 @@ public class CheckoutService {
         if (payos) {
             paymentService.recordPendingTransaction(order);
             checkoutUrl = paymentService.checkoutUrl(order);
+        } else {
+            events.publishEvent(new OrderConfirmedEvent(order.getId(), false));
         }
         return PlaceOrderResponse.builder()
                 .order(assembler.detail(order))

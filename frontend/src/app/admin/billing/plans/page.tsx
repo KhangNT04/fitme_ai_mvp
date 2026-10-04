@@ -27,6 +27,7 @@ import {
   portalTableActionsClass,
 } from "@/lib/design-tokens";
 import { actionFeedback } from "@/lib/action-feedback";
+import type { BillingPlan } from "@/types/billing";
 
 export default function AdminBillingPlansPage() {
   const queryClient = useQueryClient();
@@ -45,10 +46,12 @@ export default function AdminBillingPlansPage() {
     onError: actionFeedback({ errorMessage: "Không thể xóa gói" }).onError,
   });
 
+  const isTopup = (plan: BillingPlan) => plan.planType === "TOPUP";
+
   return (
     <PortalAdminPage
-      title="Gói người dùng (Pro)"
-      description="Quản lý gói FitMe Pro: Fitken, voucher freeship và chu kỳ thanh toán cho người dùng."
+      title="Gói người dùng (Pro & top-up)"
+      description="Quản lý gói FitMe Pro (Fitken, voucher freeship, chu kỳ) và gói mua thêm Fitken một lần."
       headerActions={
         <Button size="sm" asChild>
           <Link href="/admin/billing/plans/new">Thêm gói</Link>
@@ -74,7 +77,9 @@ export default function AdminBillingPlansPage() {
                     </p>
                     <p className="mt-1 text-sm text-muted-foreground">
                       {formatPrice(plan.priceVnd)} · {plan.fitkenAmount} Fitken ·{" "}
-                      {plan.freeshipVouchers} freeship · {plan.billingPeriodDays ?? 30} ngày
+                      {isTopup(plan)
+                        ? "Top-up một lần"
+                        : `${plan.freeshipVouchers} freeship · ${plan.billingPeriodDays ?? 30} ngày`}
                     </p>
                     <Badge variant="outline" className="mt-2">
                       {plan.active ? "Đang bán" : "Tắt"}
@@ -121,9 +126,11 @@ export default function AdminBillingPlansPage() {
                   <td className={portalTableTdClass}>{formatPrice(plan.priceVnd)}</td>
                   <td className={portalTableTdClass}>{plan.fitkenAmount}</td>
                   <td className={portalTableTdClass}>
-                    {plan.freeshipVouchers} × {formatPrice(plan.freeshipMaxDiscountVnd)}
+                    {isTopup(plan) ? "—" : `${plan.freeshipVouchers} × ${formatPrice(plan.freeshipMaxDiscountVnd)}`}
                   </td>
-                  <td className={portalTableTdClass}>{plan.billingPeriodDays ?? 30} ngày</td>
+                  <td className={portalTableTdClass}>
+                    {isTopup(plan) ? "Top-up" : `${plan.billingPeriodDays ?? 30} ngày`}
+                  </td>
                   <td className={portalTableTdClass}>
                     <Badge variant="outline">{plan.active ? "Đang bán" : "Tắt"}</Badge>
                   </td>

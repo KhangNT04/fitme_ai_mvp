@@ -146,6 +146,10 @@ export interface OrderSummary {
   itemCount: number;
   firstItemImageUrl?: string | null;
   createdAt: string;
+  /** Present in the admin order list only. */
+  buyerName?: string | null;
+  buyerEmail?: string | null;
+  buyerPhone?: string | null;
 }
 
 export interface OrderItem {

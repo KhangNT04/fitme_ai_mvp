@@ -1,0 +1,7 @@
+package com.fitme.notification;
+
+import java.util.UUID;
+
+/** A consumer billing order (Pro subscription or Fitken top-up) was paid. */
+public record PlanPurchasedEvent(UUID billingOrderId) {
+}

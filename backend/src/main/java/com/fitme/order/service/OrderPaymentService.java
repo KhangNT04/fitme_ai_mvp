@@ -8,6 +8,7 @@ import com.fitme.common.enums.PaymentStatus;
 import com.fitme.common.enums.PaymentTransactionStatus;
 import com.fitme.common.exception.BusinessException;
 import com.fitme.common.time.AppClock;
+import com.fitme.notification.OrderConfirmedEvent;
 import com.fitme.order.entity.Order;
 import com.fitme.order.entity.PaymentTransaction;
 import com.fitme.order.repository.OrderRepository;
@@ -16,6 +17,7 @@ import com.fitme.order.repository.SellerOrderRepository;
 import com.fitme.voucher.service.VoucherService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -51,6 +53,7 @@ public class OrderPaymentService {
     private final PayOsClient payOsClient;
     private final FitMeProperties properties;
     private final AppClock clock;
+    private final ApplicationEventPublisher events;
 
     public boolean isMock() {
         return properties.getPayos().isMock();
@@ -103,6 +106,7 @@ public class OrderPaymentService {
         if (order.getStatus() == OrderStatus.PENDING_PAYMENT) {
             order.setStatus(OrderStatus.CONFIRMED);
             voucherService.markUsedForOrder(order.getId());
+            events.publishEvent(new OrderConfirmedEvent(order.getId(), true));
         } else if (order.getStatus() == OrderStatus.CANCELLED) {
             log.warn("PayOS payment received for cancelled order {} (payosOrderCode={}, amount={} VND) - manual refund required",
                     order.getOrderCode(), payosOrderCode, order.getTotalVnd());

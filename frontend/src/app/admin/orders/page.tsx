@@ -56,6 +56,9 @@ export default function AdminOrdersPage() {
                     <Link href={`/admin/orders/${o.id}`} className="font-mono text-sm font-semibold hover:underline">
                       {o.orderCode}
                     </Link>
+                    <p className="mt-1 truncate text-xs text-muted-foreground">
+                      {o.buyerName || "—"}{o.buyerEmail ? ` · ${o.buyerEmail}` : ""}
+                    </p>
                     <p className="mt-1 text-xs text-muted-foreground">
                       {o.itemCount} sản phẩm · {formatCommerceDate(o.createdAt)}
                     </p>
@@ -76,6 +79,7 @@ export default function AdminOrdersPage() {
             <PortalDataTableHead>
               <tr>
                 <th className={portalTableThClass}>Mã đơn</th>
+                <th className={portalTableThClass}>Người mua</th>
                 <th className={portalTableThClass}>Ngày đặt</th>
                 <th className={portalTableThClass}>SL</th>
                 <th className={portalTableThClass}>Thanh toán</th>
@@ -91,6 +95,13 @@ export default function AdminOrdersPage() {
                     <Link href={`/admin/orders/${o.id}`} className="font-mono font-medium hover:underline">
                       {o.orderCode}
                     </Link>
+                  </td>
+                  <td className={portalTableTdClass}>
+                    <div className="flex min-w-0 flex-col">
+                      <span className="font-medium">{o.buyerName || "—"}</span>
+                      {o.buyerEmail && <span className="text-xs text-muted-foreground">{o.buyerEmail}</span>}
+                      {o.buyerPhone && <span className="text-xs text-muted-foreground">{o.buyerPhone}</span>}
+                    </div>
                   </td>
                   <td className={portalTableTdClass}>{formatCommerceDate(o.createdAt)}</td>
                   <td className={portalTableTdClass}>{o.itemCount}</td>

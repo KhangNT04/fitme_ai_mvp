@@ -17,7 +17,7 @@ export const subscriptionApi = {
     const res = await apiClient.post("/me/subscription/checkout", { planId });
     return unwrap(res);
   },
-  return: async (orderCode: number): Promise<void> => {
+  return: async (orderCode: number): Promise<{ planName?: string | null; status?: string }> => {
     const res = await apiClient.post("/me/subscription/return", { orderCode });
     return unwrap(res);
   },

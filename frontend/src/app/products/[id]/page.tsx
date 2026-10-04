@@ -1,6 +1,6 @@
 "use client";
 
-import { use } from "react";
+import { use, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { productApi } from "@/services/product-api";
 import { Badge } from "@/components/ui/badge";
@@ -60,6 +60,11 @@ function ProductDetailContent({
     queryKey: ["product", id],
     queryFn: () => productApi.getById(id),
   });
+
+  const productLoaded = !!product;
+  useEffect(() => {
+    if (productLoaded) void productApi.recordView(id);
+  }, [id, productLoaded]);
 
   const { data: recommendation } = useQuery({
     queryKey: ["recommendation", recommendationId],

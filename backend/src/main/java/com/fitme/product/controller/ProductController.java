@@ -1,5 +1,6 @@
 package com.fitme.product.controller;
 
+import com.fitme.analytics.service.AnalyticsService;
 import com.fitme.common.dto.ApiResponse;
 import com.fitme.common.enums.FitPreference;
 import com.fitme.product.dto.ProductResponse;
@@ -17,6 +18,7 @@ import java.util.UUID;
 public class ProductController {
 
     private final ProductService productService;
+    private final AnalyticsService analyticsService;
 
     @GetMapping
     public ApiResponse<List<ProductResponse>> list(
@@ -67,6 +69,13 @@ public class ProductController {
     @GetMapping("/{id}")
     public ApiResponse<ProductResponse> get(@PathVariable UUID id) {
         return ApiResponse.ok(productService.getPublicProduct(id));
+    }
+
+    /** Called once by the product detail page; feeds brand views and click-through rate. */
+    @PostMapping("/{id}/view")
+    public ApiResponse<Void> view(@PathVariable UUID id) {
+        analyticsService.recordProductView(id);
+        return ApiResponse.ok(null);
     }
 
     @GetMapping("/{id}/similar")

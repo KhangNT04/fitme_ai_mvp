@@ -15,6 +15,7 @@ import { consumerPageShellClass } from "@/lib/design-tokens";
 import { getUserErrorMessage } from "@/lib/user-error-message";
 import { toast } from "@/stores/toast-store";
 import { cn } from "@/lib/utils";
+import { formatPrice } from "@/utils/format-price";
 
 const formatDate = (dateStr: string) => {
   const d = new Date(dateStr);
@@ -44,12 +45,13 @@ export default function PricingPage() {
     staleTime: 30_000,
   });
 
-  const { data: proPlan, isLoading: plansLoading } = useQuery({
+  const { data: plans, isLoading: plansLoading } = useQuery({
     queryKey: ["consumer-plans"],
     queryFn: () => subscriptionApi.getPlans(),
-    select: (plans) => plans.find((p) => p.planType !== "TOPUP"),
     staleTime: 5 * 60_000,
   });
+  const proPlan = plans?.find((p) => p.planType !== "TOPUP");
+  const topupPlans = plans?.filter((p) => p.planType === "TOPUP") ?? [];
 
   const checkoutMutation = useMutation({
     mutationFn: (planId: string) => subscriptionApi.checkout(planId),
@@ -71,6 +73,14 @@ export default function PricingPage() {
       return;
     }
     checkoutMutation.mutate(proPlan.id);
+  };
+
+  const handleTopup = (planId: string) => {
+    if (!isAuthenticated) {
+      toast.info("Vui lòng đăng nhập để mua thêm Fitken.");
+      return;
+    }
+    checkoutMutation.mutate(planId);
   };
 
   const walletPending = isAuthenticated && wallet === undefined;
@@ -104,7 +114,7 @@ export default function PricingPage() {
 
           <PlanCard
             eyebrow="FitMe Pro"
-            title="49.000đ / tháng"
+            title={`${formatPrice(proPlan?.priceVnd ?? 49000)} / tháng`}
             highlighted
             active={isPro}
             perks={PRO_PERKS}
@@ -143,6 +153,47 @@ export default function PricingPage() {
             </Link>{" "}
             để xem số dư Fitken và nâng cấp.
           </p>
+        )}
+
+        {topupPlans.length > 0 && (
+          <section className="rounded-2xl border border-border/60 bg-card p-5 sm:p-6" aria-labelledby="topup-heading">
+            <div className="mb-4 flex items-center gap-3">
+              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10">
+                <Sparkles className="h-5 w-5 text-primary" />
+              </div>
+              <div>
+                <h3 id="topup-heading" className="text-lg font-semibold">Mua thêm Fitken</h3>
+                <p className="text-sm text-muted-foreground">
+                  Thanh toán một lần qua PayOS, Fitken cộng ngay vào ví và không hết hạn theo tháng.
+                </p>
+              </div>
+            </div>
+            <ul className="grid gap-3 sm:grid-cols-2">
+              {topupPlans.map((plan) => (
+                <li
+                  key={plan.id}
+                  className="flex items-center justify-between gap-3 rounded-xl bg-muted/30 p-3"
+                >
+                  <div className="min-w-0">
+                    <p className="font-medium">{plan.name}</p>
+                    <p className="text-sm text-muted-foreground">
+                      +{plan.fitkenAmount} Fitken · {formatPrice(plan.priceVnd)}
+                    </p>
+                  </div>
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="outline"
+                    className="shrink-0 rounded-full"
+                    disabled={checkoutMutation.isPending}
+                    onClick={() => handleTopup(plan.id)}
+                  >
+                    Mua
+                  </Button>
+                </li>
+              ))}
+            </ul>
+          </section>
         )}
 
         <div className="rounded-2xl border border-border/60 bg-card p-5 sm:p-6 mt-8">

@@ -67,8 +67,8 @@ function UsersTrendChart({ daily }: { daily: AdminMetrics["daily"] }) {
           <Tooltip formatter={(value) => formatChartNumber(Number(value ?? 0))} />
           <Legend verticalAlign="bottom" iconType="square" wrapperStyle={{ paddingTop: 12, fontSize: 12, color: CHART_AXIS }} />
           <Bar dataKey="signups" name="Đăng ký mới" fill={CHART_BAR} radius={[2, 2, 0, 0]} maxBarSize={24} />
-          <Line type="monotone" dataKey="activeUsers" name="Người dùng hoạt động" stroke={CHART_LINE} strokeWidth={2.5} dot={false} />
-          <Line type="monotone" dataKey="tryOns" name="Lượt thử đồ AI" stroke={CHART_COLORS[2]} strokeWidth={2} dot={false} />
+          <Line type="linear" dataKey="activeUsers" name="Người dùng hoạt động" stroke={CHART_LINE} strokeWidth={2.5} dot={false} />
+          <Line type="linear" dataKey="tryOns" name="Lượt thử đồ AI" stroke={CHART_COLORS[2]} strokeWidth={2} dot={false} />
         </ComposedChart>
       </ResponsiveContainer>
     </div>
@@ -99,7 +99,7 @@ function RevenueTrendChart({ daily }: { daily: AdminMetrics["daily"] }) {
           />
           <Legend verticalAlign="bottom" iconType="square" wrapperStyle={{ paddingTop: 12, fontSize: 12, color: CHART_AXIS }} />
           <Bar yAxisId="left" dataKey="revenueVnd" name="Doanh thu" fill={CHART_COLORS[3] ?? CHART_BAR} radius={[2, 2, 0, 0]} maxBarSize={24} />
-          <Line yAxisId="right" type="monotone" dataKey="paidTransactions" name="Giao dịch đã thanh toán" stroke={CHART_LINE} strokeWidth={2.5} dot={false} />
+          <Line yAxisId="right" type="linear" dataKey="paidTransactions" name="Giao dịch đã thanh toán" stroke={CHART_LINE} strokeWidth={2.5} dot={false} />
         </ComposedChart>
       </ResponsiveContainer>
     </div>

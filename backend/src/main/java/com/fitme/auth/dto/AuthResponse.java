@@ -23,6 +23,6 @@ public class AuthResponse {
      */
     private String verificationCode;
     private String message;
-    /** FREE | PLUS — consumer entitlement stub until PayOS billing. */
+    /** FREE | PRO — synced from the consumer's FitMe Pro subscription. */
     private String consumerPlan;
 }

@@ -2,13 +2,14 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
+import { useMutation } from "@tanstack/react-query";
 import { PageShell } from "@/components/layout/PageShell";
 import { FlowWizardToolbar } from "@/components/layout/FlowWizardToolbar";
 import { AI_FLOW_STEPS } from "@/components/layout/FlowStepper";
 import { LoadingSkeleton } from "@/components/common/LoadingSkeleton";
 import { ChatMessageList } from "@/components/stylist-chat/ChatMessageList";
 import { ChatComposer } from "@/components/stylist-chat/ChatComposer";
-import { PlusUpsellBanner } from "@/components/stylist-chat/PlusUpsellBanner";
+import { ProUpsellBanner } from "@/components/stylist-chat/ProUpsellBanner";
 import { StyleResultsBoard } from "@/components/stylist-chat/StyleResultsBoard";
 import { useEnsureSession } from "@/hooks/use-ensure-session";
 import { useBodyProfileReady } from "@/hooks/use-body-profile-ready";
@@ -58,9 +59,47 @@ export default function AiChatPage() {
   const setConversationId = useStylistChatStore((s) => s.setConversationId);
   const setStarterRecommendations = useStylistChatStore((s) => s.setStarterRecommendations);
   const [sending, setSending] = useState(false);
-  const [starterLoading, setStarterLoading] = useState(false);
   const [chatHydrated, setChatHydrated] = useState(false);
   const starterStartedRef = useRef(false);
+
+  const { mutate: loadStarter, isPending: starterLoading } = useMutation({
+    mutationFn: async (bodyProfile: NonNullable<typeof profile>) => {
+      await ensureSession();
+      await ensureServerBodyProfile(bodyProfile);
+      return stylistChatApi.getStarterOutfits();
+    },
+    onSuccess: (result) => {
+      setStarterRecommendations(result.recommendations?.length ? result.recommendations : []);
+      addMessage({
+        id: newId(),
+        role: "assistant",
+        type: "text",
+        content: result.content || STYLIST_STARTER_FOLLOW_UP,
+        createdAt: Date.now(),
+        requestId: result.requestId,
+      });
+      if (result.content && result.content !== STYLIST_STARTER_FOLLOW_UP) {
+        addMessage({
+          id: newId(),
+          role: "assistant",
+          type: "text",
+          content: STYLIST_STARTER_FOLLOW_UP,
+          createdAt: Date.now(),
+        });
+      }
+    },
+    onError: (error) => {
+      toast.error(getUserErrorMessage(error, "Không tạo được outfit ban đầu. Bạn vẫn có thể nhập yêu cầu bên dưới."));
+      addMessage({
+        id: newId(),
+        role: "assistant",
+        type: "text",
+        content: `${assistantErrorMessage(error)}\n\n${STYLIST_STARTER_FOLLOW_UP}`,
+        createdAt: Date.now(),
+      });
+    },
+  });
+  const busy = sending || starterLoading;
 
   useEffect(() => {
     void Promise.resolve(useStylistChatStore.persist.rehydrate()).finally(() => setChatHydrated(true));
@@ -108,49 +147,7 @@ export default function AiChatPage() {
 
     starterStartedRef.current = true;
     sessionStorage.removeItem(STYLIST_STARTER_PENDING_KEY);
-    setSending(true);
-    setStarterLoading(true);
-
-    void (async () => {
-      try {
-        await ensureSession();
-        await ensureServerBodyProfile(profile);
-        const result = await stylistChatApi.getStarterOutfits();
-        const boards = result.recommendations?.length
-          ? result.recommendations
-          : [];
-        setStarterRecommendations(boards);
-        addMessage({
-          id: newId(),
-          role: "assistant",
-          type: "text",
-          content: result.content || STYLIST_STARTER_FOLLOW_UP,
-          createdAt: Date.now(),
-          requestId: result.requestId,
-        });
-        if (result.content && result.content !== STYLIST_STARTER_FOLLOW_UP) {
-          addMessage({
-            id: newId(),
-            role: "assistant",
-            type: "text",
-            content: STYLIST_STARTER_FOLLOW_UP,
-            createdAt: Date.now(),
-          });
-        }
-      } catch (error) {
-        toast.error(getUserErrorMessage(error, "Không tạo được outfit ban đầu. Bạn vẫn có thể nhập yêu cầu bên dưới."));
-        addMessage({
-          id: newId(),
-          role: "assistant",
-          type: "text",
-          content: `${assistantErrorMessage(error)}\n\n${STYLIST_STARTER_FOLLOW_UP}`,
-          createdAt: Date.now(),
-        });
-      } finally {
-        setSending(false);
-        setStarterLoading(false);
-      }
-    })();
+    loadStarter(profile);
   }, [
     storesReady,
     chatHydrated,
@@ -159,14 +156,12 @@ export default function AiChatPage() {
     profile,
     messages.length,
     starterRecommendations.length,
-    ensureSession,
-    addMessage,
-    setStarterRecommendations,
+    loadStarter,
   ]);
 
   const send = useCallback(
     async (text: string) => {
-      if (sending) return;
+      if (busy) return;
       const userMsg: StylistChatMessage = {
         id: newId(),
         role: "user",
@@ -225,7 +220,7 @@ export default function AiChatPage() {
       }
     },
     [
-      sending,
+      busy,
       addMessage,
       ensureSession,
       profile,
@@ -245,7 +240,7 @@ export default function AiChatPage() {
   }
 
   const showBoards = starterLoading || starterRecommendations.length > 0;
-  const showWelcome = messages.length === 0 && !sending && !showBoards;
+  const showWelcome = messages.length === 0 && !busy && !showBoards;
 
   return (
     <PageShell width="full" className={`${consumerPageShellClass} flex min-h-[70vh] flex-col`}>
@@ -260,7 +255,7 @@ export default function AiChatPage() {
       />
 
       <div className="flex min-h-0 flex-1 flex-col gap-4">
-        <PlusUpsellBanner />
+        <ProUpsellBanner />
 
         {showBoards && (
           <StyleResultsBoard
@@ -280,9 +275,9 @@ export default function AiChatPage() {
             messages={messages}
             showWelcome={showWelcome}
             onQuickPrompt={(p) => void send(p)}
-            quickPromptsDisabled={sending}
+            quickPromptsDisabled={busy}
           />
-          {sending && !starterLoading && (
+          {sending && (
             <p className="text-center text-xs text-muted-foreground">
               Stylist đang phân tích hồ sơ và phối đồ…
             </p>
@@ -292,7 +287,7 @@ export default function AiChatPage() {
               Đang chuẩn bị 3 style cơ bản cho bạn…
             </p>
           )}
-          <ChatComposer onSend={(m) => void send(m)} disabled={!ready} sending={sending} />
+          <ChatComposer onSend={(m) => void send(m)} disabled={!ready} sending={busy} />
         </div>
       </div>
     </PageShell>

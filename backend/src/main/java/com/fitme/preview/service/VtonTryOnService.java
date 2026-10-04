@@ -4,17 +4,16 @@ import com.fitme.ai.VtonCategoryMapper;
 import com.fitme.ai.VtonImageUrlResolver;
 import com.fitme.ai.client.AiVtonClient;
 import com.fitme.ai.client.AiVtonClient.VtonJobResponse;
-import com.fitme.billing.service.BrandQuotaService;
 import com.fitme.common.config.FitMeProperties;
 import com.fitme.common.enums.PreviewSource;
 import com.fitme.common.enums.PreviewStatus;
 import com.fitme.common.enums.PreviewType;
 import com.fitme.common.enums.TryOnPreviewMode;
 import com.fitme.common.enums.TryOnStatus;
+import com.fitme.fitken.service.FitkenService;
+import com.fitme.gallery.service.GalleryService;
 import com.fitme.preview.entity.PreviewGeneration;
 import com.fitme.preview.repository.PreviewGenerationRepository;
-import com.fitme.product.entity.Product;
-import com.fitme.product.repository.ProductRepository;
 import com.fitme.tryon.entity.TryOnItem;
 import com.fitme.tryon.entity.TryOnRequest;
 import com.fitme.tryon.repository.TryOnItemRepository;
@@ -26,11 +25,9 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Duration;
 import java.time.Instant;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -56,8 +53,8 @@ public class VtonTryOnService {
     private final TryOnItemRepository tryOnItemRepository;
     private final PreviewGenerationRepository previewRepository;
     private final PreviewGenerator previewGenerator;
-    private final ProductRepository productRepository;
-    private final BrandQuotaService brandQuotaService;
+    private final FitkenService fitkenService;
+    private final GalleryService galleryService;
     private final AiVtonClient aiVtonClient;
     private final VtonCategoryMapper vtonCategoryMapper;
     private final VtonImageUrlResolver vtonImageUrlResolver;
@@ -66,6 +63,19 @@ public class VtonTryOnService {
 
     @Transactional
     public void startJob(TryOnRequest tryOn) {
+        startJob(tryOn, null);
+    }
+
+    /**
+     * @param chargeUserId when set, one AI try-on worth of Fitken is consumed from this user, keyed
+     *                     by the new preview generation id, once the provider accepted the job (or a
+     *                     sync AI render succeeded). Submit-time failures and illustration fallbacks
+     *                     are never charged; a job that later fails while polling is refunded.
+     *                     Charging after the provider call keeps the wallet row lock out of the HTTP
+     *                     round-trip.
+     */
+    @Transactional
+    public void startJob(TryOnRequest tryOn, UUID chargeUserId) {
         PreviewType previewType = toPreviewType(tryOn.getPreviewMode());
         PreviewGeneration preview = PreviewGeneration.builder()
                 .tryOnRequestId(tryOn.getId())
@@ -76,14 +86,12 @@ public class VtonTryOnService {
         preview = previewRepository.save(preview);
         tryOn.setPreviewGenerationId(preview.getId());
 
-        if (shouldUseAsyncVton(tryOn)) {
-            dispatchAsyncVton(tryOn, preview);
-            previewRepository.save(preview);
-            tryOnRequestRepository.save(tryOn);
-            return;
+        boolean billable = shouldUseAsyncVton(tryOn)
+                ? dispatchAsyncVton(tryOn, preview)
+                : completeSyncPreview(tryOn, preview, false);
+        if (chargeUserId != null && billable) {
+            fitkenService.consumeForTryOn(chargeUserId, preview.getId());
         }
-
-        completeSyncPreview(tryOn, preview);
         previewRepository.save(preview);
         tryOnRequestRepository.save(tryOn);
     }
@@ -146,13 +154,13 @@ public class VtonTryOnService {
         return mode == TryOnPreviewMode.USER_PHOTO || mode == TryOnPreviewMode.AVATAR;
     }
 
-    private void dispatchAsyncVton(TryOnRequest tryOn, PreviewGeneration preview) {
+    /** @return true when the provider accepted the job, i.e. the try-on should be charged */
+    private boolean dispatchAsyncVton(TryOnRequest tryOn, PreviewGeneration preview) {
         List<TryOnItem> items = tryOnItemRepository.findByTryOnRequestId(tryOn.getId());
         List<VtonCategoryMapper.GarmentSelection> garments = vtonCategoryMapper.selectGarments(items);
         if (garments.isEmpty()) {
             log.info("No VTON-eligible garment for try-on {}, falling back to outfit board", tryOn.getId());
-            completeSyncPreview(tryOn, preview);
-            return;
+            return completeSyncPreview(tryOn, preview, true);
         }
 
         try {
@@ -172,21 +180,23 @@ public class VtonTryOnService {
             if (job == null || "failed".equalsIgnoreCase(job.getStatus())) {
                 applyVtonFailure(tryOn, preview, job != null ? job.getErrorCode() : "PROVIDER_ERROR",
                         job != null ? job.getErrorMessage() : "VTON submit failed");
-                return;
+                return false;
             }
 
             if (job.getJobId() == null || job.getJobId().isBlank()) {
                 applyVtonFailure(tryOn, preview, "PROVIDER_ERROR", "VTON provider did not return job id");
-                return;
+                return false;
             }
             preview.setVtonJobId(job.getJobId());
             preview.setDisclaimer(VTON_DISCLAIMER);
             preview.setPreviewSource(PreviewSource.VTON);
             tryOn.setStatus(TryOnStatus.PROCESSING);
+            return true;
         } catch (Exception ex) {
             log.warn("Async VTON dispatch failed for try-on {}: reason={} message={}",
                     tryOn.getId(), classifyVtonFailure(null, ex.getMessage()), ex.getMessage());
             applyVtonFailure(tryOn, preview, null, ex.getMessage());
+            return false;
         }
     }
 
@@ -248,7 +258,7 @@ public class VtonTryOnService {
             preview.setPreviewSource(PreviewSource.VTON);
             preview.setErrorMessage(null);
             tryOn.setStatus(TryOnStatus.COMPLETED);
-            consumeQuotaForTryOn(tryOn.getId());
+            galleryService.recordTryOn(tryOn, preview);
         } else if ("failed".equals(status)) {
             applyVtonFailure(tryOn, preview, response.getErrorCode(),
                     response.getErrorMessage() != null ? response.getErrorMessage() : "VTON job failed");
@@ -275,12 +285,12 @@ public class VtonTryOnService {
             preview.setPreviewSource(resolveSyncPreviewSource(tryOn.getPreviewMode()));
             preview.setErrorMessage(sanitizeVtonErrorMessage(errorCode, message));
             tryOn.setStatus(TryOnStatus.COMPLETED);
-            consumeQuotaForTryOn(tryOn.getId());
         } catch (Exception ex) {
             preview.setStatus(PreviewStatus.FAILED);
             preview.setErrorMessage(message != null ? message : ex.getMessage());
             tryOn.setStatus(TryOnStatus.FAILED);
         }
+        fitkenService.refundTryOn(preview.getId(), "Hoàn Fitken do AI thử mặc lỗi");
     }
 
     private void finalizeTimeout(PreviewGeneration preview) {
@@ -304,7 +314,11 @@ public class VtonTryOnService {
         return Duration.between(created, Instant.now()).getSeconds() > timeoutSeconds;
     }
 
-    private void completeSyncPreview(TryOnRequest tryOn, PreviewGeneration preview) {
+    /**
+     * @param fallback true when this sync preview stands in for an AI render that could not run
+     * @return true when the result is a real render worth charging for
+     */
+    private boolean completeSyncPreview(TryOnRequest tryOn, PreviewGeneration preview, boolean fallback) {
         try {
             PreviewGenerator.PreviewResult result = previewGenerator.generate(
                     new PreviewGenerator.PreviewRequest(null, tryOn.getId(), tryOn.getPhotoUploadId(),
@@ -314,22 +328,16 @@ public class VtonTryOnService {
             preview.setStatus(PreviewStatus.SUCCEEDED);
             preview.setPreviewSource(resolveSyncPreviewSource(tryOn.getPreviewMode()));
             tryOn.setStatus(TryOnStatus.COMPLETED);
-            consumeQuotaForTryOn(tryOn.getId());
         } catch (Exception e) {
             preview.setStatus(PreviewStatus.FAILED);
             preview.setErrorMessage(e.getMessage());
             tryOn.setStatus(TryOnStatus.FAILED);
         }
-    }
-
-    private void consumeQuotaForTryOn(UUID tryOnRequestId) {
-        Set<UUID> brandIds = new LinkedHashSet<>();
-        for (TryOnItem item : tryOnItemRepository.findByTryOnRequestId(tryOnRequestId)) {
-            productRepository.findById(item.getProductId())
-                    .map(Product::getBrandId)
-                    .ifPresent(brandIds::add);
+        if (fallback || tryOn.getStatus() == TryOnStatus.FAILED) {
+            return false;
         }
-        brandQuotaService.consumeForTryOn(tryOnRequestId, brandIds);
+        galleryService.recordTryOn(tryOn, preview);
+        return true;
     }
 
     private static PreviewType toPreviewType(TryOnPreviewMode mode) {

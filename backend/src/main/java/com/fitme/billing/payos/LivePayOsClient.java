@@ -20,14 +20,15 @@ public class LivePayOsClient implements PayOsClient {
     private volatile PayOS payOs;
 
     @Override
-    public PayOsPaymentLink createPaymentLink(long orderCode, long amountVnd, String description) {
+    public PayOsPaymentLink createPaymentLink(long orderCode, long amountVnd, String description,
+                                              String returnUrl, String cancelUrl) {
         try {
             CreatePaymentLinkRequest request = CreatePaymentLinkRequest.builder()
                     .orderCode(orderCode)
                     .amount(amountVnd)
                     .description(trimDescription(description))
-                    .returnUrl(fitMeProperties.getPayos().getReturnUrl())
-                    .cancelUrl(fitMeProperties.getPayos().getCancelUrl())
+                    .returnUrl(returnUrl)
+                    .cancelUrl(cancelUrl)
                     .item(PaymentLinkItem.builder()
                             .name(trimDescription(description))
                             .quantity(1)
@@ -68,7 +69,7 @@ public class LivePayOsClient implements PayOsClient {
 
     private static String trimDescription(String description) {
         if (description == null || description.isBlank()) {
-            return "FitMe brand billing";
+            return "FitMe";
         }
         return description.length() > 25 ? description.substring(0, 25) : description;
     }

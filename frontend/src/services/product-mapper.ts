@@ -1,6 +1,6 @@
 import { PLACEHOLDER_PRODUCT, resolveImageList, resolveOptionalImageSrc } from "@/lib/media-url";
 import type { CreateProductRequest } from "@/types/brand";
-import type { Product, SizeChartRow } from "@/types/product";
+import type { Product, ProductVariant, SizeChartRow } from "@/types/product";
 
 export interface BackendProductImage {
   imageUrl: string;
@@ -9,6 +9,9 @@ export interface BackendProductImage {
 }
 
 export interface BackendProductVariant {
+  id?: string;
+  sku?: string;
+  stockQuantity?: number | null;
   colorName?: string;
   colorHex?: string;
   sizeLabel?: string;
@@ -48,6 +51,7 @@ export interface BackendProduct {
   stockStatus?: Product["stockStatus"];
   status: Product["status"];
   aiTryOnEligible: boolean;
+  purchasable?: boolean;
   images?: BackendProductImage[];
   variants?: BackendProductVariant[];
   tags?: BackendProductTag[];
@@ -108,6 +112,20 @@ export function toBackendProductRequest(data: CreateProductRequest) {
   };
 }
 
+/** Keep only variants that have an id (purchasable rows); stock defaults to 0. */
+export function mapVariants(raw: BackendProductVariant[] | undefined): ProductVariant[] {
+  return (raw || [])
+    .filter((v): v is BackendProductVariant & { id: string } => !!v.id)
+    .map((v) => ({
+      id: v.id,
+      colorName: v.colorName || undefined,
+      colorHex: v.colorHex || undefined,
+      sizeLabel: v.sizeLabel || undefined,
+      sku: v.sku || undefined,
+      stockQuantity: Math.max(0, Number(v.stockQuantity ?? 0) || 0),
+    }));
+}
+
 export function mapProduct(raw: BackendProduct): Product {
   const colors = [...new Set((raw.variants || []).map((v) => v.colorName).filter(Boolean))] as string[];
   const sizes = [...new Set((raw.variants || []).map((v) => v.sizeLabel).filter(Boolean))] as string[];
@@ -148,6 +166,8 @@ export function mapProduct(raw: BackendProduct): Product {
     flagReason: tags.find((t) => t.tagType === "FLAG_REASON")?.tagValue,
     targetGender: (tags.find((t) => t.tagType === "TARGET_GENDER")?.tagValue as Product["targetGender"]) || "UNISEX",
     purchaseUrl: raw.purchaseUrl,
+    purchasable: raw.purchasable === true,
+    variants: mapVariants(raw.variants),
     stockStatus: raw.stockStatus || "IN_STOCK",
     status: raw.status,
     aiTryOnEligible: raw.aiTryOnEligible,

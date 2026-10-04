@@ -1,11 +1,13 @@
 import { test, expect } from "@playwright/test";
 import { completeConsultationToResult } from "./helpers/consultation";
+import { loginUser } from "./helpers/auth";
 import { AI_DISCLAIMER } from "../src/utils/constants";
 
 test.describe("Photo preview flow", () => {
   test.setTimeout(180_000);
 
   test("chat outfit → photo upload consent and disclaimer visible", async ({ page }) => {
+    await loginUser(page);
     const recommendationId = await completeConsultationToResult(page);
     expect(recommendationId).toBeTruthy();
 

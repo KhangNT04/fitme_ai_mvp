@@ -21,6 +21,7 @@ import com.fitme.brand.service.BrandPartnershipService;
 import com.fitme.brand.service.BrandService;
 import com.fitme.common.dto.ApiResponse;
 import com.fitme.common.enums.ConsumerPlan;
+import com.fitme.common.exception.BusinessException;
 import com.fitme.entitlement.dto.ConsumerEntitlementResponse;
 import com.fitme.entitlement.service.ConsumerEntitlementService;
 import com.fitme.privacy.service.PrivacyService;
@@ -59,7 +60,7 @@ public class AdminController {
 
     @GetMapping("/brands")
     public ApiResponse<List<AdminBrandListItemDto>> brands() {
-        return ApiResponse.ok(adminBrandListService.listBrandsWithBilling());
+        return ApiResponse.ok(adminBrandListService.listBrands());
     }
 
     @PostMapping("/brands/{id}/approve")
@@ -175,7 +176,12 @@ public class AdminController {
     public ApiResponse<ConsumerEntitlementResponse> setConsumerPlan(
             @PathVariable UUID id,
             @RequestBody Map<String, String> body) {
-        ConsumerPlan plan = ConsumerPlan.valueOf(body.getOrDefault("plan", "FREE").toUpperCase());
+        ConsumerPlan plan;
+        try {
+            plan = ConsumerPlan.fromValue(body.getOrDefault("plan", "FREE"));
+        } catch (IllegalArgumentException ex) {
+            throw new BusinessException("Gói không hợp lệ (FREE hoặc PRO)");
+        }
         return ApiResponse.ok(consumerEntitlementService.setPlan(id, plan));
     }
 }

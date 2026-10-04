@@ -136,7 +136,117 @@ export const adminApi = {
     const res = await apiClient.post("/admin/brand-partnerships", { brandAId, brandBId });
     return unwrap(res);
   },
+  getGalleryStats: async (): Promise<GalleryStats> => {
+    const res = await apiClient.get("/admin/gallery/stats");
+    return unwrap(res);
+  },
+  getCommerceSummary: async (): Promise<AdminCommerceSummary> => {
+    const res = await apiClient.get("/admin/commerce/summary");
+    return unwrap(res);
+  },
+  listShareClaims: async (status?: ShareClaimStatus): Promise<ShareClaim[]> => {
+    const res = await apiClient.get("/admin/rewards/shares", {
+      params: status ? { status } : undefined,
+    });
+    const data = unwrap(res);
+    return Array.isArray(data) ? data : [];
+  },
+  rejectShareClaim: async (id: string, note?: string): Promise<ShareClaim> => {
+    const res = await apiClient.post(`/admin/rewards/shares/${id}/reject`, note ? { note } : {});
+    return unwrap(res);
+  },
+  listAdminReviews: async (status?: ReviewStatus): Promise<AdminReviewItem[]> => {
+    const res = await apiClient.get("/admin/reviews", {
+      params: status ? { status } : undefined,
+    });
+    const data = unwrap(res);
+    return Array.isArray(data) ? data : [];
+  },
+  hideReview: async (
+    id: string,
+    body?: { note?: string; revokeReward?: boolean },
+  ): Promise<AdminReviewItem> => {
+    const res = await apiClient.post(`/admin/reviews/${id}/hide`, body ?? {});
+    return unwrap(res);
+  },
+  getConsumerFitken: async (userId: string): Promise<AdminFitkenDetail> => {
+    const res = await apiClient.get(`/admin/consumers/${userId}/fitken`);
+    return unwrap(res);
+  },
+  adjustConsumerFitken: async (
+    userId: string,
+    data: { delta: number; note?: string },
+  ): Promise<AdminFitkenDetail> => {
+    const res = await apiClient.post(`/admin/consumers/${userId}/fitken/adjust`, data);
+    return unwrap(res);
+  },
 };
+
+export interface GalleryStats {
+  totalImages: number;
+  imagesLast7Days: number;
+  usersWithImages: number;
+}
+
+export interface AdminCommerceSummary {
+  gmvVnd: number;
+  commissionVnd: number;
+  ordersCount: number;
+  pendingSettlementVnd: number;
+}
+
+export type ShareClaimStatus = "APPROVED" | "REJECTED";
+
+export interface ShareClaim {
+  id: string;
+  userId: string;
+  postUrl: string;
+  platform: string;
+  status: ShareClaimStatus;
+  rewardGranted: number;
+  tryOnRequestId?: string | null;
+  galleryImageId?: string | null;
+  adminNote?: string | null;
+  reviewedAt?: string | null;
+  createdAt: string;
+}
+
+export type ReviewStatus = "VISIBLE" | "HIDDEN";
+
+export interface AdminReviewItem {
+  id: string;
+  productId: string;
+  rating: number;
+  content: string;
+  imageUrls: string[];
+  authorName: string;
+  verifiedPurchase: boolean;
+  status: ReviewStatus;
+  rewardGranted: number;
+  createdAt: string;
+}
+
+export interface AdminFitkenDetail {
+  userId: string;
+  email?: string | null;
+  displayName?: string | null;
+  wallet: {
+    balance: number;
+    subscriptionRemaining: number;
+    bonusRemaining: number;
+    trialGranted: boolean;
+    tryOnCost: number;
+    plan: string;
+  };
+  ledger: Array<{
+    id: string;
+    entryType: string;
+    delta: number;
+    balanceAfter: number;
+    note?: string | null;
+    createdAt: string;
+  }>;
+}
 
 export interface BrandPartnership {
   id: string;

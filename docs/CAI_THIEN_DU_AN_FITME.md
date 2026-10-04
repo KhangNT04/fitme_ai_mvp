@@ -1,5 +1,6 @@
 # Cải thiện dự án FitMe AI — Kế hoạch theo góp ý giáo viên
 
+> **Lưu ý:** Dự án đã chuyển đổi mô hình kinh doanh sang B2C (FitMe Pro 49k/tháng, Fitken, in-app commerce, brand dashboard free) theo [`docs/B2C_PIVOT_PLAN.md`](./B2C_PIVOT_PLAN.md).  
 > Tài liệu định hướng sản phẩm & lộ trình cải thiện cho MVP FitMe, tập trung thị trường **Gen Z Việt Nam**.  
 > Ngày cập nhật: 2026-08-02  
 > Ghi chú kỹ thuật đã ship: [`IMPLEMENTATION_NOTES_CAI_THIEN.md`](./IMPLEMENTATION_NOTES_CAI_THIEN.md)

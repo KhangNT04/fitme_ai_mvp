@@ -1,9 +1,9 @@
 package com.fitme.admin.service;
 
 import com.fitme.admin.dto.AdminBrandListItemDto;
-import com.fitme.billing.service.BrandBillingService;
 import com.fitme.brand.entity.Brand;
 import com.fitme.brand.repository.BrandRepository;
+import com.fitme.common.enums.BrandStatus;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -14,23 +14,19 @@ import java.util.List;
 public class AdminBrandListService {
 
     private final BrandRepository brandRepository;
-    private final BrandBillingService brandBillingService;
 
-    public List<AdminBrandListItemDto> listBrandsWithBilling() {
+    public List<AdminBrandListItemDto> listBrands() {
         return brandRepository.findAll().stream().map(this::toAdminItem).toList();
     }
 
     private AdminBrandListItemDto toAdminItem(Brand brand) {
-        var summary = brandBillingService.getSummary(brand.getId());
         return AdminBrandListItemDto.builder()
                 .id(brand.getId())
                 .name(brand.getName())
                 .contactEmail(brand.getContactEmail())
                 .status(brand.getStatus().name())
                 .createdAt(brand.getCreatedAt())
-                .totalQuotaRemaining(summary.getTotalRemaining())
-                .activePlanName(summary.getSubscription() != null ? summary.getSubscription().getPlanName() : null)
-                .dashboardEnabled(summary.isDashboardEnabled())
+                .dashboardEnabled(brand.getStatus() == BrandStatus.APPROVED)
                 .build();
     }
 }

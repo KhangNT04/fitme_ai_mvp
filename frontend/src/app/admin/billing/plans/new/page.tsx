@@ -28,10 +28,10 @@ export default function AdminBillingPlanNewPage() {
 
   return (
     <PortalAdminPage
-      title="Thêm gói mới"
-      description="Tạo gói subscription hoặc top-up mới trong danh mục."
+      title="Thêm gói người dùng"
+      description="Tạo gói FitMe Pro mới (Fitken, freeship, chu kỳ)."
       backHref="/admin/billing/plans"
-      backLabel="Danh mục gói"
+      backLabel="Gói người dùng"
     >
       <BillingPlanForm
         form={form}

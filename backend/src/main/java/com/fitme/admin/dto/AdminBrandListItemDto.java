@@ -14,7 +14,5 @@ public class AdminBrandListItemDto {
     private String contactEmail;
     private String status;
     private Instant createdAt;
-    private int totalQuotaRemaining;
-    private String activePlanName;
     private boolean dashboardEnabled;
 }

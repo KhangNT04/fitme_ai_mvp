@@ -29,6 +29,9 @@ backend/uploads/
 *.log
 logs/
 
+# Local scratch clones
+.tmp-*/
+
 # OS
 Thumbs.db
 

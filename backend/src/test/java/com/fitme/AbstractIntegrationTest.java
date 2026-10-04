@@ -122,6 +122,12 @@ public abstract class AbstractIntegrationTest {
         return objectMapper.readTree(verifyResult.getResponse().getContentAsString()).get("data");
     }
 
+    /** Registers a fresh verified consumer and returns its access token (wallet gets the trial Fitken lazily). */
+    protected String registerUserAccessToken() throws Exception {
+        String email = "consumer-" + java.util.UUID.randomUUID() + "@test.fitme.ai";
+        return registerVerifiedUser(email, "Test12345!", "Test Consumer").get("accessToken").asText();
+    }
+
     protected static int parseCaptchaAnswer(String question) {
         String[] parts = question.replace("= ?", "").trim().split("\\+");
         return Integer.parseInt(parts[0].trim()) + Integer.parseInt(parts[1].trim());

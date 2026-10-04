@@ -1,10 +1,12 @@
 import { test, expect } from "@playwright/test";
 import { completeConsultationToResult } from "./helpers/consultation";
+import { loginUser } from "./helpers/auth";
 
 test.describe("Saved outfits flow", () => {
   test.setTimeout(120_000);
 
   test("consultation → save → appears in saved list", async ({ page }) => {
+    await loginUser(page);
     await completeConsultationToResult(page);
 
     const title = await page.getByRole("heading", { level: 1 }).textContent();

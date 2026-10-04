@@ -48,6 +48,10 @@ export default function BrandLoginPage() {
         </p>
       }
     >
+      <p className="mb-4 text-sm text-muted-foreground">
+        Đăng nhập để quản lý sản phẩm, đơn hàng marketplace và dashboard phân tích miễn phí sau khi
+        brand được duyệt.
+      </p>
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
         <div>
           <Label>Email</Label>

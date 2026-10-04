@@ -16,6 +16,9 @@ test.describe("Header navigation", () => {
 
     await page.locator("header").getByRole("link", { name: "Đã lưu" }).click();
     await expect(page).toHaveURL(/\/saved-outfits/);
+
+    await page.locator("header").getByRole("link", { name: "Nhận thưởng" }).click();
+    await expect(page).toHaveURL(/\/rewards/);
   });
 
   test("footer portal links load", async ({ page }) => {

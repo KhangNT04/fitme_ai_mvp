@@ -64,9 +64,9 @@ export default function AdminBillingPlanEditPage({
   return (
     <PortalAdminPage
       title={`Chỉnh sửa: ${planName}`}
-      description="Cập nhật thông tin gói subscription hoặc top-up."
+      description="Cập nhật gói FitMe Pro (Fitken, freeship, chu kỳ)."
       backHref="/admin/billing/plans"
-      backLabel="Danh mục gói"
+      backLabel="Gói người dùng"
       isLoading={planQuery.isLoading}
       error={planQuery.error}
       onRetry={() => planQuery.refetch()}

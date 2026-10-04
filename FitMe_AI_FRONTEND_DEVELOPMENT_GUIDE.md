@@ -8,18 +8,19 @@
 
 ## 1. Định vị sản phẩm
 
-FitMe AI là web app thời trang cá nhân hóa giúp người dùng:
+FitMe AI là web app thời trang cá nhân hóa bằng AI dành cho Gen Z (mô hình B2C) giúp người dùng:
 
-1. Biết nên mặc gì theo dáng người, gu, hoàn cảnh.
+1. Biết nên mặc gì theo dáng người, gu, hoàn cảnh (tư vấn AI & stylist chat).
 2. Nhận gợi ý size, form, màu sắc.
 3. Xem outfit board hoặc preview outfit 2D bằng AI.
-4. Thử sản phẩm bằng AI ở mức minh họa 2D.
-5. Bấm mua item còn thiếu qua Shopee/TikTok Shop/website brand.
-6. Brand có portal để quản lý catalog và xem analytics tổng hợp.
-7. Admin quản lý brand, sản phẩm, link, rule AI, privacy và consent.
-
-**FitMe AI không phải marketplace hoàn chỉnh trong MVP.**  
-**FitMe AI không xử lý thanh toán, đơn hàng, vận chuyển, hoàn trả.**
+4. Thử sản phẩm bằng AI với Fitken (1 Fitken = 1 lượt thử; tặng 5 Fitken dùng thử cho tài khoản mới).
+5. Nâng cấp gói FitMe Pro 49.000đ/tháng (15 Fitken + 2 voucher freeship + cá nhân hóa sâu) qua PayOS.
+6. Tích lũy Fitken miễn phí qua trang Nhận thưởng (điểm danh chuỗi 3 ngày, chia sẻ bài đăng, đánh giá có ảnh).
+7. Lưu và quản lý bộ sưu tập tại thư viện ảnh outfit cá nhân (`/profile/gallery`).
+8. Mua sắm trực tiếp in-app: giỏ hàng, đặt hàng (COD / PayOS), quản lý đơn và tracking vận chuyển.
+9. Chuyển hướng mua hàng qua Shopee/TikTok Shop/website brand (kênh mua ngoài phụ trợ).
+10. Brand portal miễn phí để quản lý catalog, xử lý đơn seller và theo dõi đối soát doanh thu.
+11. Admin quản lý đơn hàng toàn sàn, đối soát seller, duyệt thưởng, review, gói Pro, brand, sản phẩm, rules AI.
 
 ---
 
@@ -229,6 +230,16 @@ Có:
 
 ```txt
 /                         Trang chủ
+/pricing                  Bảng giá dịch vụ: Free vs FitMe Pro 49k/tháng
+/billing/return           Trang xác nhận trả về sau PayOS gói Pro
+/rewards                  Trang Nhận thưởng (điểm danh, chia sẻ, đánh giá)
+/cart                     Giỏ hàng in-app gom nhóm theo brand
+/checkout                 Thanh toán đơn hàng (COD / PayOS)
+/orders                   Danh sách đơn hàng đã mua
+/orders/:id               Chi tiết đơn hàng & tracking vận đơn
+/orders/return            Trang trả về sau PayOS đơn hàng
+/profile/gallery          Thư viện ảnh outfit cá nhân
+/profile/addresses        Sổ địa chỉ nhận hàng
 /discover                 Khám phá sản phẩm
 /products/:id             Chi tiết sản phẩm
 /ai/start                 Bắt đầu tư vấn AI
@@ -244,7 +255,7 @@ Có:
 /ai/variants/:id          Thử biến thể size/form/màu
 /saved-outfits            Gợi ý đã lưu
 /similar-products         Sản phẩm tương tự
-/redirect/confirm/:id     Xác nhận chuyển hướng mua
+/redirect/confirm/:id     Xác nhận chuyển hướng mua ngoài
 /redirect/loading         Đang chuyển hướng
 /profile                  Hồ sơ người dùng
 ```
@@ -255,7 +266,7 @@ Có:
 /try-on                   Chọn đồ để thử mặc AI
 /try-on/selected          Outfit đang chọn để thử
 /try-on/input             Thông tin thử mặc
-/try-on/processing        Đang tạo preview thử mặc
+/try-on/processing        Đang tạo preview thử mặc (tiêu 1 Fitken)
 /try-on/result/:id        Kết quả thử mặc AI
 /try-on/color/:id         Thử màu khác
 /try-on/size/:id          Thử size khác
@@ -272,12 +283,15 @@ Có:
 /auth/forgot-password
 ```
 
-### 6.4. Brand routes
+### 6.4. Brand routes (Seller Portal — miễn phí)
 
 ```txt
 /brand/login
 /brand/onboarding
 /brand/dashboard
+/brand/orders
+/brand/orders/:id
+/brand/settlements
 /brand/products
 /brand/products/new
 /brand/products/:id/edit
@@ -295,6 +309,12 @@ Có:
 ```txt
 /admin/login
 /admin/dashboard
+/admin/orders
+/admin/orders/:id
+/admin/settlements
+/admin/rewards
+/admin/reviews
+/admin/billing/plans
 /admin/brands
 /admin/products/moderation
 /admin/flagged-links

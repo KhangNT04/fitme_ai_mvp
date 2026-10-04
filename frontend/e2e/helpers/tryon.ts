@@ -1,5 +1,6 @@
 import { type Page, expect } from "@playwright/test";
 import { ensureSessionViaHome } from "./consultation";
+import { loginUser } from "./auth";
 
 export async function getFirstProductIdFromTryOnHub(page: Page): Promise<string> {
   await page.goto("/try-on");
@@ -67,7 +68,7 @@ export async function selectUserPhotoModeAndUpload(page: Page) {
 
 /** Select first eligible product and open the selected-outfit step. */
 export async function startTryOnWithFirstProduct(page: Page): Promise<string> {
-  await ensureSessionViaHome(page);
+  await loginUser(page);
   const productId = await getFirstProductIdFromTryOnHub(page);
 
   await page.goto(`/try-on?product=${productId}`);

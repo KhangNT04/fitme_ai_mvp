@@ -15,5 +15,5 @@ if (-not (Test-Path $example)) {
 
 Copy-Item $example $envFile
 Write-Host "Da tao .env tu .env.example"
-Write-Host "Local: PAYOS_MOCK=true — test billing tai http://localhost:3000/brand/billing"
+Write-Host "Local: PAYOS_MOCK=true — test billing Pro tai http://localhost:3000/pricing va checkout PayOS"
 Write-Host "PayOS that: dat PAYOS_CLIENT_ID, PAYOS_API_KEY, PAYOS_CHECKSUM_KEY trong .env va PAYOS_MOCK=false"

@@ -1,57 +1,45 @@
 "use client";
 
+import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
-import { Package, CheckCircle2, MousePointerClick, Percent, Shirt, Sparkles, TrendingUp } from "lucide-react";
+import {
+  Package,
+  CheckCircle2,
+  MousePointerClick,
+  Percent,
+  Shirt,
+  Sparkles,
+  TrendingUp,
+  ShoppingBag,
+  Banknote,
+  Truck,
+  XCircle,
+} from "lucide-react";
 import { brandApi } from "@/services/brand-api";
-import { useBrandDashboardGate } from "@/hooks/use-brand-dashboard-gate";
 import { PortalLayout, brandNav } from "@/components/layout/PortalLayout";
 import { PortalPageHeader } from "@/components/portal/PortalPageHeader";
 import { StatCard, StatCardGrid } from "@/components/common/AnalyticsChart";
 import { LoadingSkeleton } from "@/components/common/LoadingSkeleton";
 import { ErrorState } from "@/components/common/ErrorState";
-import { BrandDashboardLockedState } from "@/components/brand/BrandDashboardLockedState";
-import { formatPercent } from "@/utils/format-price";
+import { Button } from "@/components/ui/button";
+import { formatPercent, formatPrice } from "@/utils/format-price";
 
 export default function BrandDashboardPage() {
-  const gate = useBrandDashboardGate();
   const { data, isLoading, error, refetch } = useQuery({
     queryKey: ["brand-dashboard"],
     queryFn: () => brandApi.getDashboard(),
-    enabled: gate.dashboardEnabled,
   });
 
-  if (gate.isLoading) {
-    return (
-      <PortalLayout title="Brand" nav={brandNav}>
-        <PortalPageHeader title="Tổng quan" />
-        <LoadingSkeleton count={4} />
-      </PortalLayout>
-    );
-  }
-
-  if (gate.error) {
-    return (
-      <PortalLayout title="Brand" nav={brandNav}>
-        <PortalPageHeader title="Tổng quan" />
-        <ErrorState onRetry={() => gate.refetch()} />
-      </PortalLayout>
-    );
-  }
-
-  if (gate.blockReason) {
-    return (
-      <PortalLayout title="Brand" nav={brandNav}>
-        <PortalPageHeader title="Tổng quan" />
-        <BrandDashboardLockedState pageLabel="Tổng quan" reason={gate.blockReason} />
-      </PortalLayout>
-    );
-  }
+  const salesQuery = useQuery({
+    queryKey: ["brand-sales-summary"],
+    queryFn: () => brandApi.getSalesSummary(),
+  });
 
   return (
     <PortalLayout title="Brand" nav={brandNav}>
       <PortalPageHeader
         title="Tổng quan"
-        description="Số liệu sản phẩm, lượt click mua và hiệu quả thử mặc AI."
+        description="Số liệu sản phẩm, lượt click mua, hiệu quả thử mặc AI và bán hàng trên marketplace FitMe."
       />
 
       {isLoading && <LoadingSkeleton count={4} />}
@@ -67,6 +55,51 @@ export default function BrandDashboardPage() {
           <StatCard label="AI gợi ý" value={data.aiRecommendedProducts} icon={<Sparkles className="h-5 w-5" />} tone="violet" />
         </StatCardGrid>
       )}
+
+      <div className="mt-8 space-y-3">
+        <div className="flex flex-wrap items-end justify-between gap-3">
+          <div>
+            <h2 className="font-display text-lg font-semibold text-foreground">Bán hàng (30 ngày)</h2>
+            <p className="text-sm text-muted-foreground">
+              Doanh thu từ đơn seller trên marketplace — hoa hồng nền tảng trừ theo chính sách đối soát.
+            </p>
+          </div>
+          <Button variant="outline" size="sm" asChild>
+            <Link href="/brand/orders">Xem đơn hàng</Link>
+          </Button>
+        </div>
+
+        {salesQuery.isLoading && <LoadingSkeleton count={2} />}
+        {salesQuery.error && <ErrorState onRetry={() => salesQuery.refetch()} />}
+        {salesQuery.data && (
+          <StatCardGrid className="lg:grid-cols-4">
+            <StatCard
+              label="Đơn (30 ngày)"
+              value={salesQuery.data.ordersLast30Days}
+              icon={<ShoppingBag className="h-5 w-5" />}
+              tone="sky"
+            />
+            <StatCard
+              label="Doanh thu (30 ngày)"
+              value={formatPrice(salesQuery.data.revenueLast30DaysVnd)}
+              icon={<Banknote className="h-5 w-5" />}
+              tone="emerald"
+            />
+            <StatCard
+              label="Đã giao"
+              value={salesQuery.data.deliveredCount}
+              icon={<Truck className="h-5 w-5" />}
+              tone="violet"
+            />
+            <StatCard
+              label="Đã hủy"
+              value={salesQuery.data.cancelledCount}
+              icon={<XCircle className="h-5 w-5" />}
+              tone="rose"
+            />
+          </StatCardGrid>
+        )}
+      </div>
     </PortalLayout>
   );
 }

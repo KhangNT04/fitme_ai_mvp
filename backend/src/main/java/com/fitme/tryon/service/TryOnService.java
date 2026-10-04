@@ -1,7 +1,7 @@
 package com.fitme.tryon.service;
 
 import com.fitme.analytics.service.AnalyticsService;
-import com.fitme.billing.service.BrandQuotaService;
+import com.fitme.fitken.service.FitkenService;
 import com.fitme.common.enums.PhotoQualityStatus;
 import com.fitme.common.enums.PreviewType;
 import com.fitme.common.enums.TryOnPreviewMode;
@@ -49,7 +49,7 @@ public class TryOnService {
     private final VtonTryOnService vtonTryOnService;
     private final AnalyticsService analyticsService;
     private final ProductRepository productRepository;
-    private final BrandQuotaService brandQuotaService;
+    private final FitkenService fitkenService;
     private final PhotoUploadService photoUploadService;
     private final TryOnOutfitCompletionService outfitCompletionService;
     private final OutfitCompositionService outfitCompositionService;
@@ -155,17 +155,22 @@ public class TryOnService {
         if (items.isEmpty()) {
             throw new BusinessException("Cần thêm ít nhất một sản phẩm");
         }
-        var brandIds = items.stream()
-                .map(TryOnItem::getProductId)
-                .map(productRepository::findById)
-                .filter(java.util.Optional::isPresent)
-                .map(opt -> opt.get().getBrandId())
-                .collect(java.util.stream.Collectors.toCollection(java.util.LinkedHashSet::new));
-        brandQuotaService.precheckQuotaForBrands(brandIds);
+
+        UUID chargeUserId = null;
+        if (isAiMode(tryOn.getPreviewMode())) {
+            chargeUserId = RequestContext.getCurrentUserId()
+                    .orElseThrow(() -> new BusinessException(
+                            "Vui lòng đăng nhập để dùng thử đồ AI (tài khoản mới được tặng Fitken dùng thử).",
+                            "LOGIN_REQUIRED"));
+            if (tryOn.getUserId() == null) {
+                tryOn.setUserId(chargeUserId);
+            }
+            fitkenService.assertCanAfford(chargeUserId, fitkenService.tryOnCost());
+        }
 
         tryOn.setStatus(TryOnStatus.PROCESSING);
         tryOnRequestRepository.save(tryOn);
-        vtonTryOnService.startJob(tryOn);
+        vtonTryOnService.startJob(tryOn, chargeUserId);
         tryOn = tryOnRequestRepository.findById(id).orElseThrow();
         analyticsService.track("TRY_ON_GENERATED", tryOn.getUserId(), tryOn.getSessionId(),
                 null, null, null, id, null);
@@ -173,6 +178,9 @@ public class TryOnService {
         attachItemDetails(tryOn, response);
         attachPreviewIfReady(tryOn, response);
         attachOutfitCompletion(tryOn.getId(), response);
+        if (chargeUserId != null) {
+            response.setFitkenBalance(fitkenService.balance(chargeUserId));
+        }
         return response;
     }
 
@@ -463,6 +471,10 @@ public class TryOnService {
                 // No photo required
             }
         }
+    }
+
+    private static boolean isAiMode(TryOnPreviewMode mode) {
+        return mode == TryOnPreviewMode.USER_PHOTO || mode == TryOnPreviewMode.AVATAR;
     }
 
     private static PreviewType toPreviewType(TryOnPreviewMode mode) {

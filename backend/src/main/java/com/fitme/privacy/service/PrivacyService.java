@@ -3,7 +3,9 @@ package com.fitme.privacy.service;
 import com.fitme.common.config.FitMeProperties;
 import com.fitme.common.enums.ConsentType;
 import com.fitme.common.enums.DeletionRequestStatus;
+import com.fitme.common.enums.DeletionRequestType;
 import com.fitme.common.security.RequestContext;
+import com.fitme.gallery.service.GalleryService;
 import com.fitme.privacy.dto.ConsentRequest;
 import com.fitme.privacy.dto.DeletionRequestDto;
 import com.fitme.privacy.entity.ConsentRecord;
@@ -24,6 +26,7 @@ public class PrivacyService {
 
     private final ConsentRecordRepository consentRepository;
     private final DataDeletionRequestRepository deletionRepository;
+    private final GalleryService galleryService;
     private final FitMeProperties properties;
 
     @Transactional
@@ -81,6 +84,11 @@ public class PrivacyService {
     @Transactional
     public DataDeletionRequest processDeletion(UUID id) {
         DataDeletionRequest req = deletionRepository.findById(id).orElseThrow();
+        if (req.getUserId() != null
+                && (req.getRequestType() == DeletionRequestType.ALL
+                || req.getRequestType() == DeletionRequestType.PHOTO_UPLOAD)) {
+            galleryService.purgeForUser(req.getUserId());
+        }
         req.setStatus(DeletionRequestStatus.COMPLETED);
         req.setCompletedAt(Instant.now());
         return deletionRepository.save(req);

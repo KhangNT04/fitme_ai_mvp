@@ -16,6 +16,11 @@ import {
   Menu,
   X,
   CreditCard,
+  ShoppingCart,
+  Wallet,
+  Gift,
+  Star,
+  Sparkles as SparklesIcon,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -24,16 +29,22 @@ import type { PortalNavItem } from "@/lib/portal-nav";
 const brandIcons: Record<string, React.ComponentType<{ className?: string }>> = {
   "/brand/dashboard": LayoutDashboard,
   "/brand/products": Package,
+  "/brand/orders": ShoppingCart,
+  "/brand/settlements": Wallet,
+  "/brand/insights/demand": SparklesIcon,
   "/brand/analytics": BarChart3,
-  "/brand/billing": CreditCard,
   "/brand/settings": Settings,
 };
 
 const adminIcons: Record<string, React.ComponentType<{ className?: string }>> = {
   "/admin/dashboard": LayoutDashboard,
   "/admin/brands": Users,
+  "/admin/partnerships": Users,
   "/admin/billing/plans": CreditCard,
-  "/admin/billing/brands": Package,
+  "/admin/orders": ShoppingCart,
+  "/admin/settlements": Wallet,
+  "/admin/rewards": Gift,
+  "/admin/reviews": Star,
   "/admin/products/moderation": Package,
   "/admin/flagged-links": Flag,
   "/admin/rules/styles": BookOpen,

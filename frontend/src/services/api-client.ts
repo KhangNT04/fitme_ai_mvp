@@ -14,6 +14,7 @@ export interface ApiResponse<T> {
   success: boolean;
   data: T;
   error?: string;
+  errorCode?: string;
   message?: string;
 }
 
@@ -120,9 +121,19 @@ apiClient.interceptors.response.use(
       error.response?.data?.message ||
       error.message;
     const message = formatUserErrorMessage(rawMessage, status);
-    return Promise.reject({ message, status } as ApiError);
+    const code = (error.response?.data as ApiResponse<unknown> | undefined)?.errorCode;
+    return Promise.reject({ message, status, ...(code ? { code } : {}) } as ApiError);
   }
 );
+
+/** Backend `ApiResponse.errorCode` (e.g. FITKEN_INSUFFICIENT, LOGIN_REQUIRED, OUT_OF_STOCK). */
+export function getApiErrorCode(error: unknown): string | undefined {
+  if (error && typeof error === "object" && "code" in error) {
+    const code = (error as { code?: unknown }).code;
+    return typeof code === "string" ? code : undefined;
+  }
+  return undefined;
+}
 
 export function unwrap<T>(response: { data: ApiResponse<T> | T }): T {
   const data = response.data;

@@ -81,8 +81,25 @@ fitme:
     client-id: ${PAYOS_CLIENT_ID:}
     api-key: ${PAYOS_API_KEY:}
     checksum-key: ${PAYOS_CHECKSUM_KEY:}
-    return-url: ${PAYOS_RETURN_URL:http://localhost:3000/brand/billing/return?status=success}
-    cancel-url: ${PAYOS_CANCEL_URL:http://localhost:3000/brand/billing/return?status=cancel}
+    subscription-return-url: ${PAYOS_SUBSCRIPTION_RETURN_URL:http://localhost:3000/billing/return?status=success}
+    subscription-cancel-url: ${PAYOS_SUBSCRIPTION_CANCEL_URL:http://localhost:3000/billing/return?status=cancel}
+    order-return-url: ${PAYOS_ORDER_RETURN_URL:http://localhost:3000/orders/return?status=success}
+    order-cancel-url: ${PAYOS_ORDER_CANCEL_URL:http://localhost:3000/orders/return?status=cancel}
+  fitken:
+    trial-amount: ${FITME_FITKEN_TRIAL:5}
+    checkin-streak-days: ${FITME_FITKEN_CHECKIN_STREAK_DAYS:3}
+    checkin-reward: ${FITME_FITKEN_CHECKIN_REWARD:1}
+    share-reward: ${FITME_FITKEN_SHARE_REWARD:2}
+    share-daily-limit: ${FITME_FITKEN_SHARE_DAILY_LIMIT:1}
+    review-reward: ${FITME_FITKEN_REVIEW_REWARD:3}
+    try-on-cost: ${FITME_FITKEN_TRY_ON_COST:1}
+  commerce:
+    commission-rate: ${FITME_COMMERCE_COMMISSION_RATE:0.10}
+    default-shipping-fee-vnd: ${FITME_COMMERCE_SHIPPING_FEE_VND:30000}
+    settlement-hold-days: ${FITME_COMMERCE_SETTLEMENT_HOLD_DAYS:7}
+    payment-timeout-minutes: ${FITME_COMMERCE_PAYMENT_TIMEOUT_MINUTES:30}
+  logistics:
+    webhook-token: ${FITME_LOGISTICS_WEBHOOK_TOKEN:dev-logistics-token}
   consumer:
     entitlement-enabled: ${FITME_CONSUMER_ENTITLEMENT_ENABLED:true}
     free-coherence-mode: ${FITME_FREE_COHERENCE_MODE:OFF}

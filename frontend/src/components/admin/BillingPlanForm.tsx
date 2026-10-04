@@ -5,18 +5,19 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { portalFormCardClass } from "@/lib/design-tokens";
-import type { BillingPlan, BillingPlanType } from "@/types/billing";
+import type { BillingPlan, BillingPlanWrite } from "@/types/billing";
 
-export type BillingPlanFormValues = Omit<BillingPlan, "id">;
+export type BillingPlanFormValues = BillingPlanWrite;
 
 export function emptyBillingPlanForm(): BillingPlanFormValues {
   return {
     code: "",
     name: "",
     planType: "SUBSCRIPTION",
-    priceVnd: 199000,
-    quotaAmount: 1000,
-    includesDashboard: true,
+    priceVnd: 49000,
+    fitkenAmount: 15,
+    freeshipVouchers: 2,
+    freeshipMaxDiscountVnd: 30000,
     billingPeriodDays: 30,
     active: true,
     sortOrder: 0,
@@ -27,11 +28,12 @@ export function planToFormValues(plan: BillingPlan): BillingPlanFormValues {
   return {
     code: plan.code,
     name: plan.name,
-    planType: plan.planType,
+    planType: plan.planType ?? "SUBSCRIPTION",
     priceVnd: plan.priceVnd,
-    quotaAmount: plan.quotaAmount,
-    includesDashboard: plan.includesDashboard,
-    billingPeriodDays: plan.billingPeriodDays ?? (plan.planType === "SUBSCRIPTION" ? 30 : 0),
+    fitkenAmount: plan.fitkenAmount,
+    freeshipVouchers: plan.freeshipVouchers,
+    freeshipMaxDiscountVnd: plan.freeshipMaxDiscountVnd,
+    billingPeriodDays: plan.billingPeriodDays ?? 30,
     active: plan.active,
     sortOrder: plan.sortOrder,
   };
@@ -54,17 +56,6 @@ export function BillingPlanForm({
   submitLabel = "Lưu",
   codeReadOnly,
 }: BillingPlanFormProps) {
-  const isSubscription = form.planType === "SUBSCRIPTION";
-
-  const setPlanType = (planType: BillingPlanType) => {
-    setForm({
-      ...form,
-      planType,
-      includesDashboard: planType === "SUBSCRIPTION",
-      billingPeriodDays: planType === "SUBSCRIPTION" ? 30 : 0,
-    });
-  };
-
   return (
     <form
       className={portalFormCardClass}
@@ -78,7 +69,7 @@ export function BillingPlanForm({
           <Label htmlFor="plan-code">Mã gói</Label>
           <Input
             id="plan-code"
-            placeholder="SUB_STARTER"
+            placeholder="PRO_MONTHLY"
             value={form.code}
             readOnly={codeReadOnly}
             disabled={codeReadOnly}
@@ -89,22 +80,10 @@ export function BillingPlanForm({
           <Label htmlFor="plan-name">Tên gói</Label>
           <Input
             id="plan-name"
-            placeholder="Starter"
+            placeholder="FitMe Pro"
             value={form.name}
             onChange={(e) => setForm({ ...form, name: e.target.value })}
           />
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor="plan-type">Loại gói</Label>
-          <select
-            id="plan-type"
-            className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-            value={form.planType}
-            onChange={(e) => setPlanType(e.target.value as BillingPlanType)}
-          >
-            <option value="SUBSCRIPTION">Subscription (gói tháng)</option>
-            <option value="TOPUP">Top-up (mua thêm lượt)</option>
-          </select>
         </div>
         <div className="space-y-2">
           <Label htmlFor="plan-sort">Thứ tự hiển thị</Label>
@@ -126,49 +105,58 @@ export function BillingPlanForm({
           />
         </div>
         <div className="space-y-2">
-          <Label htmlFor="plan-quota">Số lượt thử AI</Label>
+          <Label htmlFor="plan-fitken">Số Fitken / chu kỳ</Label>
           <Input
-            id="plan-quota"
+            id="plan-fitken"
             type="number"
             min={1}
-            value={form.quotaAmount}
-            onChange={(e) => setForm({ ...form, quotaAmount: Number(e.target.value) })}
+            value={form.fitkenAmount}
+            onChange={(e) => setForm({ ...form, fitkenAmount: Number(e.target.value) })}
           />
         </div>
-        {isSubscription && (
-          <div className="space-y-2">
-            <Label htmlFor="plan-period">Chu kỳ (ngày)</Label>
-            <Input
-              id="plan-period"
-              type="number"
-              min={1}
-              value={form.billingPeriodDays ?? 30}
-              onChange={(e) =>
-                setForm({ ...form, billingPeriodDays: Number(e.target.value) })
-              }
-            />
-          </div>
-        )}
+        <div className="space-y-2">
+          <Label htmlFor="plan-freeship-count">Voucher freeship / chu kỳ</Label>
+          <Input
+            id="plan-freeship-count"
+            type="number"
+            min={0}
+            value={form.freeshipVouchers}
+            onChange={(e) => setForm({ ...form, freeshipVouchers: Number(e.target.value) })}
+          />
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="plan-freeship-max">Giảm tối đa freeship (VNĐ)</Label>
+          <Input
+            id="plan-freeship-max"
+            type="number"
+            min={0}
+            value={form.freeshipMaxDiscountVnd}
+            onChange={(e) =>
+              setForm({ ...form, freeshipMaxDiscountVnd: Number(e.target.value) })
+            }
+          />
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="plan-period">Chu kỳ (ngày)</Label>
+          <Input
+            id="plan-period"
+            type="number"
+            min={1}
+            value={form.billingPeriodDays ?? 30}
+            onChange={(e) =>
+              setForm({ ...form, billingPeriodDays: Number(e.target.value) })
+            }
+          />
+        </div>
       </div>
 
-      <div className="flex flex-wrap gap-6">
-        <label className="flex items-center gap-2 text-sm">
-          <Checkbox
-            checked={form.active}
-            onCheckedChange={(checked) => setForm({ ...form, active: checked === true })}
-          />
-          Đang bán
-        </label>
-        {isSubscription && (
-          <label className="flex items-center gap-2 text-sm text-muted-foreground">
-            <Checkbox checked={form.includesDashboard} disabled />
-            Bao gồm dashboard phân tích
-          </label>
-        )}
-        {!isSubscription && (
-          <p className="text-sm text-muted-foreground">Gói top-up không bao gồm dashboard.</p>
-        )}
-      </div>
+      <label className="flex items-center gap-2 text-sm">
+        <Checkbox
+          checked={form.active}
+          onCheckedChange={(checked) => setForm({ ...form, active: checked === true })}
+        />
+        Đang bán
+      </label>
 
       <div className="flex flex-wrap gap-3">
         <Button type="submit" disabled={loading || !form.code || !form.name}>

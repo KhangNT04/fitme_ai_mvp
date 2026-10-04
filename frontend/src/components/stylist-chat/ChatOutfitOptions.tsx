@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { StyleBoardSection } from "./StyleResultsBoard";
 import { recommendationApi } from "@/services/recommendation-api";
 import { toStyleDisplayLabel } from "@/lib/style-display-label";
@@ -31,55 +31,46 @@ export function ChatOutfitOptions({
   options,
   recommendations,
 }: ChatOutfitOptionsProps) {
-  const initial = usableRecommendations(recommendations);
-  const [cards, setCards] = useState<RecommendationResult[]>(initial);
-  const [hydrating, setHydrating] = useState(false);
+  const fromPayload = useMemo(() => usableRecommendations(recommendations), [recommendations]);
+  const idsKey = (options || [])
+    .map((opt) => opt.recommendationId)
+    .filter(Boolean)
+    .join(",");
+  const needsFetch = fromPayload.length === 0 && idsKey !== "";
+  const [fetched, setFetched] = useState<{ key: string; cards: RecommendationResult[] } | null>(null);
 
   useEffect(() => {
-    const fromPayload = usableRecommendations(recommendations);
-    if (fromPayload.length > 0) {
-      setCards(fromPayload);
-      return;
-    }
-
-    const ids = (options || [])
-      .map((opt) => opt.recommendationId)
-      .filter(Boolean);
-    if (ids.length === 0) {
-      setCards([]);
-      return;
-    }
-
+    if (!needsFetch) return;
     let cancelled = false;
-    setHydrating(true);
     void Promise.all(
-      ids.map((id) =>
+      idsKey.split(",").map((id) =>
         recommendationApi.getById(id).catch(() => null),
       ),
-    )
-      .then((loaded) => {
-        if (cancelled) return;
-        const next = usableRecommendations(
-          loaded.filter((rec): rec is RecommendationResult => Boolean(rec)),
-        );
-        // Prefer option display labels (already VN from starter/chat) when present.
-        setCards(
-          next.map((rec, index) => {
-            const optLabel = options?.[index]?.styleLabel;
-            const styleLabel =
-              toStyleDisplayLabel(optLabel) || optLabel || toStyleDisplayLabel(rec.styleLabel) || rec.styleLabel;
-            return styleLabel ? { ...rec, styleLabel } : rec;
-          }),
-        );
-      })
-      .finally(() => {
-        if (!cancelled) setHydrating(false);
+    ).then((loaded) => {
+      if (cancelled) return;
+      const next = usableRecommendations(
+        loaded.filter((rec): rec is RecommendationResult => Boolean(rec)),
+      );
+      // Prefer option display labels (already VN from starter/chat) when present.
+      setFetched({
+        key: idsKey,
+        cards: next.map((rec, index) => {
+          const optLabel = options?.[index]?.styleLabel;
+          const styleLabel =
+            toStyleDisplayLabel(optLabel) || optLabel || toStyleDisplayLabel(rec.styleLabel) || rec.styleLabel;
+          return styleLabel ? { ...rec, styleLabel } : rec;
+        }),
       });
+    });
 
     return () => {
       cancelled = true;
     };
-  }, [recommendations, options]);
+  }, [needsFetch, idsKey, options]);
+
+  const fetchedCards = fetched?.key === idsKey ? fetched.cards : null;
+  const cards = fromPayload.length > 0 ? fromPayload : (fetchedCards ?? []);
+  const hydrating = needsFetch && fetchedCards === null;
 
   return (
     <div className="space-y-3">

@@ -7,3 +7,8 @@ export * from "./analytics";
 export * from "./session";
 export * from "./brand";
 export * from "./redirect";
+export * from "./fitken";
+export * from "./rewards";
+export * from "./review";
+export * from "./gallery";
+export * from "./commerce";

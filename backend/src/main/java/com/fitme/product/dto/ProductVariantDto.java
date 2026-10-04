@@ -7,9 +7,11 @@ import lombok.Data;
 @Data
 @Builder
 public class ProductVariantDto {
+    private java.util.UUID id;
     private String colorName;
     private String colorHex;
     private String sizeLabel;
     private String sku;
     private StockStatus stockStatus;
+    private Integer stockQuantity;
 }

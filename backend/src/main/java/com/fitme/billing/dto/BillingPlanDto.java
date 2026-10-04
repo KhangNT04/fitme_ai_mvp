@@ -14,8 +14,9 @@ public class BillingPlanDto {
     private String name;
     private BillingPlanType planType;
     private long priceVnd;
-    private int quotaAmount;
-    private boolean includesDashboard;
+    private int fitkenAmount;
+    private int freeshipVouchers;
+    private long freeshipMaxDiscountVnd;
     private Integer billingPeriodDays;
     private boolean active;
     private int sortOrder;

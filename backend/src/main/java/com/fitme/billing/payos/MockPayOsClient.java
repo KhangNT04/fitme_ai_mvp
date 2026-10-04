@@ -2,7 +2,6 @@ package com.fitme.billing.payos;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fitme.common.config.FitMeProperties;
 import com.fitme.common.exception.BusinessException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -13,12 +12,12 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class MockPayOsClient implements PayOsClient {
 
-    private final FitMeProperties fitMeProperties;
     private final ObjectMapper objectMapper;
 
     @Override
-    public PayOsPaymentLink createPaymentLink(long orderCode, long amountVnd, String description) {
-        String base = fitMeProperties.getPayos().getReturnUrl();
+    public PayOsPaymentLink createPaymentLink(long orderCode, long amountVnd, String description,
+                                              String returnUrl, String cancelUrl) {
+        String base = returnUrl;
         String separator = base.contains("?") ? "&" : "?";
         return PayOsPaymentLink.builder()
                 .paymentLinkId("mock-" + orderCode)

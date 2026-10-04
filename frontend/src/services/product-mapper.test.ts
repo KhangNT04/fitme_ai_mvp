@@ -53,5 +53,36 @@ describe("product-mapper", () => {
     expect(product.sizes).toEqual(["M"]);
     expect(product.sizeCharts?.[0].sizeLabel).toBe("M");
     expect(product.targetGender).toBe("MALE");
+    expect(product.purchasable).toBe(false);
+    expect(product.variants).toEqual([]);
+  });
+
+  it("maps variant ids, stock and purchasable flag", () => {
+    const product = mapProduct({
+      id: "p1",
+      brandId: "b1",
+      brandName: "Brand",
+      name: "Shirt",
+      category: "Áo",
+      price: 200000,
+      purchaseUrl: "",
+      status: "ACTIVE",
+      aiTryOnEligible: false,
+      purchasable: true,
+      variants: [
+        { id: "v1", colorName: "Đen", colorHex: "#000", sizeLabel: "M", sku: "S-1", stockQuantity: 4 },
+        { id: "v2", colorName: "Đen", sizeLabel: "L", stockQuantity: null },
+        { colorName: "Trắng", sizeLabel: "M" },
+      ],
+    });
+
+    expect(product.purchasable).toBe(true);
+    // Variants without an id are not purchasable and are skipped; colors/sizes still come from all variants.
+    expect(product.variants).toEqual([
+      { id: "v1", colorName: "Đen", colorHex: "#000", sizeLabel: "M", sku: "S-1", stockQuantity: 4 },
+      { id: "v2", colorName: "Đen", colorHex: undefined, sizeLabel: "L", sku: undefined, stockQuantity: 0 },
+    ]);
+    expect(product.colors).toEqual(["Đen", "Trắng"]);
+    expect(product.sizes).toEqual(["M", "L"]);
   });
 });

@@ -51,6 +51,13 @@ test.describe("Brand portal — full coverage", () => {
     await expect(page.getByText("Chờ duyệt").first()).toBeVisible();
   });
 
+  test("dashboard is open without billing gate", async ({ page }) => {
+    await page.goto("/brand/dashboard");
+    await expect(page.getByRole("heading", { name: "Tổng quan" })).toBeVisible();
+    await expect(page.getByText("Chưa có gói tháng")).not.toBeVisible();
+    await expect(page.getByText("Bán hàng (30 ngày)")).toBeVisible();
+  });
+
   test("product analytics page loads for existing product", async ({ page }) => {
     await page.goto("/brand/products");
     const analyticsLink = page.locator("tbody tr").first().getByRole("link", { name: "Phân tích" });

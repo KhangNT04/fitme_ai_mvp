@@ -10,15 +10,17 @@ Tài liệu onboarding cho **developer mới** — giải thích kiến trúc, c
 
 ### 1.1 Mục tiêu sản phẩm
 
-FitMe AI là web app tư vấn thời trang:
+FitMe AI là web app thời trang cá nhân hóa bằng AI dành cho Gen Z theo mô hình B2C:
 
-- Gợi ý outfit, size, form, màu theo profile người dùng
-- Preview 2D / try-on minh họa (không cam kết giống thật 100%)
-- Chuyển hướng mua hàng qua kênh ngoài (Shopee, TikTok Shop, website brand)
-- Portal brand quản lý catalog + analytics tổng hợp
-- Portal admin vận hành moderation & rules
-
-**Không thuộc MVP:** thanh toán, đơn hàng, logistics, upload ảnh SP lên cloud storage.
+- Tư vấn và gợi ý outfit, size, form, màu sắc theo profile người dùng
+- Thử đồ AI ảo bằng Fitken (1 Fitken = 1 lượt thử đồ AI; tặng 5 Fitken dùng thử cho tài khoản mới)
+- Gói FitMe Pro 49.000đ/tháng (15 Fitken + 2 voucher freeship + cá nhân hóa sâu) thanh toán qua PayOS
+- Nhận thưởng Fitken miễn phí: điểm danh chuỗi 3 ngày (+1), chia sẻ bài đăng (+2), đánh giá có ảnh (+3)
+- Thư viện ảnh outfit cá nhân (`/profile/gallery`)
+- Mua hàng trực tiếp in-app: Giỏ hàng gom nhóm theo brand, thanh toán PayOS hoặc COD, tách đơn seller, quản lý vận đơn và đối soát doanh thu seller (hoa hồng 10%)
+- Kênh chuyển hướng mua hàng qua Shopee / TikTok Shop / website brand vẫn được duy trì làm phương án phụ
+- Portal brand mở **miễn phí** cho thương hiệu đối tác: quản lý catalog, xử lý đơn hàng seller, xuất kho & đối soát
+- Portal admin quản lý đơn hàng toàn sàn, đối soát seller, duyệt thưởng, kiểm duyệt review, quản lý gói Pro
 
 ### 1.2 Stack
 
@@ -83,27 +85,60 @@ Package gốc: `com.fitme`
 
 | Package | Trách nhiệm |
 |---------|-------------|
+| `fitken` | Quản lý ví Fitken, lịch sử biến động ledger, cấp trial credit |
+| `billing` | Consumer subscription (FitMe Pro 49k/tháng), BillingPlan, PayOS webhook |
+| `rewards` | Điểm danh nhận thưởng chuỗi 3 ngày, gửi duyệt bài đăng chia sẻ |
+| `review` | Đánh giá sản phẩm có ảnh, kiểm tra verified purchase qua đơn hàng |
+| `gallery` | Thư viện ảnh outfit cá nhân (`outfit_gallery_images`) |
+| `cart` | Giỏ hàng gom nhóm theo thương hiệu |
+| `address` | Sổ địa chỉ giao hàng của người dùng |
+| `order` | Đơn khách (COD/PayOS), tách đơn seller, tạo shipment, tracking hành trình |
+| `settlement` | Đối soát doanh thu seller, giữ 7 ngày, tính hoa hồng sàn 10%, quyết toán chuyển khoản |
+| `logistics` | Webhook tích hợp đối tác vận chuyển (GHN, GHTK, Viettel Post) |
+| `voucher` | Quản lý & cấp phát voucher freeship hàng tháng cho gói Pro |
+| `entitlement` | Phân tầng quyền lợi Free vs Pro (coherence modes) |
 | `session` | Anonymous session, link-to-user |
-| `auth` | Register, login, refresh, reset password |
+| `auth` | Register, login, refresh, reset password, email verification |
 | `userprofile` | Body/style profile (`/me`) |
 | `wardrobe` | Tủ đồ cá nhân |
-| `product` | Catalog public + brand CRUD + admin moderation |
-| `brand` | Brand entity, application, dashboard analytics |
-| `recommendation` | Pipeline gợi ý outfit AI |
-| `tryon` | Try-on request lifecycle |
-| `preview` | Photo upload + preview generation |
-| `redirect` | Buy click tracking + redirect URL |
+| `product` | Catalog public + brand CRUD + biến thể tồn kho + admin moderation |
+| `brand` | Brand entity, application, dashboard analytics miễn phí |
+| `recommendation` | Pipeline gợi ý outfit AI (rule + Gemini hybrid) |
+| `stylistchat` | Tư vấn stylist qua chat AI |
+| `tryon` | Try-on request lifecycle (tiêu thụ 1 Fitken/lượt AI) |
+| `preview` | Photo upload + preview generation (FASHN / IDM-VTON) |
+| `redirect` | Buy click tracking + redirect URL (phương án phụ) |
 | `feedback` | User feedback on recommendations |
 | `privacy` | Consent, deletion requests |
 | `analytics` | Aggregated metrics (brand/admin) |
-| `admin` | Rules, flagged links, privacy admin, monitoring |
-| `storage` | Local file storage (`./uploads`) |
-| `common` | Security, config, enums, exceptions, seed |
+| `admin` | Rules, flagged links, privacy admin, monitoring, commerce |
+| `storage` | Local file storage (`./uploads`) / Cloudflare R2 |
+| `common` | Security, config (FitMeProperties), enums, exceptions, seed |
 
 ### 2.3 Controllers map
 
 | Controller | Prefix | Role guard |
 |------------|--------|------------|
+| `FitkenController` | `/api/v1/me/fitken` | User auth |
+| `ConsumerSubscriptionController` | `/api/v1/me/subscription` | User auth |
+| `PlanController` | `/api/v1/plans` | Public |
+| `RewardController` | `/api/v1/rewards` | User auth |
+| `ReviewController` | `/api/v1/products/{id}/reviews`, `/api/v1/reviews` | Public / User auth |
+| `GalleryController` | `/api/v1/me/gallery` | User auth |
+| `VoucherController` | `/api/v1/me/vouchers` | User auth |
+| `CartController` | `/api/v1/cart` | User auth |
+| `AddressController` | `/api/v1/me/addresses` | User auth |
+| `OrderController` | `/api/v1/orders` | User auth |
+| `BrandOrderController`, `BrandShipmentController`, `BrandSettlementController` | `/api/v1/brand/orders`, `/api/v1/brand/shipments`, `/api/v1/brand/{settlements,payout-account,sales}` | `BRAND_OWNER` |
+| `AdminOrderController`, `AdminSettlementController` | `/api/v1/admin/orders`, `/api/v1/admin/{settlements,commerce}` | `ADMIN` |
+| `AdminFitkenController` | `/api/v1/admin/consumers/{userId}/fitken` | `ADMIN` |
+| `AdminRewardController` | `/api/v1/admin/rewards` | `ADMIN` |
+| `AdminReviewController` | `/api/v1/admin/reviews` | `ADMIN` |
+| `AdminGalleryController` | `/api/v1/admin/gallery` | `ADMIN` |
+| `AdminBillingController` | `/api/v1/admin/billing` | `ADMIN` |
+| `LogisticsWebhookController` | `/api/v1/webhooks/logistics` | Webhook token (`X-Logistics-Token`) |
+| `PayOsWebhookController` | `/api/v1/webhooks/payos` | Public / PayOS |
+| `ConsumerEntitlementController` | `/api/v1/me/entitlement` | Public / Admin |
 | `SessionController` | `/api/v1/sessions` | Public |
 | `AuthController` | `/api/v1/auth` | Public |
 | `ProfileController` | `/api/v1/me` | Session or auth (filter) |
@@ -111,6 +146,7 @@ Package gốc: `com.fitme`
 | `ProductController` | `/api/v1/products` | GET public |
 | `BrandPublicController` | `/api/v1/brands` | GET public |
 | `RecommendationController` | `/api/v1/recommendations` | Mostly public/session |
+| `StylistChatController` | `/api/v1/stylist` | Public / Session |
 | `TryOnController` | `/api/v1/try-on/requests` | Session |
 | `PhotoUploadController` | `/api/v1/uploads` | Session |
 | `PreviewController` | `/api/v1/previews` | Session |
@@ -136,11 +172,17 @@ frontend/src/
 ├── app/                    # App Router — 1 folder = 1 route
 │   ├── page.tsx            # Marketing home (layout riêng)
 │   ├── ai/                 # Wizard tư vấn AI
-│   ├── try-on/             # Virtual try-on
+│   ├── try-on/             # Virtual try-on (tiêu Fitken)
+│   ├── pricing/            # Bảng giá Free vs FitMe Pro 49k/tháng
+│   ├── billing/return/     # Trả về sau PayOS gói Pro
+│   ├── rewards/            # Trang Nhận thưởng (điểm danh, chia sẻ, đánh giá)
+│   ├── cart/ checkout/     # Giỏ hàng & thanh toán COD/PayOS
+│   ├── orders/             # Danh sách đơn, chi tiết & tracking vận đơn
 │   ├── discover/           # Catalog + search
 │   ├── auth/               # Login/register/reset
-│   ├── brand/ admin/       # Portal (PortalLayout)
-│   ├── profile/            # User profile + privacy
+│   ├── brand/              # Seller portal (đơn hàng, đối soát, catalog)
+│   ├── admin/              # Admin portal (đơn hàng, đối soát, rewards, reviews, plans)
+│   ├── profile/            # User profile, addresses, gallery
 │   └── api/auth/session/   # Route handler set cookie role
 ├── components/
 │   ├── ui/                 # Radix + shadcn-style primitives

@@ -15,4 +15,6 @@ public interface BillingPlanRepository extends JpaRepository<BillingPlan, UUID> 
     List<BillingPlan> findByActiveTrueOrderBySortOrderAsc();
 
     List<BillingPlan> findAllByOrderBySortOrderAsc();
+
+    Optional<BillingPlan> findFirstByPlanTypeAndActiveTrueOrderBySortOrderAsc(BillingPlanType planType);
 }

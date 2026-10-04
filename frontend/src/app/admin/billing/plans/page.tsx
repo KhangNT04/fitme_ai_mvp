@@ -47,8 +47,8 @@ export default function AdminBillingPlansPage() {
 
   return (
     <PortalAdminPage
-      title="Danh mục gói"
-      description="Quản lý gói subscription và top-up trong hệ thống."
+      title="Gói người dùng (Pro)"
+      description="Quản lý gói FitMe Pro: Fitken, voucher freeship và chu kỳ thanh toán cho người dùng."
       headerActions={
         <Button size="sm" asChild>
           <Link href="/admin/billing/plans/new">Thêm gói</Link>
@@ -59,7 +59,7 @@ export default function AdminBillingPlansPage() {
       onRetry={() => refetch()}
       empty={!data?.length}
       emptyTitle="Chưa có gói nào"
-      emptyDescription="Tạo gói subscription hoặc top-up để brand có thể mua lượt thử AI."
+      emptyDescription="Tạo gói Pro để người dùng đăng ký qua PayOS."
     >
       {data && (
         <>
@@ -73,7 +73,8 @@ export default function AdminBillingPlansPage() {
                       <span className="text-muted-foreground">({plan.code})</span>
                     </p>
                     <p className="mt-1 text-sm text-muted-foreground">
-                      {formatPrice(plan.priceVnd)} · {plan.quotaAmount} lượt · {plan.planType}
+                      {formatPrice(plan.priceVnd)} · {plan.fitkenAmount} Fitken ·{" "}
+                      {plan.freeshipVouchers} freeship · {plan.billingPeriodDays ?? 30} ngày
                     </p>
                     <Badge variant="outline" className="mt-2">
                       {plan.active ? "Đang bán" : "Tắt"}
@@ -104,9 +105,10 @@ export default function AdminBillingPlansPage() {
               <tr>
                 <th className={portalTableThClass}>Tên gói</th>
                 <th className={portalTableThClass}>Mã</th>
-                <th className={portalTableThClass}>Loại</th>
                 <th className={portalTableThClass}>Giá</th>
-                <th className={portalTableThClass}>Lượt</th>
+                <th className={portalTableThClass}>Fitken</th>
+                <th className={portalTableThClass}>Freeship</th>
+                <th className={portalTableThClass}>Chu kỳ</th>
                 <th className={portalTableThClass}>Trạng thái</th>
                 <th className={portalTableThClass}>Thao tác</th>
               </tr>
@@ -116,9 +118,12 @@ export default function AdminBillingPlansPage() {
                 <tr key={plan.id}>
                   <td className={portalTableTdClass}>{plan.name}</td>
                   <td className={portalTableTdClass}>{plan.code}</td>
-                  <td className={portalTableTdClass}>{plan.planType}</td>
                   <td className={portalTableTdClass}>{formatPrice(plan.priceVnd)}</td>
-                  <td className={portalTableTdClass}>{plan.quotaAmount}</td>
+                  <td className={portalTableTdClass}>{plan.fitkenAmount}</td>
+                  <td className={portalTableTdClass}>
+                    {plan.freeshipVouchers} × {formatPrice(plan.freeshipMaxDiscountVnd)}
+                  </td>
+                  <td className={portalTableTdClass}>{plan.billingPeriodDays ?? 30} ngày</td>
                   <td className={portalTableTdClass}>
                     <Badge variant="outline">{plan.active ? "Đang bán" : "Tắt"}</Badge>
                   </td>

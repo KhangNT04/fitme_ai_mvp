@@ -34,6 +34,8 @@ public class TryOnResponse {
     private String alternativeSize;
     private String recommendedForm;
     private String recommendedColor;
+    /** Remaining Fitken after an AI generate call; null for free (outfit board) previews. */
+    private Integer fitkenBalance;
 
     @Data
     @Builder

@@ -50,6 +50,10 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/api/v1/recommendations/**").permitAll()
                         .requestMatchers("/api/v1/recommendations/**").permitAll()
                         .requestMatchers("/api/v1/redirects/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/v1/plans", "/api/v1/plans/**").permitAll()
+                        .requestMatchers("/api/v1/rewards/**", "/api/v1/reviews/**").authenticated()
+                        .requestMatchers("/api/v1/me/fitken/**", "/api/v1/me/subscription/**",
+                                "/api/v1/me/gallery/**").authenticated()
                         .requestMatchers("/api/v1/me/**").permitAll()
                         .requestMatchers("/api/v1/wardrobe/**").permitAll()
                         .requestMatchers("/api/v1/uploads/**").permitAll()

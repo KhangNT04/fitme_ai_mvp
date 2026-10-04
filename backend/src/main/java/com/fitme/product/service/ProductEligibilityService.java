@@ -1,6 +1,5 @@
 package com.fitme.product.service;
 
-import com.fitme.billing.service.BrandQuotaService;
 import com.fitme.common.enums.ProductStatus;
 import com.fitme.common.enums.StockStatus;
 import com.fitme.product.entity.Product;
@@ -8,29 +7,18 @@ import com.fitme.product.repository.ProductImageRepository;
 import com.fitme.product.repository.ProductVariantRepository;
 import com.fitme.product.repository.SizeChartRepository;
 import com.fitme.common.util.UrlValidator;
-import org.springframework.context.annotation.Lazy;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.UUID;
 
 @Service
+@RequiredArgsConstructor
 public class ProductEligibilityService {
 
     private final ProductImageRepository imageRepository;
     private final ProductVariantRepository variantRepository;
     private final SizeChartRepository sizeChartRepository;
-    private final BrandQuotaService brandQuotaService;
-
-    public ProductEligibilityService(
-            ProductImageRepository imageRepository,
-            ProductVariantRepository variantRepository,
-            SizeChartRepository sizeChartRepository,
-            @Lazy BrandQuotaService brandQuotaService) {
-        this.imageRepository = imageRepository;
-        this.variantRepository = variantRepository;
-        this.sizeChartRepository = sizeChartRepository;
-        this.brandQuotaService = brandQuotaService;
-    }
 
     public boolean canBeListed(Product product) {
         return product.getStatus() == ProductStatus.ACTIVE
@@ -44,10 +32,7 @@ public class ProductEligibilityService {
         if (product.getStockStatus() == StockStatus.OUT_OF_STOCK) {
             return false;
         }
-        if (imageRepository.findByProductIdOrderBySortOrderAsc(product.getId()).isEmpty()) {
-            return false;
-        }
-        return brandQuotaService.hasTryOnQuota(product.getBrandId());
+        return !imageRepository.findByProductIdOrderBySortOrderAsc(product.getId()).isEmpty();
     }
 
     public boolean canShowBuyButton(Product product) {
@@ -76,9 +61,9 @@ public class ProductEligibilityService {
         return hasImage && hasSize && hasColor;
     }
 
+    /** AI try-on is paid by the consumer in Fitken, so only product metadata matters here. */
     public boolean canBeUsedForAiTryOn(Product product) {
-        return meetsProductMetadataForTryOn(product)
-                && brandQuotaService.hasTryOnQuota(product.getBrandId());
+        return meetsProductMetadataForTryOn(product);
     }
 
     public java.util.List<String> getModerationIssues(UUID productId) {

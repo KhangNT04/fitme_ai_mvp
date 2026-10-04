@@ -86,8 +86,10 @@ Giữ `DB_USERNAME` và `DB_PASSWORD` riêng (không nhét vào URL).
 | `FITME_SEED_PASSWORD` | chỉ khi bật seed — dùng mật khẩu mạnh |
 | `UPLOAD_DIR` | `/tmp/uploads` |
 | `PAYOS_MOCK` | `true` *(test billing trên cloud không cần key; đổi `false` khi có PayOS)* |
-| `PAYOS_RETURN_URL` | `https://fitme-ai-mvp.vercel.app/brand/billing/return?status=success` |
-| `PAYOS_CANCEL_URL` | `https://fitme-ai-mvp.vercel.app/brand/billing/return?status=cancel` |
+| `PAYOS_SUBSCRIPTION_RETURN_URL` | `https://fitme-ai-mvp.vercel.app/billing/return?status=success` |
+| `PAYOS_SUBSCRIPTION_CANCEL_URL` | `https://fitme-ai-mvp.vercel.app/billing/return?status=cancel` |
+| `PAYOS_ORDER_RETURN_URL` | `https://fitme-ai-mvp.vercel.app/orders/return?status=success` |
+| `PAYOS_ORDER_CANCEL_URL` | `https://fitme-ai-mvp.vercel.app/orders/return?status=cancel` |
 | `PAYOS_CLIENT_ID` | *(chỉ khi `PAYOS_MOCK=false`)* |
 | `PAYOS_API_KEY` | *(chỉ khi `PAYOS_MOCK=false`)* |
 | `PAYOS_CHECKSUM_KEY` | *(chỉ khi `PAYOS_MOCK=false`)* |
@@ -212,8 +214,9 @@ https://fitme-ai-mvp.vercel.app
 | API trực tiếp | `https://fitme-ai-mvp.onrender.com/api/v1/products` |
 | API qua Vercel proxy | `https://YOUR.vercel.app/api/v1/products` |
 | Trang chủ | `https://YOUR.vercel.app` |
-| Brand billing | `https://fitme-ai-mvp.vercel.app/brand/billing` |
-| Admin gói brand | `https://fitme-ai-mvp.vercel.app/admin/billing/plans` |
+| Gói dịch vụ & Đăng ký Pro | `https://YOUR.vercel.app/pricing` |
+| Admin quản lý gói consumer | `https://YOUR.vercel.app/admin/billing/plans` |
+| Seller đơn hàng & đối soát | `https://YOUR.vercel.app/brand/orders` · `/brand/settlements` |
 | Brand login | `/brand/login` — chỉ khi `FITME_SEED_ENABLED=true` và DB đã seed |
 
 ---
@@ -351,8 +354,8 @@ Sau khi deploy xong, kiểm tra log Render có dòng `Refreshing fashion catalog
 |-------------|------------------------|------------|
 | `/ai/chat` chỉ hiện toast lỗi, không có bảng "3 style cơ bản" | `POST /stylist/chat/starter-outfits` sinh 3 outfit tuần tự; trên Render free (cold start + Gemini) vượt timeout 30s của client cũ | Đã fix: client dùng timeout riêng cho starter/generate; backend bỏ qua preset lỗi và vẫn trả các set còn lại |
 | Set gợi ý luôn `stylistSource: "rule"` | `GEMINI_API_KEY` chưa set trên Render → stylist Gemini bị tắt, fallback rule engine | Set `GEMINI_API_KEY` trong Render dashboard (blueprint để `sync: false`) rồi redeploy |
-| Starter trả thông báo "chưa phối được set gợi ý mở đầu" | Cả 3 preset fail (catalog rỗng, brand hết quota, Gemini lỗi) | Kiểm tra `/api/v1/products` có sản phẩm ACTIVE và brand còn quota try-on |
-| Brand analytics báo "Gói tháng đã hết hạn" | Subscription seed 30 ngày đã hết hạn trên DB seed từ lâu | Đã fix: seed tự gia hạn gói demo 365 ngày khi boot; redeploy backend hoặc admin cấp gói lại |
+| Starter trả thông báo "chưa phối được set gợi ý mở đầu" | Cả 3 preset fail (catalog rỗng, không có sản phẩm ACTIVE, Gemini lỗi) | Kiểm tra `/api/v1/products` có sản phẩm ACTIVE |
+| Dashboard brand | Dashboard mở miễn phí cho mọi brand đã duyệt (APPROVED) | Không yêu cầu mua gói brand hay quota try-on |
 
 **Checklist env Render (AI stylist):**
 

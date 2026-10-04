@@ -2,161 +2,132 @@
 
 import type { ReactNode } from "react";
 import Link from "next/link";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Check, Sparkles } from "lucide-react";
+import { useMutation, useQuery } from "@tanstack/react-query";
+import { Check, Sparkles, Coins, ArrowRight } from "lucide-react";
 import { PageShell } from "@/components/layout/PageShell";
 import { CollapsingPageHeader } from "@/components/layout/CollapsingPageHeader";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { entitlementApi, type ConsumerPlan, type OutfitCoherenceMode } from "@/services/entitlement-api";
+import { fitkenApi } from "@/services/fitken-api";
+import { subscriptionApi } from "@/services/subscription-api";
 import { useAuthStore } from "@/stores/auth-store";
 import { consumerPageShellClass } from "@/lib/design-tokens";
 import { getUserErrorMessage } from "@/lib/user-error-message";
 import { toast } from "@/stores/toast-store";
 import { cn } from "@/lib/utils";
 
+const formatDate = (dateStr: string) => {
+  const d = new Date(dateStr);
+  return `${d.getDate().toString().padStart(2, '0')}/${(d.getMonth() + 1).toString().padStart(2, '0')}/${d.getFullYear()}`;
+};
+
 const FREE_PERKS = [
-  "Phối lẫn nhiều brand để khám phá vibe",
-  "Stylist chat + try-on cơ bản",
+  "5 Fitken dùng thử (tài khoản mới)",
+  "Phối đồ trên bảng (miễn phí)",
   "Lưu outfit & tủ đồ",
-  "Tủ chi tiêu bản rút gọn",
+  "Nhận thêm Fitken qua nhiệm vụ",
 ];
 
-const PLUS_PERKS = [
-  "Ưu tiên outfit cùng brand / brand đối tác",
-  "Cá nhân hóa sâu hơn từ like / lưu / click mua",
-  "Badge “Cùng brand” / “Partner look” rõ ràng",
-  "Tùy chọn STRICT: chỉ look cùng brand/partner",
+const PRO_PERKS = [
+  "15 Fitken mỗi tháng",
+  "2 Voucher Freeship mỗi tháng",
+  "Tạo ảnh AI Try-on chất lượng cao",
+  "Mở khóa tính năng Pro khác",
 ];
 
 export default function PricingPage() {
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated());
-  const queryClient = useQueryClient();
-  const { data, isLoading } = useQuery({
-    queryKey: ["consumer-entitlement"],
-    queryFn: () => entitlementApi.get(),
+  const { data: wallet, isLoading } = useQuery({
+    queryKey: ["fitken-wallet"],
+    queryFn: () => fitkenApi.getWallet(),
+    enabled: isAuthenticated,
     staleTime: 30_000,
   });
 
-  const planMutation = useMutation({
-    mutationFn: ({
-      plan,
-      coherenceMode,
-    }: {
-      plan: ConsumerPlan;
-      coherenceMode?: OutfitCoherenceMode;
-    }) => entitlementApi.setPlan(plan, coherenceMode),
-    onSuccess: (next) => {
-      void queryClient.invalidateQueries({ queryKey: ["consumer-entitlement"] });
-      toast.success(
-        next.plus
-          ? `Đã bật ${next.label} (${next.coherenceMode})`
-          : "Đã chuyển về FitMe Free — mix brand khám phá",
-      );
-    },
-    onError: (e) => toast.error(getUserErrorMessage(e, "Không đổi được gói.")),
+  const { data: proPlan, isLoading: plansLoading } = useQuery({
+    queryKey: ["consumer-plans"],
+    queryFn: () => subscriptionApi.getPlans(),
+    select: (plans) => plans.find((p) => p.planType !== "TOPUP"),
+    staleTime: 5 * 60_000,
   });
 
-  const requireAuth = () => {
+  const checkoutMutation = useMutation({
+    mutationFn: (planId: string) => subscriptionApi.checkout(planId),
+    onSuccess: (res) => {
+      if (res.checkoutUrl) {
+        window.location.href = res.checkoutUrl;
+      }
+    },
+    onError: (e) => toast.error(getUserErrorMessage(e, "Không thể tạo thanh toán.")),
+  });
+
+  const handleCheckout = () => {
     if (!isAuthenticated) {
-      toast.info("Đăng nhập để bật / tắt FitMe Plus (demo không cần PayOS).");
-      return false;
+      toast.info("Vui lòng đăng nhập để nâng cấp Pro.");
+      return;
     }
-    return true;
+    if (!proPlan) {
+      toast.error("Gói Pro hiện chưa mở bán.");
+      return;
+    }
+    checkoutMutation.mutate(proPlan.id);
   };
 
-  const setPlan = (plan: ConsumerPlan, coherenceMode?: OutfitCoherenceMode) => {
-    if (!requireAuth()) return;
-    planMutation.mutate({ plan, coherenceMode });
-  };
-
-  const isPlus = Boolean(data?.plus);
-  const isStrict = data?.coherenceMode === "STRICT";
+  const walletPending = isAuthenticated && wallet === undefined;
+  const isPro = wallet?.plan === "PRO";
+  const subscription = wallet?.subscription;
 
   return (
     <PageShell width="full" className={consumerPageShellClass}>
       <CollapsingPageHeader
-        title="FitMe Free & Plus"
-        subtitle="Free khám phá nhiều brand — Plus look đồng bộ hơn"
+        title="FitMe Free & Pro"
+        subtitle="Nâng cấp Pro để nhận thêm Fitken và Voucher"
         backHref="/ai/chat"
         backLabel="Tư vấn"
       />
 
-      <div className="mx-auto max-w-3xl space-y-4">
-        <p className="rounded-2xl border border-dashed border-border/70 bg-muted/30 px-4 py-3 text-xs leading-relaxed text-muted-foreground sm:text-sm">
-          <span className="font-medium text-foreground">Demo đồ án:</span> bật Plus ngay trên
-          trang này (chưa gắn PayOS consumer). Admin cũng có thể gán gói từ portal.
-        </p>
-
+      <div className="mx-auto max-w-3xl space-y-6">
         <div className="grid gap-4 sm:grid-cols-2">
           <PlanCard
             eyebrow="Free"
-            title="Khám phá nhiều brand"
-            active={Boolean(data) && !isPlus}
+            title="Miễn phí"
+            active={isAuthenticated && !walletPending && !isPro}
             perks={FREE_PERKS}
             footer={
-              isPlus ? (
-                <Button
-                  type="button"
-                  variant="outline"
-                  className="mt-4 w-full rounded-full"
-                  disabled={planMutation.isPending || isLoading}
-                  onClick={() => setPlan("FREE")}
-                >
-                  Chuyển về Free
-                </Button>
-              ) : (
-                <p className="mt-4 text-sm font-medium text-foreground">Đang dùng</p>
+              isPro || walletPending ? null : (
+                <p className="mt-4 text-sm font-medium text-foreground text-center">
+                  {isAuthenticated ? "Đang dùng" : "Mặc định cho tài khoản mới"}
+                </p>
               )
             }
           />
 
           <PlanCard
-            eyebrow="FitMe Plus"
-            title="Outfit đồng bộ brand"
+            eyebrow="FitMe Pro"
+            title="49.000đ / tháng"
             highlighted
-            active={isPlus}
-            perks={PLUS_PERKS}
+            active={isPro}
+            perks={PRO_PERKS}
             footer={
               <>
-                {isPlus ? (
+                {isPro ? (
                   <div className="mt-4 space-y-2">
-                    <p className="text-sm font-medium text-primary">Bạn đang dùng Plus</p>
-                    <Badge variant="secondary" className="text-[10px]">
-                      Mode: {data?.coherenceMode ?? "PREFER"}
-                    </Badge>
-                    <div className="flex flex-col gap-2 pt-1">
-                      <Button
-                        type="button"
-                        variant={isStrict ? "default" : "outline"}
-                        size="sm"
-                        className="w-full rounded-full"
-                        disabled={planMutation.isPending}
-                        onClick={() => setPlan("PLUS", isStrict ? "PREFER" : "STRICT")}
-                      >
-                        {isStrict ? "Tắt STRICT (về PREFER)" : "Bật STRICT (opt-in)"}
-                      </Button>
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        className="w-full rounded-full"
-                        disabled={planMutation.isPending}
-                        onClick={() => setPlan("FREE")}
-                      >
-                        Hủy Plus (demo)
-                      </Button>
-                    </div>
+                    <p className="text-sm font-medium text-primary text-center">Bạn đang dùng Pro</p>
+                    {subscription?.expiresAt && (
+                      <p className="text-xs text-center text-muted-foreground">
+                        Hết hạn: {formatDate(subscription.expiresAt)}
+                      </p>
+                    )}
                   </div>
                 ) : (
                   <Button
                     type="button"
                     className="mt-4 w-full rounded-full"
-                    disabled={planMutation.isPending || isLoading}
-                    onClick={() => setPlan("PLUS", "PREFER")}
+                    disabled={checkoutMutation.isPending || isLoading || walletPending || plansLoading}
+                    onClick={handleCheckout}
                   >
                     <Sparkles className="mr-1.5 h-4 w-4" />
-                    Thử FitMe Plus (demo)
+                    Nâng cấp Pro ngay
                   </Button>
                 )}
               </>
@@ -167,12 +138,45 @@ export default function PricingPage() {
         {!isAuthenticated && (
           <p className="text-center text-xs text-muted-foreground">
             Chưa đăng nhập?{" "}
-            <Link href="/auth/login?next=/pricing" className="font-medium text-primary underline-offset-2 hover:underline">
+            <Link href="/auth/login?redirect=/pricing" className="font-medium text-primary underline-offset-2 hover:underline">
               Đăng nhập
             </Link>{" "}
-            rồi quay lại để toggle gói.
+            để xem số dư Fitken và nâng cấp.
           </p>
         )}
+
+        <div className="rounded-2xl border border-border/60 bg-card p-5 sm:p-6 mt-8">
+          <div className="flex items-center gap-3 mb-4">
+            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10">
+              <Coins className="h-5 w-5 text-primary" />
+            </div>
+            <div>
+              <h3 className="font-semibold text-lg">Cách nhận thêm Fitken</h3>
+              <p className="text-sm text-muted-foreground">Làm nhiệm vụ để nhận Fitken miễn phí mỗi ngày</p>
+            </div>
+          </div>
+          
+          <ul className="space-y-3 text-sm">
+            <li className="flex items-center justify-between p-3 rounded-xl bg-muted/30">
+              <span>Điểm danh liên tục 3 ngày</span>
+              <span className="font-medium text-primary">+1 Fitken</span>
+            </li>
+            <li className="flex items-center justify-between p-3 rounded-xl bg-muted/30">
+              <span>Chia sẻ ảnh Try-on lên mạng xã hội</span>
+              <span className="font-medium text-primary">+2 Fitken</span>
+            </li>
+            <li className="flex items-center justify-between p-3 rounded-xl bg-muted/30">
+              <span>Đánh giá sản phẩm đã mua kèm ảnh</span>
+              <span className="font-medium text-primary">+3 Fitken</span>
+            </li>
+          </ul>
+          
+          <Button asChild variant="outline" className="w-full mt-4 rounded-full">
+            <Link href="/rewards">
+              Đến trang Nhận thưởng <ArrowRight className="ml-2 h-4 w-4" />
+            </Link>
+          </Button>
+        </div>
       </div>
     </PageShell>
   );
@@ -196,7 +200,7 @@ function PlanCard({
   return (
     <div
       className={cn(
-        "rounded-2xl border p-5",
+        "flex flex-col rounded-2xl border p-5",
         highlighted ? "border-primary/40 bg-primary/5" : "border-border/60",
         active && "ring-2 ring-primary/30",
       )}
@@ -217,7 +221,7 @@ function PlanCard({
         )}
       </div>
       <h2 className="mt-1 text-xl font-semibold">{title}</h2>
-      <ul className="mt-3 space-y-2 text-sm text-muted-foreground">
+      <ul className="mt-3 space-y-2 text-sm text-muted-foreground flex-1">
         {perks.map((perk) => (
           <li key={perk} className="flex gap-2">
             <Check className="mt-0.5 h-3.5 w-3.5 shrink-0 text-primary" />
@@ -225,7 +229,9 @@ function PlanCard({
           </li>
         ))}
       </ul>
-      {footer}
+      <div className="mt-auto pt-4">
+        {footer}
+      </div>
     </div>
   );
 }

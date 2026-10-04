@@ -6,11 +6,11 @@ import com.fitme.admin.repository.OccasionRuleRepository;
 import com.fitme.admin.repository.StyleRuleRepository;
 import com.fitme.auth.entity.UserAccount;
 import com.fitme.auth.repository.UserAccountRepository;
-import com.fitme.billing.service.BrandBillingService;
 import com.fitme.brand.entity.Brand;
 import com.fitme.brand.repository.BrandRepository;
 import com.fitme.brand.service.BrandPartnershipService;
 import com.fitme.common.enums.*;
+import com.fitme.fitken.service.FitkenService;
 import com.fitme.product.entity.Product;
 import com.fitme.product.repository.ProductRepository;
 import com.fitme.redirect.entity.FlaggedLink;
@@ -46,7 +46,7 @@ public class SeedDataLoader implements CommandLineRunner {
     private final PasswordEncoder passwordEncoder;
     private final FashionCatalogLoader fashionCatalogLoader;
     private final FashionCatalogSeeder fashionCatalogSeeder;
-    private final BrandBillingService brandBillingService;
+    private final FitkenService fitkenService;
     private final BrandPartnershipService brandPartnershipService;
 
     @Value("${fitme.seed.admin-email:admin@fitme.ai}")
@@ -114,7 +114,7 @@ public class SeedDataLoader implements CommandLineRunner {
                 .status(UserStatus.ACTIVE)
                 .build());
 
-        userRepository.save(UserAccount.builder()
+        UserAccount demoUser = userRepository.save(UserAccount.builder()
                 .email(userEmail)
                 .passwordHash(passwordEncoder.encode(seedPassword))
                 .displayName("Minh Anh")
@@ -122,12 +122,12 @@ public class SeedDataLoader implements CommandLineRunner {
                 .emailVerified(true)
                 .status(UserStatus.ACTIVE)
                 .build());
+        fitkenService.adminAdjust(demoUser.getId(), 20, "Fitken demo cho tài khoản mẫu");
 
         int totalProducts = 0;
         for (FashionCatalogLoader.BrandEntry entry : fashionCatalogLoader.load().brands) {
             Brand brand = ensureApprovedBrand(brandOwner.getId(), entry);
             totalProducts += fashionCatalogSeeder.seedBrandCatalog(brand, entry);
-            brandBillingService.grantSeedEntitlement(brand.getId(), "SUB_GROWTH");
         }
 
         brandRepository.save(Brand.builder()
@@ -203,7 +203,6 @@ public class SeedDataLoader implements CommandLineRunner {
                 log.info("Refreshing fashion catalog for brand {}", brand.getName());
                 fashionCatalogSeeder.syncBrandCatalog(brand, entry);
             }
-            brandBillingService.grantSeedEntitlement(brand.getId(), "SUB_GROWTH");
         }
     }
 

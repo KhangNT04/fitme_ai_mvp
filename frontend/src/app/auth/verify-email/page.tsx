@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useEffect, useState } from "react";
+import { Suspense, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { authApi } from "@/services/auth-api";
@@ -40,10 +40,12 @@ function VerifyEmailForm() {
   );
   const [loading, setLoading] = useState(false);
   const [resending, setResending] = useState(false);
+  const [syncedEmailParam, setSyncedEmailParam] = useState(emailFromQuery);
 
-  useEffect(() => {
+  if (emailFromQuery !== syncedEmailParam) {
+    setSyncedEmailParam(emailFromQuery);
     if (emailFromQuery) setEmail(emailFromQuery);
-  }, [emailFromQuery]);
+  }
 
   const handleVerify = async () => {
     if (!email.trim() || !code.trim()) return;

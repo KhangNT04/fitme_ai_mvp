@@ -54,7 +54,7 @@ public class UserAccount {
     @Builder.Default
     private UserStatus status = UserStatus.ACTIVE;
 
-    /** Consumer Free/Plus entitlement (billing stub until PayOS B2C). */
+    /** Consumer Free/Pro entitlement, kept in sync with the active consumer subscription. */
     @Enumerated(EnumType.STRING)
     @Column(name = "consumer_plan", nullable = false)
     @Builder.Default

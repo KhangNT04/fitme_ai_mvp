@@ -79,7 +79,8 @@ class TryOnAsyncVtonIntegrationTest extends AbstractIntegrationTest {
         addItem(sessionToken, requestId, product);
 
         mockMvc.perform(post("/api/v1/try-on/requests/{id}/generate", requestId)
-                        .header(SESSION_HEADER, sessionToken))
+                        .header(SESSION_HEADER, sessionToken)
+                        .header("Authorization", "Bearer " + registerUserAccessToken()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.status").value("PROCESSING"));
 
@@ -127,7 +128,8 @@ class TryOnAsyncVtonIntegrationTest extends AbstractIntegrationTest {
         addItem(sessionToken, requestId, product);
 
         mockMvc.perform(post("/api/v1/try-on/requests/{id}/generate", requestId)
-                        .header(SESSION_HEADER, sessionToken))
+                        .header(SESSION_HEADER, sessionToken)
+                        .header("Authorization", "Bearer " + registerUserAccessToken()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.status").value("PROCESSING"))
                 .andExpect(jsonPath("$.data.previewImageUrl").doesNotExist());

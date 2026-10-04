@@ -63,7 +63,7 @@ class OutfitCompositionServiceTest {
     @BeforeEach
     void setUp() {
         ProductEligibilityService eligibilityService = new ProductEligibilityService(
-                imageRepository, variantRepository, sizeChartRepository, null);
+                imageRepository, variantRepository, sizeChartRepository);
         SizeResolutionService sizeResolutionService = new SizeResolutionService(sizeChartRepository, variantRepository);
         ProductAudienceService audienceService = new ProductAudienceService(tagRepository);
         service = new OutfitCompositionService(

@@ -1,5 +1,7 @@
 # FitMe AI — Báo cáo rà soát toàn hệ thống
 
+> **Lưu ý:** Dự án đã chuyển đổi mô hình kinh doanh sang B2C (FitMe Pro 49k/tháng, Fitken, in-app commerce, brand dashboard free) theo [`docs/B2C_PIVOT_PLAN.md`](./B2C_PIVOT_PLAN.md). Nội dung báo cáo này phản ánh trạng thái hệ thống trước đợt chuyển đổi.
+
 **Ngày:** 2026-08-25  
 **Phạm vi:** Luồng nghiệp vụ, tính năng, bảo mật, kiến trúc/ops, khoảng trống so với góp ý GV và roadmap AI  
 **Cách làm:** Đọc code + cấu hình + tài liệu hiện tại; đối chiếu `docs/CAI_THIEN_DU_AN_FITME.md`, `docs/AI_ROADMAP.md`, `docs/IMPLEMENTATION_NOTES_CAI_THIEN.md`  

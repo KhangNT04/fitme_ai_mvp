@@ -28,7 +28,11 @@ import {
   tryOnFormToBodyProfile,
 } from "@/lib/profile-prefill";
 import { profileApi } from "@/services/profile-api";
+import { getApiErrorCode } from "@/services/api-client";
 import { tryonApi } from "@/services/tryon-api";
+import { fitkenApi } from "@/services/fitken-api";
+import { useQuery } from "@tanstack/react-query";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { uploadApi } from "@/services/upload-api";
 import { PageShell } from "@/components/layout/PageShell";
 import { FlowWizardToolbar } from "@/components/layout/FlowWizardToolbar";
@@ -66,6 +70,15 @@ export default function TryOnInputPage() {
   const [consented, setConsented] = useState(false);
   const [uploadError, setUploadError] = useState("");
   const [showAvatarPicker, setShowAvatarPicker] = useState(true);
+  const [showLoginDialog, setShowLoginDialog] = useState(false);
+  const [showFitkenDialog, setShowFitkenDialog] = useState(false);
+  const storesReady = useConsumerStoresReady();
+  
+  const { data: wallet } = useQuery({
+    queryKey: ["fitken-wallet"],
+    queryFn: () => fitkenApi.getWallet(),
+    enabled: storesReady,
+  });
   const {
     selectedItems,
     input: savedTryOnInput,
@@ -82,7 +95,6 @@ export default function TryOnInputPage() {
     clearPhoto,
   } = useTryOnStore();
   const { ensureSession } = useEnsureSession();
-  const storesReady = useConsumerStoresReady();
   const draftBodyProfile = useConsultationStore((s) => s.draft.bodyProfile);
   const { bodyProfile: savedBodyProfile, isLoading } = useHydrateConsultationProfiles();
   const profilePrefill = useMemo(
@@ -269,10 +281,18 @@ export default function TryOnInputPage() {
       }
       await profileApi.saveBodyProfile(tryOnFormToBodyProfile(data));
       await queryClient.invalidateQueries({ queryKey: ["body-profile"] });
+      await queryClient.invalidateQueries({ queryKey: ["fitken-wallet"] });
       setRequestId(id);
       router.push("/try-on/processing");
     } catch (e: unknown) {
-      toast.error(getUserErrorMessage(e, "Tạo preview thất bại. Vui lòng thử lại."));
+      const code = getApiErrorCode(e);
+      if (code === "LOGIN_REQUIRED") {
+        setShowLoginDialog(true);
+      } else if (code === "FITKEN_INSUFFICIENT") {
+        setShowFitkenDialog(true);
+      } else {
+        toast.error(getUserErrorMessage(e, "Tạo preview thất bại. Vui lòng thử lại."));
+      }
     }
   };
 
@@ -531,17 +551,61 @@ export default function TryOnInputPage() {
               variant="ai"
               disabled={isSubmitting || !storesReady}
               onClick={(e) => {
-                if (LOCKED_INPUT_MODES.has(inputMode)) {
-                  e.preventDefault();
-                  toast.info(FEATURE_LOCKED_MESSAGE);
-                }
+                // Remove locked check for now since AVATAR is allowed per prompt
               }}
             >
               {isSubmitting ? "Đang tạo..." : "Tạo preview thử mặc"}
+              {inputMode !== "OUTFIT_BOARD_ONLY" && wallet && (
+                <span className="ml-2 text-xs opacity-80 font-normal">
+                  (Tốn {wallet.tryOnCost} Fitken · còn {wallet.balance})
+                </span>
+              )}
             </Button>
           </div>
         </form>
       )}
+
+      <Dialog open={showLoginDialog} onOpenChange={setShowLoginDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Đăng nhập để tiếp tục</DialogTitle>
+            <DialogDescription>
+              Đăng ký tài khoản ngay để nhận 5 lượt thử đồ AI miễn phí!
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex flex-col sm:flex-row gap-2 mt-4 justify-end">
+            <Button variant="outline" onClick={() => setShowLoginDialog(false)}>Hủy</Button>
+            <Button asChild>
+              <Link href="/auth/login?redirect=/try-on/input">Đăng nhập / Đăng ký</Link>
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={showFitkenDialog} onOpenChange={setShowFitkenDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Không đủ Fitken</DialogTitle>
+            <DialogDescription>
+              Bạn đã hết Fitken để tạo ảnh AI. Nâng cấp Pro để nhận 15 Fitken/tháng hoặc làm nhiệm vụ để nhận thêm.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex flex-col sm:flex-row gap-2 mt-4 justify-end">
+            <Button variant="outline" onClick={() => {
+              setShowFitkenDialog(false);
+              handleModeChange("OUTFIT_BOARD_ONLY");
+            }}>
+              Tiếp tục với Outfit Board (miễn phí)
+            </Button>
+            <Button variant="outline" asChild>
+              <Link href="/rewards">Nhận Fitken miễn phí</Link>
+            </Button>
+            <Button asChild>
+              <Link href="/pricing">Nâng cấp Pro 49k</Link>
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </PageShell>
   );
 }

@@ -2,6 +2,7 @@ package com.fitme.entitlement.service;
 
 import com.fitme.auth.entity.UserAccount;
 import com.fitme.auth.repository.UserAccountRepository;
+import com.fitme.billing.service.ConsumerSubscriptionService;
 import com.fitme.common.config.FitMeProperties;
 import com.fitme.common.enums.ConsumerPlan;
 import com.fitme.common.enums.OutfitCoherenceMode;
@@ -23,6 +24,9 @@ class ConsumerEntitlementServiceTest {
     @Mock
     private UserAccountRepository userAccountRepository;
 
+    @Mock
+    private ConsumerSubscriptionService subscriptionService;
+
     private FitMeProperties properties;
     private ConsumerEntitlementService service;
 
@@ -32,7 +36,7 @@ class ConsumerEntitlementServiceTest {
         properties.getConsumer().setFreeCoherenceMode("off");
         properties.getConsumer().setPlusCoherenceMode("prefer");
         properties.getConsumer().setEntitlementEnabled(true);
-        service = new ConsumerEntitlementService(userAccountRepository, properties);
+        service = new ConsumerEntitlementService(userAccountRepository, subscriptionService, properties);
     }
 
     @Test
@@ -42,21 +46,27 @@ class ConsumerEntitlementServiceTest {
     }
 
     @Test
-    void plusUserGetsPreferCoherence() {
+    void proSubscriberGetsPreferCoherence() {
         UUID id = UUID.randomUUID();
-        when(userAccountRepository.findById(id)).thenReturn(Optional.of(
-                UserAccount.builder().id(id).consumerPlan(ConsumerPlan.PLUS).build()));
-        assertThat(service.resolvePlan(id)).isEqualTo(ConsumerPlan.PLUS);
-        assertThat(service.resolveCoherenceMode(ConsumerPlan.PLUS)).isEqualTo(OutfitCoherenceMode.PREFER);
+        when(subscriptionService.resolvePlan(id)).thenReturn(ConsumerPlan.PRO);
+        assertThat(service.resolvePlan(id)).isEqualTo(ConsumerPlan.PRO);
+        assertThat(service.resolveCoherenceMode(ConsumerPlan.PRO)).isEqualTo(OutfitCoherenceMode.PREFER);
     }
 
     @Test
-    void plusStrictOverrideWinsOverPreferDefault() {
+    void legacyPlusValueMapsToPro() {
+        assertThat(ConsumerPlan.fromValue("plus")).isEqualTo(ConsumerPlan.PRO);
+        assertThat(ConsumerPlan.fromValue(null)).isEqualTo(ConsumerPlan.FREE);
+    }
+
+    @Test
+    void proStrictOverrideWinsOverPreferDefault() {
         UUID id = UUID.randomUUID();
+        when(subscriptionService.resolvePlan(id)).thenReturn(ConsumerPlan.PRO);
         when(userAccountRepository.findById(id)).thenReturn(Optional.of(
                 UserAccount.builder()
                         .id(id)
-                        .consumerPlan(ConsumerPlan.PLUS)
+                        .consumerPlan(ConsumerPlan.PRO)
                         .coherenceModeOverride(OutfitCoherenceMode.STRICT)
                         .build()));
         assertThat(service.resolveCoherenceModeForUser(id)).isEqualTo(OutfitCoherenceMode.STRICT);
@@ -69,12 +79,12 @@ class ConsumerEntitlementServiceTest {
     }
 
     @Test
-    void plusPreferenceScaleIsStrongerThanFree() {
+    void proPreferenceScaleIsStrongerThanFree() {
         properties.getConsumer().setFreePreferenceScale(1.0);
         properties.getConsumer().setPlusPreferenceScale(1.75);
         assertThat(properties.getConsumer().getPlusPreferenceScale())
                 .isGreaterThan(properties.getConsumer().getFreePreferenceScale());
-        assertThat(service.resolveCoherenceMode(ConsumerPlan.PLUS)).isEqualTo(OutfitCoherenceMode.PREFER);
+        assertThat(service.resolveCoherenceMode(ConsumerPlan.PRO)).isEqualTo(OutfitCoherenceMode.PREFER);
         assertThat(service.resolveCoherenceMode(ConsumerPlan.FREE)).isEqualTo(OutfitCoherenceMode.OFF);
         // No RequestContext user → Free scale
         assertThat(service.resolvePreferenceScaleForCurrentUser()).isEqualTo(1.0);

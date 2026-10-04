@@ -55,6 +55,15 @@ public class Brand {
     @Column(name = "contact_phone")
     private String contactPhone;
 
+    @Column(name = "bank_name")
+    private String bankName;
+
+    @Column(name = "bank_account_number")
+    private String bankAccountNumber;
+
+    @Column(name = "bank_account_name")
+    private String bankAccountName;
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     @Builder.Default

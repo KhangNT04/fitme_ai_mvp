@@ -2,7 +2,7 @@
 
 [![CI](https://github.com/KhangNT04/fitme_ai_mvp/actions/workflows/ci.yml/badge.svg)](https://github.com/KhangNT04/fitme_ai_mvp/actions/workflows/ci.yml)
 
-Web app tư vấn thời trang cá nhân hóa bằng AI — gợi ý outfit, size, form, màu sắc, preview 2D minh họa, và chuyển hướng mua hàng qua kênh bán ngoài (Shopee/TikTok/website brand).
+Web app thời trang cá nhân hóa bằng AI dành cho Gen Z — tư vấn phối đồ, thử đồ AI với Fitken, gói FitMe Pro (49.000đ/tháng), nhận thưởng, thư viện ảnh outfit và mua sắm trực tiếp trong ứng dụng (giỏ hàng, thanh toán PayOS/COD, đối soát seller, vận đơn). Hỗ trợ song song kênh bán ngoài (Shopee/TikTok/website brand).
 
 ## Kiến trúc
 
@@ -24,21 +24,28 @@ Chi tiết: [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) · API: [`docs/API_CO
 ## Luồng 3 vai trò (MVP)
 
 ### USER (Người dùng)
-1. Đăng ký / đăng nhập tại `/auth/register`, `/auth/login`
-2. Tư vấn AI ẩn danh hoặc đã login — lưu profile, wardrobe, saved outfits
-3. Quản lý hồ sơ tại `/profile`, quyền riêng tư tại `/profile/privacy`
-4. Reset mật khẩu: `/auth/forgot-password` → `/auth/reset-password`
+1. Đăng ký / đăng nhập tại `/auth/register`, `/auth/login` (nhận ngay 5 Fitken dùng thử khi khởi tạo ví)
+2. Tư vấn AI và thử đồ AI với Fitken (`1 Fitken = 1 lượt thử đồ AI`)
+3. Mua gói FitMe Pro 49.000đ/tháng tại `/pricing` (15 Fitken + 2 voucher freeship + cá nhân hóa sâu)
+4. Tích lũy Fitken tại `/rewards` (chuỗi điểm danh 3 ngày +1, chia sẻ bài đăng +2, đánh giá có ảnh +3)
+5. Lưu trữ và xem lại outfit tại `/profile/gallery`
+6. Mua hàng in-app: thêm vào giỏ `/cart`, quản lý sổ địa chỉ `/profile/addresses`, thanh toán COD hoặc PayOS tại `/checkout`, theo dõi vận đơn tại `/orders`
 
-### BRAND_OWNER (Đối tác thương hiệu)
+### BRAND_OWNER (Đối tác thương hiệu / Seller)
 1. Đăng ký USER → gửi đơn tại `/brand/onboarding`
 2. Chờ admin duyệt — theo dõi tại `/brand/pending`
-3. Sau khi duyệt: **đăng xuất và đăng nhập lại** → portal `/brand/login`
-4. Quản lý sản phẩm, analytics, cài đặt brand
+3. Sau khi duyệt: **đăng xuất và đăng nhập lại** → portal `/brand/login` (dashboard **hoàn toàn miễn phí**, không thu phí gói brand)
+4. Quản lý catalog sản phẩm, xem analytics hành vi người dùng
+5. Xử lý đơn hàng seller tại `/brand/orders`: xác nhận, đóng gói, tạo vận đơn giao hàng
+6. Cài đặt tài khoản ngân hàng nhận tiền và theo dõi đối soát doanh thu tại `/brand/settlements`
 
 ### ADMIN
 1. Đăng nhập `/admin/login` (tài khoản seed hoặc DB)
 2. Duyệt brand (nâng role USER → BRAND_OWNER), duyệt/flag sản phẩm
-3. Quản lý rules, flagged links, privacy requests, try-on monitoring
+3. Giám sát đơn hàng toàn sàn (`/admin/orders`) và tạo kỳ đối soát seller (`/admin/settlements`)
+4. Quản lý duyệt bài đăng chia sẻ nhận thưởng (`/admin/rewards`) và kiểm duyệt đánh giá (`/admin/reviews`)
+5. Điều chỉnh ví Fitken người dùng và cấu hình gói dịch vụ consumer (`/admin/billing/plans`)
+6. Quản lý rules, flagged links, privacy requests, try-on monitoring
 
 **Tài khoản demo (seed):** `admin@fitme.ai`, `brand@fitme.ai`, `user@fitme.ai` / `fitme123`
 
@@ -154,11 +161,12 @@ Frontend: http://localhost:3000
 ## Luồng demo chính
 
 1. Vào trang chủ → **Bắt đầu tư vấn outfit** (không cần đăng nhập)
-2. Nhập thông tin cơ thể, gu thời trang, hoàn cảnh
-3. Xem kết quả gợi ý outfit + size/form/màu
-4. Bấm **Mua ngay** → xác nhận redirect → chuyển đến kênh bán
-5. Brand portal (`/brand/login`) — quản lý sản phẩm, xem analytics
-6. Admin portal (`/admin/login`) — duyệt brand/sản phẩm, quản lý rules
+2. Thử đồ AI (1 Fitken/lượt) hoặc mua gói FitMe Pro (49k/tháng) tại `/pricing`
+3. Tích lũy Fitken qua trang Nhận thưởng (`/rewards`: điểm danh, chia sẻ link, đánh giá có ảnh)
+4. Thêm sản phẩm vào giỏ hàng (`/cart`), đặt hàng COD / PayOS (`/checkout`), xem trạng thái đơn (`/orders`)
+5. Lưu outfit vào thư viện ảnh phối đồ cá nhân (`/profile/gallery`)
+6. Brand portal (`/brand/login`) — dashboard miễn phí, quản lý sản phẩm, xử lý đơn seller (`/brand/orders`), xem đối soát (`/brand/settlements`)
+7. Admin portal (`/admin/login`) — duyệt brand/sản phẩm, giám sát đơn hàng, tạo đối soát seller, duyệt thưởng & review
 
 ## Cấu trúc thư mục
 
@@ -177,15 +185,21 @@ Base path: `/api/v1`
 - `POST /sessions/anonymous` — tạo session ẩn danh
 - `GET /products` — danh sách sản phẩm
 - `POST /recommendations` — tạo gợi ý outfit
-- `POST /redirects/buy-click` — track click + redirect URL
+- `GET /me/fitken` — thông tin ví Fitken & gói Pro
+- `GET /plans` — danh sách gói cước consumer
+- `POST /me/subscription/checkout` — tạo thanh toán gói Pro qua PayOS
+- `GET|POST /rewards/**` — điểm danh, nộp link chia sẻ, tóm tắt nhận thưởng
+- `GET|POST|PATCH|DELETE /cart/**` — giỏ hàng in-app
+- `POST /orders` — đặt hàng trong app (COD / PayOS)
+- `POST /redirects/buy-click` — track click chuyển hướng mua ngoài (phương án phụ)
 - `POST /auth/login` — đăng nhập JWT
 - `POST /auth/register` → gửi mã xác nhận tới email (SMTP) → `POST /auth/verify-email`
 
 Header cho session ẩn danh: `X-Anonymous-Session: <token>`
 
-## Lưu ý MVP
+## Lưu ý sản phẩm
 
-- FitMe AI **không** xử lý thanh toán, đơn hàng, vận chuyển
+- FitMe AI hỗ trợ mua sắm in-app trực tiếp (giỏ hàng, thanh toán COD/PayOS, tách đơn seller, quản lý vận đơn và đối soát doanh thu), đồng thời vẫn giữ link chuyển hướng ngoài làm kênh bổ trợ.
 - Preview AI là **minh họa tham khảo**, không đảm bảo giống thật 100%
 - Analytics brand chỉ hiển thị dữ liệu **tổng hợp**, không expose ảnh/số đo người dùng
 

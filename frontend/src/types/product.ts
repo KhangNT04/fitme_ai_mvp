@@ -21,6 +21,16 @@ export interface ProductImageDetail {
   sortOrder: number;
 }
 
+/** Purchasable variant (color + size) with live stock. */
+export interface ProductVariant {
+  id: string;
+  colorName?: string;
+  colorHex?: string;
+  sizeLabel?: string;
+  sku?: string;
+  stockQuantity: number;
+}
+
 export interface Product {
   id: string;
   brandId: string;
@@ -39,6 +49,10 @@ export interface Product {
   styleTags: string[];
   occasionTags: string[];
   purchaseUrl: string;
+  /** True when the product can be bought in-app (cart / checkout). */
+  purchasable?: boolean;
+  /** Variants with ids + stock; only present when backend returns variant ids. */
+  variants?: ProductVariant[];
   stockStatus: StockStatus;
   status: ProductStatus;
   aiTryOnEligible: boolean;

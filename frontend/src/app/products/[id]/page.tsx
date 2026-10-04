@@ -24,6 +24,7 @@ import { useTryOnAddItem } from "@/hooks/use-tryon-add-item";
 import { productToTryOnItem } from "@/lib/tryon-product";
 import { PageShell } from "@/components/layout/PageShell";
 import { ProductPageBackLink } from "@/components/layout/ProductPageBackLink";
+import { ProductReviewsSection } from "@/components/review/ProductReviewsSection";
 import { PageSuspense } from "@/components/common/PageSuspense";
 import { cn } from "@/lib/utils";
 import { pageTitle, consumerPageShellClass, productDetailInfoColumnClass, productDetailSummaryClass } from "@/lib/design-tokens";
@@ -97,6 +98,9 @@ function ProductDetailContent({
       productId={product.id}
       aiTryOnEligible={product.aiTryOnEligible}
       onConsult={handleConsult}
+      purchasable={product.purchasable}
+      variants={product.variants}
+      purchaseUrl={product.purchaseUrl}
       onTryOn={fromTryOn && product.aiTryOnEligible ? handleTryOn : undefined}
     />
   );
@@ -188,6 +192,7 @@ function ProductDetailContent({
           </div>
         </ProductDetailLayout>
       </ProductImageGalleryProvider>
+      <ProductReviewsSection productId={product.id} />
     </PageShell>
   );
 }

@@ -2,7 +2,10 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { Sparkles, Search, Bookmark, Home, LogOut } from "lucide-react";
+import { Sparkles, Search, Bookmark, Home, LogOut, Coins, ShoppingCart, Gift } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import { fitkenApi } from "@/services/fitken-api";
+import { useCartQuery } from "@/hooks/use-cart";
 import { Button } from "@/components/ui/button";
 import { NavScrollLink } from "@/components/layout/NavScrollLink";
 import { PortalMenuButton } from "@/components/layout/PortalSidebar";
@@ -23,6 +26,7 @@ const navLinks = [
   { href: "/try-on", label: "Thử mặc AI" },
   { href: "/wardrobe", label: "Tủ đồ" },
   { href: "/saved-outfits", label: "Đã lưu" },
+  { href: "/rewards", label: "Nhận thưởng" },
 ];
 
 const navIconButtonClass =
@@ -130,6 +134,16 @@ export function Header() {
   const isAuthed = !!accessToken;
   const compactMobile = isCompactHeader(pathname);
 
+  const consumerAuthed = isAuthed && !isPortalAppRoute(pathname);
+
+  const { data: wallet } = useQuery({
+    queryKey: ["fitken-wallet"],
+    queryFn: () => fitkenApi.getWallet(),
+    enabled: consumerAuthed,
+  });
+
+  const { data: cart } = useCartQuery(consumerAuthed);
+
   if (isPortalAppRoute(pathname)) {
     return <PortalHeader />;
   }
@@ -167,9 +181,23 @@ export function Header() {
         <div className="hidden items-center gap-2 md:flex">
           <NavQuickSearch />
           {isAuthed ? (
-            <Button variant="outline" size="sm" asChild>
-              <NavScrollLink href="/profile">{user?.fullName || "Hồ sơ"}</NavScrollLink>
-            </Button>
+            <>
+              <Link href="/rewards" className="flex items-center gap-1.5 rounded-full bg-amber-100 px-3 py-1.5 text-sm font-medium text-amber-700 hover:bg-amber-200 transition-colors">
+                <Coins className="h-4 w-4" />
+                <span>{wallet?.balance ?? 0}</span>
+              </Link>
+              <Link href="/cart" className="relative flex h-9 w-9 items-center justify-center rounded-full text-muted-foreground hover:bg-muted hover:text-foreground transition-colors">
+                <ShoppingCart className="h-5 w-5" />
+                {cart && cart.itemCount > 0 && (
+                  <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-primary text-[10px] font-bold text-primary-foreground">
+                    {cart.itemCount}
+                  </span>
+                )}
+              </Link>
+              <Button variant="outline" size="sm" asChild>
+                <NavScrollLink href="/profile">{user?.fullName || "Hồ sơ"}</NavScrollLink>
+              </Button>
+            </>
           ) : (
             <>
               <Button variant="ghost" size="sm" asChild>
@@ -184,11 +212,32 @@ export function Header() {
 
         {compactMobile ? (
           <div className="flex items-center gap-0.5 md:hidden">
+            {isAuthed && (
+              <Link href="/cart" className="relative flex h-9 w-9 items-center justify-center rounded-full text-muted-foreground hover:bg-muted hover:text-foreground transition-colors">
+                <ShoppingCart className="h-[18px] w-[18px]" />
+                {cart && cart.itemCount > 0 && (
+                  <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-primary text-[10px] font-bold text-primary-foreground">
+                    {cart.itemCount}
+                  </span>
+                )}
+              </Link>
+            )}
             <NavQuickSaved />
             <NavQuickSearch />
           </div>
         ) : (
-          <div className="w-9 md:hidden" aria-hidden="true" />
+          <div className="flex items-center gap-1 md:hidden">
+            {isAuthed && (
+              <Link href="/cart" className="relative flex h-9 w-9 items-center justify-center rounded-full text-muted-foreground hover:bg-muted hover:text-foreground transition-colors">
+                <ShoppingCart className="h-[18px] w-[18px]" />
+                {cart && cart.itemCount > 0 && (
+                  <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-primary text-[10px] font-bold text-primary-foreground">
+                    {cart.itemCount}
+                  </span>
+                )}
+              </Link>
+            )}
+          </div>
         )}
       </div>
     </header>

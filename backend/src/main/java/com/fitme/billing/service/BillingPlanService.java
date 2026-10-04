@@ -4,6 +4,8 @@ import com.fitme.billing.dto.BillingPlanDto;
 import com.fitme.billing.dto.BillingPlanRequest;
 import com.fitme.billing.entity.BillingPlan;
 import com.fitme.billing.repository.BillingPlanRepository;
+import com.fitme.billing.repository.ConsumerBillingOrderRepository;
+import com.fitme.billing.repository.ConsumerSubscriptionRepository;
 import com.fitme.common.enums.BillingPlanType;
 import com.fitme.common.exception.BusinessException;
 import com.fitme.common.exception.NotFoundException;
@@ -19,6 +21,8 @@ import java.util.UUID;
 public class BillingPlanService {
 
     private final BillingPlanRepository planRepository;
+    private final ConsumerBillingOrderRepository orderRepository;
+    private final ConsumerSubscriptionRepository subscriptionRepository;
     private final BillingDtoMapper dtoMapper;
 
     public List<BillingPlanDto> listAll() {
@@ -43,17 +47,8 @@ public class BillingPlanService {
         if (planRepository.findByCode(request.getCode()).isPresent()) {
             throw new BusinessException("Mã gói đã tồn tại");
         }
-        BillingPlan plan = BillingPlan.builder()
-                .code(request.getCode())
-                .name(request.getName())
-                .planType(request.getPlanType())
-                .priceVnd(request.getPriceVnd())
-                .quotaAmount(request.getQuotaAmount())
-                .includesDashboard(request.isIncludesDashboard())
-                .billingPeriodDays(request.getBillingPeriodDays())
-                .active(request.isActive())
-                .sortOrder(request.getSortOrder())
-                .build();
+        BillingPlan plan = BillingPlan.builder().build();
+        apply(plan, request);
         return dtoMapper.toDto(planRepository.save(plan));
     }
 
@@ -66,15 +61,7 @@ public class BillingPlanService {
                 .ifPresent(existing -> {
                     throw new BusinessException("Mã gói đã tồn tại");
                 });
-        plan.setCode(request.getCode());
-        plan.setName(request.getName());
-        plan.setPlanType(request.getPlanType());
-        plan.setPriceVnd(request.getPriceVnd());
-        plan.setQuotaAmount(request.getQuotaAmount());
-        plan.setIncludesDashboard(request.isIncludesDashboard());
-        plan.setBillingPeriodDays(request.getBillingPeriodDays());
-        plan.setActive(request.isActive());
-        plan.setSortOrder(request.getSortOrder());
+        apply(plan, request);
         return dtoMapper.toDto(planRepository.save(plan));
     }
 
@@ -83,19 +70,36 @@ public class BillingPlanService {
         if (!planRepository.existsById(id)) {
             throw new NotFoundException("Gói không tồn tại");
         }
+        if (orderRepository.existsByPlanId(id) || subscriptionRepository.existsByPlanId(id)) {
+            throw new BusinessException("Gói đã có người mua — hãy tắt gói (active=false) thay vì xóa");
+        }
         planRepository.deleteById(id);
     }
 
+    private void apply(BillingPlan plan, BillingPlanRequest request) {
+        plan.setCode(request.getCode().trim());
+        plan.setName(request.getName().trim());
+        plan.setPlanType(planType(request));
+        plan.setPriceVnd(request.getPriceVnd());
+        plan.setQuotaAmount(request.getFitkenAmount());
+        plan.setFreeshipVouchers(request.getFreeshipVouchers());
+        plan.setFreeshipMaxDiscountVnd(request.getFreeshipMaxDiscountVnd());
+        plan.setBillingPeriodDays(request.getBillingPeriodDays());
+        plan.setActive(request.isActive());
+        plan.setSortOrder(request.getSortOrder());
+    }
+
     private void validateRequest(BillingPlanRequest request) {
-        if (request.getPlanType() == BillingPlanType.SUBSCRIPTION) {
-            if (!request.isIncludesDashboard()) {
-                throw new BusinessException("Gói tháng phải bao gồm dashboard");
-            }
+        if (planType(request) == BillingPlanType.SUBSCRIPTION) {
             if (request.getBillingPeriodDays() == null || request.getBillingPeriodDays() <= 0) {
                 throw new BusinessException("Gói tháng cần billingPeriodDays > 0");
             }
-        } else if (request.isIncludesDashboard()) {
-            throw new BusinessException("Gói top-up không được bao gồm dashboard");
+        } else if (request.getFreeshipVouchers() > 0) {
+            throw new BusinessException("Gói top-up Fitken không kèm voucher freeship");
         }
+    }
+
+    private static BillingPlanType planType(BillingPlanRequest request) {
+        return request.getPlanType() != null ? request.getPlanType() : BillingPlanType.SUBSCRIPTION;
     }
 }

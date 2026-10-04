@@ -23,23 +23,25 @@ Backend chịu trách nhiệm:
 - Quản lý session/account.
 - Lưu body/style profile.
 - Lưu wardrobe.
-- Quản lý brand/product catalog.
-- Kiểm tra product eligibility.
-- Sinh recommendation hoặc gọi recommendation engine.
+- Quản lý brand/product catalog và tồn kho biến thể.
+- Kiểm tra product eligibility (ACTIVE, còn hàng, có ảnh, link hợp lệ — không còn giới hạn quota theo brand).
+- Sinh recommendation hoặc gọi recommendation engine (hybrid rule + Gemini Flash).
+- Quản lý ví Fitken và ledger giao dịch (1 Fitken = 1 lượt thử đồ AI; tặng 5 Fitken dùng thử).
+- Quản lý gói cước consumer FitMe Pro (49.000đ/tháng), thanh toán subscription qua PayOS.
+- Quản lý trang Nhận thưởng (điểm danh chuỗi 3 ngày, chia sẻ bài đăng, đánh giá có ảnh).
+- Thư viện ảnh outfit cá nhân (`outfit_gallery_images`).
+- Thương mại điện tử in-app: giỏ hàng gom nhóm theo brand, sổ địa chỉ, đặt hàng (COD / PayOS), tách đơn seller, quản lý vận đơn và đối soát doanh thu seller (hoa hồng 10%).
 - Ghi nhận feedback.
-- Ghi nhận buy click trước khi redirect.
+- Ghi nhận buy click trước khi redirect (kênh mua ngoài phụ trợ).
 - Cung cấp analytics tổng hợp cho brand/admin.
 - Quản lý privacy/consent/upload/delete.
-- Quản lý admin moderation.
+- Quản lý admin moderation & commerce.
 
 Backend không xử lý:
 
-- Thanh toán
-- Đơn hàng
-- Vận chuyển
-- Hoàn trả
-- Chăm sóc khách hàng sau mua
-- Xác nhận đơn hàng thật trên Shopee/TikTok/website brand
+- Trực tiếp giao hàng vật lý (giao cho các đơn vị vận chuyển GHN/GHTK/ViettelPost qua webhook/vận đơn)
+- Chăm sóc khách hàng sau mua trực tiếp tại shop (shop tự quản lý qua seller portal)
+- Xác nhận đơn hàng trên Shopee/TikTok khi khách chọn mua qua kênh ngoài
 
 ---
 
@@ -74,8 +76,21 @@ src/main/java/com/fitme/
   brand/
   product/
   recommendation/
+  stylistchat/
   tryon/
   preview/
+  fitken/
+  billing/
+  rewards/
+  review/
+  gallery/
+  cart/
+  address/
+  order/
+  settlement/
+  logistics/
+  voucher/
+  entitlement/
   redirect/
   feedback/
   analytics/

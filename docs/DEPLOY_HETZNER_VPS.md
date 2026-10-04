@@ -278,8 +278,9 @@ Giống hệt bộ biến dùng cho Render (để có thể **failover qua lại
 | `FITME_AI_MODE` | `api` (khuyến nghị, FASHN) hoặc `hf` | Gọi service `ai-vton`. `api` = FASHN hosted API (`FASHN_API_KEY` đặt **trên `ai-vton`**, KHÔNG đặt ở backend). Xem [mục 7](#7-fashn-try-on-trên-hetzner-ai-vton) |
 | `AI_VTON_URL` | `http://ai-vton:8001` (tự host cùng VPS) hoặc `https://fitme-ai-vton.onrender.com` (giữ trên Render) | Xem [mục 7.1](#71-lựa-chọn-1--giữ-ai-vton-trên-render-đơn-giản-nhất) |
 | `PAYOS_MOCK` | `true`/`false` | Giống cấu hình Render đang dùng |
-| `PAYOS_RETURN_URL` / `PAYOS_CANCEL_URL` | trỏ về Vercel | |
-| `PAYOS_CLIENT_ID` / `PAYOS_API_KEY` / `PAYOS_CHECKSUM_KEY` | chỉ khi `PAYOS_MOCK=false` | |
+| `PAYOS_SUBSCRIPTION_RETURN_URL` / `PAYOS_SUBSCRIPTION_CANCEL_URL` | trỏ về Vercel (`/billing/return`) | Cho thanh toán gói FitMe Pro 49k/tháng |
+| `PAYOS_ORDER_RETURN_URL` / `PAYOS_ORDER_CANCEL_URL` | trỏ về Vercel (`/orders/return`) | Cho thanh toán đơn hàng in-app |
+| `PAYOS_CLIENT_ID` / `PAYOS_API_KEY` / `PAYOS_CHECKSUM_KEY` | chỉ khi `PAYOS_MOCK=false` | Lấy từ my.payos.vn |
 
 Template đầy đủ có sẵn: [`deploy/hetzner/.env.hetzner.example`](../deploy/hetzner/.env.hetzner.example) (mọi biến trong bảng trên, kèm chú thích `[Render]`/`[VPS-only]`). Template chung cho các platform cloud khác: [`.env.cloud.example`](../.env.cloud.example).
 
@@ -453,7 +454,7 @@ docker compose -f docker-compose.hetzner.yml stop
 
 ### 8.4. ⚠️ Cảnh báo — chỉ MỘT backend ghi Neon tại một thời điểm
 
-**Không** chạy đồng thời VPS và Render cùng trỏ vào một Neon database với traffic thật (2 backend cùng ghi có thể đụng seed/migration, tạo race condition trên dữ liệu billing/try-on quota). Luôn đảm bảo backend không nhận traffic đã được `stop` hẳn nếu nghi ngờ nó vẫn có thể tự chạy job nền.
+**Không** chạy đồng thời VPS và Render cùng trỏ vào một Neon database với traffic thật (2 backend cùng ghi có thể đụng seed/migration, tạo race condition trên dữ liệu billing/đơn hàng/Fitken). Luôn đảm bảo backend không nhận traffic đã được `stop` hẳn nếu nghi ngờ nó vẫn có thể tự chạy job nền.
 
 ### 8.5. Diễn tập failover định kỳ (khuyến nghị)
 

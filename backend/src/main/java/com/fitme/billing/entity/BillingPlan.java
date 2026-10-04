@@ -9,6 +9,7 @@ import org.hibernate.annotations.UpdateTimestamp;
 import java.time.Instant;
 import java.util.UUID;
 
+/** Consumer plan (FitMe Pro). {@code quotaAmount} is the Fitken granted per purchase/period. */
 @Entity
 @Table(name = "billing_plans")
 @Getter
@@ -38,9 +39,13 @@ public class BillingPlan {
     @Column(name = "quota_amount", nullable = false)
     private int quotaAmount;
 
-    @Column(name = "includes_dashboard", nullable = false)
+    @Column(name = "freeship_vouchers", nullable = false)
     @Builder.Default
-    private boolean includesDashboard = false;
+    private int freeshipVouchers = 0;
+
+    @Column(name = "freeship_max_discount_vnd", nullable = false)
+    @Builder.Default
+    private long freeshipMaxDiscountVnd = 30000;
 
     @Column(name = "billing_period_days")
     private Integer billingPeriodDays;

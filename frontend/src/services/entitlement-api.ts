@@ -1,11 +1,12 @@
 import apiClient, { unwrap } from "./api-client";
 
-export type ConsumerPlan = "FREE" | "PLUS";
+export type ConsumerPlan = "FREE" | "PRO";
 export type OutfitCoherenceMode = "OFF" | "PREFER" | "STRICT";
 
 export interface ConsumerEntitlement {
   plan: ConsumerPlan;
   coherenceMode: OutfitCoherenceMode;
+  pro: boolean;
   plus: boolean;
   label: string;
   mixPolicy: string;
@@ -15,6 +16,7 @@ export interface ConsumerEntitlement {
 interface BackendEntitlement {
   plan: string;
   coherenceMode: string;
+  pro: boolean;
   plus: boolean;
   label: string;
   mixPolicy: string;
@@ -23,10 +25,11 @@ interface BackendEntitlement {
 
 function mapEntitlement(data: BackendEntitlement): ConsumerEntitlement {
   return {
-    plan: data.plan === "PLUS" ? "PLUS" : "FREE",
+    plan: data.plan === "PRO" ? "PRO" : "FREE",
     coherenceMode: (data.coherenceMode || "OFF") as OutfitCoherenceMode,
+    pro: Boolean(data.pro),
     plus: Boolean(data.plus),
-    label: data.label || (data.plus ? "FitMe Plus" : "FitMe Free"),
+    label: data.label || (data.pro ? "FitMe Pro" : "FitMe Free"),
     mixPolicy: data.mixPolicy || "",
     upsellMessage: data.upsellMessage,
   };
@@ -39,14 +42,4 @@ export const entitlementApi = {
   },
   /** Alias used by pricing / upsell banners. */
   get: async (): Promise<ConsumerEntitlement> => entitlementApi.getCurrent(),
-  setPlan: async (
-    plan: ConsumerPlan,
-    coherenceMode?: OutfitCoherenceMode,
-  ): Promise<ConsumerEntitlement> => {
-    const res = await apiClient.put("/me/entitlement", {
-      plan,
-      ...(coherenceMode ? { coherenceMode } : {}),
-    });
-    return mapEntitlement(unwrap(res));
-  },
 };

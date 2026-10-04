@@ -41,6 +41,10 @@ public class ProductVariant {
     @Builder.Default
     private StockStatus stockStatus = StockStatus.IN_STOCK;
 
+    @Column(name = "stock_quantity", nullable = false)
+    @Builder.Default
+    private int stockQuantity = 100;
+
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;

@@ -244,6 +244,7 @@ public class ProductService {
                         .sizeLabel(v.getSizeLabel())
                         .sku(v.getSku())
                         .stockStatus(v.getStockStatus() != null ? v.getStockStatus() : com.fitme.common.enums.StockStatus.IN_STOCK)
+                        .stockQuantity(v.getStockQuantity() != null ? Math.max(0, v.getStockQuantity()) : 100)
                         .build());
             }
         }
@@ -339,12 +340,17 @@ public class ProductService {
                 .sponsored(product.isSponsored())
                 .aiTryOnEligible(product.isAiTryOnEligible())
                 .canShowBuyButton(eligibilityService.canShowBuyButton(product))
+                .purchasable(product.getStatus() == ProductStatus.ACTIVE
+                        && product.getPrice() != null
+                        && product.getPrice().signum() >= 0
+                        && variantRepository.findByProductId(productId).stream().anyMatch(v -> v.getStockQuantity() > 0))
                 .images(imageRepository.findByProductIdOrderBySortOrderAsc(productId).stream()
                         .map(i -> ProductImageDto.builder().imageUrl(i.getImageUrl()).imageType(i.getImageType()).sortOrder(i.getSortOrder()).build())
                         .toList())
                 .variants(variantRepository.findByProductId(productId).stream()
-                        .map(v -> ProductVariantDto.builder().colorName(v.getColorName()).colorHex(v.getColorHex())
-                                .sizeLabel(v.getSizeLabel()).sku(v.getSku()).stockStatus(v.getStockStatus()).build())
+                        .map(v -> ProductVariantDto.builder().id(v.getId()).colorName(v.getColorName()).colorHex(v.getColorHex())
+                                .sizeLabel(v.getSizeLabel()).sku(v.getSku()).stockStatus(v.getStockStatus())
+                                .stockQuantity(v.getStockQuantity()).build())
                         .toList())
                 .tags(tagRepository.findByProductId(productId).stream()
                         .map(t -> ProductTagDto.builder().tagType(t.getTagType()).tagValue(t.getTagValue()).build())

@@ -1,12 +1,13 @@
 import { test, expect } from "@playwright/test";
 import { getFirstProductIdFromTryOnHub, fillTryOnInputMetrics, waitForTryOnResult } from "./helpers/tryon";
 import { ensureSessionViaHome } from "./helpers/consultation";
+import { loginUser } from "./helpers/auth";
 
 test.describe("Try-on flow", () => {
   test.setTimeout(120_000);
 
   test("select item → input → processing → result", async ({ page }) => {
-    await ensureSessionViaHome(page);
+    await loginUser(page);
     const productId = await getFirstProductIdFromTryOnHub(page);
 
     await page.goto(`/try-on?product=${productId}`);
@@ -82,7 +83,7 @@ test.describe("Try-on flow", () => {
   });
 
   test("user photo mode → upload → processing → result", async ({ page }) => {
-    await ensureSessionViaHome(page);
+    await loginUser(page);
     const productId = await getFirstProductIdFromTryOnHub(page);
     await page.goto(`/try-on?product=${productId}`);
 

@@ -6,7 +6,6 @@ import { PortalAdminPage } from "@/components/portal/PortalAdminPage";
 import {
   PortalActionButton,
   PortalActionGroup,
-  PortalActionLink,
 } from "@/components/portal/PortalActionButton";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -64,7 +63,7 @@ export default function AdminBrandsPage() {
   return (
     <PortalAdminPage
       title="Quản lý thương hiệu"
-      description="Duyệt đăng ký mới và quản lý trạng thái brand."
+      description="Duyệt đăng ký seller mới và quản lý trạng thái brand trên marketplace."
       isLoading={isLoading}
       error={error}
       onRetry={() => refetch()}
@@ -81,16 +80,10 @@ export default function AdminBrandsPage() {
                   <div className="min-w-0">
                     <p className="font-medium text-foreground">{b.name}</p>
                     <p className="mt-1 truncate text-sm text-muted-foreground">{b.contactEmail ?? "—"}</p>
-                    <p className="mt-1 text-xs text-muted-foreground">
-                      Lượt: {b.totalQuotaRemaining ?? 0} · Gói: {b.activePlanName ?? "—"}
-                    </p>
                   </div>
                   <Badge variant="outline">{b.status}</Badge>
                 </div>
                 <PortalActionGroup className={portalCardActionsClass}>
-                  <PortalActionLink href={`/admin/billing/brands/${b.id}`} variant="analytics">
-                    Gói & lượt
-                  </PortalActionLink>
                   {b.status === "PENDING" && (
                     <>
                       <PortalActionButton variant="approve" onClick={() => approve.mutate(b.id)}>
@@ -117,8 +110,6 @@ export default function AdminBrandsPage() {
                 <th className={portalTableThClass}>Tên</th>
                 <th className={portalTableThClass}>Email liên hệ</th>
                 <th className={portalTableThClass}>Trạng thái</th>
-                <th className={portalTableThClass}>Lượt còn</th>
-                <th className={portalTableThClass}>Gói</th>
                 <th className={portalTableThClass}>Thao tác</th>
               </tr>
             </PortalDataTableHead>
@@ -130,13 +121,8 @@ export default function AdminBrandsPage() {
                   <td className={portalTableTdClass}>
                     <Badge variant="outline">{b.status}</Badge>
                   </td>
-                  <td className={portalTableTdClass}>{b.totalQuotaRemaining ?? "—"}</td>
-                  <td className={portalTableTdClass}>{b.activePlanName ?? "—"}</td>
                   <td className={portalTableTdClass}>
                     <PortalActionGroup className={portalTableActionsClass}>
-                      <PortalActionLink href={`/admin/billing/brands/${b.id}`} variant="analytics">
-                        Gói & lượt
-                      </PortalActionLink>
                       {b.status === "PENDING" && (
                         <>
                           <PortalActionButton variant="approve" onClick={() => approve.mutate(b.id)}>

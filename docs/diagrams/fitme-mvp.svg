@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 800" width="1200" height="800" font-family="Segoe UI, Helvetica, Arial, sans-serif">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#14121c"/>
+    </marker>
+    <linearGradient id="gemini" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#4285F4"/>
+      <stop offset="0.55" stop-color="#9B72CB"/>
+      <stop offset="1" stop-color="#D96570"/>
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="800" fill="#faf8f5"/>
+<rect x="40" y="24" width="1120" height="64" rx="18" fill="#7c3aed"/>
+<text x="600" y="66" text-anchor="middle" font-size="28" font-weight="700" fill="#ffffff">The MVP — FitMe AI</text>
+<path d="M330,690 A270,270 0 0 1 60,420 L220,420 A110,110 0 0 0 330,530 Z" fill="#d6d2dc" stroke="#ffffff" stroke-width="4"/>
+<path d="M60,420 A270,270 0 0 1 330,150 L330,310 A110,110 0 0 0 220,420 Z" fill="#e4e1e8" stroke="#ffffff" stroke-width="4"/>
+<text x="196" y="548" text-anchor="middle" font-size="14" font-weight="700" fill="#6b6578">Phase B</text>
+<text x="196" y="567" text-anchor="middle" font-size="12.5" font-weight="400" fill="#6b6578">Paid Plus · trial</text>
+<text x="196" y="280" text-anchor="middle" font-size="14" font-weight="700" fill="#6b6578">Phase C</text>
+<text x="196" y="299" text-anchor="middle" font-size="12.5" font-weight="400" fill="#6b6578">B2B insights · capsule</text>
+<g stroke="#ffffff" stroke-width="4">
+<path d="M330,170 A250,250 0 0 1 506.78,243.22 L407.78,342.22 A110,110 0 0 0 330,310 Z" fill="#8b5cf6"/>
+<path d="M506.78,243.22 A250,250 0 0 1 580,420 L440,420 A110,110 0 0 0 407.78,342.22 Z" fill="#7c3aed"/>
+<path d="M580,420 A250,250 0 0 1 506.78,596.78 L407.78,497.78 A110,110 0 0 0 440,420 Z" fill="#8b5cf6"/>
+<path d="M506.78,596.78 A250,250 0 0 1 330,670 L330,530 A110,110 0 0 0 407.78,497.78 Z" fill="#7c3aed"/>
+</g>
+<text x="399" y="248" text-anchor="middle" font-size="14" font-weight="700" fill="#ffffff">Profile</text><text x="399" y="266" text-anchor="middle" font-size="14" font-weight="700" fill="#ffffff">&amp; vibe</text>
+<text x="496" y="346" text-anchor="middle" font-size="14" font-weight="700" fill="#ffffff">AI stylist</text><text x="496" y="364" text-anchor="middle" font-size="14" font-weight="700" fill="#ffffff">&amp; size</text>
+<text x="496" y="484" text-anchor="middle" font-size="14" font-weight="700" fill="#ffffff">AI</text><text x="496" y="502" text-anchor="middle" font-size="14" font-weight="700" fill="#ffffff">try-on</text>
+<text x="399" y="582" text-anchor="middle" font-size="14" font-weight="700" fill="#ffffff">Buy &amp;</text><text x="399" y="600" text-anchor="middle" font-size="14" font-weight="700" fill="#ffffff">feedback</text>
+<path d="M330,150 A270,270 0 0 1 330,690 L330,670 A250,250 0 0 0 330,170 Z" fill="#14121c"/>
+<circle cx="330" cy="420" r="108" fill="#f472b6"/><circle cx="330" cy="420" r="80" fill="#ffffff"/>
+<text x="330" y="332" text-anchor="middle" font-size="13" font-weight="700" fill="#ffffff" letter-spacing="1.5">DATA</text>
+<text x="330" y="402" text-anchor="middle" font-size="13.5" font-weight="600" fill="#14121c">Body profile</text>
+<text x="330" y="424" text-anchor="middle" font-size="13.5" font-weight="600" fill="#14121c">Catalog brand</text>
+<text x="330" y="446" text-anchor="middle" font-size="13.5" font-weight="600" fill="#14121c">Feedback</text>
+<text x="640" y="152" font-size="21" fill="#7c3aed">Body profile + Vibe quiz</text>
+<line x1="640" y1="178" x2="1160" y2="178" stroke="#14121c" stroke-width="1.4"/>
+<text x="900" y="172" text-anchor="middle" font-size="12" font-weight="700" fill="#14121c" letter-spacing="0.6">CHANNEL &amp; ONBOARDING VALIDATION</text>
+<g stroke="#14121c" stroke-width="1.8" fill="none"><rect x="727" y="196" width="26" height="42" rx="5"/><line x1="736" y1="232" x2="744" y2="232"/><rect x="826" y="200" width="48" height="32" rx="3"/><line x1="826" y1="210" x2="874" y2="210"/><line x1="842" y1="238" x2="858" y2="238"/><line x1="850" y1="232" x2="850" y2="238"/><path d="M960,198 L980,205 L980,219 C980,230 971,236 960,240 C949,236 940,230 940,219 L940,205 Z"/><path d="M952,219 L958,225 L969,212"/></g>
+<rect x="1050" y="198" width="40" height="40" rx="9" fill="#f3f1f6"/><svg x="1057.2" y="205.2" width="25.6" height="25.6" viewBox="0 0 24 24"><path fill="#000000" d="M14.679 0c4.648 0 7.413 2.765 7.413 6.434s-2.765 6.434-7.413 6.434H12.33L24 24h-8.245l-8.88-8.44c-.636-.588-.93-1.273-.93-1.86 0-.831.587-1.565 1.713-1.883l4.574-1.224c1.737-.465 2.936-1.81 2.936-3.572 0-2.153-1.761-3.4-3.939-3.4H0V0z"/></svg>
+<text x="740" y="258" text-anchor="middle" font-size="12" font-weight="600" fill="#14121c">Mobile web</text><text x="740" y="273" text-anchor="middle" font-size="10.5" fill="#6b6578">Gen Z users</text>
+<text x="850" y="258" text-anchor="middle" font-size="12" font-weight="600" fill="#14121c">Brand portal</text><text x="850" y="273" text-anchor="middle" font-size="10.5" fill="#6b6578">catalog · billing</text>
+<text x="960" y="258" text-anchor="middle" font-size="12" font-weight="600" fill="#14121c">Admin portal</text><text x="960" y="273" text-anchor="middle" font-size="10.5" fill="#6b6578">moderation</text>
+<text x="1070" y="258" text-anchor="middle" font-size="12" font-weight="600" fill="#14121c">Email verify</text><text x="1070" y="273" text-anchor="middle" font-size="10.5" fill="#6b6578">code · Resend</text>
+<svg x="640" y="322" width="22" height="22" viewBox="0 0 24 24"><path fill="url(#gemini)" d="M11.04 19.32Q12 21.51 12 24q0-2.49.93-4.68.96-2.19 2.58-3.81t3.81-2.55Q21.51 12 24 12q-2.49 0-4.68-.93a12.3 12.3 0 0 1-3.81-2.58 12.3 12.3 0 0 1-2.58-3.81Q12 2.49 12 0q0 2.49-.96 4.68-.93 2.19-2.55 3.81a12.3 12.3 0 0 1-3.81 2.58Q2.49 12 0 12q2.49 0 4.68.96 2.19.93 3.81 2.55t2.55 3.81"/></svg>
+<text x="670" y="340" font-size="21" fill="#7c3aed">AI Stylist · Gemini + rule fallback</text>
+<text x="640" y="388" font-size="21" fill="#7c3aed">Size from body measurements &amp; size chart</text>
+<svg x="640" y="418" width="22" height="22" viewBox="0 0 400 400"><rect width="400" height="400" rx="80" fill="#1A1A1A"/>
+<path d="M73.2702 101.847L123.59 85C123.59 97.2411 128.432 108.981 137.05 117.637C145.668 126.292 157.357 131.155 169.545 131.155C181.733 131.155 193.421 126.292 202.039 117.637C210.657 108.981 215.499 97.2411 215.499 85L265.819 101.847C271.019 103.587 275.428 107.136 278.251 111.855C281.074 116.573 282.125 122.15 281.214 127.578L274.55 167.618C274.113 170.328 272.727 172.793 270.643 174.57C268.558 176.347 265.911 177.318 263.177 177.31H238.476V292.698C238.476 305.391 228.136 315.776 215.499 315.776H123.59C117.496 315.776 111.652 313.344 107.343 309.016C103.034 304.689 100.613 298.819 100.613 292.698V177.31H75.9126C73.1785 177.318 70.5313 176.347 68.4466 174.57C66.3619 172.793 64.9763 170.328 64.5389 167.618L57.8755 127.578C56.9642 122.15 58.0148 116.573 60.8378 111.855C63.6608 107.136 68.0703 103.587 73.2702 101.847Z" stroke="#FAFAFA" stroke-width="10" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M133.737 101.847L184.057 85C184.057 97.2411 188.898 108.981 197.516 117.637C206.134 126.292 217.823 131.155 230.011 131.155C242.199 131.155 253.887 126.292 262.506 117.637C271.124 108.981 275.965 97.2411 275.965 85L326.285 101.847C331.485 103.587 335.895 107.136 338.718 111.855C341.541 116.573 342.591 122.15 341.68 127.578L335.017 167.618C334.579 170.328 333.194 172.793 331.109 174.57C329.024 176.347 326.377 177.318 323.643 177.31H298.943V292.698C298.943 305.391 288.603 315.776 275.965 315.776H184.057C177.963 315.776 172.118 313.344 167.809 309.016C163.5 304.689 161.079 298.819 161.079 292.698V177.31H136.379C133.645 177.318 130.998 176.347 128.913 174.57C126.828 172.793 125.443 170.328 125.005 167.618L118.342 127.578C117.43 122.15 118.481 116.573 121.304 111.855C124.127 107.136 128.537 103.587 133.737 101.847Z" stroke="#FAFAFA" stroke-width="10" stroke-linecap="round" stroke-linejoin="round"/></svg>
+<text x="670" y="436" font-size="21" fill="#7c3aed">AI try-on · FASHN API</text>
+<text x="640" y="484" font-size="21" fill="#7c3aed">Buy redirect · wardrobe · spending · likes</text>
+<line x1="640" y1="548" x2="1160" y2="548" stroke="#14121c" stroke-width="1.4"/>
+<text x="900" y="542" text-anchor="middle" font-size="12" font-weight="700" fill="#14121c" letter-spacing="0.6">RECOMMENDATION VALUE VALIDATION</text>
+<text x="640" y="584" font-size="21" fill="#7c3aed">FitMe Free vs FitMe Plus</text>
+<text x="640" y="606" font-size="13.5" fill="#6b6578">Free: mix brands to explore · Plus: prefer same brand / partner brands</text>
+<rect x="640" y="630" width="160" height="50" rx="10" fill="#ffffff" stroke="#d9d3cb"/><text x="656" y="651" font-size="12.5" font-weight="700" fill="#14121c">CTR +10%</text><text x="656" y="668" font-size="11" fill="#6b6578">vs rule-only baseline</text>
+<rect x="812" y="630" width="160" height="50" rx="10" fill="#ffffff" stroke="#d9d3cb"/><text x="828" y="651" font-size="12.5" font-weight="700" fill="#14121c">VTON &gt; 85%</text><text x="828" y="668" font-size="11" fill="#6b6578">try-on success rate</text>
+<rect x="984" y="630" width="176" height="50" rx="10" fill="#ffffff" stroke="#d9d3cb"/><text x="1000" y="651" font-size="12.5" font-weight="700" fill="#14121c">Fallback &lt; 5%</text><text x="1000" y="668" font-size="11" fill="#6b6578">Gemini falling back to rules</text>
+<g font-size="12.5" fill="#14121c"><rect x="80" y="722" width="16" height="16" rx="3" fill="#7c3aed"/><text x="104" y="735">In MVP</text><rect x="220" y="722" width="16" height="16" rx="3" fill="#d6d2dc"/><text x="244" y="735">Later phases</text><rect x="370" y="722" width="16" height="16" rx="8" fill="#f472b6"/><text x="394" y="735">Shared data layer</text></g>
+<rect x="40" y="776" width="1120" height="8" rx="4" fill="#f472b6"/>
+</svg>

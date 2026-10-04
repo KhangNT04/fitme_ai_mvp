@@ -1,5 +1,7 @@
 # FitMe AI — Báo cáo kiểm thử deploy & gap EXE201
 
+> **Lưu ý:** Dự án đã chuyển đổi mô hình kinh doanh sang B2C (FitMe Pro 49k/tháng, Fitken, in-app commerce, brand dashboard free) theo [`docs/B2C_PIVOT_PLAN.md`](./B2C_PIVOT_PLAN.md). Nội dung báo cáo này phản ánh trạng thái lịch sử.
+
 **Ngày:** 2026-09-06  
 **URL test:** https://fitme-ai-mvp.vercel.app/  
 **Phương pháp:** Browser + API live; ảnh test `OneDrive/Hình ảnh/test FITME` (`test_vton_ai.png`, `ao_viet_nam_test.jpg`)  

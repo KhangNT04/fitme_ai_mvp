@@ -34,7 +34,27 @@ class TryOnPreviewModeIntegrationTest extends AbstractIntegrationTest {
                 }
                 """);
         addItem(sessionToken, requestId, product);
-        generateAndAssertCompleted(sessionToken, requestId, "OUTFIT_BOARD");
+        generateAndAssertCompleted(sessionToken, null, requestId, "OUTFIT_BOARD");
+    }
+
+    @Test
+    void avatarMode_anonymous_requiresLogin() throws Exception {
+        Product product = testDataHelper.createEligibleProduct("Anon avatar top", "Áo thun");
+        String sessionToken = createAnonymousSessionToken();
+        String requestId = createTryOn(sessionToken, """
+                {
+                  "previewMode": "AVATAR",
+                  "avatarKey": "avatar-female-1",
+                  "heightCm": 165,
+                  "weightKg": 55
+                }
+                """);
+        addItem(sessionToken, requestId, product);
+
+        mockMvc.perform(post("/api/v1/try-on/requests/{id}/generate", requestId)
+                        .header(SESSION_HEADER, sessionToken))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.errorCode").value("LOGIN_REQUIRED"));
     }
 
     @Test
@@ -50,7 +70,7 @@ class TryOnPreviewModeIntegrationTest extends AbstractIntegrationTest {
                 }
                 """);
         addItem(sessionToken, requestId, product);
-        generateAndAssertCompleted(sessionToken, requestId, "AVATAR");
+        generateAndAssertCompleted(sessionToken, registerUserAccessToken(), requestId, "AVATAR");
     }
 
     @Test
@@ -68,7 +88,7 @@ class TryOnPreviewModeIntegrationTest extends AbstractIntegrationTest {
                 }
                 """.formatted(photoUploadId));
         addItem(sessionToken, requestId, product);
-        generateAndAssertCompleted(sessionToken, requestId, "USER_PHOTO_2D");
+        generateAndAssertCompleted(sessionToken, registerUserAccessToken(), requestId, "USER_PHOTO_2D");
     }
 
     @Test
@@ -146,10 +166,14 @@ class TryOnPreviewModeIntegrationTest extends AbstractIntegrationTest {
                 .andExpect(status().isOk());
     }
 
-    private void generateAndAssertCompleted(String sessionToken, String requestId, String previewType)
-            throws Exception {
-        mockMvc.perform(post("/api/v1/try-on/requests/{id}/generate", requestId)
-                        .header(SESSION_HEADER, sessionToken))
+    private void generateAndAssertCompleted(String sessionToken, String accessToken, String requestId,
+                                            String previewType) throws Exception {
+        var generate = post("/api/v1/try-on/requests/{id}/generate", requestId)
+                .header(SESSION_HEADER, sessionToken);
+        if (accessToken != null) {
+            generate.header("Authorization", "Bearer " + accessToken);
+        }
+        mockMvc.perform(generate)
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.status").value("COMPLETED"))
                 .andExpect(jsonPath("$.data.previewType").value(previewType));

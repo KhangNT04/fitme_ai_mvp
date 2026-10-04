@@ -13,8 +13,16 @@ import {
   LogOut,
   Pencil,
   Wallet,
+  Gift,
+  Image as ImageIcon,
+  Ticket,
+  Package,
+  MapPin,
+  Coins,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import { fitkenApi } from "@/services/fitken-api";
 import { useAuthStore } from "@/stores/auth-store";
 import { useSavedProfiles } from "@/hooks/use-saved-profiles";
 import { Button } from "@/components/ui/button";
@@ -30,6 +38,41 @@ import type { UserRole } from "@/types/auth";
 
 const hubLinks = [
   {
+    href: "/rewards",
+    label: "Nhận thưởng",
+    description: "Nhiệm vụ & Fitken",
+    icon: Gift,
+    accent: "bg-amber-500/10 text-amber-700",
+  },
+  {
+    href: "/profile/gallery",
+    label: "Thư viện ảnh",
+    description: "Ảnh AI Try-on",
+    icon: ImageIcon,
+    accent: "bg-pink-500/10 text-pink-700",
+  },
+  {
+    href: "/rewards?tab=vouchers",
+    label: "Voucher",
+    description: "Mã giảm giá của bạn",
+    icon: Ticket,
+    accent: "bg-emerald-500/10 text-emerald-700",
+  },
+  {
+    href: "/orders",
+    label: "Đơn hàng của tôi",
+    description: "Theo dõi đơn hàng",
+    icon: Package,
+    accent: "bg-blue-500/10 text-blue-700",
+  },
+  {
+    href: "/profile/addresses",
+    label: "Địa chỉ giao hàng",
+    description: "Quản lý địa chỉ",
+    icon: MapPin,
+    accent: "bg-orange-500/10 text-orange-700",
+  },
+  {
     href: "/wardrobe",
     label: "Tủ đồ",
     description: "Quản lý item cá nhân",
@@ -37,16 +80,9 @@ const hubLinks = [
     accent: "bg-violet-500/10 text-violet-700",
   },
   {
-    href: "/profile/purchases",
-    label: "Tủ chi tiêu",
-    description: "Click mua & nơi mua lại",
-    icon: Wallet,
-    accent: "bg-amber-500/10 text-amber-700",
-  },
-  {
     href: "/pricing",
-    label: "FitMe Free & Plus",
-    description: "Demo toggle gói curated brand",
+    label: "FitMe Free & Pro",
+    description: "Quản lý gói cước",
     icon: Sparkles,
     accent: "bg-sky-500/10 text-sky-700",
   },
@@ -205,6 +241,12 @@ export default function ProfilePage() {
   const { user, isAuthenticated, logout } = useAuthStore();
   const { bodyProfile, isLoading: profilesLoading } =
     useSavedProfiles({ enabled: isAuthenticated() });
+  
+  const { data: wallet } = useQuery({
+    queryKey: ["fitken-wallet"],
+    queryFn: () => fitkenApi.getWallet(),
+    enabled: isAuthenticated(),
+  });
 
   if (!isAuthenticated()) {
     return <GuestProfilePrompt />;
@@ -242,6 +284,16 @@ export default function ProfilePage() {
                 <Badge variant="secondary" className="px-2 py-0 text-[10px] sm:text-xs">
                   {roleLabel}
                 </Badge>
+                {wallet && (
+                  <Badge variant="default" className="px-2 py-0 text-[10px] sm:text-xs bg-amber-500 hover:bg-amber-600 text-white">
+                    <Coins className="mr-1 h-3 w-3" /> {wallet.balance} Fitken
+                  </Badge>
+                )}
+                {wallet && (
+                  <Badge variant="outline" className="px-2 py-0 text-[10px] sm:text-xs border-primary text-primary">
+                    Gói {wallet.plan === "PRO" ? "Pro" : "Free"}
+                  </Badge>
+                )}
                 {hasBody && bodyProfile && (
                   <Badge variant="outline" className="px-2 py-0 text-[10px] sm:text-xs">
                     {bodyProfile.heightCm} cm · {bodyProfile.weightKg} kg

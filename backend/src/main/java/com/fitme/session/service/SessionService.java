@@ -4,6 +4,7 @@ import com.fitme.common.config.FitMeProperties;
 import com.fitme.common.exception.BusinessException;
 import com.fitme.common.exception.NotFoundException;
 import com.fitme.common.security.RequestContext;
+import com.fitme.gallery.service.GalleryService;
 import com.fitme.recommendation.entity.OutfitRequest;
 import com.fitme.recommendation.entity.Recommendation;
 import com.fitme.recommendation.repository.OutfitRequestRepository;
@@ -38,6 +39,7 @@ public class SessionService {
     private final RecommendationRepository recommendationRepository;
     private final OutfitRequestRepository outfitRequestRepository;
     private final TryOnRequestRepository tryOnRequestRepository;
+    private final GalleryService galleryService;
     private final FitMeProperties properties;
 
     @Transactional
@@ -70,6 +72,7 @@ public class SessionService {
         }
         UUID sessionId = session.getId();
         migrateSessionDataToUser(sessionId, userId);
+        galleryService.claimSessionTryOns(sessionId, userId);
         session.setLinkedUserId(userId);
         session.setLastSeenAt(Instant.now());
         sessionRepository.save(session);

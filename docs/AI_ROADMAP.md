@@ -34,7 +34,7 @@ Ma trận ưu tiên và lộ trình 4 phase cho AI trong FitMe.
 
 ## Phase 2.5 — Gemini AI Stylist (hybrid) ✅
 
-**Mục tiêu:** Gemini Flash chọn outfit + sinh lời giải thích tiếng Việt từ danh sách sản phẩm eligible (shop có quota AI try-on); fallback rule engine khi API fail.
+**Mục tiêu:** Gemini Flash chọn outfit + sinh lời giải thích tiếng Việt từ danh sách sản phẩm eligible (sản phẩm ACTIVE, còn hàng, có ảnh); fallback rule engine khi API fail.
 
 - [x] `GeminiStylistClient` — REST `generateContent` + JSON schema (Spring `RestClient`)
 - [x] `StylistContextBuilder` — body/style/occasion + top-N candidates (mặc định 30)

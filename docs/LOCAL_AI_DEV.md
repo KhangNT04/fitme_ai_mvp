@@ -84,7 +84,7 @@ chmod +x scripts/dev-local.sh
 | `api` | Gọi `ai-vton` → **FASHN hosted API** (`https://api.fashn.ai`) — cần `FASHN_API_KEY` |
 | `hf` | Gọi `ai-vton` → Space `yisol/IDM-VTON` |
 
-1. Chọn sản phẩm brand có **quota try-on** (chỉ mode **Dùng ảnh cá nhân** gọi VTON thật —
+1. Chọn sản phẩm (tài khoản đăng nhập cần có Fitken, tốn 1 Fitken/lượt — chỉ mode **Dùng ảnh cá nhân** gọi VTON thật —
    avatar mẫu/outfit board đang khoá ở frontend)
 2. Upload ảnh toàn thân → **Thử mặc** → chế độ **Ảnh của tôi**
 3. Chọn cả áo + quần trong outfit để test luồng ghép tuần tự 2 bước (xem

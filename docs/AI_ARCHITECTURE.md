@@ -102,7 +102,7 @@ sequenceDiagram
 
   FE->>RS: POST /recommendations
   RS->>Rule: filter ACTIVE + budget + canBeRecommended
-  Note over Rule: canBeRecommended yêu cầu brand có quota try-on
+  Note over Rule: canBeRecommended yêu cầu sản phẩm ACTIVE và có ảnh
   RS->>Gemini: generateContent JSON (top 30 candidates)
   alt Gemini OK + valid productIds
     Gemini-->>RS: outfit + explanation tiếng Việt
@@ -113,7 +113,7 @@ sequenceDiagram
 ```
 
 1. Rule-based scoring trong `OutfitScoringService` (tag, style/occasion rules, gender/fit).
-2. `ProductEligibilityService.canBeRecommended()` lọc sản phẩm shop có quota AI try-on.
+2. `ProductEligibilityService.canBeRecommended()` lọc sản phẩm hợp lệ (ACTIVE, IN_STOCK, có ảnh).
 3. Khi `stylist-mode=gemini` và có `GEMINI_API_KEY`: `GeminiStylistService` gửi context JSON → Gemini chọn outfit + giải thích.
 4. `GeminiOutfitValidator` đảm bảo mọi `productId` ∈ candidate set; role hợp lệ (TOP/BOTTOM/ONE_PIECE/…).
 5. Nếu Gemini timeout / JSON lỗi → fallback `OutfitCompositionService` + template explanation (hành vi cũ).

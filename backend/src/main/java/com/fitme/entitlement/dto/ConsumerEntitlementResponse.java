@@ -10,6 +10,8 @@ import lombok.Data;
 public class ConsumerEntitlementResponse {
     private ConsumerPlan plan;
     private OutfitCoherenceMode coherenceMode;
+    private boolean pro;
+    /** Legacy alias of {@link #pro} for clients built against FitMe Plus. */
     private boolean plus;
     private String label;
     private String mixPolicy;

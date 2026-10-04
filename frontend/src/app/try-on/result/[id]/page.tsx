@@ -169,7 +169,8 @@ export default function TryOnResultPage({
             try {
               await tryonApi.save(id);
               await queryClient.invalidateQueries({ queryKey: ["saved-tryons"] });
-              toast.success("Đã lưu kết quả thử mặc");
+              await queryClient.invalidateQueries({ queryKey: ["gallery-images"] });
+              toast.success("Đã lưu vào thư viện ảnh");
               await refetch();
             } catch {
               toast.error("Lưu kết quả thất bại");
@@ -178,9 +179,21 @@ export default function TryOnResultPage({
           disabled={data.saved}
         >
           <Save className="mr-2 h-4 w-4" />
-          {data.saved ? "Đã lưu" : "Lưu kết quả"}
+          {data.saved ? "Đã lưu vào thư viện" : "Lưu vào thư viện"}
         </Button>
       </div>
+
+      {data.saved && (
+        <div className="mt-4 p-4 rounded-xl border border-amber-200 bg-amber-50 dark:bg-amber-950/20 flex flex-col sm:flex-row items-center justify-between gap-4">
+          <div>
+            <p className="font-medium text-amber-800 dark:text-amber-400">Nhận 2 Fitken miễn phí!</p>
+            <p className="text-sm text-amber-700 dark:text-amber-500">Chia sẻ ảnh này lên mạng xã hội để nhận thưởng.</p>
+          </div>
+          <Button asChild variant="outline" className="shrink-0 border-amber-300 text-amber-700 hover:bg-amber-100">
+            <Link href="/profile/gallery">Đến thư viện để chia sẻ</Link>
+          </Button>
+        </div>
+      )}
 
       <Button className="mt-4 w-full" asChild>
         <Link href={`/try-on/decision/${id}`}>Quyết định tiếp theo</Link>

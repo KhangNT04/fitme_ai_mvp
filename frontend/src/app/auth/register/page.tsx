@@ -1,8 +1,9 @@
 "use client";
 
-import { Suspense, useEffect, useMemo, useState } from "react";
+import { Suspense, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
+import { useQuery } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { authApi } from "@/services/auth-api";
@@ -31,10 +32,7 @@ function RegisterForm() {
   const searchParams = useSearchParams();
   const redirectAfterVerify = safeInternalRedirect(searchParams.get("redirect"));
   const [error, setError] = useState("");
-  const [captchaId, setCaptchaId] = useState("");
-  const [captchaQuestion, setCaptchaQuestion] = useState("Đang tải câu hỏi...");
-  const [captchaLoading, setCaptchaLoading] = useState(true);
-  const formStartedAtMs = useMemo(() => Date.now(), []);
+  const [formStartedAtMs] = useState(() => Date.now());
   const { register, handleSubmit, setValue, formState: { errors, isSubmitting } } = useForm<RegisterForm>({
     resolver: zodResolver(registerSchema),
     defaultValues: {
@@ -44,25 +42,25 @@ function RegisterForm() {
     },
   });
 
-  const loadCaptcha = async () => {
-    setCaptchaLoading(true);
-    setError("");
-    try {
-      const challenge = await authApi.getCaptcha();
-      setCaptchaId(challenge.captchaId);
-      setCaptchaQuestion(challenge.question);
-      setValue("captchaAnswer", "");
-    } catch (e: unknown) {
-      setError(getUserErrorMessage(e, "Không tải được xác nhận chống spam"));
-    } finally {
-      setCaptchaLoading(false);
-    }
-  };
+  const captchaQuery = useQuery({
+    queryKey: ["register-captcha"],
+    queryFn: () => authApi.getCaptcha(),
+    staleTime: Infinity,
+    gcTime: 0,
+    retry: false,
+    refetchOnWindowFocus: false,
+  });
+  const captchaLoading = captchaQuery.isFetching;
+  const captchaId = captchaQuery.data?.captchaId ?? "";
+  const captchaError = captchaQuery.isError
+    ? getUserErrorMessage(captchaQuery.error, "Không tải được xác nhận chống spam")
+    : "";
 
-  useEffect(() => {
-    void loadCaptcha();
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- load once on mount
-  }, []);
+  const loadCaptcha = () => {
+    setError("");
+    setValue("captchaAnswer", "");
+    void captchaQuery.refetch();
+  };
 
   const onSubmit = async (data: RegisterForm) => {
     setError("");
@@ -87,7 +85,8 @@ function RegisterForm() {
       router.push(`/auth/verify-email?${params.toString()}`);
     } catch (e: unknown) {
       setError(getUserErrorMessage(e, "Đăng ký thất bại"));
-      void loadCaptcha();
+      setValue("captchaAnswer", "");
+      void captchaQuery.refetch();
     }
   };
 
@@ -140,7 +139,9 @@ function RegisterForm() {
               Đổi câu hỏi
             </button>
           </div>
-          <p className="mt-1 text-sm text-muted-foreground">{captchaLoading ? "Đang tải..." : captchaQuestion}</p>
+          <p className="mt-1 text-sm text-muted-foreground">
+            {captchaLoading ? "Đang tải..." : (captchaQuery.data?.question ?? "")}
+          </p>
           <Input
             inputMode="numeric"
             autoComplete="off"
@@ -150,7 +151,7 @@ function RegisterForm() {
           />
           {errors.captchaAnswer && <p className="mt-1 text-xs text-red-600">{errors.captchaAnswer.message}</p>}
         </div>
-        {error && <p className="text-sm text-red-600" role="alert">{error}</p>}
+        {(error || captchaError) && <p className="text-sm text-red-600" role="alert">{error || captchaError}</p>}
         <Button type="submit" className="w-full" disabled={isSubmitting || captchaLoading}>
           {isSubmitting ? "Đang đăng ký..." : "Đăng ký"}
         </Button>

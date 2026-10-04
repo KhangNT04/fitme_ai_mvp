@@ -17,6 +17,8 @@ public class FitMeProperties {
     private Storage storage = new Storage();
     private Consumer consumer = new Consumer();
     private Auth auth = new Auth();
+    private Fitken fitken = new Fitken();
+    private Commerce commerce = new Commerce();
 
     @Data
     public static class Auth {
@@ -76,8 +78,36 @@ public class FitMeProperties {
         private String clientId;
         private String apiKey;
         private String checksumKey;
-        private String returnUrl = "http://localhost:3000/brand/billing/return?status=success";
-        private String cancelUrl = "http://localhost:3000/brand/billing/return?status=cancel";
+        private String subscriptionReturnUrl = "http://localhost:3000/billing/return?status=success";
+        private String subscriptionCancelUrl = "http://localhost:3000/billing/return?status=cancel";
+        private String orderReturnUrl = "http://localhost:3000/orders/return?status=success";
+        private String orderCancelUrl = "http://localhost:3000/orders/return?status=cancel";
+    }
+
+    @Data
+    public static class Fitken {
+        /** One-time trial credits granted when a consumer wallet is first created. */
+        private int trialAmount = 5;
+        /** Every N consecutive daily check-ins grants {@link #checkinReward}. */
+        private int checkinStreakDays = 3;
+        private int checkinReward = 1;
+        private int shareReward = 2;
+        /** Max rewarded social-share submissions per user per day (Asia/Ho_Chi_Minh). */
+        private int shareDailyLimit = 1;
+        private int reviewReward = 3;
+        /** Fitken spent per AI try-on generation. */
+        private int tryOnCost = 1;
+    }
+
+    @Data
+    public static class Commerce {
+        /** Platform commission taken from each seller sub-order subtotal (0.10 = 10%). */
+        private double commissionRate = 0.10;
+        private long defaultShippingFeeVnd = 30000;
+        /** Days after delivery before a seller sub-order becomes eligible for payout. */
+        private int settlementHoldDays = 7;
+        /** Minutes a PENDING_PAYMENT online order keeps its stock reservation. */
+        private int paymentTimeoutMinutes = 30;
     }
 
     @Data

@@ -10,6 +10,6 @@ public class SetConsumerPlanRequest {
     @NotNull
     private ConsumerPlan plan;
 
-    /** Plus opt-in: PREFER (default) or STRICT. Cleared automatically when plan=FREE. */
+    /** Pro opt-in: PREFER (default) or STRICT. Cleared automatically when plan=FREE. */
     private OutfitCoherenceMode coherenceMode;
 }

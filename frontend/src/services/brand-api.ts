@@ -113,4 +113,15 @@ export const brandApi = {
     const res = await apiClient.get(`/brand/products/${id}/analytics`);
     return unwrap(res);
   },
+  getSalesSummary: async (): Promise<BrandSalesSummary> => {
+    const res = await apiClient.get("/brand/sales/summary");
+    return unwrap(res);
+  },
 };
+
+export interface BrandSalesSummary {
+  ordersLast30Days: number;
+  revenueLast30DaysVnd: number;
+  deliveredCount: number;
+  cancelledCount: number;
+}

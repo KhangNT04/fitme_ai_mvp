@@ -32,6 +32,7 @@ public class ProductResponse {
     private boolean sponsored;
     private boolean aiTryOnEligible;
     private boolean canShowBuyButton;
+    private boolean purchasable;
     private List<ProductImageDto> images;
     private List<ProductVariantDto> variants;
     private List<ProductTagDto> tags;

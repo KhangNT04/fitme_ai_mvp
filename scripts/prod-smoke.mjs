@@ -314,6 +314,17 @@ if (token) {
       const before = await balance();
       const galleryBefore = (await call("GET", "/me/gallery")).total ?? 0;
 
+      // Same warm-up the try-on input page does from the browser.
+      const { url: warmupUrl } = await call("GET", "/try-on/warmup", undefined, { auth: false });
+      if (warmupUrl) {
+        let up = false;
+        for (let i = 0; i < 30 && !up; i++) {
+          up = await fetch(warmupUrl, { signal: AbortSignal.timeout(60_000) }).then((res) => res.ok, () => false);
+          if (!up) await sleep(5_000);
+        }
+        assert(up, `VTON host did not wake up (${warmupUrl})`);
+      }
+
       const consent = await call("POST", "/uploads/user-photo/consent");
       const { blob, name } = imageBlob(photo);
       const fd = new FormData();

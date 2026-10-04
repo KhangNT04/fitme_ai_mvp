@@ -112,6 +112,33 @@ class GeminiOutfitValidatorTest {
     }
 
     @Test
+    void validateAndMap_dropsAccessoryInsteadOfRejectingOutfit() {
+        UUID topId = UUID.randomUUID();
+        UUID bagId = UUID.randomUUID();
+        Product top = Product.builder().id(topId).name("Top").category("Áo thun").build();
+        Product bag = Product.builder().id(bagId).name("Túi").category("Phụ kiện").build();
+        BodyProfile body = BodyProfile.builder().heightCm(165).weightKg(BigDecimal.valueOf(55)).build();
+
+        GeminiOutfitSuggestion suggestion = new GeminiOutfitSuggestion();
+        GeminiOutfitSuggestion.Item topItem = new GeminiOutfitSuggestion.Item();
+        topItem.setProductId(topId.toString());
+        topItem.setRole("TOP");
+        GeminiOutfitSuggestion.Item bagItem = new GeminiOutfitSuggestion.Item();
+        bagItem.setProductId(bagId.toString());
+        bagItem.setRole("ACCESSORY");
+        suggestion.setItems(List.of(topItem, bagItem));
+
+        when(variantRepository.findByProductId(any())).thenReturn(List.of());
+        when(imageRepository.findByProductIdOrderBySortOrderAsc(any())).thenReturn(List.of());
+        when(sizeChartRepository.findByProductId(any())).thenReturn(List.of());
+
+        List<RecommendationResponse.OutfitItemDto> items =
+                validator.validateAndMap(suggestion, List.of(top, bag), body);
+
+        assertThat(items).extracting(RecommendationResponse.OutfitItemDto::getRole).containsExactly(ItemRole.TOP);
+    }
+
+    @Test
     void validateAndMap_rejectsUnknownProductId() {
         UUID topId = UUID.randomUUID();
         Product top = Product.builder().id(topId).name("Top").build();

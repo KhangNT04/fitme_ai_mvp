@@ -17,6 +17,7 @@ import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestClientResponseException;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
@@ -156,6 +157,15 @@ public class AiVtonClient {
                 log.debug("VTON wake-up ping failed: {}", ex.getMessage());
             }
         });
+    }
+
+    /** Public (https) health URL of the VTON host; empty for local/internal hosts. */
+    public Optional<String> publicHealthUrl() {
+        String base = properties.getAi().getVtonBaseUrl();
+        if (!isRemoteMode() || base == null || !base.startsWith("https://")) {
+            return Optional.empty();
+        }
+        return Optional.of(base.replaceAll("/+$", "") + "/health");
     }
 
     /**

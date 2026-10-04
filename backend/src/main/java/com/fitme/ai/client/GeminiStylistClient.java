@@ -170,7 +170,8 @@ public class GeminiStylistClient {
     private Map<String, Object> responseSchema() {
         Map<String, Object> itemProps = Map.of(
                 "productId", Map.of("type", "STRING"),
-                "role", Map.of("type", "STRING"),
+                "role", Map.of("type", "STRING",
+                        "enum", List.of("TOP", "BOTTOM", "ONE_PIECE", "OUTERWEAR", "SHOES")),
                 "selectedSize", Map.of("type", "STRING"),
                 "selectedColor", Map.of("type", "STRING"));
         Map<String, Object> itemSchema = Map.of(

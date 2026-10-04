@@ -72,7 +72,7 @@ public class GeminiOutfitValidator {
             }
             ItemRole role = parseRole(raw.getRole());
             if (!ALLOWED_ROLES.contains(role)) {
-                throw new IllegalArgumentException("Unsupported role: " + raw.getRole());
+                continue;
             }
             if (role == ItemRole.ONE_PIECE) {
                 usedRoles.remove(ItemRole.TOP);

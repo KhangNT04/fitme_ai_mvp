@@ -122,6 +122,10 @@ export default function TryOnInputPage() {
   }, [ensureSession]);
 
   useEffect(() => {
+    void tryonApi.warmUp();
+  }, []);
+
+  useEffect(() => {
     if (photoUploadId) setValue("photoUploadId", photoUploadId, { shouldValidate: true });
   }, [photoUploadId, setValue]);
 

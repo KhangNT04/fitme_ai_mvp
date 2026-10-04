@@ -98,6 +98,21 @@ class AiVtonClientTest {
         assertThat(AiVtonClient.isHostWakingUp(500, "Internal Server Error")).isFalse();
     }
 
+    @Test
+    void publicHealthUrl_onlyForRemoteHttpsHosts() {
+        FitMeProperties properties = new FitMeProperties();
+        properties.getAi().setMode("api");
+        properties.getAi().setVtonBaseUrl("https://vton.example.com/");
+        assertThat(new AiVtonClient(properties).publicHealthUrl()).contains("https://vton.example.com/health");
+
+        properties.getAi().setVtonBaseUrl("http://ai-vton:8001");
+        assertThat(new AiVtonClient(properties).publicHealthUrl()).isEmpty();
+
+        properties.getAi().setMode("mock");
+        properties.getAi().setVtonBaseUrl("https://vton.example.com");
+        assertThat(new AiVtonClient(properties).publicHealthUrl()).isEmpty();
+    }
+
     private static FitMeProperties propertiesFor(HttpServer server, int retrySeconds) {
         FitMeProperties properties = new FitMeProperties();
         properties.getAi().setMode("api");

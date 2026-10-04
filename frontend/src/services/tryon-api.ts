@@ -123,6 +123,18 @@ export const tryonApi = {
     const res = await apiClient.get(`/try-on/requests/${id}`);
     return mapTryOnResult(unwrap(res) as RawTryOnResult);
   },
+  /** Best-effort: lets the browser wake the AI try-on host before the user hits generate. */
+  warmUp: async (): Promise<void> => {
+    try {
+      const res = await apiClient.get("/try-on/warmup");
+      const { url } = unwrap(res) as { url?: string | null };
+      if (url) {
+        await fetch(url, { mode: "no-cors", cache: "no-store" });
+      }
+    } catch {
+      // Warm-up is an optimisation only.
+    }
+  },
   generate: async (id: string): Promise<TryOnResult> => {
     const res = await apiClient.post(`/try-on/requests/${id}/generate`, undefined, {
       timeout: GENERATE_TIMEOUT_MS,

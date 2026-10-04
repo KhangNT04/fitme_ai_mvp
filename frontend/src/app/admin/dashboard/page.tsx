@@ -53,7 +53,7 @@ export default function AdminDashboardPage() {
           <StatCard label="Tổng brand" value={data.totalBrands} sub={`${data.pendingBrands} chờ duyệt`} icon={<Building2 className="h-5 w-5" />} tone="violet" />
           <StatCard label="Tổng sản phẩm" value={data.totalProducts} sub={`${data.pendingProducts} chờ duyệt`} icon={<Package className="h-5 w-5" />} tone="sky" />
           <StatCard label="Link lỗi" value={data.flaggedLinks} icon={<Flag className="h-5 w-5" />} tone="rose" />
-          <StatCard label="Người dùng" value={data.activeUsers} icon={<Users className="h-5 w-5" />} tone="emerald" />
+          <StatCard label="Người dùng" value={data.totalUsers} sub={`${data.activeUsers} hoạt động 30 ngày`} icon={<Users className="h-5 w-5" />} tone="emerald" />
           <StatCard label="Tư vấn AI" value={data.totalRecommendations} icon={<Sparkles className="h-5 w-5" />} tone="indigo" />
           <StatCard label="Thử mặc AI" value={data.totalTryOns} icon={<Shirt className="h-5 w-5" />} tone="amber" />
         </StatCardGrid>

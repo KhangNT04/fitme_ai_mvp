@@ -20,5 +20,10 @@ public class ReviewItemDto {
     private boolean verifiedPurchase;
     private ReviewStatus status;
     private int rewardGranted;
+    private int helpfulCount;
+    /** Whether the signed-in viewer voted this review helpful (false for guests). */
+    private boolean helpfulByMe;
+    /** Whether the signed-in viewer wrote this review. */
+    private boolean mine;
     private Instant createdAt;
 }

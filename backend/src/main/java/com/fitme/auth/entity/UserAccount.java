@@ -68,6 +68,18 @@ public class UserAccount {
     @Column(name = "coherence_mode_override")
     private OutfitCoherenceMode coherenceModeOverride;
 
+    @Column(name = "signup_source", length = 100)
+    private String signupSource;
+
+    @Column(name = "signup_medium", length = 100)
+    private String signupMedium;
+
+    @Column(name = "signup_campaign", length = 150)
+    private String signupCampaign;
+
+    @Column(name = "signup_referrer")
+    private String signupReferrer;
+
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;

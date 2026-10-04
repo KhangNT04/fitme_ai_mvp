@@ -10,6 +10,8 @@ import type {
   ResetPasswordRequest,
 } from "@/types/auth";
 import { AUTH_TOKEN_KEY, AUTH_REFRESH_KEY, SESSION_STORAGE_KEY } from "@/utils/constants";
+import { getSignupAttribution } from "@/lib/attribution";
+import { trackEvent } from "@/lib/gtag";
 
 interface BackendAuthResponse {
   userId: string;
@@ -88,7 +90,9 @@ export const authApi = {
       captchaId: data.captchaId,
       captchaAnswer: data.captchaAnswer,
       formStartedAtMs: data.formStartedAtMs,
+      ...getSignupAttribution(),
     });
+    trackEvent("sign_up", { method: "email" });
     return mapAuthResponse(unwrap(res));
   },
   verifyEmail: async (data: VerifyEmailRequest): Promise<AuthResponse> => {

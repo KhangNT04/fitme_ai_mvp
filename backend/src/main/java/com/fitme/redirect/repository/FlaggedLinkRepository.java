@@ -12,4 +12,6 @@ public interface FlaggedLinkRepository extends JpaRepository<FlaggedLink, UUID> 
     List<FlaggedLink> findByProductId(UUID productId);
 
     List<FlaggedLink> findByStatus(FlaggedLinkStatus status);
+
+    long countByStatus(FlaggedLinkStatus status);
 }

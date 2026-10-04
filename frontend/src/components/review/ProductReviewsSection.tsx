@@ -2,14 +2,16 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Star, Image as ImageIcon, CheckCircle2, ChevronLeft, ChevronRight, X } from "lucide-react";
+import { Star, Image as ImageIcon, CheckCircle2, ChevronLeft, ChevronRight, ThumbsUp, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { reviewApi } from "@/services/review-api";
 import { useAuthStore } from "@/stores/auth-store";
 import { toast } from "@/stores/toast-store";
 import { getUserErrorMessage } from "@/lib/user-error-message";
 import { cn } from "@/lib/utils";
+import type { ProductReviewsResponse, ReviewItemDto } from "@/types";
 
 const formatDate = (dateStr: string) => {
   const d = new Date(dateStr);
@@ -19,6 +21,7 @@ const formatDate = (dateStr: string) => {
 export function ProductReviewsSection({ productId }: { productId: string }) {
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated());
   const queryClient = useQueryClient();
+  const router = useRouter();
   const [page, setPage] = useState(0);
   
   // Form state
@@ -45,6 +48,34 @@ export function ProductReviewsSection({ productId }: { productId: string }) {
     },
     onError: (e) => toast.error(getUserErrorMessage(e, "Không thể gửi đánh giá.")),
   });
+
+  const helpfulMutation = useMutation({
+    mutationFn: ({ reviewId, helpful }: { reviewId: string; helpful: boolean }) =>
+      reviewApi.setHelpful(reviewId, helpful),
+    onSuccess: (vote) => {
+      queryClient.setQueryData<ProductReviewsResponse>(["product-reviews", productId, page], (prev) =>
+        prev
+          ? {
+              ...prev,
+              items: prev.items.map((item) =>
+                item.id === vote.reviewId
+                  ? { ...item, helpfulCount: vote.helpfulCount, helpfulByMe: vote.helpfulByMe }
+                  : item,
+              ),
+            }
+          : prev,
+      );
+    },
+    onError: (e) => toast.error(getUserErrorMessage(e, "Không thể ghi nhận bình chọn.")),
+  });
+
+  const handleHelpful = (review: ReviewItemDto) => {
+    if (!isAuthenticated) {
+      router.push(`/auth/login?redirect=/products/${productId}`);
+      return;
+    }
+    helpfulMutation.mutate({ reviewId: review.id, helpful: !review.helpfulByMe });
+  };
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
@@ -229,6 +260,28 @@ export function ProductReviewsSection({ productId }: { productId: string }) {
                   ))}
                 </div>
               )}
+
+              <div className="mt-3 flex items-center gap-2 text-xs text-muted-foreground">
+                {review.mine ? (
+                  review.helpfulCount > 0 && <span>{review.helpfulCount} người thấy hữu ích</span>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => handleHelpful(review)}
+                    disabled={helpfulMutation.isPending && helpfulMutation.variables?.reviewId === review.id}
+                    aria-pressed={review.helpfulByMe}
+                    className={cn(
+                      "inline-flex items-center gap-1.5 rounded-full border px-3 py-1 transition-colors disabled:opacity-60",
+                      review.helpfulByMe
+                        ? "border-primary/40 bg-primary/10 text-primary"
+                        : "border-border hover:bg-muted/60",
+                    )}
+                  >
+                    <ThumbsUp className={cn("h-3.5 w-3.5", review.helpfulByMe && "fill-current")} />
+                    Hữu ích{review.helpfulCount > 0 ? ` (${review.helpfulCount})` : ""}
+                  </button>
+                )}
+              </div>
             </div>
           ))}
 

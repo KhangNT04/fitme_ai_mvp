@@ -15,6 +15,8 @@ public interface ProductRepository extends JpaRepository<Product, UUID> {
 
     List<Product> findByStatus(ProductStatus status);
 
+    long countByStatus(ProductStatus status);
+
     List<Product> findByNameStartingWith(String prefix);
 
     List<Product> findByCategory(String category);

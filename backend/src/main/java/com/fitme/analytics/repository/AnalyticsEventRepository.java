@@ -10,6 +10,8 @@ public interface AnalyticsEventRepository extends JpaRepository<AnalyticsEvent, 
 
     List<AnalyticsEvent> findByEventType(String eventType);
 
+    long countByEventType(String eventType);
+
     List<AnalyticsEvent> findByBrandId(UUID brandId);
 
     List<AnalyticsEvent> findByUserId(UUID userId);

@@ -31,7 +31,8 @@ export const ADMIN_PAGES: { path: string; heading: string | RegExp }[] = [
   { path: "/admin/reviews", heading: "Đánh giá sản phẩm" },
   { path: "/admin/products/moderation", heading: "Duyệt sản phẩm" },
   { path: "/admin/flagged-links", heading: "Link bị gắn cờ" },
-  { path: "/admin/analytics", heading: "Phân tích toàn hệ thống" },
+  { path: "/admin/analytics", heading: "Phân tích tăng trưởng" },
+  { path: "/admin/paying-customers", heading: "Khách hàng trả tiền" },
   { path: "/admin/privacy", heading: "Quyền riêng tư & Consent" },
   { path: "/admin/try-on-monitoring", heading: "Giám sát thử mặc" },
 ];

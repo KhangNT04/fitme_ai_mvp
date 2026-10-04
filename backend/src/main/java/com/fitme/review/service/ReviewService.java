@@ -21,6 +21,7 @@ import com.fitme.storage.StoredMediaPaths;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -28,6 +29,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.time.ZoneOffset;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -49,8 +51,9 @@ public class ReviewService {
     private final StorageService storageService;
     private final FitMeProperties properties;
     private final AppClock clock;
+    private final JdbcTemplate jdbcTemplate;
 
-    public ProductReviewsResponse listForProduct(UUID productId, int page, int size) {
+    public ProductReviewsResponse listForProduct(UUID productId, int page, int size, UUID viewerId) {
         int safeSize = Math.min(Math.max(size, 1), 50);
         Page<ProductReview> reviews = reviewRepository.findByProductIdAndStatusOrderByCreatedAtDesc(
                 productId, ReviewStatus.VISIBLE, PageRequest.of(Math.max(page, 0), safeSize));
@@ -62,8 +65,83 @@ public class ReviewService {
                 .totalCount(reviews.getTotalElements())
                 .page(reviews.getNumber())
                 .size(reviews.getSize())
-                .items(toDtos(reviews.getContent(), buyers))
+                .items(toDtos(reviews.getContent(), buyers, viewerId, votedBy(viewerId, reviews.getContent())))
                 .build();
+    }
+
+    @Transactional
+    public HelpfulVoteResponse voteHelpful(UUID userId, UUID reviewId, boolean helpful) {
+        ProductReview review = reviewRepository.findById(reviewId)
+                .filter(r -> r.getStatus() == ReviewStatus.VISIBLE)
+                .orElseThrow(() -> new NotFoundException("Đánh giá không tồn tại"));
+        if (review.getUserId().equals(userId)) {
+            throw new BusinessException("Bạn không thể bình chọn cho đánh giá của chính mình");
+        }
+        if (helpful) {
+            int inserted = jdbcTemplate.update(
+                    "INSERT INTO review_helpful_votes (review_id, user_id) VALUES (?, ?) ON CONFLICT DO NOTHING",
+                    reviewId, userId);
+            if (inserted > 0) {
+                jdbcTemplate.update("UPDATE product_reviews SET helpful_count = helpful_count + 1 WHERE id = ?",
+                        reviewId);
+            }
+        } else {
+            int deleted = jdbcTemplate.update(
+                    "DELETE FROM review_helpful_votes WHERE review_id = ? AND user_id = ?", reviewId, userId);
+            if (deleted > 0) {
+                jdbcTemplate.update("UPDATE product_reviews SET helpful_count = GREATEST(helpful_count - 1, 0) "
+                        + "WHERE id = ?", reviewId);
+            }
+        }
+        Integer count = jdbcTemplate.queryForObject(
+                "SELECT helpful_count FROM product_reviews WHERE id = ?", Integer.class, reviewId);
+        return new HelpfulVoteResponse(reviewId, count == null ? 0 : count, helpful);
+    }
+
+    /** Recent well-rated visible reviews with real content, for social proof on the landing page. */
+    public List<FeaturedReviewDto> featured(int limit) {
+        int safeLimit = Math.min(Math.max(limit, 1), 12);
+        return jdbcTemplate.query("""
+                SELECT r.id, r.product_id, p.name AS product_name, r.rating, r.content, r.helpful_count, r.created_at,
+                       COALESCE(NULLIF(TRIM(u.display_name), ''), 'Khách hàng FitMe') AS author_name,
+                       (SELECT i.image_url FROM product_review_images i WHERE i.review_id = r.id
+                        ORDER BY i.sort_order LIMIT 1) AS image_url,
+                       EXISTS (SELECT 1 FROM order_items oi
+                               JOIN seller_orders so ON so.id = oi.seller_order_id
+                               JOIN orders o ON o.id = so.order_id
+                               WHERE oi.product_id = r.product_id AND o.user_id = r.user_id
+                                 AND so.status = 'DELIVERED') AS verified
+                FROM product_reviews r
+                JOIN products p ON p.id = r.product_id
+                JOIN user_accounts u ON u.id = r.user_id
+                WHERE r.status = 'VISIBLE' AND r.rating >= 4 AND LENGTH(r.content) >= ?
+                ORDER BY r.helpful_count DESC, r.created_at DESC
+                LIMIT ?
+                """, (rs, i) -> new FeaturedReviewDto(
+                rs.getObject("id", UUID.class),
+                rs.getObject("product_id", UUID.class),
+                rs.getString("product_name"),
+                rs.getInt("rating"),
+                rs.getString("content"),
+                rs.getString("author_name"),
+                rs.getString("image_url"),
+                rs.getBoolean("verified"),
+                rs.getInt("helpful_count"),
+                rs.getTimestamp("created_at").toLocalDateTime().toInstant(ZoneOffset.UTC)),
+                MIN_REWARD_CONTENT_LENGTH, safeLimit);
+    }
+
+    private Set<UUID> votedBy(UUID viewerId, List<ProductReview> reviews) {
+        if (viewerId == null || reviews.isEmpty()) {
+            return Set.of();
+        }
+        List<UUID> ids = reviews.stream().map(ProductReview::getId).toList();
+        String placeholders = String.join(",", Collections.nCopies(ids.size(), "?"));
+        List<Object> args = new ArrayList<>(ids);
+        args.addFirst(viewerId);
+        return new HashSet<>(jdbcTemplate.queryForList(
+                "SELECT review_id FROM review_helpful_votes WHERE user_id = ? AND review_id IN (" + placeholders + ")",
+                UUID.class, args.toArray()));
     }
 
     @Transactional
@@ -169,6 +247,11 @@ public class ReviewService {
     }
 
     private List<ReviewItemDto> toDtos(List<ProductReview> reviews, Set<UUID> verifiedBuyers) {
+        return toDtos(reviews, verifiedBuyers, null, Set.of());
+    }
+
+    private List<ReviewItemDto> toDtos(List<ProductReview> reviews, Set<UUID> verifiedBuyers, UUID viewerId,
+                                       Set<UUID> votedByViewer) {
         if (reviews.isEmpty()) {
             return List.of();
         }
@@ -190,6 +273,9 @@ public class ReviewService {
                         .verifiedPurchase(verifiedBuyers.contains(review.getUserId()))
                         .status(review.getStatus())
                         .rewardGranted(review.getRewardGranted())
+                        .helpfulCount(review.getHelpfulCount())
+                        .helpfulByMe(votedByViewer.contains(review.getId()))
+                        .mine(review.getUserId().equals(viewerId))
                         .createdAt(review.getCreatedAt())
                         .build())
                 .toList();

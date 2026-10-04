@@ -8,6 +8,9 @@ export interface ReviewItemDto {
   verifiedPurchase: boolean;
   status: string;
   rewardGranted: number;
+  helpfulCount: number;
+  helpfulByMe: boolean;
+  mine: boolean;
   createdAt: string;
 }
 
@@ -23,4 +26,23 @@ export interface CreateReviewRequest {
   rating: number;
   content: string;
   imageUrls?: string[];
+}
+
+export interface HelpfulVoteResponse {
+  reviewId: string;
+  helpfulCount: number;
+  helpfulByMe: boolean;
+}
+
+export interface FeaturedReview {
+  id: string;
+  productId: string;
+  productName: string;
+  rating: number;
+  content: string;
+  authorName: string;
+  imageUrl: string | null;
+  verifiedPurchase: boolean;
+  helpfulCount: number;
+  createdAt: string;
 }

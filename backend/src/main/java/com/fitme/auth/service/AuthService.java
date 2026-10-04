@@ -91,6 +91,10 @@ public class AuthService {
                 .emailVerified(false)
                 .emailVerificationCode(code)
                 .emailVerificationExpiresAt(expiresAt)
+                .signupSource(attribution(request.getUtmSource(), 100))
+                .signupMedium(attribution(request.getUtmMedium(), 100))
+                .signupCampaign(attribution(request.getUtmCampaign(), 150))
+                .signupReferrer(attribution(request.getReferrer(), 255))
                 .build();
         user = userAccountRepository.save(user);
         registerCooldownByEmail.put(email, Instant.now().plusSeconds(REGISTER_COOLDOWN_SECONDS));
@@ -212,6 +216,14 @@ public class AuthService {
     private String issuePasswordResetToken(UserAccount user) {
         return jwtService.generatePasswordResetToken(
                 user.getId(), user.getEmail(), user.getPasswordHash(), PASSWORD_RESET_TTL_SECONDS * 1000);
+    }
+
+    private static String attribution(String raw, int maxLength) {
+        if (raw == null || raw.isBlank()) {
+            return null;
+        }
+        String cleaned = raw.trim().replaceAll("\\s+", " ");
+        return cleaned.length() > maxLength ? cleaned.substring(0, maxLength) : cleaned;
     }
 
     private static boolean inCooldown(ConcurrentHashMap<String, Instant> cooldowns, String email) {

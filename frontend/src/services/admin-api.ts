@@ -2,6 +2,8 @@ import apiClient, { unwrap } from "./api-client";
 import { mapProduct, type BackendProduct } from "./product-mapper";
 import type {
   AdminDashboardStats,
+  AdminMetrics,
+  PayingCustomersReport,
   FlaggedLink,
   StyleRule,
   OccasionRule,
@@ -17,6 +19,20 @@ export const adminApi = {
   getDashboard: async (): Promise<AdminDashboardStats> => {
     const res = await apiClient.get("/admin/dashboard");
     return unwrap(res);
+  },
+  getMetrics: async (days: number): Promise<AdminMetrics> => {
+    const res = await apiClient.get("/admin/metrics", { params: { days } });
+    return unwrap(res);
+  },
+  getPayingCustomers: async (): Promise<PayingCustomersReport> => {
+    const res = await apiClient.get("/admin/reports/paying-customers");
+    return unwrap(res);
+  },
+  downloadPayingCustomersCsv: async (): Promise<{ blob: Blob; filename: string }> => {
+    const res = await apiClient.get("/admin/reports/paying-customers/export", { responseType: "blob" });
+    const disposition = String(res.headers["content-disposition"] ?? "");
+    const match = /filename="?([^";]+)"?/i.exec(disposition);
+    return { blob: res.data as Blob, filename: match?.[1] ?? "fitme-khach-tra-tien.csv" };
   },
   getBrands: async (): Promise<Brand[]> => {
     const res = await apiClient.get("/admin/brands");

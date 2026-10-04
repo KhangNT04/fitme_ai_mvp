@@ -8,7 +8,7 @@ import { MobileBottomNav } from "@/components/layout/MobileBottomNav";
 import { NavHistorySync } from "@/components/layout/NavHistorySync";
 import { PortalSidebarProvider } from "@/components/layout/PortalSidebar";
 import { getPortalNav, isPortalAppRoute, isPortalRoute } from "@/lib/portal-nav";
-import { shouldShowBottomNav } from "@/lib/mobile-chrome";
+import { shouldShowBottomNav, showMobileFooter } from "@/lib/mobile-chrome";
 import { cn } from "@/lib/utils";
 
 interface ConsumerChromeProps {
@@ -22,6 +22,7 @@ function ConsumerChromeInner({ children }: ConsumerChromeProps) {
   const isPortalApp = isPortalAppRoute(pathname);
   const isAuthRoute = pathname.startsWith("/auth");
   const portalNav = getPortalNav(pathname);
+  const footerOnMobile = showMobileFooter(pathname);
 
   const shell = (
     <div className="relative z-10 flex min-h-svh flex-col">
@@ -29,8 +30,15 @@ function ConsumerChromeInner({ children }: ConsumerChromeProps) {
         <NavHistorySync />
       </Suspense>
       <Header />
-      <main className={cn("flex min-h-0 flex-1 flex-col overflow-visible", showBottomNav && "pb-mobile-nav md:pb-0")}>{children}</main>
-      {!isPortal && !isAuthRoute && <Footer />}
+      <main
+        className={cn(
+          "flex min-h-0 flex-1 flex-col overflow-visible",
+          showBottomNav && !footerOnMobile && "pb-mobile-nav md:pb-0",
+        )}
+      >
+        {children}
+      </main>
+      {!isPortal && !isAuthRoute && <Footer showOnMobile={footerOnMobile} />}
       <Suspense fallback={null}>
         <MobileBottomNav />
       </Suspense>

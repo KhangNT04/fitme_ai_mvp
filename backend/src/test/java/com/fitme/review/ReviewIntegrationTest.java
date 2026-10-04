@@ -16,6 +16,7 @@ import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -118,6 +119,51 @@ class ReviewIntegrationTest extends AbstractIntegrationTest {
                 .andExpect(jsonPath("$.data.totalCount").value(0));
         mockMvc.perform(get("/api/v1/admin/reviews").param("status", "HIDDEN").with(user(admin)))
                 .andExpect(status().isOk());
+    }
+
+    @Test
+    void helpfulVotesAreCountedOncePerUserAndNeverByTheAuthor() throws Exception {
+        Product product = testDataHelper.createEligibleProduct("Review helpful top", "Áo thun");
+        FitMeUserPrincipal author = new FitMeUserPrincipal(testDataHelper.createUser().user());
+        FitMeUserPrincipal voter = new FitMeUserPrincipal(testDataHelper.createUser().user());
+
+        String body = createReview(author, product.getId(), 5, LONG_CONTENT, List.of())
+                .andExpect(status().isOk())
+                .andReturn().getResponse().getContentAsString();
+        String reviewId = objectMapper.readTree(body).get("data").get("review").get("id").asText();
+
+        for (int i = 0; i < 2; i++) {
+            mockMvc.perform(post("/api/v1/reviews/{id}/helpful", reviewId).with(user(voter)))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.data.helpfulCount").value(1))
+                    .andExpect(jsonPath("$.data.helpfulByMe").value(true));
+        }
+        mockMvc.perform(post("/api/v1/reviews/{id}/helpful", reviewId).with(user(author)))
+                .andExpect(status().isBadRequest());
+        mockMvc.perform(post("/api/v1/reviews/{id}/helpful", reviewId))
+                .andExpect(status().is4xxClientError());
+
+        mockMvc.perform(get("/api/v1/products/{id}/reviews", product.getId()).with(user(voter)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.items[0].helpfulCount").value(1))
+                .andExpect(jsonPath("$.data.items[0].helpfulByMe").value(true))
+                .andExpect(jsonPath("$.data.items[0].mine").value(false));
+        mockMvc.perform(get("/api/v1/products/{id}/reviews", product.getId()).with(user(author)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.items[0].mine").value(true));
+        mockMvc.perform(get("/api/v1/products/{id}/reviews", product.getId()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.items[0].helpfulByMe").value(false));
+
+        mockMvc.perform(get("/api/v1/products/featured-reviews").param("limit", "12"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data[?(@.id == '%s')].productName".formatted(reviewId))
+                        .value("Review helpful top"));
+
+        mockMvc.perform(delete("/api/v1/reviews/{id}/helpful", reviewId).with(user(voter)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.helpfulCount").value(0))
+                .andExpect(jsonPath("$.data.helpfulByMe").value(false));
     }
 
     private String uploadImage(FitMeUserPrincipal principal) throws Exception {

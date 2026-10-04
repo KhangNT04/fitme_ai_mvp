@@ -42,6 +42,10 @@ public class ProductReview {
     @Column(name = "reward_granted", nullable = false)
     private int rewardGranted;
 
+    /** Maintained by SQL when votes change, so entity saves never overwrite concurrent votes. */
+    @Column(name = "helpful_count", insertable = false, updatable = false)
+    private int helpfulCount;
+
     @Column(name = "hidden_at")
     private Instant hiddenAt;
 

@@ -28,4 +28,10 @@ public class RegisterRequest {
 
     /** Epoch millis when the form was first shown (anti-bot timing). */
     private Long formStartedAtMs;
+
+    /** First-touch attribution captured by the frontend; longer values are truncated server-side. */
+    private String utmSource;
+    private String utmMedium;
+    private String utmCampaign;
+    private String referrer;
 }

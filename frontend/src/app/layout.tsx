@@ -4,6 +4,8 @@ import "./globals.css";
 import { Providers } from "@/providers";
 import { ConsumerChrome } from "@/components/layout/ConsumerChrome";
 import { FashionAmbient } from "@/components/layout/FashionAmbient";
+import { AnalyticsScripts } from "@/components/analytics/AnalyticsScripts";
+import { SITE_URL } from "@/lib/site-config";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -21,9 +23,21 @@ const plusJakarta = Plus_Jakarta_Sans({
   weight: ["500", "600", "700", "800"],
 });
 
+const SITE_DESCRIPTION =
+  "Tư vấn size, phối đồ và thử mặc bằng AI trên ảnh của chính bạn. Mua thời trang đúng size ngay lần đầu.";
+
 export const metadata: Metadata = {
+  metadataBase: new URL(SITE_URL),
   title: "FitMe AI — Tư vấn size & phối đồ bằng AI",
-  description: "Tư vấn size, phối đồ và preview outfit 2D bằng AI. Thử mặc minh họa thông minh.",
+  description: SITE_DESCRIPTION,
+  openGraph: {
+    type: "website",
+    locale: "vi_VN",
+    siteName: "FitMe AI",
+    title: "FitMe AI — Thử trước khi mua",
+    description: SITE_DESCRIPTION,
+    images: ["/home-hero-bg.jpg"],
+  },
 };
 
 export const viewport: Viewport = {
@@ -44,6 +58,7 @@ export default function RootLayout({
           <FashionAmbient />
           <ConsumerChrome>{children}</ConsumerChrome>
         </Providers>
+        <AnalyticsScripts />
       </body>
     </html>
   );

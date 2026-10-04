@@ -4,6 +4,8 @@ import com.fitme.common.dto.ApiResponse;
 import com.fitme.common.security.FitMeUserPrincipal;
 import com.fitme.review.dto.CreateReviewRequest;
 import com.fitme.review.dto.CreateReviewResponse;
+import com.fitme.review.dto.FeaturedReviewDto;
+import com.fitme.review.dto.HelpfulVoteResponse;
 import com.fitme.review.dto.ProductReviewsResponse;
 import com.fitme.review.dto.ReviewImageUploadResponse;
 import com.fitme.review.service.ReviewService;
@@ -15,6 +17,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.util.List;
 import java.util.UUID;
 
 @RestController
@@ -25,10 +28,29 @@ public class ReviewController {
     private final ReviewService reviewService;
 
     @GetMapping("/products/{productId}/reviews")
-    public ApiResponse<ProductReviewsResponse> list(@PathVariable UUID productId,
+    public ApiResponse<ProductReviewsResponse> list(@AuthenticationPrincipal FitMeUserPrincipal principal,
+                                                    @PathVariable UUID productId,
                                                     @RequestParam(defaultValue = "0") int page,
                                                     @RequestParam(defaultValue = "10") int size) {
-        return ApiResponse.ok(reviewService.listForProduct(productId, page, size));
+        UUID viewerId = principal != null ? principal.getUserId() : null;
+        return ApiResponse.ok(reviewService.listForProduct(productId, page, size, viewerId));
+    }
+
+    @GetMapping("/products/featured-reviews")
+    public ApiResponse<List<FeaturedReviewDto>> featured(@RequestParam(defaultValue = "6") int limit) {
+        return ApiResponse.ok(reviewService.featured(limit));
+    }
+
+    @PostMapping("/reviews/{reviewId}/helpful")
+    public ApiResponse<HelpfulVoteResponse> markHelpful(@AuthenticationPrincipal FitMeUserPrincipal principal,
+                                                        @PathVariable UUID reviewId) {
+        return ApiResponse.ok(reviewService.voteHelpful(principal.getUserId(), reviewId, true));
+    }
+
+    @DeleteMapping("/reviews/{reviewId}/helpful")
+    public ApiResponse<HelpfulVoteResponse> unmarkHelpful(@AuthenticationPrincipal FitMeUserPrincipal principal,
+                                                          @PathVariable UUID reviewId) {
+        return ApiResponse.ok(reviewService.voteHelpful(principal.getUserId(), reviewId, false));
     }
 
     @PostMapping("/products/{productId}/reviews")

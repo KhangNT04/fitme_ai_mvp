@@ -20,6 +20,7 @@ import {
   Wallet,
   Gift,
   Star,
+  Receipt,
   Sparkles as SparklesIcon,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -50,6 +51,7 @@ const adminIcons: Record<string, React.ComponentType<{ className?: string }>> = 
   "/admin/rules/styles": BookOpen,
   "/admin/rules/occasions": BookOpen,
   "/admin/analytics": BarChart3,
+  "/admin/paying-customers": Receipt,
   "/admin/privacy": Shield,
   "/admin/try-on-monitoring": Eye,
 };

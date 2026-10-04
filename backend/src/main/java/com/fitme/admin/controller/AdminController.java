@@ -14,7 +14,11 @@ import com.fitme.admin.service.AdminFlaggedLinkService;
 import com.fitme.admin.service.AdminPreviewMonitoringService;
 import com.fitme.admin.service.AdminRuleService;
 import com.fitme.analytics.dto.AdminDashboardResponse;
+import com.fitme.analytics.dto.AdminMetricsResponse;
+import com.fitme.analytics.dto.PayingCustomersReport;
+import com.fitme.analytics.service.AdminMetricsService;
 import com.fitme.analytics.service.AnalyticsService;
+import com.fitme.common.time.AppClock;
 import com.fitme.brand.dto.BrandResponse;
 import com.fitme.brand.entity.BrandPartnership;
 import com.fitme.brand.service.BrandPartnershipService;
@@ -28,9 +32,15 @@ import com.fitme.privacy.service.PrivacyService;
 import com.fitme.redirect.dto.FlaggedLinkResponse;
 import com.fitme.redirect.service.RedirectService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.ContentDisposition;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import java.nio.charset.StandardCharsets;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -52,10 +62,30 @@ public class AdminController {
     private final AdminBrandListService adminBrandListService;
     private final BrandPartnershipService brandPartnershipService;
     private final ConsumerEntitlementService consumerEntitlementService;
+    private final AdminMetricsService adminMetricsService;
 
     @GetMapping("/dashboard")
     public ApiResponse<AdminDashboardResponse> dashboard() {
         return ApiResponse.ok(analyticsService.adminDashboard());
+    }
+
+    @GetMapping("/metrics")
+    public ApiResponse<AdminMetricsResponse> metrics(@RequestParam(defaultValue = "30") int days) {
+        return ApiResponse.ok(adminMetricsService.metrics(days));
+    }
+
+    @GetMapping("/reports/paying-customers")
+    public ApiResponse<PayingCustomersReport> payingCustomers() {
+        return ApiResponse.ok(adminMetricsService.payingCustomers());
+    }
+
+    @GetMapping("/reports/paying-customers/export")
+    public ResponseEntity<byte[]> exportPayingCustomers() {
+        String filename = "fitme-khach-tra-tien-" + LocalDate.now(AppClock.BUSINESS_ZONE) + ".csv";
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION, ContentDisposition.attachment().filename(filename).build().toString())
+                .contentType(new MediaType("text", "csv", StandardCharsets.UTF_8))
+                .body(adminMetricsService.payingCustomersCsv());
     }
 
     @GetMapping("/brands")

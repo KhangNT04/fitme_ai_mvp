@@ -8,7 +8,6 @@ import com.fitme.analytics.dto.ChartDataPoint;
 import com.fitme.analytics.dto.ProductAnalyticsResponse;
 import com.fitme.analytics.entity.AnalyticsEvent;
 import com.fitme.analytics.repository.AnalyticsEventRepository;
-import com.fitme.auth.repository.UserAccountRepository;
 import com.fitme.brand.repository.BrandRepository;
 import com.fitme.common.enums.BrandStatus;
 import com.fitme.common.enums.FlaggedLinkStatus;
@@ -31,8 +30,8 @@ public class AnalyticsService {
     private final AnalyticsEventRepository eventRepository;
     private final ProductRepository productRepository;
     private final BrandRepository brandRepository;
-    private final UserAccountRepository userAccountRepository;
     private final FlaggedLinkRepository flaggedLinkRepository;
+    private final AdminMetricsService adminMetricsService;
     private final BuyClickEventRepository buyClickEventRepository;
 
     public void track(String eventType, UUID userId, UUID sessionId, UUID brandId,
@@ -184,23 +183,23 @@ public class AnalyticsService {
     }
 
     public AdminDashboardResponse adminDashboard() {
-        List<AnalyticsEvent> all = eventRepository.findAll();
         return AdminDashboardResponse.builder()
                 .totalBrands(brandRepository.count())
-                .pendingBrands(brandRepository.findByStatus(BrandStatus.PENDING).size())
+                .pendingBrands(brandRepository.countByStatus(BrandStatus.PENDING))
                 .totalProducts(productRepository.count())
-                .pendingProducts(productRepository.findByStatus(ProductStatus.PENDING_REVIEW).size())
-                .flaggedLinks(flaggedLinkRepository.findByStatus(FlaggedLinkStatus.OPEN).size())
-                .activeUsers(userAccountRepository.count())
-                .totalRecommendations(count(all, "RECOMMENDATION_GENERATED"))
-                .totalTryOns(count(all, "TRY_ON_STARTED"))
+                .pendingProducts(productRepository.countByStatus(ProductStatus.PENDING_REVIEW))
+                .flaggedLinks(flaggedLinkRepository.countByStatus(FlaggedLinkStatus.OPEN))
+                .totalUsers(adminMetricsService.totalConsumers())
+                .activeUsers(adminMetricsService.activeUsersSince(30))
+                .totalRecommendations(eventRepository.countByEventType("RECOMMENDATION_GENERATED"))
+                .totalTryOns(eventRepository.countByEventType("TRY_ON_STARTED"))
                 .build();
     }
 
     public Map<String, Object> tryOnMonitoring() {
         return Map.of(
-                "tryOnStarted", count(eventRepository.findByEventType("TRY_ON_STARTED"), "TRY_ON_STARTED"),
-                "tryOnGenerated", count(eventRepository.findByEventType("TRY_ON_GENERATED"), "TRY_ON_GENERATED"));
+                "tryOnStarted", eventRepository.countByEventType("TRY_ON_STARTED"),
+                "tryOnGenerated", eventRepository.countByEventType("TRY_ON_GENERATED"));
     }
 
     private List<ChartDataPoint> chartByEventType(List<AnalyticsEvent> events, String type) {

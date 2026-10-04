@@ -8,6 +8,12 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useEnsureSession } from "@/hooks/use-ensure-session";
+import {
+  FaqSection,
+  FeaturedReviewsSection,
+  HowItWorksSection,
+  PricingTeaserSection,
+} from "@/components/home/HomeSections";
 import { consumerShellHorizontalClass, consumerShellMaxWidthClass } from "@/lib/design-tokens";
 import { cn } from "@/lib/utils";
 
@@ -19,9 +25,9 @@ const features = [
     accent: "from-violet-500/15 to-fuchsia-500/10",
   },
   {
-    icon: Shirt,
+    icon: Camera,
     title: "Thử mặc bằng AI",
-    desc: "Xem minh họa 2D trước khi quyết định mua.",
+    desc: "Tải ảnh của bạn, AI tạo ảnh bạn đang mặc sản phẩm trước khi quyết định mua.",
     accent: "from-pink-500/15 to-rose-500/10",
   },
   {
@@ -31,9 +37,9 @@ const features = [
     accent: "from-purple-500/15 to-violet-500/10",
   },
   {
-    icon: Camera,
-    title: "Preview outfit 2D",
-    desc: "Upload ảnh để xem outfit minh họa trên hình của bạn.",
+    icon: Shirt,
+    title: "Phối đồ & mua ngay",
+    desc: "Phối set trên bảng miễn phí, đặt hàng từ brand đối tác với COD hoặc PayOS.",
     accent: "from-fuchsia-500/15 to-pink-500/10",
   },
 ];
@@ -111,7 +117,7 @@ export default function HomePage() {
               Đúng size, hợp dáng, chuẩn màu — thử trước khi mua.
             </h1>
             <p className="animate-fade-up animate-fade-up-delay-2 mt-6 max-w-lg text-lg leading-relaxed text-muted-foreground">
-              FitMe AI giúp bạn tư vấn size, phối đồ và xem preview outfit 2D minh họa.
+              FitMe AI tư vấn size, gợi ý outfit và cho bạn thử mặc bằng AI trên ảnh của chính mình.
               Không cần đăng nhập để bắt đầu.
             </p>
             <div className="animate-fade-up animate-fade-up-delay-3 mt-10 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:gap-4">
@@ -128,16 +134,16 @@ export default function HomePage() {
             </div>
             <dl className="animate-fade-up animate-fade-up-delay-4 mt-12 grid grid-cols-3 gap-6 border-t border-border/60 pt-8">
               <div>
-                <dt className="text-xs font-medium uppercase tracking-widest text-muted-foreground">AI Try-on</dt>
-                <dd className="mt-1 font-display text-2xl font-bold text-foreground">2D</dd>
+                <dt className="text-xs font-medium uppercase tracking-widest text-muted-foreground">Tặng khi đăng ký</dt>
+                <dd className="mt-1 font-display text-2xl font-bold text-foreground">5 Fitken</dd>
               </div>
               <div>
-                <dt className="text-xs font-medium uppercase tracking-widest text-muted-foreground">Size match</dt>
-                <dd className="mt-1 font-display text-2xl font-bold text-foreground">Smart</dd>
+                <dt className="text-xs font-medium uppercase tracking-widest text-muted-foreground">Thử mặc AI</dt>
+                <dd className="mt-1 font-display text-2xl font-bold text-foreground">Ảnh thật</dd>
               </div>
               <div>
-                <dt className="text-xs font-medium uppercase tracking-widest text-muted-foreground">Miễn phí</dt>
-                <dd className="mt-1 font-display text-2xl font-bold text-foreground">Start</dd>
+                <dt className="text-xs font-medium uppercase tracking-widest text-muted-foreground">FitMe Pro</dt>
+                <dd className="mt-1 font-display text-2xl font-bold text-foreground">49k</dd>
               </div>
             </dl>
           </div>
@@ -210,8 +216,13 @@ export default function HomePage() {
         </div>
       </section>
 
+      <HowItWorksSection />
+      <FeaturedReviewsSection />
+      <PricingTeaserSection />
+      <FaqSection />
+
       {/* CTA band */}
-      <section className="relative overflow-hidden pb-mobile-nav md:pb-0">
+      <section className="relative overflow-hidden">
         <div className="gradient-fashion absolute inset-0" />
         <div className="absolute inset-0 opacity-30">
           <div className="fashion-grain h-full w-full opacity-100" />

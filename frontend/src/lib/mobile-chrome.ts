@@ -58,6 +58,7 @@ const NAV_LEVEL_2_ROUTES = new Set([
   "/admin/products/moderation",
   "/admin/flagged-links",
   "/admin/analytics",
+  "/admin/paying-customers",
   "/admin/privacy",
   "/admin/try-on-monitoring",
 ]);
@@ -84,6 +85,13 @@ export function shouldShowBottomNav(pathname: string): boolean {
   if (startsWithAny(pathname, BOTTOM_NAV_HIDDEN_AI)) return false;
   if (startsWithAny(pathname, BOTTOM_NAV_HIDDEN_TRYON)) return false;
   return true;
+}
+
+const MOBILE_FOOTER_ROUTES = new Set(["/", "/pricing", "/contact", "/privacy-policy", "/terms"]);
+
+/** App-like mobile screens hide the footer; landing and legal pages keep it (with room for the bottom nav). */
+export function showMobileFooter(pathname: string): boolean {
+  return MOBILE_FOOTER_ROUTES.has(normalizePath(pathname));
 }
 
 export function isCompactHeader(pathname: string): boolean {

@@ -37,10 +37,13 @@ export default function ForgotPasswordPage() {
     >
       {sent ? (
         <div className="space-y-3 text-sm text-muted-foreground">
-          <p>Nếu email tồn tại, token đặt lại mật khẩu đã được tạo (MVP: xem log backend).</p>
+          <p>
+            Nếu email đã đăng ký, chúng tôi vừa gửi link đặt lại mật khẩu (hiệu lực 60 phút). Kiểm tra hộp thư,
+            kể cả mục Spam.
+          </p>
           <p>
             <Link href="/auth/reset-password" className="font-medium underline">
-              Nhập token để đặt lại mật khẩu
+              Đã có mã? Nhập mã để đặt lại mật khẩu
             </Link>
           </p>
         </div>

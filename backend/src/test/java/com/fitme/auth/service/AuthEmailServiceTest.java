@@ -124,6 +124,41 @@ class AuthEmailServiceTest {
     }
 
     @Test
+    void sendPasswordResetLink_deliversLinkToResetPage() throws Exception {
+        FitMeProperties props = new FitMeProperties();
+        props.getAuth().setMailFrom("FitMe AI <noreply@fitme.test>");
+        props.getAuth().setResendApiKey("");
+        props.getFrontend().setBaseUrl("https://app.fitme.test/");
+        JavaMailSenderImpl sender = new JavaMailSenderImpl();
+        sender.setHost("127.0.0.1");
+        sender.setPort(ServerSetupTest.SMTP.getPort());
+        AuthEmailService svc = new AuthEmailService(mailSenderProvider(sender), props);
+        ReflectionTestUtils.setField(svc, "mailHost", "127.0.0.1");
+        ReflectionTestUtils.setField(svc, "mailPassword", "");
+
+        svc.sendPasswordResetLink("user@example.com", "tok-123", 60);
+
+        assertThat(greenMail.waitForIncomingEmail(5_000, 1)).isTrue();
+        MimeMessage message = greenMail.getReceivedMessages()[0];
+        assertThat(message.getSubject()).contains("Đặt lại mật khẩu");
+        assertThat(textOf(message)).contains("https://app.fitme.test/auth/reset-password?token=tok-123");
+    }
+
+    private static String textOf(jakarta.mail.Part part) throws Exception {
+        Object content = part.getContent();
+        if (content instanceof String text) {
+            return text;
+        }
+        StringBuilder sb = new StringBuilder();
+        if (content instanceof jakarta.mail.Multipart multipart) {
+            for (int i = 0; i < multipart.getCount(); i++) {
+                sb.append(textOf(multipart.getBodyPart(i)));
+            }
+        }
+        return sb.toString();
+    }
+
+    @Test
     void sendVerificationCode_withoutSmtp_andExposeOff_fails() {
         FitMeProperties props = new FitMeProperties();
         props.getAuth().setExposeVerificationCode(false);

@@ -68,8 +68,8 @@ test.describe("Luồng USER", () => {
     await page.goto("/auth/forgot-password");
     await page.locator('input[type="email"]').fill("user@fitme.ai");
     await page.getByRole("button", { name: "Gửi link đặt lại" }).click();
-    await expect(page.getByText(/token đặt lại mật khẩu đã được tạo/)).toBeVisible();
-    await expect(page.getByRole("link", { name: "Nhập token để đặt lại mật khẩu" })).toBeVisible();
+    await expect(page.getByText(/chúng tôi vừa gửi link đặt lại mật khẩu/)).toBeVisible();
+    await expect(page.getByRole("link", { name: "Đã có mã? Nhập mã để đặt lại mật khẩu" })).toBeVisible();
   });
 
   test("quyền riêng tư → gửi yêu cầu xóa session", async ({ page }) => {

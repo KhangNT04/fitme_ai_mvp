@@ -61,7 +61,7 @@ function ResetPasswordForm() {
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
           <div>
             <Label>Mã token</Label>
-            <Input {...register("token")} className="mt-1" placeholder="Dán token từ email/log server" />
+            <Input {...register("token")} className="mt-1" placeholder="Dán mã từ email đặt lại mật khẩu" />
             {errors.token && <p className="mt-1 text-xs text-red-600">{errors.token.message}</p>}
           </div>
           <div>

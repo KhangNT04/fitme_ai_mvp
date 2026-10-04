@@ -82,30 +82,84 @@ public class AuthEmailService {
                     "Hệ thống chưa cấu hình gửi email. Liên hệ quản trị viên (RESEND_API_KEY / SMTP).");
         }
 
+        int ttlMinutes = (int) Math.max(1, fitMeProperties.getAuth().getVerificationTtlSeconds() / 60);
+        String subject = "Xác nhận email · Bắt đầu thử mặc với FitMe AI";
+        deliver(toEmail, subject, verificationPlainText(code, ttlMinutes, toEmail),
+                verificationHtml(code, ttlMinutes, toEmail), "verification");
+    }
+
+    /** Emails a one-time link to the reset-password page. Throws when delivery is not possible. */
+    public void sendPasswordResetLink(String toEmail, String token, int ttlMinutes) {
+        if (!isMailConfigured()) {
+            throw new BusinessException("Hệ thống chưa cấu hình gửi email.");
+        }
+        String resetUrl = frontendUrl("/auth/reset-password?token=" + urlEncode(token));
+        if (resetUrl == null) {
+            throw new BusinessException("Thiếu FRONTEND base URL để tạo link đặt lại mật khẩu.");
+        }
+        String subject = "Đặt lại mật khẩu FitMe AI";
+        deliver(toEmail, subject, passwordResetPlainText(resetUrl, ttlMinutes),
+                passwordResetHtml(resetUrl, ttlMinutes), "password reset");
+    }
+
+    private void deliver(String toEmail, String subject, String text, String html, String kind) {
         String fromRaw = fitMeProperties.getAuth().getMailFrom();
         if (fromRaw == null || fromRaw.isBlank()) {
             fromRaw = "noreply@fitme.ai";
         }
-        int ttlMinutes = (int) Math.max(1, fitMeProperties.getAuth().getVerificationTtlSeconds() / 60);
-        String subject = "Xác nhận email · Bắt đầu thử mặc với FitMe AI";
-        String text = verificationPlainText(code, ttlMinutes, toEmail);
-        String html = verificationHtml(code, ttlMinutes, toEmail);
-
         try {
             if (isResendConfigured()) {
                 sendViaResendApi(toEmail, fromRaw.trim(), subject, text, html);
             } else {
                 sendViaSmtp(toEmail, fromRaw, subject, text, html);
             }
-            log.info("[AUTH] Verification email sent to {}", toEmail);
+            log.info("[AUTH] {} email sent to {}", kind, toEmail);
         } catch (BusinessException ex) {
             throw ex;
         } catch (Exception ex) {
-            log.error("[AUTH] Failed to send verification email to {}: {}", toEmail, ex.toString());
+            log.error("[AUTH] Failed to send {} email to {}: {}", kind, toEmail, ex.toString());
             String detail = ex.getMessage() != null ? ex.getMessage() : ex.getClass().getSimpleName();
             throw new BusinessException(
-                    "Không gửi được email xác nhận (" + shorten(detail) + "). Kiểm tra cấu hình email trên server.");
+                    "Không gửi được email (" + shorten(detail) + "). Kiểm tra cấu hình email trên server.");
         }
+    }
+
+    private String passwordResetPlainText(String resetUrl, int ttlMinutes) {
+        return "FitMe AI — Đặt lại mật khẩu\n\n"
+                + "Xin chào,\n\n"
+                + "Chúng tôi nhận được yêu cầu đặt lại mật khẩu cho tài khoản FitMe AI của bạn.\n"
+                + "Mở link sau để đặt mật khẩu mới (hiệu lực " + ttlMinutes + " phút):\n"
+                + resetUrl + "\n\n"
+                + "Nếu bạn không yêu cầu, hãy bỏ qua email này — mật khẩu hiện tại vẫn giữ nguyên.\n\n"
+                + "Trân trọng,\nĐội ngũ FitMe AI\n";
+    }
+
+    private String passwordResetHtml(String resetUrl, int ttlMinutes) {
+        String safeUrl = escapeHtml(resetUrl);
+        return """
+                <!DOCTYPE html>
+                <html lang="vi">
+                <head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
+                <body style="margin:0;padding:32px 16px;background:#f5ebe0;font-family:Segoe UI,Helvetica,Arial,sans-serif;">
+                  <table role="presentation" width="100%%" cellspacing="0" cellpadding="0"
+                         style="max-width:520px;margin:0 auto;background:#ffffff;border-radius:16px;">
+                    <tr><td style="padding:28px 32px 8px;color:#14121c;font-size:15px;line-height:1.6;">
+                      <h1 style="margin:0 0 14px;font-size:20px;color:#7c3aed;">Đặt lại mật khẩu FitMe AI</h1>
+                      <p style="margin:0 0 14px;">Chúng tôi nhận được yêu cầu đặt lại mật khẩu cho tài khoản của bạn.</p>
+                    </td></tr>
+                    <tr><td style="padding:0 32px 20px;text-align:center;">
+                      <a href="%s" style="display:inline-block;padding:12px 28px;background:#7c3aed;color:#ffffff;
+                         font-size:14px;font-weight:600;text-decoration:none;border-radius:999px;">Đặt mật khẩu mới</a>
+                      <p style="margin:12px 0 0;font-size:12px;color:#6b6578;">Link có hiệu lực trong %d phút.</p>
+                    </td></tr>
+                    <tr><td style="padding:0 32px 28px;font-size:13px;line-height:1.55;color:#6b6578;">
+                      Nếu bạn không yêu cầu, hãy bỏ qua email này — mật khẩu hiện tại vẫn giữ nguyên.
+                    </td></tr>
+                  </table>
+                </body>
+                </html>
+                """
+                .formatted(safeUrl, ttlMinutes);
     }
 
     private void sendViaResendApi(String toEmail, String from, String subject, String text, String html) {
@@ -273,14 +327,17 @@ public class AuthEmailService {
     }
 
     private String verifyEmailUrl(String toEmail) {
+        return frontendUrl("/auth/verify-email?email=" + urlEncode(toEmail));
+    }
+
+    private String frontendUrl(String pathAndQuery) {
         String base = fitMeProperties.getFrontend() != null
                 ? fitMeProperties.getFrontend().getBaseUrl()
                 : null;
         if (base == null || base.isBlank()) {
             return null;
         }
-        String normalized = trimTrailingSlash(base.trim());
-        return normalized + "/auth/verify-email?email=" + urlEncode(toEmail);
+        return trimTrailingSlash(base.trim()) + pathAndQuery;
     }
 
     private static String escapeHtml(String value) {

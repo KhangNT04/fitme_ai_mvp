@@ -68,6 +68,7 @@ class MockVtonProvider:
             job_id=job_id,
             status="completed",
             output_image_url=_MOCK_OUTPUT,
+            fallback_mode="mock",
         )
 
 

@@ -258,7 +258,13 @@ public class VtonTryOnService {
             preview.setPreviewSource(PreviewSource.VTON);
             preview.setErrorMessage(null);
             tryOn.setStatus(TryOnStatus.COMPLETED);
-            galleryService.recordTryOn(tryOn, preview);
+            if (isIllustrationFallback(response)) {
+                log.info("VTON returned a non-AI '{}' result for preview {}, refunding",
+                        response.getFallbackMode(), preview.getId());
+                fitkenService.refundTryOn(preview.getId(), "Hoàn Fitken do AI thử mặc chỉ trả ảnh minh họa");
+            } else {
+                galleryService.recordTryOn(tryOn, preview);
+            }
         } else if ("failed".equals(status)) {
             applyVtonFailure(tryOn, preview, response.getErrorCode(),
                     response.getErrorMessage() != null ? response.getErrorMessage() : "VTON job failed");
@@ -351,9 +357,18 @@ public class VtonTryOnService {
         };
     }
 
+    /** Composite / mock outputs are pasted illustrations, not AI renders — never billed or kept. */
+    private static boolean isIllustrationFallback(VtonJobResponse response) {
+        String mode = response.getFallbackMode();
+        if (mode == null) {
+            return false;
+        }
+        String normalized = mode.trim();
+        return "composite".equalsIgnoreCase(normalized) || "mock".equalsIgnoreCase(normalized);
+    }
+
     private static String resolveVtonDisclaimer(VtonJobResponse response) {
-        if (response.getFallbackMode() != null
-                && "composite".equalsIgnoreCase(response.getFallbackMode().trim())) {
+        if (isIllustrationFallback(response)) {
             return VTON_COMPOSITE_DISCLAIMER;
         }
         return VTON_DISCLAIMER;

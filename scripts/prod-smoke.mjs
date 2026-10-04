@@ -9,6 +9,7 @@
  *   --tryon   one AI try-on with FITME_PHOTO (calls the paid VTON provider, spends 1 Fitken)
  *   --review  posts a public product review with FITME_REVIEW_PHOTO (+3 Fitken, once per product)
  *   --payos   creates real PayOS payment links for an order and the Pro plan (nothing is paid)
+ *   --only=<text>  run only steps with a word starting with <text> (login always runs)
  *
  * Env: FITME_BASE_URL (default https://fitme-ai-mvp.vercel.app), FITME_API_URL (default <base>/api/v1),
  *      FITME_PHOTO, FITME_REVIEW_PHOTO (image paths).
@@ -17,6 +18,7 @@ import fs from "node:fs";
 import path from "node:path";
 
 const flags = new Set(process.argv.slice(2));
+const ONLY = process.argv.find((a) => a.startsWith("--only="))?.slice("--only=".length).toLowerCase();
 const BASE = (process.env.FITME_BASE_URL || "https://fitme-ai-mvp.vercel.app").replace(/\/$/, "");
 const API = (process.env.FITME_API_URL || `${BASE}/api/v1`).replace(/\/$/, "");
 const EMAIL = process.env.FITME_EMAIL;
@@ -61,6 +63,8 @@ async function call(method, urlPath, body, { auth = true, form = false, timeoutM
 }
 
 async function step(name, fn) {
+  if (ONLY && !new RegExp(`(^|[^\\p{L}])${ONLY}`, "u").test(name.toLowerCase())
+      && !name.startsWith("POST /auth/login")) return;
   const started = Date.now();
   try {
     const detail = await fn();
@@ -333,6 +337,8 @@ if (token) {
       const isAi = after === before - 1;
       assert(isAi ? galleryAfter === galleryBefore + 1 : galleryAfter === galleryBefore,
         `gallery ${galleryBefore} -> ${galleryAfter} with balance ${before} -> ${after}`);
+      assert(isAi && r.previewSource === "VTON",
+        `AI provider fell back to a non-AI preview (source=${r.previewSource}, fitken ${before} -> ${after})`);
       return `${top.name}: quality=${quality.qualityStatus} source=${r.previewSource} fitken ${before} -> ${after} ` +
         `gallery ${galleryBefore} -> ${galleryAfter} image=${r.previewImageUrl}`;
     });
@@ -341,6 +347,10 @@ if (token) {
   }
 
   await step("AI stylist chat reply", async () => {
+    const profile = await call("GET", "/me/body-profile").catch(() => null);
+    if (!profile?.id) {
+      await call("POST", "/me/body-profile", { heightCm: 165, weightKg: 52, gender: "FEMALE", fitPreference: "REGULAR" });
+    }
     const r = await call("POST", "/stylist/chat/messages",
       { message: "Gợi ý outfit đi cà phê cuối tuần" }, { timeoutMs: 120_000 });
     const reply = r.assistantMessage?.content ?? "";

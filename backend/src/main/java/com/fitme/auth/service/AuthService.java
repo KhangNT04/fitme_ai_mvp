@@ -163,7 +163,16 @@ public class AuthService {
             String token = UUID.randomUUID().toString();
             passwordResetTokens.put(token, new PasswordResetEntry(
                     user.getEmail(), Instant.now().plusSeconds(PASSWORD_RESET_TTL_SECONDS)));
-            log.info("[MOCK] Password reset token for {}: {}", user.getEmail(), token);
+            if (fitMeProperties.getAuth().isExposeVerificationCode()) {
+                log.info("[DEV] Password reset token for {}: {}", user.getEmail(), token);
+            }
+            try {
+                authEmailService.sendPasswordResetLink(
+                        user.getEmail(), token, (int) (PASSWORD_RESET_TTL_SECONDS / 60));
+            } catch (RuntimeException ex) {
+                // Same response either way so the endpoint never reveals which emails exist.
+                log.warn("[AUTH] Password reset email to {} failed: {}", user.getEmail(), ex.getMessage());
+            }
         });
         return Map.of("message", "Nếu email tồn tại, hướng dẫn đặt lại mật khẩu đã được gửi");
     }

@@ -120,6 +120,28 @@ class TryOnFitkenChargingIntegrationTest extends AbstractIntegrationTest {
                 .isEqualTo(1);
     }
 
+    @Test
+    void compositeFallbackFromProviderIsRefundedAndKeptOutOfGallery() throws Exception {
+        StubAiVtonClient.submitResponse = job("job-composite", "processing", null);
+        VtonJobResponse composite = job("job-composite", "completed", "https://cdn.example/composite.jpg");
+        composite.setFallbackMode("composite");
+        StubAiVtonClient.pollQueue.add(composite);
+        FitMeUserPrincipal principal = new FitMeUserPrincipal(testDataHelper.createUser().user());
+        String requestId = createAvatarTryOn(principal, testDataHelper.createEligibleProduct("Composite top", "Áo thun"));
+
+        mockMvc.perform(post("/api/v1/try-on/requests/{id}/generate", requestId).with(user(principal)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.fitkenBalance").value(4));
+        vtonTryOnService.pollForTryOn(java.util.UUID.fromString(requestId));
+
+        assertThat(fitkenService.balance(principal.getUserId())).isEqualTo(5);
+        assertThat(ledgerRepository.countByUserIdAndEntryType(principal.getUserId(), FitkenEntryType.REFUND))
+                .isEqualTo(1);
+        mockMvc.perform(get("/api/v1/me/gallery").with(user(principal)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.total").value(0));
+    }
+
     private static VtonJobResponse job(String jobId, String status, String outputUrl) {
         VtonJobResponse response = new VtonJobResponse();
         response.setJobId(jobId);

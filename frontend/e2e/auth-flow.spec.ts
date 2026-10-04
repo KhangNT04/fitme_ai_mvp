@@ -28,9 +28,9 @@ test.describe("User auth flow", () => {
     await page.locator('input[type="email"]').fill("user@fitme.ai");
     await page.getByRole("button", { name: "Gửi link đặt lại" }).click();
     await expect(
-      page.getByText(/Nếu email tồn tại, token đặt lại mật khẩu đã được tạo/),
+      page.getByText(/chúng tôi vừa gửi link đặt lại mật khẩu/),
     ).toBeVisible({ timeout: 15_000 });
-    await expect(page.getByRole("link", { name: "Nhập token để đặt lại mật khẩu" })).toBeVisible();
+    await expect(page.getByRole("link", { name: "Đã có mã? Nhập mã để đặt lại mật khẩu" })).toBeVisible();
   });
 
   test("register page has required fields", async ({ page }) => {

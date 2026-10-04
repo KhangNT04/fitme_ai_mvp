@@ -137,7 +137,7 @@ await step("GET /products/{id}/reviews", async () => {
 });
 
 let proPlan = null;
-await step("GET /plans has FitMe Pro 49k / 15 Fitken / 2 freeship", async () => {
+await step("GET /plans has FitMe Pro 49k / 15 Fitken / 0 freeship", async () => {
   const plans = items(await call("GET", "/plans", undefined, { auth: false }));
   proPlan = plans.find((p) => p.code === "PRO_MONTHLY") ?? plans[0];
   assert(proPlan, "no plans");

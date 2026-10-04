@@ -39,8 +39,8 @@ public class FitMeProperties {
          */
         private String resendApiKey = "";
         /**
-         * Google Apps Script web app that sends mail from the FitMe Gmail account over HTTPS
-         * (deploy/gmail-relay). Takes precedence over Resend/SMTP; Render Free blocks SMTP ports.
+         * HTTPS endpoint that sends mail from the FitMe Gmail account: the frontend's /api/mail-relay on Vercel
+         * or the Apps Script in deploy/gmail-relay. Takes precedence over Resend/SMTP; Render Free blocks SMTP ports.
          */
         private String mailRelayUrl = "";
         /** Shared secret checked by the relay script (RELAY_SECRET script property). */

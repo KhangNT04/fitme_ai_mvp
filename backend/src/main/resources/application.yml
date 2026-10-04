@@ -76,7 +76,7 @@ fitme:
     # Prefer Resend HTTPS (port 443). Also auto-detected when SMTP_PASSWORD starts with re_
     resend-api-key: ${RESEND_API_KEY:}
     resend-api-base-url: ${FITME_RESEND_API_BASE_URL:https://api.resend.com}
-    # Gmail relay (Google Apps Script web app, HTTPS). Used first when both values are set.
+    # HTTPS mail relay (frontend /api/mail-relay on Vercel, or deploy/gmail-relay Apps Script). Used first when both are set.
     mail-relay-url: ${MAIL_RELAY_URL:}
     mail-relay-secret: ${MAIL_RELAY_SECRET:}
   payos:

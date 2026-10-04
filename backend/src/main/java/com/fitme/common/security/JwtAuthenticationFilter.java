@@ -33,11 +33,15 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 if (jwtService.isAccessToken(token) && SecurityContextHolder.getContext().getAuthentication() == null) {
                     String email = jwtService.getEmail(token);
                     UserDetails userDetails = userDetailsService.loadUserByUsername(email);
-                    UsernamePasswordAuthenticationToken authentication =
-                            new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
-                    authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-                    SecurityContextHolder.getContext().setAuthentication(authentication);
-                    activityRecorder.recordActive(jwtService.getUserId(token));
+                    boolean stale = userDetails instanceof FitMeUserPrincipal principal
+                            && jwtService.issuedBeforePasswordChange(token, principal.getPasswordChangedAt());
+                    if (!stale) {
+                        UsernamePasswordAuthenticationToken authentication =
+                                new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
+                        authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+                        SecurityContextHolder.getContext().setAuthentication(authentication);
+                        activityRecorder.recordActive(jwtService.getUserId(token));
+                    }
                 }
             } catch (Exception ignored) {
                 // Invalid token — leave unauthenticated

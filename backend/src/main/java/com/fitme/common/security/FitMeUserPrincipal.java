@@ -8,6 +8,7 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
+import java.time.Instant;
 import java.util.Collection;
 import java.util.List;
 import java.util.UUID;
@@ -20,6 +21,7 @@ public class FitMeUserPrincipal implements UserDetails {
     private final String passwordHash;
     private final UserRole role;
     private final boolean active;
+    private final Instant passwordChangedAt;
 
     public FitMeUserPrincipal(UserAccount user) {
         this.userId = user.getId();
@@ -27,6 +29,7 @@ public class FitMeUserPrincipal implements UserDetails {
         this.passwordHash = user.getPasswordHash();
         this.role = user.getRole();
         this.active = user.getStatus() == UserStatus.ACTIVE;
+        this.passwordChangedAt = user.getPasswordChangedAt();
     }
 
     @Override

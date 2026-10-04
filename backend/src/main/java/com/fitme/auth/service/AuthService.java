@@ -210,7 +210,29 @@ public class AuthService {
         UserAccount user = userAccountRepository.findById(userId)
                 .orElseThrow(() -> new BusinessException("Tài khoản không tồn tại"));
         user.setPasswordHash(passwordEncoder.encode(request.getNewPassword()));
+        user.setPasswordChangedAt(Instant.now());
         userAccountRepository.save(user);
+    }
+
+    /** Changes the password, signs out every other session and returns fresh tokens for the caller. */
+    @Transactional
+    public AuthResponse changePassword(UUID userId, ChangePasswordRequest request) {
+        UserAccount user = userAccountRepository.findById(userId)
+                .orElseThrow(() -> new BusinessException("Tài khoản không tồn tại"));
+        if (!passwordEncoder.matches(request.getCurrentPassword(), user.getPasswordHash())) {
+            throw new BusinessException("Mật khẩu hiện tại không đúng");
+        }
+        if (passwordEncoder.matches(request.getNewPassword(), user.getPasswordHash())) {
+            throw new BusinessException("Mật khẩu mới phải khác mật khẩu hiện tại");
+        }
+        user.setPasswordHash(passwordEncoder.encode(request.getNewPassword()));
+        user.setPasswordChangedAt(Instant.now());
+        userAccountRepository.save(user);
+        if (request.getRefreshToken() != null && !request.getRefreshToken().isBlank()) {
+            jwtService.revokeRefreshToken(request.getRefreshToken());
+        }
+        log.info("[AUTH] Password changed for user {}", userId);
+        return buildAuthResponse(user);
     }
 
     private String issuePasswordResetToken(UserAccount user) {
@@ -249,6 +271,9 @@ public class AuthService {
                     .orElseThrow(() -> new BusinessException("Tài khoản không tồn tại"));
             if (!user.isEmailVerified()) {
                 throw new BusinessException("Tài khoản chưa xác nhận email");
+            }
+            if (jwtService.issuedBeforePasswordChange(token, user.getPasswordChangedAt())) {
+                throw new BusinessException("Mật khẩu đã được đổi. Vui lòng đăng nhập lại");
             }
             return buildAuthResponse(user);
         } catch (io.jsonwebtoken.JwtException ex) {

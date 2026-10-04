@@ -61,6 +61,7 @@ const NAV_LEVEL_2_ROUTES = new Set([
   "/admin/paying-customers",
   "/admin/privacy",
   "/admin/try-on-monitoring",
+  "/admin/account",
 ]);
 
 function normalizePath(pathname: string | null | undefined): string {

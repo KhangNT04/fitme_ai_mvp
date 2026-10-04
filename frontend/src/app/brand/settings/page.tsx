@@ -7,6 +7,7 @@ import { brandApi } from "@/services/brand-api";
 import { PortalLayout, brandNav } from "@/components/layout/PortalLayout";
 import { PortalPageHeader } from "@/components/portal/PortalPageHeader";
 import { BrandImageUpload } from "@/components/brand/BrandImageUpload";
+import { ChangePasswordForm } from "@/components/account/ChangePasswordForm";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -168,6 +169,15 @@ export default function BrandSettingsPage() {
           </CardContent>
         </Card>
       )}
+
+      <Card className="mt-6">
+        <CardHeader>
+          <CardTitle>Đổi mật khẩu</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <ChangePasswordForm className="max-w-md" />
+        </CardContent>
+      </Card>
     </PortalLayout>
   );
 }

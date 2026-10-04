@@ -80,6 +80,9 @@ public class UserAccount {
     @Column(name = "signup_referrer")
     private String signupReferrer;
 
+    @Column(name = "password_changed_at")
+    private Instant passwordChangedAt;
+
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;

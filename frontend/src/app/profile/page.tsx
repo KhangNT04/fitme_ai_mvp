@@ -19,6 +19,7 @@ import {
   Package,
   MapPin,
   Coins,
+  KeyRound,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
@@ -99,6 +100,13 @@ const hubLinks = [
     description: "Consent & xóa dữ liệu",
     icon: Shield,
     accent: "bg-emerald-500/10 text-emerald-700",
+  },
+  {
+    href: "/profile/password",
+    label: "Đổi mật khẩu",
+    description: "Bảo mật tài khoản",
+    icon: KeyRound,
+    accent: "bg-slate-500/10 text-slate-700",
   },
 ] as const;
 

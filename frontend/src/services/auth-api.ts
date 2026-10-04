@@ -117,6 +117,13 @@ export const authApi = {
   resetPassword: async (data: ResetPasswordRequest): Promise<void> => {
     await apiClient.post("/auth/reset-password", data);
   },
+  /** Other sessions are signed out; the returned tokens replace the caller's. */
+  changePassword: async (currentPassword: string, newPassword: string): Promise<AuthResponse> => {
+    const refreshToken =
+      typeof window !== "undefined" ? localStorage.getItem(AUTH_REFRESH_KEY) : null;
+    const res = await apiClient.post("/me/password", { currentPassword, newPassword, refreshToken });
+    return mapAuthResponse(unwrap(res));
+  },
   logout: async (): Promise<void> => {
     const refreshToken =
       typeof window !== "undefined" ? localStorage.getItem(AUTH_REFRESH_KEY) : null;

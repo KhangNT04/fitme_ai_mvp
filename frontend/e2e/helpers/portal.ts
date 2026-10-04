@@ -35,4 +35,5 @@ export const ADMIN_PAGES: { path: string; heading: string | RegExp }[] = [
   { path: "/admin/paying-customers", heading: "Khách hàng trả tiền" },
   { path: "/admin/privacy", heading: "Quyền riêng tư & Consent" },
   { path: "/admin/try-on-monitoring", heading: "Giám sát thử mặc" },
+  { path: "/admin/account", heading: "Đổi mật khẩu" },
 ];

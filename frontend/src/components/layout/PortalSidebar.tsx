@@ -21,6 +21,7 @@ import {
   Gift,
   Star,
   Receipt,
+  KeyRound,
   Sparkles as SparklesIcon,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -54,6 +55,7 @@ const adminIcons: Record<string, React.ComponentType<{ className?: string }>> = 
   "/admin/paying-customers": Receipt,
   "/admin/privacy": Shield,
   "/admin/try-on-monitoring": Eye,
+  "/admin/account": KeyRound,
 };
 
 interface PortalSidebarContextValue {

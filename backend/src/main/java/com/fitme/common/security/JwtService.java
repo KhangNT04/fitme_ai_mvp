@@ -14,6 +14,7 @@ import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.Date;
 import java.util.HexFormat;
 import java.util.Map;
@@ -87,6 +88,18 @@ public class JwtService {
 
     public String getEmail(String token) {
         return parseClaims(token).getSubject();
+    }
+
+    /**
+     * True when the token predates the account's last password change. JWT {@code iat} has second precision,
+     * so the change instant is truncated to seconds: tokens issued in the same second as the change stay valid.
+     */
+    public boolean issuedBeforePasswordChange(String token, Instant passwordChangedAt) {
+        if (passwordChangedAt == null) {
+            return false;
+        }
+        Date issuedAt = parseClaims(token).getIssuedAt();
+        return issuedAt == null || issuedAt.toInstant().isBefore(passwordChangedAt.truncatedTo(ChronoUnit.SECONDS));
     }
 
     public void revokeRefreshToken(String token) {

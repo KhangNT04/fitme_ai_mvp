@@ -52,6 +52,7 @@ export function labelForHref(href: string): string {
     "/profile/privacy": "Quyền riêng tư & dữ liệu",
     "/profile/body": "Chỉnh sửa hồ sơ cơ thể",
     "/profile/style": "Chỉnh sửa gu thời trang",
+    "/profile/password": "Đổi mật khẩu",
     "/ai/start": "Tư vấn AI",
     "/ai/chat": "Tư vấn outfit AI",
     "/ai/body-profile": "Hồ sơ cơ thể",

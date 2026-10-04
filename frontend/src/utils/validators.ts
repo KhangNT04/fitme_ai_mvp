@@ -99,6 +99,18 @@ export const resetPasswordSchema = z.object({
   path: ["confirmPassword"],
 });
 
+export const changePasswordSchema = z.object({
+  currentPassword: z.string().min(1, "Nhập mật khẩu hiện tại"),
+  newPassword: z.string().min(8, "Mật khẩu mới tối thiểu 8 ký tự").max(100, "Mật khẩu tối đa 100 ký tự"),
+  confirmPassword: z.string(),
+}).refine((data) => data.newPassword === data.confirmPassword, {
+  message: "Mật khẩu không khớp",
+  path: ["confirmPassword"],
+}).refine((data) => data.newPassword !== data.currentPassword, {
+  message: "Mật khẩu mới phải khác mật khẩu hiện tại",
+  path: ["newPassword"],
+});
+
 export const tryOnInputSchema = z.object({
   heightCm: z.number({ error: "Nhập chiều cao" }).min(100, "Chiều cao tối thiểu 100cm").max(250, "Chiều cao tối đa 250cm"),
   weightKg: z.number({ error: "Nhập cân nặng" }).min(30, "Cân nặng tối thiểu 30kg").max(200, "Cân nặng tối đa 200kg"),
@@ -188,4 +200,5 @@ export type OccasionForm = z.infer<typeof occasionSchema>;
 export type LoginForm = z.infer<typeof loginSchema>;
 export type RegisterForm = z.infer<typeof registerSchema>;
 export type ResetPasswordForm = z.infer<typeof resetPasswordSchema>;
+export type ChangePasswordForm = z.infer<typeof changePasswordSchema>;
 export type BrandOnboardingForm = z.infer<typeof brandOnboardingSchema>;

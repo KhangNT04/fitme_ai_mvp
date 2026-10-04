@@ -27,6 +27,9 @@ public class GeminiOutfitValidator {
 
     private static final Set<ItemRole> ALLOWED_ROLES = EnumSet.of(
             ItemRole.TOP, ItemRole.BOTTOM, ItemRole.ONE_PIECE, ItemRole.OUTERWEAR, ItemRole.SHOES);
+    public static final int MAX_SIZE_LENGTH = 50;
+    public static final int MAX_COLOR_LENGTH = 100;
+    public static final int MAX_TITLE_LENGTH = 255;
 
     private final OutfitCompositionService outfitCompositionService;
     private final SizeResolutionService sizeResolutionService;
@@ -86,13 +89,15 @@ public class GeminiOutfitValidator {
             usedRoles.add(role);
 
             RecommendationResponse.OutfitItemDto dto = outfitCompositionService.toProductItem(product, role, body);
-            if (raw.getSelectedSize() != null && !raw.getSelectedSize().isBlank()) {
-                dto.setSelectedSize(raw.getSelectedSize());
+            String selectedSize = fitOrNull(raw.getSelectedSize(), MAX_SIZE_LENGTH);
+            if (selectedSize != null) {
+                dto.setSelectedSize(selectedSize);
             } else if (dto.getSelectedSize() == null || dto.getSelectedSize().isBlank()) {
                 dto.setSelectedSize(sizeResolutionService.resolveSize(body, productId));
             }
-            if (raw.getSelectedColor() != null && !raw.getSelectedColor().isBlank()) {
-                dto.setSelectedColor(raw.getSelectedColor());
+            String selectedColor = fitOrNull(raw.getSelectedColor(), MAX_COLOR_LENGTH);
+            if (selectedColor != null) {
+                dto.setSelectedColor(selectedColor);
             }
             dto.setCanBuy(eligibilityService.canShowBuyButton(product));
             dto.setSourceType(SourceType.BRAND_PRODUCT);
@@ -103,6 +108,15 @@ public class GeminiOutfitValidator {
             throw new IllegalArgumentException("No valid items after validation");
         }
         return items;
+    }
+
+    /** Trimmed value, or null when blank or longer than the backing column allows. */
+    public static String fitOrNull(String raw, int maxLength) {
+        if (raw == null) {
+            return null;
+        }
+        String trimmed = raw.trim();
+        return trimmed.isEmpty() || trimmed.length() > maxLength ? null : trimmed;
     }
 
     public static Confidence parseConfidence(String raw) {

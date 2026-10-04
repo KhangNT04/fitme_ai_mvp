@@ -72,12 +72,14 @@ public class GeminiStylistService {
             List<RecommendationResponse.OutfitItemDto> items =
                     outfitValidator.validateAndMap(suggestion, validationCandidates, body);
 
-            String recommendedSize = suggestion.getRecommendedSize();
-            if (recommendedSize == null || recommendedSize.isBlank()) {
+            String recommendedSize = GeminiOutfitValidator.fitOrNull(
+                    suggestion.getRecommendedSize(), GeminiOutfitValidator.MAX_SIZE_LENGTH);
+            if (recommendedSize == null) {
                 recommendedSize = sizeResolutionService.recommendSize(body, items);
             }
-            String altSize = suggestion.getAlternativeSize();
-            if (altSize == null || altSize.isBlank()) {
+            String altSize = GeminiOutfitValidator.fitOrNull(
+                    suggestion.getAlternativeSize(), GeminiOutfitValidator.MAX_SIZE_LENGTH);
+            if (altSize == null) {
                 altSize = sizeResolutionService.altSize(recommendedSize);
             }
 
@@ -109,19 +111,25 @@ public class GeminiStylistService {
                 confidence = Confidence.LOW;
             }
 
-            String title = suggestion.getTitle();
-            if (title == null || title.isBlank()) {
+            String title = suggestion.getTitle() != null ? suggestion.getTitle().trim() : null;
+            if (title == null || title.isEmpty()) {
                 String styleLabel = style.getPrimaryStyle() != null ? style.getPrimaryStyle() : "đa dạng";
                 title = "Outfit phong cách " + styleLabel;
+            } else if (title.length() > GeminiOutfitValidator.MAX_TITLE_LENGTH) {
+                title = title.substring(0, GeminiOutfitValidator.MAX_TITLE_LENGTH - 1) + "…";
             }
+            String recommendedForm = GeminiOutfitValidator.fitOrNull(
+                    suggestion.getRecommendedForm(), GeminiOutfitValidator.MAX_COLOR_LENGTH);
+            String recommendedColor = GeminiOutfitValidator.fitOrNull(
+                    suggestion.getRecommendedColor(), GeminiOutfitValidator.MAX_COLOR_LENGTH);
 
             return StylistSuggestOutcome.success(new GeminiStylistResult(
                     title,
                     items,
                     recommendedSize,
                     altSize,
-                    suggestion.getRecommendedForm() != null ? suggestion.getRecommendedForm() : "regular",
-                    suggestion.getRecommendedColor() != null ? suggestion.getRecommendedColor() : "neutral",
+                    recommendedForm != null ? recommendedForm : "regular",
+                    recommendedColor != null ? recommendedColor : "neutral",
                     confidence,
                     exp != null ? explanationBody : null,
                     explanationStyle,

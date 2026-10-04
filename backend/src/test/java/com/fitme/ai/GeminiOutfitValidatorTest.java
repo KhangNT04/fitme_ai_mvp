@@ -139,6 +139,39 @@ class GeminiOutfitValidatorTest {
     }
 
     @Test
+    void validateAndMap_ignoresSizeAndColorTooLongForColumns() {
+        UUID topId = UUID.randomUUID();
+        Product top = Product.builder().id(topId).name("Top").category("Áo thun").build();
+        BodyProfile body = BodyProfile.builder().heightCm(165).weightKg(BigDecimal.valueOf(55)).build();
+
+        GeminiOutfitSuggestion suggestion = new GeminiOutfitSuggestion();
+        GeminiOutfitSuggestion.Item topItem = new GeminiOutfitSuggestion.Item();
+        topItem.setProductId(topId.toString());
+        topItem.setRole("TOP");
+        topItem.setSelectedSize("M (phù hợp chiều cao 1m65, nặng 55kg, thích mặc rộng thoải mái)");
+        topItem.setSelectedColor("x".repeat(GeminiOutfitValidator.MAX_COLOR_LENGTH + 1));
+        suggestion.setItems(List.of(topItem));
+
+        when(variantRepository.findByProductId(any())).thenReturn(List.of());
+        when(imageRepository.findByProductIdOrderBySortOrderAsc(any())).thenReturn(List.of());
+        when(sizeChartRepository.findByProductId(any())).thenReturn(List.of());
+
+        RecommendationResponse.OutfitItemDto item =
+                validator.validateAndMap(suggestion, List.of(top), body).get(0);
+
+        assertThat(item.getSelectedSize()).isNotNull().hasSizeLessThanOrEqualTo(GeminiOutfitValidator.MAX_SIZE_LENGTH);
+        assertThat(item.getSelectedColor()).isNotNull().hasSizeLessThanOrEqualTo(GeminiOutfitValidator.MAX_COLOR_LENGTH);
+    }
+
+    @Test
+    void fitOrNull_trimsAndRejectsBlankOrOverlong() {
+        assertThat(GeminiOutfitValidator.fitOrNull("  M ", 50)).isEqualTo("M");
+        assertThat(GeminiOutfitValidator.fitOrNull("   ", 50)).isNull();
+        assertThat(GeminiOutfitValidator.fitOrNull("x".repeat(51), 50)).isNull();
+        assertThat(GeminiOutfitValidator.fitOrNull(null, 50)).isNull();
+    }
+
+    @Test
     void validateAndMap_rejectsUnknownProductId() {
         UUID topId = UUID.randomUUID();
         Product top = Product.builder().id(topId).name("Top").build();

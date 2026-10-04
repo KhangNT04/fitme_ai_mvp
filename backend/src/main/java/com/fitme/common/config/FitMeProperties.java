@@ -95,10 +95,12 @@ public class FitMeProperties {
         /** Every N consecutive daily check-ins grants {@link #checkinReward}. */
         private int checkinStreakDays = 3;
         private int checkinReward = 1;
-        private int shareReward = 2;
+        private int shareReward = 3;
         /** Max rewarded social-share submissions per user per day (Asia/Ho_Chi_Minh). */
         private int shareDailyLimit = 1;
-        private int reviewReward = 3;
+        private int reviewReward = 2;
+        /** Max rewarded photo reviews per user per day (Asia/Ho_Chi_Minh); later reviews that day earn nothing. */
+        private int reviewDailyLimit = 1;
         /** Fitken spent per AI try-on generation. */
         private int tryOnCost = 1;
     }

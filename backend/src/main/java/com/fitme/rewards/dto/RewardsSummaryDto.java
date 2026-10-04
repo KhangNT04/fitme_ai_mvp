@@ -41,5 +41,7 @@ public class RewardsSummaryDto {
         private int rewardAmount;
         private int minContentLength;
         private long rewardedCount;
+        private int dailyLimit;
+        private int remainingToday;
     }
 }

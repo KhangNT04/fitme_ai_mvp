@@ -52,10 +52,10 @@ class ReviewIntegrationTest extends AbstractIntegrationTest {
         assertThat(imageUrl).startsWith("/uploads/reviews/");
         createReview(withImage, product.getId(), 5, LONG_CONTENT, List.of(imageUrl))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.data.rewardGranted").value(3))
+                .andExpect(jsonPath("$.data.rewardGranted").value(2))
                 .andExpect(jsonPath("$.data.review.imageUrls[0]").value(imageUrl))
                 .andExpect(jsonPath("$.data.review.verifiedPurchase").value(false));
-        assertThat(fitkenService.balance(withImage.getUserId())).isEqualTo(8);
+        assertThat(fitkenService.balance(withImage.getUserId())).isEqualTo(7);
 
         createReview(shortText, product.getId(), 3, "Đẹp", List.of(uploadImage(shortText)))
                 .andExpect(status().isOk())
@@ -70,6 +70,30 @@ class ReviewIntegrationTest extends AbstractIntegrationTest {
                 .andExpect(jsonPath("$.data.totalCount").value(3))
                 .andExpect(jsonPath("$.data.averageRating").value(4.0))
                 .andExpect(jsonPath("$.data.items[0].authorName").value("Test User"));
+    }
+
+    @Test
+    void onlyOnePhotoReviewPerDayIsRewarded() throws Exception {
+        Product first = testDataHelper.createEligibleProduct("Review daily top", "Áo thun");
+        Product second = testDataHelper.createEligibleProduct("Review daily pants", "Quần");
+        FitMeUserPrincipal principal = new FitMeUserPrincipal(testDataHelper.createUser().user());
+
+        createReview(principal, first.getId(), 5, LONG_CONTENT, List.of(uploadImage(principal)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.rewardGranted").value(2))
+                .andExpect(jsonPath("$.data.rewardLimitReached").value(false));
+        createReview(principal, second.getId(), 4, LONG_CONTENT, List.of(uploadImage(principal)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.rewardGranted").value(0))
+                .andExpect(jsonPath("$.data.rewardLimitReached").value(true));
+        assertThat(fitkenService.balance(principal.getUserId())).isEqualTo(7);
+
+        mockMvc.perform(get("/api/v1/rewards").with(user(principal)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.review.rewardAmount").value(2))
+                .andExpect(jsonPath("$.data.review.dailyLimit").value(1))
+                .andExpect(jsonPath("$.data.review.remainingToday").value(0))
+                .andExpect(jsonPath("$.data.share.rewardAmount").value(3));
     }
 
     @Test
@@ -104,7 +128,7 @@ class ReviewIntegrationTest extends AbstractIntegrationTest {
                 .andExpect(status().isOk())
                 .andReturn().getResponse().getContentAsString();
         String reviewId = objectMapper.readTree(body).get("data").get("review").get("id").asText();
-        assertThat(fitkenService.balance(principal.getUserId())).isEqualTo(8);
+        assertThat(fitkenService.balance(principal.getUserId())).isEqualTo(7);
 
         mockMvc.perform(post("/api/v1/admin/reviews/{id}/hide", reviewId)
                         .with(user(admin))

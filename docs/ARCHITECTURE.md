@@ -73,7 +73,7 @@ com.fitme/
   ├── order/            Đơn khách (COD/PayOS), tách đơn seller, tạo shipment, tracking
   ├── settlement/       Đối soát doanh thu seller, hoa hồng sàn 10%, quyết toán chuyển khoản
   ├── logistics/        Webhook cập nhật trạng thái vận đơn từ carrier (GHN/GHTK/ViettelPost)
-  ├── voucher/          Cấp và áp dụng voucher freeship hàng tháng của gói Pro
+  ├── voucher/          Cấp và áp dụng voucher freeship (admin cấp; gói Pro hiện không kèm voucher)
   ├── entitlement/      Phân tầng Free vs Pro (coherence modes PREFER/STRICT)
   ├── product/          Catalog sản phẩm, biến thể tồn kho, kiểm duyệt admin
   ├── brand/            Brand profile, seller portal orders/shipments/payout
@@ -101,8 +101,8 @@ com.fitme/
    - Đối soát seller (`seller_settlements`): đơn hoàn thành sau 7 ngày đổi trả (`settlement-hold-days`) đủ điều kiện đối soát. Hoa hồng sàn 10% trên subtotal.
 4. **Nhận thưởng & Đánh giá**:
    - Điểm danh chuỗi 3 ngày liên tiếp: +1 Fitken (`CHECKIN_REWARD`).
-   - Chia sẻ bài đăng mạng xã hội: +2 Fitken (`SHARE_REWARD`), tối đa 1 lần/ngày, admin có thể duyệt/từ chối.
-   - Đánh giá sản phẩm có ảnh (≥20 ký tự, ≥1 ảnh): +3 Fitken (`REVIEW_REWARD`).
+   - Chia sẻ bài đăng mạng xã hội: +3 Fitken (`SHARE_REWARD`), tối đa 1 lần/ngày, admin có thể duyệt/từ chối.
+   - Đánh giá sản phẩm có ảnh (≥20 ký tự, ≥1 ảnh): +2 Fitken (`REVIEW_REWARD`), tối đa 1 đánh giá được thưởng/ngày.
 
 ### Recommendation pipeline
 

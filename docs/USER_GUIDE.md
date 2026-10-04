@@ -230,8 +230,8 @@ Khám phá thời trang Gen Z, nhận tư vấn AI, thử đồ ảo bằng Fitk
 
 Người dùng có thể kiếm thêm Fitken miễn phí mỗi ngày (tính theo múi giờ `Asia/Ho_Chi_Minh`):
 1. **Điểm danh nhận quà**: Mỗi ngày điểm danh 1 lần. Đạt chuỗi 3 ngày liên tiếp (`streak % 3 == 0`) nhận ngay **+1 Fitken**. Bỏ lỡ 1 ngày chuỗi sẽ bắt đầu lại từ 1.
-2. **Chia sẻ bài đăng**: Đăng bài khoe outfit lên mạng xã hội cá nhân (Facebook, TikTok, Instagram, Threads, X/Twitter) rồi dán link công khai tại `/rewards`. Hệ thống kiểm tra hợp lệ và cộng ngay **+2 Fitken** (tối đa 1 lần thưởng/ngày).
-3. **Đánh giá sản phẩm có ảnh**: Viết review sản phẩm tại trang chi tiết `/products/{id}` có đính kèm ≥1 ảnh thực tế và nội dung ≥ 20 ký tự được thưởng **+3 Fitken** (thưởng 1 lần cho mỗi đánh giá hợp lệ).
+2. **Chia sẻ bài đăng**: Đăng bài khoe outfit lên mạng xã hội cá nhân (Facebook, TikTok, Instagram, Threads, X/Twitter) rồi dán link công khai tại `/rewards`. Hệ thống kiểm tra hợp lệ và cộng ngay **+3 Fitken** (tối đa 1 lần thưởng/ngày).
+3. **Đánh giá sản phẩm có ảnh**: Viết review sản phẩm tại trang chi tiết `/products/{id}` có đính kèm ≥1 ảnh thực tế và nội dung ≥ 20 ký tự được thưởng **+2 Fitken** (tối đa 1 đánh giá được thưởng/ngày).
 
 ### 3.4 Thư viện ảnh phối đồ (`/profile/gallery`)
 

@@ -25,12 +25,12 @@ class ConsumerSubscriptionIntegrationTest extends AbstractIntegrationTest {
         mockMvc.perform(get("/api/v1/plans"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data[?(@.code == 'PRO_MONTHLY')].fitkenAmount").value(15))
-                .andExpect(jsonPath("$.data[?(@.code == 'PRO_MONTHLY')].freeshipVouchers").value(2))
+                .andExpect(jsonPath("$.data[?(@.code == 'PRO_MONTHLY')].freeshipVouchers").value(0))
                 .andExpect(jsonPath("$.data[?(@.code == 'PRO_MONTHLY')].priceVnd").value(49000));
     }
 
     @Test
-    void mockProCheckoutGrantsFitkenAndFreeshipVouchers() throws Exception {
+    void mockProCheckoutGrantsFitkenWithoutFreeshipVouchers() throws Exception {
         FitMeUserPrincipal principal = new FitMeUserPrincipal(testDataHelper.createUser().user());
         String planId = proPlanId();
 
@@ -62,8 +62,7 @@ class ConsumerSubscriptionIntegrationTest extends AbstractIntegrationTest {
 
         mockMvc.perform(get("/api/v1/me/vouchers").with(user(principal)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.data.length()").value(2))
-                .andExpect(jsonPath("$.data[0].maxDiscountVnd").value(30000));
+                .andExpect(jsonPath("$.data.length()").value(0));
 
         mockMvc.perform(get("/api/v1/me/entitlement").with(user(principal)))
                 .andExpect(status().isOk())

@@ -65,6 +65,9 @@ public class RewardService {
 
         int dailyLimit = Math.max(0, properties.getFitken().getShareDailyLimit());
         long sharedToday = shareRepository.countByUserIdAndClaimDate(userId, today);
+        int reviewDailyLimit = Math.max(0, properties.getFitken().getReviewDailyLimit());
+        long reviewedToday = reviewRepository.countByUserIdAndRewardGrantedGreaterThanAndCreatedAtGreaterThanEqual(
+                userId, 0, clock.startOfDay(today));
 
         return RewardsSummaryDto.builder()
                 .balance(balance)
@@ -87,6 +90,8 @@ public class RewardService {
                         .rewardAmount(properties.getFitken().getReviewReward())
                         .minContentLength(ReviewService.MIN_REWARD_CONTENT_LENGTH)
                         .rewardedCount(reviewRepository.countByUserIdAndRewardGrantedGreaterThan(userId, 0))
+                        .dailyLimit(reviewDailyLimit)
+                        .remainingToday((int) Math.max(0, reviewDailyLimit - reviewedToday))
                         .build())
                 .build();
     }

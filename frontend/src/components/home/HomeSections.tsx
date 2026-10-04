@@ -44,11 +44,11 @@ export const HOME_FAQ = [
   },
   {
     q: "Fitken là gì và nhận ở đâu?",
-    a: "Fitken là đơn vị dùng cho mỗi lượt thử mặc AI (1 Fitken/lượt). Tài khoản mới được tặng 5 Fitken; bạn nhận thêm khi điểm danh 3 ngày liên tục (+1), chia sẻ ảnh thử đồ (+2) hoặc đánh giá sản phẩm đã mua kèm ảnh (+3).",
+    a: "Fitken là đơn vị dùng cho mỗi lượt thử mặc AI (1 Fitken/lượt). Tài khoản mới được tặng 5 Fitken; bạn nhận thêm khi điểm danh 3 ngày liên tục (+1), chia sẻ ảnh thử đồ (+3) hoặc đánh giá sản phẩm đã mua kèm ảnh (+2), mỗi nhiệm vụ 1 lần/ngày.",
   },
   {
     q: "FitMe Pro có gì?",
-    a: "Gói Pro 49.000đ/tháng gồm 15 Fitken mỗi tháng và 2 voucher freeship. Tư vấn size, phối đồ và mua sắm vẫn miễn phí cho mọi người.",
+    a: "Gói Pro 49.000đ/tháng gồm 15 Fitken mỗi tháng. Tư vấn size, phối đồ và mua sắm vẫn miễn phí cho mọi người.",
   },
   {
     q: "Ảnh của tôi có an toàn không?",
@@ -166,7 +166,7 @@ export function PricingTeaserSection() {
           <div className="rounded-2xl border border-primary/40 bg-white p-5 shadow-md shadow-violet-500/10">
             <p className="text-xs font-medium uppercase tracking-wide text-primary">FitMe Pro</p>
             <p className="mt-1 font-display text-2xl font-bold">49.000đ<span className="text-sm font-medium text-muted-foreground">/tháng</span></p>
-            <p className="mt-2 text-sm text-muted-foreground">15 Fitken mỗi tháng + 2 voucher freeship</p>
+            <p className="mt-2 text-sm text-muted-foreground">15 Fitken mỗi tháng cho thử mặc AI</p>
           </div>
           <Button asChild variant="outline" className="rounded-full sm:col-span-2">
             <Link href="/pricing">

@@ -38,8 +38,15 @@ export function ProductReviewsSection({ productId }: { productId: string }) {
 
   const submitMutation = useMutation({
     mutationFn: () => reviewApi.createReview(productId, { rating, content, imageUrls: images }),
-    onSuccess: () => {
-      toast.success("Đánh giá của bạn đã được gửi!");
+    onSuccess: (res) => {
+      if (res?.rewardGranted > 0) {
+        toast.success(`Đánh giá đã được gửi! Bạn nhận +${res.rewardGranted} Fitken.`);
+        void queryClient.invalidateQueries({ queryKey: ["fitken-wallet"] });
+      } else if (res?.rewardLimitReached) {
+        toast.success("Đánh giá đã được gửi! Hôm nay bạn đã nhận thưởng đánh giá, quay lại vào ngày mai nhé.");
+      } else {
+        toast.success("Đánh giá của bạn đã được gửi!");
+      }
       setContent("");
       setImages([]);
       setRating(5);
@@ -121,7 +128,7 @@ export function ProductReviewsSection({ productId }: { productId: string }) {
           <div>
             <h3 className="font-medium">Bạn đã mua sản phẩm này?</h3>
             <p className="text-sm text-muted-foreground">Chia sẻ cảm nhận của bạn để giúp người khác nhé.</p>
-            <p className="text-xs text-amber-600 font-medium mt-1">+3 Fitken khi đánh giá có kèm ảnh!</p>
+            <p className="text-xs text-amber-600 font-medium mt-1">+2 Fitken khi đánh giá có kèm ảnh (1 lần/ngày)!</p>
           </div>
           {isAuthenticated ? (
             <Button onClick={() => setShowForm(true)} className="rounded-full shrink-0">

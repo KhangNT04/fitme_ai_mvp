@@ -54,6 +54,8 @@ const NAV_LEVEL_2_ROUTES = new Set([
   "/brand/settings",
   "/admin/login",
   "/admin/dashboard",
+  "/admin/users",
+  "/admin/traffic",
   "/admin/brands",
   "/admin/products/moderation",
   "/admin/flagged-links",

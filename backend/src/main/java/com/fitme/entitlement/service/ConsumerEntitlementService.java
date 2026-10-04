@@ -114,7 +114,7 @@ public class ConsumerEntitlementService {
                 .mixPolicy(mixPolicy)
                 .upsellMessage(pro
                         ? null
-                        : "Nâng cấp FitMe Pro 49.000đ/tháng: 15 Fitken thử đồ AI, 2 voucher freeship và cá nhân hóa sâu hơn.")
+                        : "Nâng cấp FitMe Pro 49.000đ/tháng: 15 Fitken thử đồ AI mỗi tháng và cá nhân hóa sâu hơn.")
                 .build();
     }
 

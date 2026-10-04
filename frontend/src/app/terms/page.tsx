@@ -34,7 +34,7 @@ export default function TermsPage() {
         <ul>
           <li>Fitken là đơn vị sử dụng tính năng trong ứng dụng, không quy đổi thành tiền mặt và không chuyển nhượng.</li>
           <li>Mỗi lượt thử mặc AI thành công trừ 1 Fitken; lượt lỗi do hệ thống được hoàn Fitken.</li>
-          <li>FitMe Pro có giá 49.000đ/tháng, gồm 15 Fitken và 2 voucher freeship mỗi kỳ; quyền lợi có hiệu lực ngay sau khi thanh toán thành công.</li>
+          <li>FitMe Pro có giá 49.000đ/tháng, gồm 15 Fitken mỗi kỳ; quyền lợi có hiệu lực ngay sau khi thanh toán thành công.</li>
           <li>Phần thưởng nhiệm vụ (điểm danh, chia sẻ, đánh giá) có thể bị thu hồi nếu phát hiện gian lận.</li>
         </ul>
       </LegalSection>

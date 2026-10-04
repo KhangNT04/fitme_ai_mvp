@@ -80,6 +80,47 @@ export interface AdminMetrics {
   signupSources: Array<{ source: string; users: number; payingUsers: number }>;
 }
 
+export type TrafficTrend = "NO_DATA" | "STRONG_UP" | "UP" | "STABLE" | "DOWN" | "STRONG_DOWN";
+export type TrafficLevel = "NO_DATA" | "LOW" | "NORMAL" | "HIGH";
+export type TrafficScale = "VERY_LOW" | "LOW" | "MEDIUM" | "GOOD" | "HIGH";
+export type TrafficVolatility = "STABLE" | "MODERATE" | "HIGH";
+
+export interface TrafficPeriod {
+  visitors: number;
+  pageViews: number;
+  newVisitors: number;
+  /** Same-length window right before (for "day": yesterday up to the same time). */
+  previousVisitors: number;
+  changePct: number | null;
+}
+
+export interface TrafficStats {
+  today: string;
+  rangeDays: number;
+  day: TrafficPeriod;
+  week: TrafficPeriod;
+  month: TrafficPeriod;
+  daily: Array<{ date: string; visitors: number; pageViews: number; newVisitors: number }>;
+  weekly: Array<{ start: string; visitors: number; pageViews: number }>;
+  monthly: Array<{ start: string; visitors: number; pageViews: number }>;
+  /** ISO weekday (1 = Monday … 7 = Sunday). */
+  weekdays: Array<{ isoDay: number; avgVisitors: number }>;
+  assessment: {
+    trend: TrafficTrend;
+    trendChangePct: number | null;
+    level: TrafficLevel;
+    scale: TrafficScale;
+    volatility: TrafficVolatility;
+    avgDailyVisitors: number;
+    recentAvgDailyVisitors: number;
+    peakDate: string | null;
+    peakVisitors: number;
+    busiestWeekday: number | null;
+    returningRate: number;
+    pagesPerVisit: number;
+  };
+}
+
 export type PayingTransactionKind = "PRO_SUBSCRIPTION" | "ORDER_PAYOS" | "ORDER_COD";
 
 export interface PayingCustomersReport {

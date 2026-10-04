@@ -172,18 +172,36 @@ public class ReviewService {
         }
 
         int granted = 0;
+        boolean limitReached = false;
         if (!imagePaths.isEmpty() && content.length() >= MIN_REWARD_CONTENT_LENGTH) {
-            granted = fitkenService.grant(userId, FitkenEntryType.REVIEW_REWARD,
-                    properties.getFitken().getReviewReward(), FitkenService.Bucket.BONUS,
-                    REF_REVIEW, review.getId(), "Đánh giá sản phẩm có ảnh");
-            review.setRewardGranted(granted);
-            review = reviewRepository.save(review);
+            // Locking the wallet serializes concurrent reviews of the same user against the daily limit.
+            fitkenService.lockWallet(userId);
+            if (rewardedReviewsToday(userId) >= reviewDailyLimit()) {
+                limitReached = true;
+            } else {
+                granted = fitkenService.grant(userId, FitkenEntryType.REVIEW_REWARD,
+                        properties.getFitken().getReviewReward(), FitkenService.Bucket.BONUS,
+                        REF_REVIEW, review.getId(), "Đánh giá sản phẩm có ảnh");
+                review.setRewardGranted(granted);
+                review = reviewRepository.save(review);
+            }
         }
         Set<UUID> buyers = purchaseVerifier.hasDeliveredPurchase(userId, productId) ? Set.of(userId) : Set.of();
         return CreateReviewResponse.builder()
                 .review(toDtos(List.of(review), buyers).getFirst())
                 .rewardGranted(granted)
+                .rewardLimitReached(limitReached)
                 .build();
+    }
+
+    /** Rewarded reviews the user posted since the start of today (Asia/Ho_Chi_Minh). */
+    public long rewardedReviewsToday(UUID userId) {
+        return reviewRepository.countByUserIdAndRewardGrantedGreaterThanAndCreatedAtGreaterThanEqual(
+                userId, 0, clock.startOfDay(clock.today()));
+    }
+
+    public int reviewDailyLimit() {
+        return Math.max(0, properties.getFitken().getReviewDailyLimit());
     }
 
     public ReviewImageUploadResponse uploadImage(UUID userId, MultipartFile file) throws IOException {

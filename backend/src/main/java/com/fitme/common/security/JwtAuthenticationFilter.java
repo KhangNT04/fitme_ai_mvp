@@ -35,7 +35,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                     UserDetails userDetails = userDetailsService.loadUserByUsername(email);
                     boolean stale = userDetails instanceof FitMeUserPrincipal principal
                             && jwtService.issuedBeforePasswordChange(token, principal.getPasswordChangedAt());
-                    if (!stale) {
+                    if (!stale && userDetails.isEnabled()) {
                         UsernamePasswordAuthenticationToken authentication =
                                 new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
                         authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));

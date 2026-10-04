@@ -7,6 +7,7 @@ import type {
   FlaggedLink,
   StyleRule,
   OccasionRule,
+  TrafficStats,
 } from "@/types/analytics";
 import type { Brand } from "@/types/brand";
 import type { Product } from "@/types/product";
@@ -22,6 +23,10 @@ export const adminApi = {
   },
   getMetrics: async (days: number): Promise<AdminMetrics> => {
     const res = await apiClient.get("/admin/metrics", { params: { days } });
+    return unwrap(res);
+  },
+  getTraffic: async (days: number): Promise<TrafficStats> => {
+    const res = await apiClient.get("/admin/traffic", { params: { days } });
     return unwrap(res);
   },
   getPayingCustomers: async (): Promise<PayingCustomersReport> => {
@@ -185,6 +190,23 @@ export const adminApi = {
     const res = await apiClient.post(`/admin/reviews/${id}/hide`, body ?? {});
     return unwrap(res);
   },
+  listUsers: async (params: {
+    q?: string;
+    role?: AdminUserRole;
+    status?: AdminUserStatus;
+    page?: number;
+    size?: number;
+  }): Promise<AdminUserPage> => {
+    const res = await apiClient.get("/admin/users", { params });
+    return unwrap(res);
+  },
+  setUserStatus: async (userId: string, status: AdminUserStatus): Promise<AdminUser> => {
+    const res = await apiClient.patch(`/admin/users/${userId}/status`, { status });
+    return unwrap(res);
+  },
+  setUserConsumerPlan: async (userId: string, plan: "FREE" | "PRO"): Promise<void> => {
+    await apiClient.patch(`/admin/users/${userId}/consumer-plan`, { plan });
+  },
   getConsumerFitken: async (userId: string): Promise<AdminFitkenDetail> => {
     const res = await apiClient.get(`/admin/consumers/${userId}/fitken`);
     return unwrap(res);
@@ -240,6 +262,39 @@ export interface AdminReviewItem {
   status: ReviewStatus;
   rewardGranted: number;
   createdAt: string;
+}
+
+export type AdminUserRole = "USER" | "BRAND_OWNER" | "ADMIN";
+export type AdminUserStatus = "ACTIVE" | "SUSPENDED";
+
+export interface AdminUser {
+  id: string;
+  email: string;
+  displayName?: string | null;
+  role: AdminUserRole;
+  status: AdminUserStatus;
+  emailVerified: boolean;
+  consumerPlan: "FREE" | "PRO";
+  fitkenBalance: number;
+  createdAt: string;
+  lastActiveDate?: string | null;
+  brandName?: string | null;
+  signupSource?: string | null;
+}
+
+export interface AdminUserPage {
+  items: AdminUser[];
+  total: number;
+  page: number;
+  size: number;
+  summary: {
+    totalAccounts: number;
+    consumers: number;
+    brandOwners: number;
+    admins: number;
+    suspended: number;
+    proUsers: number;
+  };
 }
 
 export interface AdminFitkenDetail {

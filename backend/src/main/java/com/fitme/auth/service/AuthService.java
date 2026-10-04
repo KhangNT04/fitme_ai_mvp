@@ -5,12 +5,15 @@ import com.fitme.auth.entity.UserAccount;
 import com.fitme.auth.repository.UserAccountRepository;
 import com.fitme.common.config.FitMeProperties;
 import com.fitme.common.enums.UserRole;
+import com.fitme.common.enums.UserStatus;
 import com.fitme.common.exception.BusinessException;
 import com.fitme.common.security.JwtService;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.security.authentication.AccountStatusException;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -35,6 +38,7 @@ public class AuthService {
     private static final long REGISTER_COOLDOWN_SECONDS = 60;
     private static final long EMAIL_SEND_COOLDOWN_SECONDS = 60;
     private static final int MAX_VERIFICATION_ATTEMPTS = 5;
+    public static final String ACCOUNT_LOCKED_MESSAGE = "Tài khoản của bạn đã bị khóa. Vui lòng liên hệ FitMe để được hỗ trợ.";
 
     private final UserAccountRepository userAccountRepository;
     private final PasswordEncoder passwordEncoder;
@@ -120,8 +124,19 @@ public class AuthService {
 
     public AuthResponse login(LoginRequest request) {
         String email = request.getEmail().toLowerCase(Locale.ROOT).trim();
-        authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(email, request.getPassword()));
+        try {
+            authenticationManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(email, request.getPassword()));
+        } catch (AccountStatusException ex) {
+            // Spring checks the account status before the password; only reveal the lock to the real owner.
+            boolean passwordMatches = userAccountRepository.findByEmail(email)
+                    .map(u -> passwordEncoder.matches(request.getPassword(), u.getPasswordHash()))
+                    .orElse(false);
+            if (!passwordMatches) {
+                throw new BadCredentialsException("Bad credentials");
+            }
+            throw new BusinessException(ACCOUNT_LOCKED_MESSAGE, "ACCOUNT_LOCKED");
+        }
         UserAccount user = userAccountRepository.findByEmail(email)
                 .orElseThrow(() -> new BusinessException("Tài khoản không tồn tại"));
         if (!user.isEmailVerified()) {
@@ -376,6 +391,9 @@ public class AuthService {
     }
 
     private AuthResponse buildAuthResponse(UserAccount user) {
+        if (user.getStatus() != UserStatus.ACTIVE) {
+            throw new BusinessException(ACCOUNT_LOCKED_MESSAGE, "ACCOUNT_LOCKED");
+        }
         String access = jwtService.generateAccessToken(user.getId(), user.getEmail(), user.getRole().name());
         String refresh = jwtService.generateRefreshToken(user.getId(), user.getEmail(), user.getRole().name());
         return AuthResponse.builder()

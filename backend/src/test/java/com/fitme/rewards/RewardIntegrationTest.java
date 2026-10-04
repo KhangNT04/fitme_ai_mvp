@@ -113,10 +113,10 @@ class RewardIntegrationTest extends AbstractIntegrationTest {
         String body = share(alice, "https://www.instagram.com/p/" + postId + "/?igsh=xyz")
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.platform").value("INSTAGRAM"))
-                .andExpect(jsonPath("$.data.rewardGranted").value(2))
+                .andExpect(jsonPath("$.data.rewardGranted").value(3))
                 .andReturn().getResponse().getContentAsString();
         String claimId = objectMapper.readTree(body).get("data").get("id").asText();
-        assertThat(fitkenService.balance(alice.getUserId())).isEqualTo(7);
+        assertThat(fitkenService.balance(alice.getUserId())).isEqualTo(8);
 
         share(alice, "https://tiktok.com/@alice/video/" + postId).andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.errorCode").value("SHARE_DAILY_LIMIT"));

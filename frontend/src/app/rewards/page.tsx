@@ -211,7 +211,7 @@ function RewardsContent() {
               <div className="flex-1">
                 <h3 className="font-semibold">Chia sẻ mạng xã hội</h3>
                 <p className="text-xs text-muted-foreground">
-                  +{summary?.share.rewardAmount ?? 2} Fitken/lần (còn {summary?.share.remainingToday ?? 0}/{summary?.share.dailyLimit ?? 0} lần hôm nay)
+                  +{summary?.share.rewardAmount ?? 3} Fitken/lần (còn {summary?.share.remainingToday ?? 0}/{summary?.share.dailyLimit ?? 0} lần hôm nay)
                 </p>
               </div>
             </div>
@@ -260,12 +260,12 @@ function RewardsContent() {
               <div className="flex-1">
                 <h3 className="font-semibold">Đánh giá sản phẩm</h3>
                 <p className="text-xs text-muted-foreground">
-                  +{summary?.review.rewardAmount ?? 3} Fitken cho mỗi đánh giá có ảnh
+                  +{summary?.review.rewardAmount ?? 2} Fitken/lần (còn {summary?.review.remainingToday ?? 0}/{summary?.review.dailyLimit ?? 1} lần hôm nay)
                 </p>
               </div>
             </div>
             <p className="text-sm text-muted-foreground mb-4">
-              Viết đánh giá chi tiết (tối thiểu {summary?.review.minContentLength ?? 20} ký tự) kèm hình ảnh cho các sản phẩm bạn đã mua.
+              Viết đánh giá chi tiết (tối thiểu {summary?.review.minContentLength ?? 20} ký tự) kèm hình ảnh cho các sản phẩm bạn đã mua. Mỗi ngày nhận thưởng cho 1 đánh giá.
             </p>
             <Button asChild variant="outline" className="w-full rounded-full">
               <Link href="/orders">Đến Đơn hàng của tôi</Link>
@@ -300,11 +300,6 @@ function RewardsContent() {
             <div className="text-center py-10 border rounded-2xl bg-muted/20">
               <Ticket className="h-10 w-10 text-muted-foreground mx-auto mb-2 opacity-20" />
               <p className="text-muted-foreground">Bạn chưa có voucher nào.</p>
-              {showUpsell && (
-                <Button asChild variant="outline" className="mt-2">
-                  <Link href="/pricing">Nâng cấp Pro để nhận Voucher Freeship</Link>
-                </Button>
-              )}
             </div>
           )}
         </TabsContent>

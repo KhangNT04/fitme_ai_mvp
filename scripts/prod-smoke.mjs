@@ -7,7 +7,7 @@
  *
  * Opt-in flags (they cost money or leave public data behind):
  *   --tryon   one AI try-on with FITME_PHOTO (calls the paid VTON provider, spends 1 Fitken)
- *   --review  posts a public product review with FITME_REVIEW_PHOTO (+3 Fitken, once per product)
+ *   --review  posts a public product review with FITME_REVIEW_PHOTO (+2 Fitken, once per product and day)
  *   --payos   creates real PayOS payment links for an order and the Pro plan (nothing is paid)
  *   --only=<text>  run only steps with a word starting with <text> (login always runs)
  *
@@ -143,7 +143,7 @@ await step("GET /plans has FitMe Pro 49k / 15 Fitken / 2 freeship", async () => 
   assert(proPlan, "no plans");
   assert(proPlan.priceVnd === 49000, `price ${proPlan.priceVnd}`);
   assert(proPlan.fitkenAmount === 15, `fitken ${proPlan.fitkenAmount}`);
-  assert(proPlan.freeshipVouchers === 2, `freeship ${proPlan.freeshipVouchers}`);
+  assert(proPlan.freeshipVouchers === 0, `freeship ${proPlan.freeshipVouchers}`);
   return `${proPlan.name} ${proPlan.priceVnd}đ`;
 });
 
@@ -198,7 +198,7 @@ if (token) {
     }
   });
 
-  await step("POST /rewards/share (+2 Fitken, duplicate rejected)", async () => {
+  await step("POST /rewards/share (+3 Fitken, duplicate rejected)", async () => {
     const url = `https://www.facebook.com/fitme.smoke/posts/${Date.now()}`;
     const before = await balance();
     try {
@@ -208,7 +208,7 @@ if (token) {
       throw e;
     }
     const after = await balance();
-    assert(after === before + 2, `balance ${before} -> ${after}`);
+    assert(after === before + 3, `balance ${before} -> ${after}`);
     try {
       await call("POST", "/rewards/share", { postUrl: url });
       throw new Error("duplicate share was accepted");
@@ -279,7 +279,7 @@ if (token) {
   }
 
   if (flags.has("--review")) {
-    await step("review with photo (+3 Fitken)", async () => {
+    await step("review with photo (+2 Fitken)", async () => {
       const photo = process.env.FITME_REVIEW_PHOTO;
       assert(photo && fs.existsSync(photo), "FITME_REVIEW_PHOTO missing");
       const target = purchasable?.product ?? products[0];
@@ -293,7 +293,7 @@ if (token) {
           rating: 5, content: "Áo mặc vừa, chất vải mát, màu giống ảnh.", imageUrls: [img.url],
         });
         const after = await balance();
-        assert(r.rewardGranted === 3 && after === before + 3, `reward=${r.rewardGranted} balance ${before} -> ${after}`);
+        assert(r.rewardGranted === 2 && after === before + 2, `reward=${r.rewardGranted} balance ${before} -> ${after}`);
         return `review ${r.review?.id ?? ""} balance ${before} -> ${after}`;
       } catch (e) {
         if (e.code === "REVIEW_EXISTS") return "already reviewed this product";

@@ -25,6 +25,8 @@ export const BRAND_PAGES: { path: string; heading: string | RegExp }[] = [
 
 export const ADMIN_PAGES: { path: string; heading: string | RegExp }[] = [
   { path: "/admin/dashboard", heading: "Tổng quan hệ thống" },
+  { path: "/admin/users", heading: "Quản lý tài khoản" },
+  { path: "/admin/traffic", heading: "Thống kê truy cập" },
   { path: "/admin/brands", heading: "Quản lý thương hiệu" },
   { path: "/admin/billing/plans", heading: "Gói người dùng (Pro & top-up)" },
   { path: "/admin/rewards", heading: "Duyệt chia sẻ" },

@@ -361,10 +361,7 @@ function CheckoutContent() {
             ) : vouchers.length === 0 ? (
               <p className="flex items-center gap-2 text-sm text-muted-foreground">
                 <Ticket className="h-4 w-4" aria-hidden />
-                Bạn chưa có voucher freeship.{" "}
-                <Link href="/pricing" className="text-primary underline">
-                  Nâng cấp FitMe Pro
-                </Link>
+                Bạn chưa có voucher freeship.
               </p>
             ) : (
               <div className="space-y-2" role="radiogroup" aria-label="Chọn voucher">

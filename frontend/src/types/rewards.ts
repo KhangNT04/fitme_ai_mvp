@@ -33,6 +33,8 @@ export interface ReviewRewardStatus {
   rewardAmount: number;
   minContentLength: number;
   rewardedCount: number;
+  dailyLimit: number;
+  remainingToday: number;
 }
 
 export interface RewardsSummaryDto {

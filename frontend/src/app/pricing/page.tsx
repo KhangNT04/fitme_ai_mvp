@@ -31,7 +31,6 @@ const FREE_PERKS = [
 
 const PRO_PERKS = [
   "15 Fitken mỗi tháng",
-  "2 Voucher Freeship mỗi tháng",
   "Tạo ảnh AI Try-on chất lượng cao",
   "Mở khóa tính năng Pro khác",
 ];
@@ -91,7 +90,7 @@ export default function PricingPage() {
     <PageShell width="full" className={consumerPageShellClass}>
       <CollapsingPageHeader
         title="FitMe Free & Pro"
-        subtitle="Nâng cấp Pro để nhận thêm Fitken và Voucher"
+        subtitle="Nâng cấp Pro để nhận thêm Fitken mỗi tháng"
         backHref="/ai/chat"
         backLabel="Tư vấn"
       />
@@ -213,12 +212,12 @@ export default function PricingPage() {
               <span className="font-medium text-primary">+1 Fitken</span>
             </li>
             <li className="flex items-center justify-between p-3 rounded-xl bg-muted/30">
-              <span>Chia sẻ ảnh Try-on lên mạng xã hội</span>
-              <span className="font-medium text-primary">+2 Fitken</span>
+              <span>Chia sẻ ảnh Try-on lên mạng xã hội (1 lần/ngày)</span>
+              <span className="font-medium text-primary">+3 Fitken</span>
             </li>
             <li className="flex items-center justify-between p-3 rounded-xl bg-muted/30">
-              <span>Đánh giá sản phẩm đã mua kèm ảnh</span>
-              <span className="font-medium text-primary">+3 Fitken</span>
+              <span>Đánh giá sản phẩm đã mua kèm ảnh (1 lần/ngày)</span>
+              <span className="font-medium text-primary">+2 Fitken</span>
             </li>
           </ul>
           

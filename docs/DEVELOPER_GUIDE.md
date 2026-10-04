@@ -14,7 +14,7 @@ FitMe AI là web app thời trang cá nhân hóa bằng AI dành cho Gen Z theo 
 
 - Tư vấn và gợi ý outfit, size, form, màu sắc theo profile người dùng
 - Thử đồ AI ảo bằng Fitken (1 Fitken = 1 lượt thử đồ AI; tặng 5 Fitken dùng thử cho tài khoản mới)
-- Gói FitMe Pro 49.000đ/tháng (15 Fitken + 2 voucher freeship + cá nhân hóa sâu) thanh toán qua PayOS
+- Gói FitMe Pro 49.000đ/tháng (15 Fitken + cá nhân hóa sâu) thanh toán qua PayOS
 - Nhận thưởng Fitken miễn phí: điểm danh chuỗi 3 ngày (+1), chia sẻ bài đăng (+2), đánh giá có ảnh (+3)
 - Thư viện ảnh outfit cá nhân (`/profile/gallery`)
 - Mua hàng trực tiếp in-app: Giỏ hàng gom nhóm theo brand, thanh toán PayOS hoặc COD, tách đơn seller, quản lý vận đơn và đối soát doanh thu seller (hoa hồng 10%)
@@ -95,7 +95,7 @@ Package gốc: `com.fitme`
 | `order` | Đơn khách (COD/PayOS), tách đơn seller, tạo shipment, tracking hành trình |
 | `settlement` | Đối soát doanh thu seller, giữ 7 ngày, tính hoa hồng sàn 10%, quyết toán chuyển khoản |
 | `logistics` | Webhook tích hợp đối tác vận chuyển (GHN, GHTK, Viettel Post) |
-| `voucher` | Quản lý & cấp phát voucher freeship hàng tháng cho gói Pro |
+| `voucher` | Quản lý & cấp phát voucher freeship (gói Pro hiện không kèm voucher) |
 | `entitlement` | Phân tầng quyền lợi Free vs Pro (coherence modes) |
 | `session` | Anonymous session, link-to-user |
 | `auth` | Register, login, refresh, reset password, email verification |

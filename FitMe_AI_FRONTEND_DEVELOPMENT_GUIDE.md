@@ -14,7 +14,7 @@ FitMe AI là web app thời trang cá nhân hóa bằng AI dành cho Gen Z (mô 
 2. Nhận gợi ý size, form, màu sắc.
 3. Xem outfit board hoặc preview outfit 2D bằng AI.
 4. Thử sản phẩm bằng AI với Fitken (1 Fitken = 1 lượt thử; tặng 5 Fitken dùng thử cho tài khoản mới).
-5. Nâng cấp gói FitMe Pro 49.000đ/tháng (15 Fitken + 2 voucher freeship + cá nhân hóa sâu) qua PayOS.
+5. Nâng cấp gói FitMe Pro 49.000đ/tháng (15 Fitken + cá nhân hóa sâu) qua PayOS.
 6. Tích lũy Fitken miễn phí qua trang Nhận thưởng (điểm danh chuỗi 3 ngày, chia sẻ bài đăng, đánh giá có ảnh).
 7. Lưu và quản lý bộ sưu tập tại thư viện ảnh outfit cá nhân (`/profile/gallery`).
 8. Mua sắm trực tiếp in-app: giỏ hàng, đặt hàng (COD / PayOS), quản lý đơn và tracking vận chuyển.

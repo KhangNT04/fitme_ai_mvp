@@ -22,6 +22,8 @@ import {
   Star,
   Receipt,
   KeyRound,
+  UserCog,
+  LineChart,
   Sparkles as SparklesIcon,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -40,6 +42,8 @@ const brandIcons: Record<string, React.ComponentType<{ className?: string }>> = 
 
 const adminIcons: Record<string, React.ComponentType<{ className?: string }>> = {
   "/admin/dashboard": LayoutDashboard,
+  "/admin/users": UserCog,
+  "/admin/traffic": LineChart,
   "/admin/brands": Users,
   "/admin/partnerships": Users,
   "/admin/billing/plans": CreditCard,

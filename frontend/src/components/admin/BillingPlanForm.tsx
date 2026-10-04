@@ -16,7 +16,7 @@ export function emptyBillingPlanForm(): BillingPlanFormValues {
     planType: "SUBSCRIPTION",
     priceVnd: 49000,
     fitkenAmount: 15,
-    freeshipVouchers: 2,
+    freeshipVouchers: 0,
     freeshipMaxDiscountVnd: 30000,
     billingPeriodDays: 30,
     active: true,

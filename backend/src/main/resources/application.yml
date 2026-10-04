@@ -89,9 +89,10 @@ fitme:
     trial-amount: ${FITME_FITKEN_TRIAL:5}
     checkin-streak-days: ${FITME_FITKEN_CHECKIN_STREAK_DAYS:3}
     checkin-reward: ${FITME_FITKEN_CHECKIN_REWARD:1}
-    share-reward: ${FITME_FITKEN_SHARE_REWARD:2}
+    share-reward: ${FITME_FITKEN_SHARE_REWARD:3}
     share-daily-limit: ${FITME_FITKEN_SHARE_DAILY_LIMIT:1}
-    review-reward: ${FITME_FITKEN_REVIEW_REWARD:3}
+    review-reward: ${FITME_FITKEN_REVIEW_REWARD:2}
+    review-daily-limit: ${FITME_FITKEN_REVIEW_DAILY_LIMIT:1}
     try-on-cost: ${FITME_FITKEN_TRY_ON_COST:1}
   commerce:
     commission-rate: ${FITME_COMMERCE_COMMISSION_RATE:0.10}

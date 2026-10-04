@@ -5,6 +5,7 @@ import { Providers } from "@/providers";
 import { ConsumerChrome } from "@/components/layout/ConsumerChrome";
 import { FashionAmbient } from "@/components/layout/FashionAmbient";
 import { AnalyticsScripts } from "@/components/analytics/AnalyticsScripts";
+import { SiteVisitTracker } from "@/components/analytics/SiteVisitTracker";
 import { SITE_URL } from "@/lib/site-config";
 
 const geistSans = Geist({
@@ -59,6 +60,7 @@ export default function RootLayout({
           <ConsumerChrome>{children}</ConsumerChrome>
         </Providers>
         <AnalyticsScripts />
+        <SiteVisitTracker />
       </body>
     </html>
   );

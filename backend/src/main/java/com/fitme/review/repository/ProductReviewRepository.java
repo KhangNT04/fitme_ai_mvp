@@ -8,6 +8,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
 
@@ -22,6 +23,9 @@ public interface ProductReviewRepository extends JpaRepository<ProductReview, UU
     Double averageRating(@Param("productId") UUID productId, @Param("status") ReviewStatus status);
 
     long countByUserIdAndRewardGrantedGreaterThan(UUID userId, int rewardGranted);
+
+    long countByUserIdAndRewardGrantedGreaterThanAndCreatedAtGreaterThanEqual(UUID userId, int rewardGranted,
+                                                                              Instant since);
 
     List<ProductReview> findTop100ByOrderByCreatedAtDesc();
 

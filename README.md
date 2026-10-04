@@ -26,7 +26,7 @@ Chi tiết: [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) · API: [`docs/API_CO
 ### USER (Người dùng)
 1. Đăng ký / đăng nhập tại `/auth/register`, `/auth/login` (nhận ngay 5 Fitken dùng thử khi khởi tạo ví)
 2. Tư vấn AI và thử đồ AI với Fitken (`1 Fitken = 1 lượt thử đồ AI`)
-3. Mua gói FitMe Pro 49.000đ/tháng tại `/pricing` (15 Fitken + 2 voucher freeship + cá nhân hóa sâu)
+3. Mua gói FitMe Pro 49.000đ/tháng tại `/pricing` (15 Fitken + cá nhân hóa sâu)
 4. Tích lũy Fitken tại `/rewards` (chuỗi điểm danh 3 ngày +1, chia sẻ bài đăng +2, đánh giá có ảnh +3)
 5. Lưu trữ và xem lại outfit tại `/profile/gallery`
 6. Mua hàng in-app: thêm vào giỏ `/cart`, quản lý sổ địa chỉ `/profile/addresses`, thanh toán COD hoặc PayOS tại `/checkout`, theo dõi vận đơn tại `/orders`

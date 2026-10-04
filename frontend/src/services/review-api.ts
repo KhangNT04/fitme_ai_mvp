@@ -17,7 +17,10 @@ export const reviewApi = {
     const data = unwrap(res);
     return Array.isArray(data) ? (data as FeaturedReview[]) : [];
   },
-  createReview: async (productId: string, data: CreateReviewRequest): Promise<void> => {
+  createReview: async (
+    productId: string,
+    data: CreateReviewRequest,
+  ): Promise<{ rewardGranted: number; rewardLimitReached: boolean }> => {
     const res = await apiClient.post(`/products/${productId}/reviews`, data);
     return unwrap(res);
   },

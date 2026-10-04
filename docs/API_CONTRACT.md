@@ -91,7 +91,7 @@ Múi giờ tính toán: `Asia/Ho_Chi_Minh`.
 
 | Method | Path | Auth | Mô tả & Body / Query |
 |---|---|---|---|
-| `GET` | `/rewards` | User | Tổng hợp nhận thưởng: `{ balance, checkin: { checkedInToday, currentStreak, streakTarget, daysUntilNextReward, rewardAmount, recentDays: [...] }, share: { rewardAmount, dailyLimit, remainingToday, allowedDomains: [...], recentClaims: [...] }, review: { rewardAmount, minContentLength, rewardedCount } }` |
+| `GET` | `/rewards` | User | Tổng hợp nhận thưởng: `{ balance, checkin: { checkedInToday, currentStreak, streakTarget, daysUntilNextReward, rewardAmount, recentDays: [...] }, share: { rewardAmount, dailyLimit, remainingToday, allowedDomains: [...], recentClaims: [...] }, review: { rewardAmount, minContentLength, rewardedCount, dailyLimit, remainingToday } }` |
 | `POST` | `/rewards/checkin` | User | Điểm danh hằng ngày → `{ checkedInToday: true, currentStreak, rewardGranted, balance }`. Gọi lại cùng ngày → lỗi `400 ALREADY_CHECKED_IN` |
 | `POST` | `/rewards/share` | User | Gửi link chia sẻ bài đăng cá nhân: Body `{ postUrl, tryOnRequestId?, galleryImageId? }` → `ShareClaim { id, postUrl, platform, status, rewardGranted, createdAt }`. Lỗi: `SHARE_INVALID_URL`, `SHARE_DUPLICATE`, `SHARE_DAILY_LIMIT` |
 | `GET` | `/rewards/share` | User | Lịch sử các lượt nộp bài chia sẻ của tôi |
@@ -103,7 +103,7 @@ Múi giờ tính toán: `Asia/Ho_Chi_Minh`.
 | Method | Path | Auth | Mô tả & Body / Query |
 |---|---|---|---|
 | `GET` | `/products/{productId}/reviews?page=0&size=10` | Public | Danh sách đánh giá: `{ averageRating, totalCount, items: [{ id, rating, content, imageUrls, authorName, verifiedPurchase, createdAt }] }` |
-| `POST` | `/products/{productId}/reviews` | User | Viết đánh giá: Body `{ rating (1-5), content, imageUrls: [] }` → `{ review, rewardGranted }`. Thưởng +3 Fitken nếu có ≥1 ảnh & nội dung ≥ 20 ký tự. Trùng → `400 REVIEW_EXISTS` |
+| `POST` | `/products/{productId}/reviews` | User | Viết đánh giá: Body `{ rating (1-5), content, imageUrls: [] }` → `{ review, rewardGranted, rewardLimitReached }`. Thưởng +2 Fitken nếu có ≥1 ảnh & nội dung ≥ 20 ký tự, tối đa 1 đánh giá được thưởng/ngày. Trùng → `400 REVIEW_EXISTS` |
 | `POST` | `/reviews/images` | User | Upload ảnh đính kèm đánh giá: multipart file `file` → `{ url }` |
 | `GET` | `/admin/reviews?status=` | Admin | Danh sách đánh giá cần kiểm duyệt |
 | `POST` | `/admin/reviews/{id}/hide` | Admin | Ẩn đánh giá vi phạm: Body `{ reason? }` |
@@ -178,6 +178,16 @@ Dành cho role `BRAND_OWNER` (dashboard hoàn toàn miễn phí):
 | `GET` | `/admin/settlements?status=&brandId=` | Admin | Danh sách các kỳ đối soát seller |
 | `POST` | `/admin/settlements/generate` | Admin | Tạo kỳ đối soát cho các đơn đủ điều kiện (hết 7 ngày hold): Body `{ brandId? }` |
 | `POST` | `/admin/settlements/{id}/mark-paid` | Admin | Đánh dấu đã thanh toán kỳ đối soát: Body `{ payoutRef }` |
+
+### 8b. Quản lý tài khoản & Thống kê truy cập
+
+| Method | Path | Auth | Mô tả & Body / Query |
+|---|---|---|---|
+| `GET` | `/admin/users?q=&role=&status=&page=0&size=20` | Admin | Danh sách tài khoản (không gồm tài khoản đã xóa): `{ items: [{ id, email, displayName, role, status, emailVerified, consumerPlan, fitkenBalance, createdAt, lastActiveDate, brandName, signupSource }], total, page, size, summary: { totalAccounts, consumers, brandOwners, admins, suspended, proUsers } }`. `q` tìm theo email/tên |
+| `GET` | `/admin/users/{id}` | Admin | Chi tiết một tài khoản |
+| `PATCH` | `/admin/users/{id}/status` | Admin | Khóa/mở khóa: Body `{ status: ACTIVE\|SUSPENDED }`. Không khóa được chính mình hoặc admin khác. Tài khoản bị khóa mất phiên ngay; đăng nhập/refresh → `400 ACCOUNT_LOCKED` |
+| `POST` | `/analytics/visit` | Public | Ghi lượt xem trang: Body `{ visitorId (UUID lưu ở localStorage), path? }` → `204`. Bỏ qua bot và tài khoản admin; mỗi trình duyệt = 1 khách/ngày |
+| `GET` | `/admin/traffic?days=30` | Admin | Thống kê truy cập (7–90 ngày): `{ today, rangeDays, day, week, month: { visitors, pageViews, newVisitors, previousVisitors, changePct }, daily: [...], weekly: [...], monthly: [...], weekdays: [{ isoDay, avgVisitors }], assessment: { trend, trendChangePct, level, scale, volatility, avgDailyVisitors, recentAvgDailyVisitors, peakDate, peakVisitors, busiestWeekday, returningRate, pagesPerVisit } }` |
 
 ### 9. Webhooks
 

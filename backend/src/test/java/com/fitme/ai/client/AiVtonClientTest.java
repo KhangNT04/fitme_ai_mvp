@@ -1,7 +1,13 @@
 package com.fitme.ai.client;
 
 import com.fitme.ai.client.AiVtonClient.VtonJobResponse;
+import com.fitme.common.config.FitMeProperties;
+import com.sun.net.httpserver.HttpServer;
 import org.junit.jupiter.api.Test;
+
+import java.net.InetSocketAddress;
+import java.nio.charset.StandardCharsets;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -56,6 +62,48 @@ class AiVtonClientTest {
         assertThat(result.getStatus()).isEqualTo("failed");
         assertThat(result.getErrorCode()).isEqualTo("PROVIDER_ERROR");
         assertThat(result.getErrorMessage()).isEqualTo("Connection refused");
+    }
+
+    @Test
+    void submitJob_retriesWhileSleepingHostBootsThenReturnsJob() throws Exception {
+        AtomicInteger calls = new AtomicInteger();
+        HttpServer server = HttpServer.create(new InetSocketAddress("127.0.0.1", 0), 0);
+        server.createContext("/v1/try-on", exchange -> {
+            boolean waking = calls.incrementAndGet() == 1;
+            byte[] body = (waking ? "Too Many Requests\n" : "{\"job_id\":\"job-1\",\"status\":\"processing\"}")
+                    .getBytes(StandardCharsets.UTF_8);
+            exchange.getResponseHeaders().add("Content-Type", waking ? "text/plain" : "application/json");
+            exchange.sendResponseHeaders(waking ? 429 : 200, body.length);
+            exchange.getResponseBody().write(body);
+            exchange.close();
+        });
+        server.start();
+        try {
+            AiVtonClient client = new AiVtonClient(propertiesFor(server, 10));
+
+            VtonJobResponse job = client.submitJob("https://p/person.jpg", "https://p/garment.jpg", "tops", "Áo");
+
+            assertThat(job.getJobId()).isEqualTo("job-1");
+            assertThat(calls.get()).isEqualTo(2);
+        } finally {
+            server.stop(0);
+        }
+    }
+
+    @Test
+    void isHostWakingUp_onlyForPlainEdgeResponses() {
+        assertThat(AiVtonClient.isHostWakingUp(429, "Too Many Requests")).isTrue();
+        assertThat(AiVtonClient.isHostWakingUp(503, "<html>Service Unavailable</html>")).isTrue();
+        assertThat(AiVtonClient.isHostWakingUp(429, "{\"error_code\":\"RATE_LIMIT\"}")).isFalse();
+        assertThat(AiVtonClient.isHostWakingUp(500, "Internal Server Error")).isFalse();
+    }
+
+    private static FitMeProperties propertiesFor(HttpServer server, int retrySeconds) {
+        FitMeProperties properties = new FitMeProperties();
+        properties.getAi().setMode("api");
+        properties.getAi().setVtonBaseUrl("http://127.0.0.1:" + server.getAddress().getPort());
+        properties.getAi().setVtonWakeRetrySeconds(retrySeconds);
+        return properties;
     }
 
     @Test

@@ -59,9 +59,11 @@ public class FitMeProperties {
         private String publicBaseUrl = "http://localhost:8080";
         private long pollIntervalMs = 3000;
         private int jobTimeoutSeconds = 120;
+        /** How long a try-on submit keeps retrying while a sleeping VTON host boots. */
+        private int vtonWakeRetrySeconds = 40;
         private String stylistMode = "rule";
         private String geminiApiKey;
-        private String geminiModel = "gemini-2.5-flash";
+        private String geminiModel = "gemini-flash-latest";
         private int stylistCandidateLimit = 30;
         private int stylistTimeoutMs = 15000;
 

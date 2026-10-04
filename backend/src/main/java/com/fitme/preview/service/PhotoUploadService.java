@@ -1,5 +1,6 @@
 package com.fitme.preview.service;
 
+import com.fitme.ai.client.AiVtonClient;
 import com.fitme.analytics.service.AnalyticsService;
 import com.fitme.common.enums.ConsentType;
 import com.fitme.common.enums.PhotoQualityStatus;
@@ -35,6 +36,7 @@ public class PhotoUploadService {
     private final StorageService storageService;
     private final PrivacyService privacyService;
     private final AnalyticsService analyticsService;
+    private final AiVtonClient aiVtonClient;
 
     public PhotoUploadResponse recordConsent() {
         var consent = privacyService.recordConsent(ConsentType.PHOTO_UPLOAD);
@@ -60,6 +62,7 @@ public class PhotoUploadService {
                 .status("UPLOADED")
                 .build();
         upload = uploadRepository.save(upload);
+        aiVtonClient.wakeUpAsync();
         analyticsService.track("PHOTO_UPLOADED", upload.getUserId(), upload.getSessionId(),
                 null, null, null, null, null);
         return toResponse(upload);

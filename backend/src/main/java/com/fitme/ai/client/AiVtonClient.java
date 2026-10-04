@@ -17,6 +17,9 @@ import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestClientResponseException;
 
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicLong;
 
 @Component
 @RequiredArgsConstructor
@@ -26,6 +29,7 @@ public class AiVtonClient {
     private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 
     private final FitMeProperties properties;
+    private final AtomicLong lastWakePingAt = new AtomicLong();
 
     public VtonJobResponse submitJob(
             String personImageUrl, String garmentImageUrl, String category, String garmentDescription) {
@@ -39,12 +43,7 @@ public class AiVtonClient {
             if (garmentDescription != null && !garmentDescription.isBlank()) {
                 body.put("garment_description", garmentDescription);
             }
-            return client.post()
-                    .uri("/v1/try-on")
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .body(body)
-                    .retrieve()
-                    .body(VtonJobResponse.class);
+            return postTryOn(client, body);
         } catch (RestClientResponseException ex) {
             log.warn("VTON submit failed: {} body={}", ex.getMessage(), ex.getResponseBodyAsString());
             return parseFailureResponse(ex.getResponseBodyAsString(), ex.getMessage());
@@ -79,12 +78,7 @@ public class AiVtonClient {
             body.put("person_image_url", personImageUrl);
             body.put("garments", garmentPayload);
             body.put("mode", "balanced");
-            return client.post()
-                    .uri("/v1/try-on")
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .body(body)
-                    .retrieve()
-                    .body(VtonJobResponse.class);
+            return postTryOn(client, body);
         } catch (RestClientResponseException ex) {
             log.warn("VTON sequential submit failed: {} body={}", ex.getMessage(), ex.getResponseBodyAsString());
             return parseFailureResponse(ex.getResponseBodyAsString(), ex.getMessage());
@@ -92,6 +86,76 @@ public class AiVtonClient {
             log.warn("VTON sequential submit failed: {}", ex.getMessage());
             return parseFailureResponse(null, ex.getMessage());
         }
+    }
+
+    /**
+     * A sleeping free-tier host answers with a plain-text 429/502/503/504 from the hosting edge
+     * while it boots. Those never reached ai-vton (no job, no provider charge), so they are safe
+     * to retry; structured ai-vton errors (JSON body) are returned to the caller as-is.
+     */
+    private VtonJobResponse postTryOn(RestClient client, java.util.Map<String, Object> body) {
+        long deadline = System.nanoTime()
+                + TimeUnit.SECONDS.toNanos(Math.max(0, properties.getAi().getVtonWakeRetrySeconds()));
+        long delayMs = 2_000;
+        while (true) {
+            try {
+                return client.post()
+                        .uri("/v1/try-on")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .body(body)
+                        .retrieve()
+                        .body(VtonJobResponse.class);
+            } catch (RestClientResponseException ex) {
+                long remainingMs = TimeUnit.NANOSECONDS.toMillis(deadline - System.nanoTime());
+                if (!isHostWakingUp(ex.getStatusCode().value(), ex.getResponseBodyAsString())
+                        || remainingMs <= 0) {
+                    throw ex;
+                }
+                long sleepMs = Math.min(delayMs, remainingMs);
+                log.info("VTON host is waking up ({}), retrying in {} ms", ex.getStatusCode().value(), sleepMs);
+                sleep(sleepMs);
+                delayMs = Math.min(delayMs * 2, 8_000);
+            }
+        }
+    }
+
+    static boolean isHostWakingUp(int status, String responseBody) {
+        if (status != 429 && status != 502 && status != 503 && status != 504) {
+            return false;
+        }
+        return responseBody == null || !responseBody.contains("error_code");
+    }
+
+    private static void sleep(long millis) {
+        try {
+            Thread.sleep(millis);
+        } catch (InterruptedException ex) {
+            Thread.currentThread().interrupt();
+            throw new IllegalStateException("Interrupted while waiting for VTON host", ex);
+        }
+    }
+
+    /**
+     * Fire-and-forget health ping so a sleeping VTON host starts booting while the user is still
+     * uploading a photo / picking items, instead of on the paid submit call. Throttled to one
+     * ping per minute.
+     */
+    public void wakeUpAsync() {
+        if (!isRemoteMode()) {
+            return;
+        }
+        long now = System.currentTimeMillis();
+        long last = lastWakePingAt.get();
+        if (now - last < 60_000 || !lastWakePingAt.compareAndSet(last, now)) {
+            return;
+        }
+        CompletableFuture.runAsync(() -> {
+            try {
+                restClient().get().uri("/health").retrieve().toBodilessEntity();
+            } catch (RestClientException ex) {
+                log.debug("VTON wake-up ping failed: {}", ex.getMessage());
+            }
+        });
     }
 
     /**

@@ -69,7 +69,7 @@ services:
       - key: GEMINI_API_KEY
         sync: false
       - key: GEMINI_MODEL
-        value: gemini-2.0-flash
+        value: gemini-flash-latest
       - key: GEMINI_TIMEOUT_MS
         value: "25000"
       # Cloudflare R2 — required for USER_PHOTO VTON on Render (public image URLs)

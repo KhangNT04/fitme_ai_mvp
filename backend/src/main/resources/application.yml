@@ -113,9 +113,10 @@ fitme:
     public-base-url: ${FITME_PUBLIC_BASE_URL:http://localhost:8080}
     poll-interval-ms: ${FITME_AI_POLL_INTERVAL_MS:3000}
     job-timeout-seconds: ${FITME_AI_JOB_TIMEOUT_SECONDS:120}
+    vton-wake-retry-seconds: ${FITME_AI_VTON_WAKE_RETRY_SECONDS:40}
     stylist-mode: ${FITME_AI_STYLIST_MODE:rule}
     gemini-api-key: ${GEMINI_API_KEY:}
-    gemini-model: ${GEMINI_MODEL:gemini-2.5-flash}
+    gemini-model: ${GEMINI_MODEL:gemini-flash-latest}
     stylist-candidate-limit: ${GEMINI_CANDIDATE_LIMIT:30}
     stylist-timeout-ms: ${GEMINI_TIMEOUT_MS:15000}
   storage:

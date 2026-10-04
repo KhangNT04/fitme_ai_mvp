@@ -1,5 +1,6 @@
 package com.fitme.tryon.service;
 
+import com.fitme.ai.client.AiVtonClient;
 import com.fitme.analytics.service.AnalyticsService;
 import com.fitme.fitken.service.FitkenService;
 import com.fitme.common.enums.PhotoQualityStatus;
@@ -56,6 +57,7 @@ public class TryOnService {
     private final SizeResolutionService sizeResolutionService;
     private final BodyProfileService bodyProfileService;
     private final StyleProfileService styleProfileService;
+    private final AiVtonClient aiVtonClient;
 
     @Transactional
     public TryOnResponse create(CreateTryOnRequest request) {
@@ -82,6 +84,9 @@ public class TryOnService {
                 .status(TryOnStatus.DRAFT)
                 .build();
         entity = tryOnRequestRepository.save(entity);
+        if (previewMode == TryOnPreviewMode.USER_PHOTO || previewMode == TryOnPreviewMode.AVATAR) {
+            aiVtonClient.wakeUpAsync();
+        }
         analyticsService.track("TRY_ON_STARTED", entity.getUserId(), entity.getSessionId(),
                 null, null, null, entity.getId(), null);
         return toResponse(entity);

@@ -3,6 +3,9 @@ import { mapCategoryToRole } from "@/lib/tryon-role";
 import { resolveOptionalImageSrc } from "@/lib/media-url";
 import type { TryOnResult, TryOnInputMode, TryOnPreviewType, OutfitSuggestions, TryOnSuggestedItem, TryOnItem } from "@/types/tryon";
 
+/** Generate may wait for a sleeping AI try-on host to boot before the job is accepted. */
+const GENERATE_TIMEOUT_MS = 60_000;
+
 interface CreateTryOnPayload {
   heightCm: number;
   weightKg: number;
@@ -121,7 +124,9 @@ export const tryonApi = {
     return mapTryOnResult(unwrap(res) as RawTryOnResult);
   },
   generate: async (id: string): Promise<TryOnResult> => {
-    const res = await apiClient.post(`/try-on/requests/${id}/generate`);
+    const res = await apiClient.post(`/try-on/requests/${id}/generate`, undefined, {
+      timeout: GENERATE_TIMEOUT_MS,
+    });
     return mapTryOnResult(unwrap(res) as RawTryOnResult);
   },
   getResult: async (id: string): Promise<TryOnResult> => {

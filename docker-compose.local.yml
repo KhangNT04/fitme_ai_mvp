@@ -88,7 +88,7 @@ services:
       FITME_PUBLIC_BASE_URL: http://localhost:${API_PORT:-8080}
       FITME_AI_STYLIST_MODE: ${FITME_AI_STYLIST_MODE:-rule}
       GEMINI_API_KEY: ${GEMINI_API_KEY:-}
-      GEMINI_MODEL: ${GEMINI_MODEL:-gemini-2.0-flash}
+      GEMINI_MODEL: ${GEMINI_MODEL:-gemini-flash-latest}
       GEMINI_CANDIDATE_LIMIT: ${GEMINI_CANDIDATE_LIMIT:-30}
       GEMINI_TIMEOUT_MS: ${GEMINI_TIMEOUT_MS:-15000}
     volumes:

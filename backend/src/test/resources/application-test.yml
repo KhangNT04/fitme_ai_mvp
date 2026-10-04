@@ -35,6 +35,7 @@ fitme:
     vton-base-url: http://localhost:8001
     public-base-url: http://localhost:8080
     stylist-mode: rule
+    vton-wake-retry-seconds: 0
 
 logging:
   level:

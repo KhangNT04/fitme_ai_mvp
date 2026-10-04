@@ -5,11 +5,14 @@ import com.fitme.common.config.FashionCatalogSeeder;
 import com.fitme.common.enums.ProductStatus;
 import com.fitme.product.entity.Product;
 import com.fitme.product.entity.ProductVariant;
+import com.fitme.product.entity.SizeChart;
+import com.fitme.product.repository.SizeChartRepository;
 import com.fitme.support.TestDataHelper;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.Comparator;
+import java.util.List;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -17,6 +20,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 class FashionCatalogSyncIntegrationTest extends CommerceIntegrationSupport {
     @Autowired FashionCatalogSeeder seeder;
     @Autowired FashionCatalogLoader catalogLoader;
+    @Autowired SizeChartRepository sizeCharts;
 
     @Test
     void refreshKeepsOrderedVariantsAndIgnoresBrandOwnProducts() throws Exception {
@@ -51,6 +55,27 @@ class FashionCatalogSyncIntegrationTest extends CommerceIntegrationSupport {
         assertThat(ownAfter.getStatus()).isEqualTo(ProductStatus.ACTIVE);
         assertThat(ownAfter.getName()).isEqualTo(ownProduct.getName());
         assertThat(seeder.needsFashionRefresh(owner.brand(), entry)).isFalse();
+    }
+
+    @Test
+    void seededSizeChartsAreGraduatedAndColorsHaveRealHex() {
+        FashionCatalogLoader.BrandEntry entry = catalogLoader.load().brands.getFirst();
+        TestDataHelper.BrandOwnerContext owner = testData.createBrandOwner();
+        seeder.seedBrandCatalog(owner.brand(), entry);
+
+        Product catalogProduct = products.findByBrandId(owner.brand().getId()).stream()
+                .min(Comparator.comparing(Product::getCreatedAt))
+                .orElseThrow();
+
+        List<SizeChart> charts = sizeCharts.findByProductId(catalogProduct.getId()).stream()
+                .sorted(Comparator.comparing(SizeChart::getChestCm))
+                .toList();
+        assertThat(charts).extracting(SizeChart::getSizeLabel).containsExactly("S", "M", "L", "XL");
+        assertThat(charts).extracting(SizeChart::getHeightMinCm).doesNotHaveDuplicates();
+
+        assertThat(variants.findByProductId(catalogProduct.getId()))
+                .filteredOn(v -> "Trắng".equals(v.getColorName()))
+                .allSatisfy(v -> assertThat(v.getColorHex()).isEqualTo("#FFFFFF"));
     }
 
     private static int variantCountBefore(FashionCatalogLoader.BrandEntry entry) {

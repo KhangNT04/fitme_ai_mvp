@@ -184,7 +184,7 @@ export function Header() {
             <>
               <Link href="/rewards" className="flex items-center gap-1.5 rounded-full bg-amber-100 px-3 py-1.5 text-sm font-medium text-amber-700 hover:bg-amber-200 transition-colors">
                 <Coins className="h-4 w-4" />
-                <span>{wallet?.balance ?? 0}</span>
+                <span>{wallet?.balance ?? "–"}</span>
               </Link>
               <Link href="/cart" className="relative flex h-9 w-9 items-center justify-center rounded-full text-muted-foreground hover:bg-muted hover:text-foreground transition-colors">
                 <ShoppingCart className="h-5 w-5" />

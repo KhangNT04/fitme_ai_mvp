@@ -24,8 +24,27 @@ public class FashionCatalogSeeder {
 
     private static final Logger log = LoggerFactory.getLogger(FashionCatalogSeeder.class);
     private static final String LEGACY_DEMO_PREFIX = "Sản phẩm demo ";
-    private static final String CATALOG_META_TAG = "catalog-v6";
+    private static final String CATALOG_META_TAG = "catalog-v7";
     private static final String[] SIZES = {"S", "M", "L", "XL"};
+    /** Per size (same order as SIZES): chest, waist, hip, heightMin, heightMax, weightMin, weightMax. */
+    private static final int[][] SIZE_CHART = {
+            {84, 66, 88, 145, 162, 38, 52},
+            {90, 72, 94, 158, 170, 48, 62},
+            {96, 78, 100, 166, 178, 58, 72},
+            {102, 84, 106, 174, 190, 68, 90},
+    };
+    private static final Map<String, String> COLOR_HEX = Map.of(
+            "Trắng", "#FFFFFF",
+            "Đen", "#111111",
+            "Navy", "#1F2A44",
+            "Beige", "#D8C3A5",
+            "Olive", "#6B7B3A",
+            "Xanh nhạt", "#A7C7E7",
+            "Nâu", "#7B4B2A",
+            "Xám", "#8E8E8E",
+            "Cream", "#F3E9D2",
+            "Champagne", "#E8D4B0");
+    private static final String DEFAULT_COLOR_HEX = "#333333";
 
     private final FashionCatalogLoader catalogLoader;
     private final ProductRepository productRepository;
@@ -170,8 +189,12 @@ public class FashionCatalogSeeder {
             for (String color : colorsOf(entry)) {
                 String key = variantKey(size, color);
                 wanted.add(key);
-                if (!existing.containsKey(key)) {
+                ProductVariant current = existing.get(key);
+                if (current == null) {
                     variantRepository.save(newVariant(productId, brandKey, seq, size, color));
+                } else if (!colorHex(color).equals(current.getColorHex())) {
+                    current.setColorHex(colorHex(color));
+                    variantRepository.save(current);
                 }
             }
         }
@@ -190,11 +213,15 @@ public class FashionCatalogSeeder {
         return ProductVariant.builder()
                 .productId(productId)
                 .colorName(color)
-                .colorHex("#333333")
+                .colorHex(colorHex(color))
                 .sizeLabel(size)
                 .sku("FITME-" + brandKey + "-" + seq + "-" + size + "-" + color.charAt(0))
                 .stockStatus(StockStatus.IN_STOCK)
                 .build();
+    }
+
+    private static String colorHex(String color) {
+        return COLOR_HEX.getOrDefault(color, DEFAULT_COLOR_HEX);
     }
 
     private void createCatalogProduct(
@@ -278,17 +305,18 @@ public class FashionCatalogSeeder {
                 .tagValue(CATALOG_META_TAG)
                 .build());
 
-        for (String size : SIZES) {
+        for (int i = 0; i < SIZES.length; i++) {
+            int[] row = SIZE_CHART[i];
             sizeChartRepository.save(SizeChart.builder()
                     .productId(productId)
-                    .sizeLabel(size)
-                    .chestCm(BigDecimal.valueOf(88 + SIZES.length))
-                    .waistCm(BigDecimal.valueOf(68 + SIZES.length))
-                    .hipCm(BigDecimal.valueOf(90 + SIZES.length))
-                    .heightMinCm(155)
-                    .heightMaxCm(185)
-                    .weightMinKg(BigDecimal.valueOf(45))
-                    .weightMaxKg(BigDecimal.valueOf(85))
+                    .sizeLabel(SIZES[i])
+                    .chestCm(BigDecimal.valueOf(row[0]))
+                    .waistCm(BigDecimal.valueOf(row[1]))
+                    .hipCm(BigDecimal.valueOf(row[2]))
+                    .heightMinCm(row[3])
+                    .heightMaxCm(row[4])
+                    .weightMinKg(BigDecimal.valueOf(row[5]))
+                    .weightMaxKg(BigDecimal.valueOf(row[6]))
                     .build());
         }
     }

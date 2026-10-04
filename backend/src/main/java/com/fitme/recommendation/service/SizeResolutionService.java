@@ -10,6 +10,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
@@ -57,7 +58,11 @@ public class SizeResolutionService {
             Integer height = body.getHeightCm();
             BigDecimal weight = body.getWeightKg();
             if (height != null || weight != null) {
-                for (SizeChart chart : charts) {
+                List<SizeChart> ordered = charts.stream()
+                        .sorted(Comparator.comparing(SizeChart::getHeightMinCm,
+                                Comparator.nullsLast(Comparator.naturalOrder())))
+                        .toList();
+                for (SizeChart chart : ordered) {
                     boolean heightOk = height == null
                             || (chart.getHeightMinCm() != null && chart.getHeightMaxCm() != null
                             && height >= chart.getHeightMinCm() && height <= chart.getHeightMaxCm());

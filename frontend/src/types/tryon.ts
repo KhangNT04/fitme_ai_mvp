@@ -2,6 +2,16 @@ export type TryOnStatus = "DRAFT" | "PROCESSING" | "COMPLETED" | "FAILED";
 export type TryOnInputMode = "USER_PHOTO" | "AVATAR" | "OUTFIT_BOARD_ONLY";
 export type TryOnPreviewType = "OUTFIT_BOARD" | "AVATAR" | "USER_PHOTO_2D";
 
+/** Admin-managed sample model for the AVATAR try-on mode. */
+export interface TryOnAvatar {
+  id: string;
+  key: string;
+  label: string;
+  imageUrl: string;
+  displayOrder: number;
+  active: boolean;
+}
+
 export interface TryOnItem {
   productId: string;
   category: string;

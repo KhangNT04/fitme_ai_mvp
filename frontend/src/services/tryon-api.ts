@@ -1,7 +1,7 @@
 import apiClient, { unwrap, type ApiError } from "./api-client";
 import { mapCategoryToRole } from "@/lib/tryon-role";
 import { resolveOptionalImageSrc } from "@/lib/media-url";
-import type { TryOnResult, TryOnInputMode, TryOnPreviewType, OutfitSuggestions, TryOnSuggestedItem, TryOnItem } from "@/types/tryon";
+import type { TryOnResult, TryOnInputMode, TryOnPreviewType, OutfitSuggestions, TryOnSuggestedItem, TryOnItem, TryOnAvatar } from "@/types/tryon";
 
 /** Generate may wait for a sleeping AI try-on host to boot before the job is accepted. */
 const GENERATE_TIMEOUT_MS = 60_000;
@@ -124,6 +124,10 @@ export const tryonApi = {
     return mapTryOnResult(unwrap(res) as RawTryOnResult);
   },
   /** Best-effort: lets the browser wake the AI try-on host before the user hits generate. */
+  listAvatars: async (): Promise<TryOnAvatar[]> => {
+    const res = await apiClient.get("/try-on/avatars");
+    return unwrap(res);
+  },
   warmUp: async (): Promise<void> => {
     try {
       const res = await apiClient.get("/try-on/warmup");

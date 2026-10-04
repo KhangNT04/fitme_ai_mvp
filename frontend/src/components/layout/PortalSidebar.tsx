@@ -24,6 +24,7 @@ import {
   KeyRound,
   UserCog,
   LineChart,
+  PersonStanding,
   Sparkles as SparklesIcon,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -59,6 +60,7 @@ const adminIcons: Record<string, React.ComponentType<{ className?: string }>> = 
   "/admin/paying-customers": Receipt,
   "/admin/privacy": Shield,
   "/admin/try-on-monitoring": Eye,
+  "/admin/tryon-avatars": PersonStanding,
   "/admin/account": KeyRound,
 };
 

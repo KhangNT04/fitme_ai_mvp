@@ -16,7 +16,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { LoadingSkeleton } from "@/components/common/LoadingSkeleton";
 import { tryOnInputSchema, type TryOnInputForm } from "@/utils/validators";
-import { FIT_PREFERENCES, TRYON_AVATARS } from "@/utils/constants";
+import { FIT_PREFERENCES } from "@/utils/constants";
 import { useTryOnStore } from "@/stores/tryon-store";
 import { useConsultationStore } from "@/stores/consultation-store";
 import { useEnsureSession } from "@/hooks/use-ensure-session";
@@ -43,7 +43,7 @@ import { Chip } from "@/components/ui/chip";
 import { Badge } from "@/components/ui/badge";
 import { SkinTonePicker } from "@/components/ui/skin-tone-picker";
 import { getUserErrorMessage } from "@/lib/user-error-message";
-import { isServerPreviewUrl } from "@/lib/media-url";
+import { isServerPreviewUrl, resolveImageSrc } from "@/lib/media-url";
 import { toast } from "@/stores/toast-store";
 
 const INPUT_MODES = [
@@ -52,11 +52,8 @@ const INPUT_MODES = [
   { value: "OUTFIT_BOARD_ONLY", label: "Chỉ xem outfit board" },
 ] as const;
 
-// "Dùng avatar mẫu" và "Chỉ xem outfit board" chưa sẵn sàng — chặn hành động tạo/tiếp tục thử mặc.
-const LOCKED_INPUT_MODES: ReadonlySet<TryOnInputForm["inputMode"]> = new Set([
-  "AVATAR",
-  "OUTFIT_BOARD_ONLY",
-]);
+// "Chỉ xem outfit board" chưa sẵn sàng — chặn hành động tạo/tiếp tục thử mặc.
+const LOCKED_INPUT_MODES: ReadonlySet<TryOnInputForm["inputMode"]> = new Set(["OUTFIT_BOARD_ONLY"]);
 const FEATURE_LOCKED_MESSAGE = "Tính năng đang được phát triển, hiện tại chưa thể sử dụng.";
 
 export default function TryOnInputPage() {
@@ -78,6 +75,11 @@ export default function TryOnInputPage() {
     queryKey: ["fitken-wallet"],
     queryFn: () => fitkenApi.getWallet(),
     enabled: storesReady,
+  });
+  const { data: avatars = [], isLoading: avatarsLoading, isSuccess: avatarsLoaded } = useQuery({
+    queryKey: ["tryon-avatars"],
+    queryFn: () => tryonApi.listAvatars(),
+    staleTime: 5 * 60_000,
   });
   const {
     selectedItems,
@@ -170,7 +172,14 @@ export default function TryOnInputPage() {
   const fitPreference = watch("fitPreference");
   const skinTone = watch("skinTone");
 
-  const selectedAvatar = TRYON_AVATARS.find((a) => a.key === avatarKey);
+  const selectedAvatar = avatars.find((a) => a.key === avatarKey);
+
+  useEffect(() => {
+    if (!avatarsLoaded || !avatarKey || avatars.some((a) => a.key === avatarKey)) return;
+    setAvatarKey(null);
+    setValue("avatarKey", undefined, { shouldValidate: true });
+    setShowAvatarPicker(true);
+  }, [avatars, avatarsLoaded, avatarKey, setAvatarKey, setValue]);
 
   const handleModeChange = (mode: TryOnInputForm["inputMode"]) => {
     if (mode !== "USER_PHOTO") {
@@ -345,12 +354,12 @@ export default function TryOnInputPage() {
 
                   {selectedAvatar && !showAvatarPicker ? (
                     <div className="flex flex-col items-center gap-3">
-                      <div className="relative aspect-[3/4] w-full max-w-[220px] overflow-hidden rounded-xl border-2 border-primary ring-2 ring-primary/30">
+                      <div className="relative aspect-[2/3] w-full max-w-[220px] overflow-hidden rounded-xl border-2 border-primary ring-2 ring-primary/30">
                         <Image
-                          src={selectedAvatar.imageUrl}
+                          src={resolveImageSrc(selectedAvatar.imageUrl)}
                           alt={selectedAvatar.label}
                           fill
-                          className="object-cover"
+                          className="object-cover object-top"
                           unoptimized
                         />
                         <Badge className="absolute left-2 top-2 gap-1 bg-primary text-primary-foreground">
@@ -368,20 +377,32 @@ export default function TryOnInputPage() {
                         Chọn avatar khác
                       </Button>
                     </div>
+                  ) : avatarsLoading ? (
+                    <LoadingSkeleton className="h-64" />
+                  ) : avatars.length === 0 ? (
+                    <p className="rounded-lg border border-dashed border-border p-4 text-sm text-muted-foreground">
+                      Hiện chưa có avatar mẫu. Vui lòng dùng ảnh cá nhân hoặc quay lại sau.
+                    </p>
                   ) : (
-                    <div className="grid grid-cols-3 gap-3 sm:grid-cols-6">
-                      {TRYON_AVATARS.map((avatar) => (
+                    <div className="grid grid-cols-3 gap-3 sm:grid-cols-4 lg:grid-cols-5">
+                      {avatars.map((avatar) => (
                         <button
                           key={avatar.key}
                           type="button"
                           onClick={() => handleAvatarSelect(avatar.key)}
-                          className={`relative aspect-[3/4] overflow-hidden rounded-lg border-2 transition-colors ${
+                          className={`relative aspect-[2/3] overflow-hidden rounded-lg border-2 bg-muted transition-colors ${
                             avatarKey === avatar.key
                               ? "border-primary ring-2 ring-primary/30"
                               : "border-border hover:border-primary/40"
                           }`}
                         >
-                          <Image src={avatar.imageUrl} alt={avatar.label} fill className="object-cover" unoptimized />
+                          <Image
+                            src={resolveImageSrc(avatar.imageUrl)}
+                            alt={avatar.label}
+                            fill
+                            className="object-cover object-top"
+                            unoptimized
+                          />
                           {avatarKey === avatar.key && (
                             <div className="absolute inset-0 flex items-center justify-center bg-primary/20">
                               <span className="flex h-7 w-7 items-center justify-center rounded-full bg-primary text-primary-foreground">

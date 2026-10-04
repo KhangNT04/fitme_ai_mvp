@@ -23,7 +23,6 @@ import com.fitme.tryon.entity.TryOnItem;
 import com.fitme.tryon.entity.TryOnRequest;
 import com.fitme.tryon.repository.TryOnItemRepository;
 import com.fitme.tryon.repository.TryOnRequestRepository;
-import com.fitme.tryon.support.TryOnAvatarPresets;
 import com.fitme.tryon.support.TryOnItemRoleRules;
 import com.fitme.userprofile.entity.BodyProfile;
 import com.fitme.userprofile.entity.StyleProfile;
@@ -58,6 +57,7 @@ public class TryOnService {
     private final BodyProfileService bodyProfileService;
     private final StyleProfileService styleProfileService;
     private final AiVtonClient aiVtonClient;
+    private final TryOnAvatarService tryOnAvatarService;
 
     @Transactional
     public TryOnResponse create(CreateTryOnRequest request) {
@@ -468,7 +468,7 @@ public class TryOnService {
                 }
             }
             case AVATAR -> {
-                if (!TryOnAvatarPresets.isValid(request.getAvatarKey())) {
+                if (!tryOnAvatarService.isSelectable(request.getAvatarKey())) {
                     throw new BusinessException("Cần chọn avatar mẫu hợp lệ");
                 }
             }

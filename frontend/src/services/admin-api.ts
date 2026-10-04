@@ -11,6 +11,14 @@ import type {
 } from "@/types/analytics";
 import type { Brand } from "@/types/brand";
 import type { Product } from "@/types/product";
+import type { TryOnAvatar } from "@/types/tryon";
+import { uploadMultipartFile } from "@/lib/upload-file";
+
+export interface TryOnAvatarUpsert {
+  label?: string;
+  imageUrl?: string;
+  active?: boolean;
+}
 
 function mapProducts(data: BackendProduct[]): Product[] {
   return (Array.isArray(data) ? data : []).map(mapProduct);
@@ -206,6 +214,29 @@ export const adminApi = {
   },
   setUserConsumerPlan: async (userId: string, plan: "FREE" | "PRO"): Promise<void> => {
     await apiClient.patch(`/admin/users/${userId}/consumer-plan`, { plan });
+  },
+  listTryOnAvatars: async (): Promise<TryOnAvatar[]> => {
+    const res = await apiClient.get("/admin/tryon-avatars");
+    return unwrap(res);
+  },
+  createTryOnAvatar: async (data: TryOnAvatarUpsert): Promise<TryOnAvatar> => {
+    const res = await apiClient.post("/admin/tryon-avatars", data);
+    return unwrap(res);
+  },
+  updateTryOnAvatar: async (id: string, data: TryOnAvatarUpsert): Promise<TryOnAvatar> => {
+    const res = await apiClient.put(`/admin/tryon-avatars/${id}`, data);
+    return unwrap(res);
+  },
+  deleteTryOnAvatar: async (id: string): Promise<void> => {
+    await apiClient.delete(`/admin/tryon-avatars/${id}`);
+  },
+  moveTryOnAvatar: async (id: string, direction: "UP" | "DOWN"): Promise<TryOnAvatar[]> => {
+    const res = await apiClient.post(`/admin/tryon-avatars/${id}/move`, { direction });
+    return unwrap(res);
+  },
+  uploadTryOnAvatarImage: async (file: File): Promise<string> => {
+    const data = await uploadMultipartFile<{ url: string }>("/admin/tryon-avatars/images", file);
+    return data.url;
   },
   getConsumerFitken: async (userId: string): Promise<AdminFitkenDetail> => {
     const res = await apiClient.get(`/admin/consumers/${userId}/fitken`);

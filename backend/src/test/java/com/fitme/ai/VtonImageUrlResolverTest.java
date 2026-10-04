@@ -5,6 +5,7 @@ import com.fitme.preview.entity.UserPhotoUpload;
 import com.fitme.preview.service.PhotoUploadService;
 import com.fitme.storage.MediaUrlResolver;
 import com.fitme.tryon.entity.TryOnRequest;
+import com.fitme.tryon.service.TryOnAvatarService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -25,19 +26,24 @@ class VtonImageUrlResolverTest {
     @Mock
     private MediaUrlResolver mediaUrlResolver;
 
+    @Mock
+    private TryOnAvatarService tryOnAvatarService;
+
     @InjectMocks
     private VtonImageUrlResolver resolver;
 
     @Test
-    void resolvePersonUrl_avatarMode_returnsPresetUrl() {
+    void resolvePersonUrl_avatarMode_usesManagedAvatarUrl() {
         TryOnRequest tryOn = TryOnRequest.builder()
                 .previewMode(TryOnPreviewMode.AVATAR)
                 .avatarKey("avatar-female-1")
                 .build();
+        when(tryOnAvatarService.resolveFetchableUrl("avatar-female-1"))
+                .thenReturn("https://fitme.example/catalog/tryon-avatars/avatar-female-1.jpg");
 
         String url = resolver.resolvePersonUrl(tryOn);
 
-        assertThat(url).contains("images.unsplash.com");
+        assertThat(url).isEqualTo("https://fitme.example/catalog/tryon-avatars/avatar-female-1.jpg");
     }
 
     @Test

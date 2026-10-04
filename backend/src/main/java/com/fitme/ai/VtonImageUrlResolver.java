@@ -6,7 +6,7 @@ import com.fitme.preview.entity.UserPhotoUpload;
 import com.fitme.preview.service.PhotoUploadService;
 import com.fitme.storage.MediaUrlResolver;
 import com.fitme.tryon.entity.TryOnRequest;
-import com.fitme.tryon.support.TryOnAvatarPresets;
+import com.fitme.tryon.service.TryOnAvatarService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -18,14 +18,11 @@ public class VtonImageUrlResolver {
 
     private final PhotoUploadService photoUploadService;
     private final MediaUrlResolver mediaUrlResolver;
+    private final TryOnAvatarService tryOnAvatarService;
 
     public String resolvePersonUrl(TryOnRequest tryOn) {
         if (tryOn.getPreviewMode() == TryOnPreviewMode.AVATAR) {
-            String avatarKey = tryOn.getAvatarKey();
-            if (!TryOnAvatarPresets.isValid(avatarKey)) {
-                throw new BusinessException("Avatar mẫu không hợp lệ");
-            }
-            return TryOnAvatarPresets.imageUrl(avatarKey);
+            return tryOnAvatarService.resolveFetchableUrl(tryOn.getAvatarKey());
         }
 
         UUID photoUploadId = tryOn.getPhotoUploadId();

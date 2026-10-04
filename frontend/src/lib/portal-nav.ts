@@ -30,6 +30,7 @@ export const adminNav: PortalNavItem[] = [
   { href: "/admin/paying-customers", label: "Khách trả tiền" },
   { href: "/admin/privacy", label: "Quyền riêng tư" },
   { href: "/admin/try-on-monitoring", label: "Giám sát thử mặc" },
+  { href: "/admin/tryon-avatars", label: "Avatar mẫu thử đồ" },
   { href: "/admin/account", label: "Đổi mật khẩu" },
 ];
 

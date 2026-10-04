@@ -15,7 +15,12 @@ import type { BodyProfile } from "@/types/user";
  */
 export function useBodyProfileReady() {
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated());
-  const { bodyProfile: dbProfile, isLoading: dbLoading, refetch } = useSavedProfiles({
+  const {
+    bodyProfile: dbProfile,
+    isLoading: dbLoading,
+    isBodyFetching,
+    refetch,
+  } = useSavedProfiles({
     enabled: isAuthenticated,
   });
   const [guestProfile, setGuestProfile] = useState<BodyProfile | null>(null);
@@ -34,7 +39,10 @@ export function useBodyProfileReady() {
 
   const profile: BodyProfile | null = isAuthenticated ? dbProfile : guestProfile;
   const ready = isBodyProfileReady(profile);
-  const isLoading = isAuthenticated ? dbLoading : !guestChecked;
+  // A cached incomplete profile may be stale right after saving; wait for the refetch.
+  const isLoading = isAuthenticated
+    ? dbLoading || (!ready && isBodyFetching)
+    : !guestChecked;
 
   return {
     ready,

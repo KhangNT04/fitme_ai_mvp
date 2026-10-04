@@ -51,6 +51,7 @@ export function useSavedProfiles(options?: { enabled?: boolean }) {
     bodyProfile: bodyQuery.data ?? null,
     styleProfile: styleQuery.data ?? null,
     isLoading: !sessionReady || bodyQuery.isLoading || styleQuery.isLoading,
+    isBodyFetching: bodyQuery.isFetching,
     isError: bodyQuery.isError || styleQuery.isError,
     refetch: async () => {
       await Promise.all([bodyQuery.refetch(), styleQuery.refetch()]);

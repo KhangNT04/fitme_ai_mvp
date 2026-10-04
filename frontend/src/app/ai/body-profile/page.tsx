@@ -2,6 +2,7 @@
 
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { LoadingSkeleton } from "@/components/common/LoadingSkeleton";
 import { PageShell } from "@/components/layout/PageShell";
 import { FlowWizardToolbar } from "@/components/layout/FlowWizardToolbar";
@@ -28,6 +29,7 @@ import type { BodyProfileForm } from "@/utils/validators";
 
 function BodyProfilePageContent() {
   const router = useRouter();
+  const queryClient = useQueryClient();
   const searchParams = useSearchParams();
   const required = searchParams.get("required") === "1";
   const { ensureSession } = useEnsureSession();
@@ -54,7 +56,8 @@ function BodyProfilePageContent() {
 
       if (useAuthStore.getState().isAuthenticated()) {
         try {
-          await ensureServerBodyProfile(next);
+          const saved = await ensureServerBodyProfile(next);
+          queryClient.setQueryData(["body-profile"], saved);
         } catch (e) {
           const status = (e as ApiError)?.status;
           if (status === 401 || status === 403) {

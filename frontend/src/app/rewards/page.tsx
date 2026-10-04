@@ -29,6 +29,8 @@ const VOUCHER_STATUS_LABEL: Record<string, string> = {
   EXPIRED: "Hết hạn",
 };
 
+const REWARD_TABS = ["tasks", "vouchers", "history"];
+
 const formatDate = (dateStr: string) => {
   const d = new Date(dateStr);
   return `${d.getDate().toString().padStart(2, '0')}/${(d.getMonth() + 1).toString().padStart(2, '0')}/${d.getFullYear()}`;
@@ -50,7 +52,10 @@ export default function RewardsPage() {
 function RewardsContent() {
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated());
   const queryClient = useQueryClient();
-  const galleryImageId = useSearchParams().get("galleryImageId") ?? undefined;
+  const searchParams = useSearchParams();
+  const galleryImageId = searchParams.get("galleryImageId") ?? undefined;
+  const requestedTab = searchParams.get("tab");
+  const initialTab = requestedTab && REWARD_TABS.includes(requestedTab) ? requestedTab : "tasks";
   const [shareUrl, setShareUrl] = useState("");
 
   const { data: wallet } = useQuery({
@@ -144,7 +149,7 @@ function RewardsContent() {
         )}
       </div>
 
-      <Tabs defaultValue="tasks" className="w-full">
+      <Tabs defaultValue={initialTab} className="w-full">
         <TabsList className="grid w-full grid-cols-3 mb-4">
           <TabsTrigger value="tasks">Nhiệm vụ</TabsTrigger>
           <TabsTrigger value="vouchers">Voucher</TabsTrigger>

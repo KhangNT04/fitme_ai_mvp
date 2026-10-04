@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { PageShell } from "@/components/layout/PageShell";
 import { FlowWizardToolbar } from "@/components/layout/FlowWizardToolbar";
 import { AI_FLOW_STEPS } from "@/components/layout/FlowStepper";
@@ -20,6 +21,7 @@ import { STYLIST_STARTER_PENDING_KEY } from "@/types/stylist-chat";
 
 export default function VibeQuizPage() {
   const router = useRouter();
+  const queryClient = useQueryClient();
   const { ensureSession } = useEnsureSession();
   const setBodyProfile = useConsultationStore((s) => s.setBodyProfile);
   const draftBody = useConsultationStore((s) => s.draft.bodyProfile);
@@ -46,7 +48,8 @@ export default function VibeQuizPage() {
         const nextBody = { ...draftBody, goals: nextGoals };
         setBodyProfile(nextBody);
         try {
-          await profileApi.saveBodyProfile(nextBody);
+          const saved = await profileApi.saveBodyProfile(nextBody);
+          queryClient.setQueryData(["body-profile"], saved);
         } catch {
           // Best-effort; consultation store still has the goals for this session.
         }

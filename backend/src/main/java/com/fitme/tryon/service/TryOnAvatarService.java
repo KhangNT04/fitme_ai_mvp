@@ -109,6 +109,7 @@ public class TryOnAvatarService {
         TryOnAvatar avatar = require(id);
         repository.delete(avatar);
         repository.flush();
+        renumber(repository.findAllByOrderByDisplayOrderAscCreatedAtAsc());
         deleteUploadedImage(avatar.getImageUrl());
     }
 
@@ -130,11 +131,15 @@ public class TryOnAvatarService {
         if (target >= 0 && target < ordered.size()) {
             ordered.add(target, ordered.remove(index));
         }
+        renumber(ordered);
+        return ordered.stream().map(this::toDto).toList();
+    }
+
+    private void renumber(List<TryOnAvatar> ordered) {
         for (int i = 0; i < ordered.size(); i++) {
             ordered.get(i).setDisplayOrder(i + 1);
         }
         repository.saveAllAndFlush(ordered);
-        return ordered.stream().map(this::toDto).toList();
     }
 
     public MediaUploadResponse uploadImage(MultipartFile file) throws IOException {

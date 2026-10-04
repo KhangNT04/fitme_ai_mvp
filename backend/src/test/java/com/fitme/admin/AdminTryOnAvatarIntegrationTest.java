@@ -87,7 +87,8 @@ class AdminTryOnAvatarIntegrationTest extends AbstractIntegrationTest {
                 .andExpect(status().isOk());
         mockMvc.perform(get("/api/v1/admin/tryon-avatars").with(user(admin)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.data[?(@.key == '" + key + "')]").isEmpty());
+                .andExpect(jsonPath("$.data[?(@.key == '" + key + "')]").isEmpty())
+                .andExpect(jsonPath("$.data[-1].displayOrder").value(3));
     }
 
     private ResultActions upsert(org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder request,

@@ -124,6 +124,74 @@ class AuthEmailServiceTest {
     }
 
     @Test
+    void gmailRelay_isPreferred_andFollowsAppsScriptRedirect() throws Exception {
+        AtomicReference<String> requestBody = new AtomicReference<>();
+        AtomicReference<String> echoMethod = new AtomicReference<>();
+        resendServer = HttpServer.create(new InetSocketAddress("127.0.0.1", 0), 0);
+        resendServer.createContext("/macros/exec", exchange -> {
+            requestBody.set(new String(exchange.getRequestBody().readAllBytes(), StandardCharsets.UTF_8));
+            exchange.getResponseHeaders().add("Location", "/macros/echo?id=1");
+            exchange.sendResponseHeaders(302, -1);
+            exchange.close();
+        });
+        resendServer.createContext("/macros/echo", exchange -> {
+            echoMethod.set(exchange.getRequestMethod());
+            byte[] resp = "{\"ok\":true,\"remaining\":99}".getBytes(StandardCharsets.UTF_8);
+            exchange.getResponseHeaders().add("Content-Type", "application/json");
+            exchange.sendResponseHeaders(200, resp.length);
+            exchange.getResponseBody().write(resp);
+            exchange.close();
+        });
+        resendServer.start();
+
+        AuthEmailService svc = relayService("http://127.0.0.1:" + resendServer.getAddress().getPort() + "/macros/exec");
+        svc.sendVerificationCode("user@example.com", "445566");
+
+        assertThat(echoMethod.get()).isEqualTo("GET");
+        assertThat(requestBody.get()).contains("\"secret\":\"relay-secret\"");
+        assertThat(requestBody.get()).contains("\"to\":\"user@example.com\"");
+        assertThat(requestBody.get()).contains("\"fromName\":\"FitMe AI\"");
+        assertThat(requestBody.get()).contains("445566");
+        assertThat(greenMail.getReceivedMessages()).isEmpty();
+    }
+
+    @Test
+    void gmailRelay_rejection_surfacesFriendlyError() throws Exception {
+        resendServer = HttpServer.create(new InetSocketAddress("127.0.0.1", 0), 0);
+        resendServer.createContext("/exec", exchange -> {
+            exchange.getRequestBody().readAllBytes();
+            byte[] resp = "{\"ok\":false,\"error\":\"unauthorized\"}".getBytes(StandardCharsets.UTF_8);
+            exchange.getResponseHeaders().add("Content-Type", "application/json");
+            exchange.sendResponseHeaders(200, resp.length);
+            exchange.getResponseBody().write(resp);
+            exchange.close();
+        });
+        resendServer.start();
+
+        AuthEmailService svc = relayService("http://127.0.0.1:" + resendServer.getAddress().getPort() + "/exec");
+
+        assertThatThrownBy(() -> svc.sendVerificationCode("user@example.com", "445566"))
+                .isInstanceOf(BusinessException.class)
+                .hasMessageContaining("chưa gửi được email");
+        assertThat(svc.sendNotification("user@example.com", "s", "t", "<p>t</p>", "test")).isFalse();
+    }
+
+    private AuthEmailService relayService(String relayUrl) {
+        FitMeProperties props = new FitMeProperties();
+        props.getAuth().setMailFrom("FitMe AI <fitme.ai.team@gmail.com>");
+        props.getAuth().setResendApiKey("re_should_not_be_used");
+        props.getAuth().setMailRelayUrl(relayUrl);
+        props.getAuth().setMailRelaySecret("relay-secret");
+        JavaMailSenderImpl sender = new JavaMailSenderImpl();
+        sender.setHost("127.0.0.1");
+        sender.setPort(ServerSetupTest.SMTP.getPort());
+        AuthEmailService svc = new AuthEmailService(mailSenderProvider(sender), props);
+        ReflectionTestUtils.setField(svc, "mailHost", "127.0.0.1");
+        ReflectionTestUtils.setField(svc, "mailPassword", "");
+        return svc;
+    }
+
+    @Test
     void sendPasswordResetLink_deliversLinkToResetPage() throws Exception {
         FitMeProperties props = new FitMeProperties();
         props.getAuth().setMailFrom("FitMe AI <noreply@fitme.test>");

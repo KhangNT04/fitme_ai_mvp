@@ -10,12 +10,15 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
+import org.springframework.http.client.JdkClientHttpRequestFactory;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.client.RestClientResponseException;
 
+import java.net.http.HttpClient;
+import java.time.Duration;
 import java.util.List;
 import java.util.Map;
 
@@ -39,7 +42,13 @@ public class AuthEmailService {
     private String resendApiBaseUrl;
 
     public boolean isMailConfigured() {
-        return isResendConfigured() || isSmtpConfigured();
+        return isRelayConfigured() || isResendConfigured() || isSmtpConfigured();
+    }
+
+    private boolean isRelayConfigured() {
+        FitMeProperties.Auth auth = fitMeProperties.getAuth();
+        return auth.getMailRelayUrl() != null && !auth.getMailRelayUrl().isBlank()
+                && auth.getMailRelaySecret() != null && !auth.getMailRelaySecret().isBlank();
     }
 
     private boolean isResendConfigured() {
@@ -67,7 +76,7 @@ public class AuthEmailService {
 
     /**
      * Delivers the verification code by email.
-     * Prefers Resend HTTPS API (works on Render); falls back to SMTP.
+     * Transport order: Gmail relay (HTTPS) → Resend HTTPS API → SMTP.
      * When neither is configured, only allowed if {@code fitme.auth.expose-verification-code=true}.
      */
     public void sendVerificationCode(String toEmail, String code) {
@@ -126,7 +135,9 @@ public class AuthEmailService {
             fromRaw = "noreply@fitme.ai";
         }
         try {
-            if (isResendConfigured()) {
+            if (isRelayConfigured()) {
+                sendViaRelay(toEmail, fromRaw, subject, text, html);
+            } else if (isResendConfigured()) {
                 sendViaResendApi(toEmail, fromRaw.trim(), subject, text, html);
             } else {
                 sendViaSmtp(toEmail, fromRaw, subject, text, html);
@@ -207,6 +218,49 @@ public class AuthEmailService {
             throw new BusinessException(
                     "Hiện chưa gửi được email tới địa chỉ này. Vui lòng thử lại sau hoặc liên hệ hỗ trợ.");
         }
+    }
+
+    /**
+     * Apps Script web apps answer the POST with a 302 to a one-time result URL that must be fetched with GET,
+     * so redirects have to be followed (the JDK client switches POST to GET on 302).
+     */
+    private void sendViaRelay(String toEmail, String fromRaw, String subject, String text, String html) {
+        FitMeProperties.Auth auth = fitMeProperties.getAuth();
+        JdkClientHttpRequestFactory requestFactory = new JdkClientHttpRequestFactory(HttpClient.newBuilder()
+                .followRedirects(HttpClient.Redirect.NORMAL)
+                .connectTimeout(Duration.ofSeconds(10))
+                .build());
+        requestFactory.setReadTimeout(Duration.ofSeconds(30));
+        Map<?, ?> result = RestClient.builder().requestFactory(requestFactory).build()
+                .post()
+                .uri(auth.getMailRelayUrl().trim())
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(Map.of(
+                        "secret", auth.getMailRelaySecret().trim(),
+                        "to", toEmail,
+                        "fromName", senderName(fromRaw),
+                        "subject", subject,
+                        "text", text,
+                        "html", html))
+                .retrieve()
+                .body(Map.class);
+        if (result == null || !Boolean.TRUE.equals(result.get("ok"))) {
+            log.error("[AUTH] Gmail relay rejected send to {}: {}", toEmail, result == null ? "empty response" : result.get("error"));
+            throw new BusinessException(
+                    "Hiện chưa gửi được email tới địa chỉ này. Vui lòng thử lại sau hoặc liên hệ hỗ trợ.");
+        }
+    }
+
+    private static String senderName(String fromRaw) {
+        try {
+            String personal = parseFrom(fromRaw).getPersonal();
+            if (personal != null && !personal.isBlank()) {
+                return personal.trim();
+            }
+        } catch (Exception ignored) {
+            // Fall back to the brand name.
+        }
+        return "FitMe AI";
     }
 
     private void sendViaSmtp(String toEmail, String fromRaw, String subject, String text, String html)

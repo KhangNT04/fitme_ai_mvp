@@ -38,6 +38,13 @@ public class FitMeProperties {
          * When blank, AuthEmailService also accepts spring.mail.password values starting with re_.
          */
         private String resendApiKey = "";
+        /**
+         * Google Apps Script web app that sends mail from the FitMe Gmail account over HTTPS
+         * (deploy/gmail-relay). Takes precedence over Resend/SMTP; Render Free blocks SMTP ports.
+         */
+        private String mailRelayUrl = "";
+        /** Shared secret checked by the relay script (RELAY_SECRET script property). */
+        private String mailRelaySecret = "";
     }
 
     @Data

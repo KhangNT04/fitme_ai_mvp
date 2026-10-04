@@ -2,7 +2,7 @@
 
 import { useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
-import { tryonApi } from "@/services/tryon-api";
+import { useQueryClient } from "@tanstack/react-query";
 import { useTryOnStore } from "@/stores/tryon-store";
 import { Disclaimer } from "@/components/layout/Disclaimer";
 import { FlowWizardToolbar } from "@/components/layout/FlowWizardToolbar";
@@ -27,10 +27,12 @@ export default function TryOnProcessingPage() {
   const requestId = useTryOnStore((s) => s.requestId);
   const inputMode = useTryOnStore((s) => (s.input.inputMode ?? "OUTFIT_BOARD_ONLY") as TryOnInputMode);
   const navigatedRef = useRef(false);
+  const queryClient = useQueryClient();
 
   const { phase, error, elapsedMs, stepLabel, retry } = useTryOnPoll({
     requestId,
     onCompleted: () => {
+      void queryClient.invalidateQueries({ queryKey: ["fitken-wallet"] });
       if (navigatedRef.current || !requestId) return;
       navigatedRef.current = true;
       router.replace(`/try-on/result/${requestId}`);
@@ -46,8 +48,9 @@ export default function TryOnProcessingPage() {
   useEffect(() => {
     if (error) {
       toast.error(error);
+      void queryClient.invalidateQueries({ queryKey: ["fitken-wallet"] });
     }
-  }, [error]);
+  }, [error, queryClient]);
 
   const subtitle = MODE_SUBTITLES[inputMode] ?? MODE_SUBTITLES.OUTFIT_BOARD_ONLY;
 

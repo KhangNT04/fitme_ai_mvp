@@ -16,6 +16,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
 import java.security.SecureRandom;
 import java.time.Instant;
 import java.util.Locale;
@@ -31,6 +33,8 @@ public class AuthService {
     private static final long PASSWORD_RESET_TTL_SECONDS = 3600;
     private static final long CAPTCHA_TTL_SECONDS = 600;
     private static final long REGISTER_COOLDOWN_SECONDS = 60;
+    private static final long EMAIL_SEND_COOLDOWN_SECONDS = 60;
+    private static final int MAX_VERIFICATION_ATTEMPTS = 5;
 
     private final UserAccountRepository userAccountRepository;
     private final PasswordEncoder passwordEncoder;
@@ -40,11 +44,12 @@ public class AuthService {
     private final AuthEmailService authEmailService;
     private final SecureRandom secureRandom = new SecureRandom();
 
-    private final ConcurrentHashMap<String, PasswordResetEntry> passwordResetTokens = new ConcurrentHashMap<>();
     private final ConcurrentHashMap<String, CaptchaEntry> captchaChallenges = new ConcurrentHashMap<>();
     private final ConcurrentHashMap<String, Instant> registerCooldownByEmail = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<String, Instant> resendCooldownByEmail = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<String, Instant> resetCooldownByEmail = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<String, Integer> verificationFailuresByEmail = new ConcurrentHashMap<>();
 
-    private record PasswordResetEntry(String email, Instant expiresAt) {}
     private record CaptchaEntry(int answer, Instant expiresAt) {}
 
     public CaptchaChallengeResponse createCaptchaChallenge() {
@@ -122,7 +127,7 @@ public class AuthService {
         return buildAuthResponse(user);
     }
 
-    @Transactional
+    @Transactional(noRollbackFor = BusinessException.class)
     public AuthResponse verifyEmail(TokenRequest request) {
         UserAccount user = resolvePendingUser(request);
         if (user.getEmailVerificationExpiresAt() != null
@@ -143,6 +148,11 @@ public class AuthService {
         if (found.isEmpty() || found.get().isEmailVerified()) {
             return Map.of("message", "Nếu email tồn tại và chưa xác minh, mã mới đã được tạo.");
         }
+        if (inCooldown(resendCooldownByEmail, email)) {
+            throw new BusinessException("Vui lòng đợi 1 phút trước khi gửi lại mã.");
+        }
+        resendCooldownByEmail.put(email, Instant.now().plusSeconds(EMAIL_SEND_COOLDOWN_SECONDS));
+        verificationFailuresByEmail.remove(email);
         UserAccount user = found.get();
         String code = generateNumericCode(6);
         user.setEmailVerificationCode(code);
@@ -159,10 +169,14 @@ public class AuthService {
     }
 
     public Map<String, String> forgotPassword(ForgotPasswordRequest request) {
-        userAccountRepository.findByEmail(request.getEmail().toLowerCase(Locale.ROOT).trim()).ifPresent(user -> {
-            String token = UUID.randomUUID().toString();
-            passwordResetTokens.put(token, new PasswordResetEntry(
-                    user.getEmail(), Instant.now().plusSeconds(PASSWORD_RESET_TTL_SECONDS)));
+        String email = request.getEmail().toLowerCase(Locale.ROOT).trim();
+        userAccountRepository.findByEmail(email).ifPresent(user -> {
+            if (inCooldown(resetCooldownByEmail, email)) {
+                log.info("[AUTH] Password reset email to {} skipped (cooldown)", email);
+                return;
+            }
+            resetCooldownByEmail.put(email, Instant.now().plusSeconds(EMAIL_SEND_COOLDOWN_SECONDS));
+            String token = issuePasswordResetToken(user);
             if (fitMeProperties.getAuth().isExposeVerificationCode()) {
                 log.info("[DEV] Password reset token for {}: {}", user.getEmail(), token);
             }
@@ -177,28 +191,39 @@ public class AuthService {
         return Map.of("message", "Nếu email tồn tại, hướng dẫn đặt lại mật khẩu đã được gửi");
     }
 
+    /** Test-only helper (E2E): issues a fresh reset token for the account. */
     public java.util.Optional<String> findResetTokenForEmail(String email) {
-        String normalized = email.toLowerCase(Locale.ROOT).trim();
-        return passwordResetTokens.entrySet().stream()
-                .filter(e -> e.getValue().email().equalsIgnoreCase(normalized))
-                .filter(e -> Instant.now().isBefore(e.getValue().expiresAt()))
-                .map(Map.Entry::getKey)
-                .findFirst();
+        return userAccountRepository.findByEmail(email.toLowerCase(Locale.ROOT).trim())
+                .map(this::issuePasswordResetToken);
     }
 
     @Transactional
     public void resetPassword(ResetPasswordRequest request) {
-        PasswordResetEntry entry = passwordResetTokens.remove(request.getToken());
-        if (entry == null) {
-            throw new BusinessException("Token đặt lại mật khẩu không hợp lệ hoặc đã hết hạn");
-        }
-        if (Instant.now().isAfter(entry.expiresAt())) {
-            throw new BusinessException("Token đặt lại mật khẩu đã hết hạn");
-        }
-        UserAccount user = userAccountRepository.findByEmail(entry.email())
+        UUID userId = jwtService.resolvePasswordResetUser(request.getToken().trim(),
+                        id -> userAccountRepository.findById(id).map(UserAccount::getPasswordHash).orElse(null))
+                .orElseThrow(() -> new BusinessException(
+                        "Link đặt lại mật khẩu không hợp lệ, đã hết hạn hoặc đã được sử dụng"));
+        UserAccount user = userAccountRepository.findById(userId)
                 .orElseThrow(() -> new BusinessException("Tài khoản không tồn tại"));
         user.setPasswordHash(passwordEncoder.encode(request.getNewPassword()));
         userAccountRepository.save(user);
+    }
+
+    private String issuePasswordResetToken(UserAccount user) {
+        return jwtService.generatePasswordResetToken(
+                user.getId(), user.getEmail(), user.getPasswordHash(), PASSWORD_RESET_TTL_SECONDS * 1000);
+    }
+
+    private static boolean inCooldown(ConcurrentHashMap<String, Instant> cooldowns, String email) {
+        Instant until = cooldowns.get(email);
+        if (until == null) {
+            return false;
+        }
+        if (Instant.now().isAfter(until)) {
+            cooldowns.remove(email, until);
+            return false;
+        }
+        return true;
     }
 
     public AuthResponse refreshToken(RefreshTokenRequest request) {
@@ -223,24 +248,36 @@ public class AuthService {
         jwtService.revokeRefreshToken(request.getRefreshToken());
     }
 
+    /**
+     * Never issues tokens without a matching code: already-verified accounts must log in with their password,
+     * and repeated wrong codes burn the code so a 6-digit value cannot be brute-forced.
+     */
     private UserAccount resolvePendingUser(TokenRequest request) {
         String token = request.getToken().trim();
-        if (request.getEmail() != null && !request.getEmail().isBlank()) {
-            String email = request.getEmail().toLowerCase(Locale.ROOT).trim();
-            UserAccount user = userAccountRepository.findByEmail(email)
-                    .orElseThrow(() -> new BusinessException("Tài khoản không tồn tại"));
-            if (user.isEmailVerified()) {
-                return user;
-            }
-            if (user.getEmailVerificationCode() == null
-                    || !user.getEmailVerificationCode().equalsIgnoreCase(token)) {
-                throw new BusinessException("Mã xác thực không hợp lệ");
-            }
-            return user;
+        String email = request.getEmail().toLowerCase(Locale.ROOT).trim();
+        UserAccount user = userAccountRepository.findByEmail(email)
+                .orElseThrow(() -> new BusinessException("Mã xác thực không hợp lệ"));
+        if (user.isEmailVerified()) {
+            throw new BusinessException("Email này đã được xác minh. Vui lòng đăng nhập.");
         }
-        return userAccountRepository.findByEmailVerificationCode(token)
-                .filter(u -> !u.isEmailVerified())
-                .orElseThrow(() -> new BusinessException("Token xác thực không hợp lệ"));
+        String expected = user.getEmailVerificationCode();
+        if (expected == null) {
+            throw new BusinessException("Mã xác thực đã hết hiệu lực. Hãy yêu cầu gửi lại mã.");
+        }
+        if (!MessageDigest.isEqual(
+                expected.getBytes(StandardCharsets.UTF_8), token.getBytes(StandardCharsets.UTF_8))) {
+            int failures = verificationFailuresByEmail.merge(email, 1, Integer::sum);
+            if (failures >= MAX_VERIFICATION_ATTEMPTS) {
+                verificationFailuresByEmail.remove(email);
+                user.setEmailVerificationCode(null);
+                user.setEmailVerificationExpiresAt(null);
+                userAccountRepository.save(user);
+                throw new BusinessException("Nhập sai mã quá nhiều lần. Hãy yêu cầu gửi lại mã mới.");
+            }
+            throw new BusinessException("Mã xác thực không hợp lệ");
+        }
+        verificationFailuresByEmail.remove(email);
+        return user;
     }
 
     private void rejectHoneypot(String website) {

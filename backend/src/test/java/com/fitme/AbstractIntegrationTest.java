@@ -81,6 +81,20 @@ public abstract class AbstractIntegrationTest {
      * (includes {@code accessToken} and {@code userId}).
      */
     protected JsonNode registerVerifiedUser(String email, String password, String displayName) throws Exception {
+        String code = registerPendingUser(email, password, displayName);
+
+        MvcResult verifyResult = mockMvc.perform(post("/api/v1/auth/verify-email")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"email":"%s","token":"%s"}
+                                """.formatted(email, code)))
+                .andExpect(status().isOk())
+                .andReturn();
+        return objectMapper.readTree(verifyResult.getResponse().getContentAsString()).get("data");
+    }
+
+    /** Registers via captcha without verifying; returns the (test-exposed) verification code. */
+    protected String registerPendingUser(String email, String password, String displayName) throws Exception {
         MvcResult captchaResult = mockMvc.perform(get("/api/v1/auth/captcha"))
                 .andExpect(status().isOk())
                 .andReturn();
@@ -109,17 +123,8 @@ public abstract class AbstractIntegrationTest {
                                 System.currentTimeMillis() - 5_000)))
                 .andExpect(status().isOk())
                 .andReturn();
-        String code = objectMapper.readTree(registerResult.getResponse().getContentAsString())
+        return objectMapper.readTree(registerResult.getResponse().getContentAsString())
                 .get("data").get("verificationCode").asText();
-
-        MvcResult verifyResult = mockMvc.perform(post("/api/v1/auth/verify-email")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content("""
-                                {"email":"%s","token":"%s"}
-                                """.formatted(email, code)))
-                .andExpect(status().isOk())
-                .andReturn();
-        return objectMapper.readTree(verifyResult.getResponse().getContentAsString()).get("data");
     }
 
     /** Registers a fresh verified consumer and returns its access token (wallet gets the trial Fitken lazily). */

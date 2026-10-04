@@ -96,7 +96,7 @@ public class AdminUserService {
         }
         if (user.getStatus() != status) {
             user.setStatus(status);
-            userAccountRepository.save(user);
+            userAccountRepository.saveAndFlush(user);
             log.info("Admin {} set account {} to {}", adminId, userId, status);
         }
         return get(userId);

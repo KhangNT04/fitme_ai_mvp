@@ -33,6 +33,14 @@ class AuthEmailSecurityTest extends AbstractIntegrationTest {
     }
 
     @Test
+    void malformedJsonBody_returnsBadRequest() throws Exception {
+        mockMvc.perform(post("/api/v1/auth/reset-password")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"token\":broken"))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
     void verifyEmail_requiresEmail() throws Exception {
         String email = "pending-" + UUID.randomUUID() + "@test.fitme.ai";
         String code = registerPendingUser(email, "Test12345!", "Pending");

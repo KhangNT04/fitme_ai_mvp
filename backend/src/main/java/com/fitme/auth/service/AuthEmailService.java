@@ -118,9 +118,8 @@ public class AuthEmailService {
             throw ex;
         } catch (Exception ex) {
             log.error("[AUTH] Failed to send {} email to {}: {}", kind, toEmail, ex.toString());
-            String detail = ex.getMessage() != null ? ex.getMessage() : ex.getClass().getSimpleName();
             throw new BusinessException(
-                    "Không gửi được email (" + shorten(detail) + "). Kiểm tra cấu hình email trên server.");
+                    "Hiện chưa gửi được email tới địa chỉ này. Vui lòng thử lại sau hoặc liên hệ hỗ trợ.");
         }
     }
 
@@ -188,9 +187,7 @@ public class AuthEmailService {
                     ex.getStatusCode().value(),
                     ex.getResponseBodyAsString());
             throw new BusinessException(
-                    "Không gửi được email xác nhận (Resend HTTP "
-                            + ex.getStatusCode().value()
-                            + "). Kiểm tra RESEND_API_KEY / SMTP_FROM.");
+                    "Hiện chưa gửi được email tới địa chỉ này. Vui lòng thử lại sau hoặc liên hệ hỗ trợ.");
         }
     }
 
@@ -369,13 +366,5 @@ public class AuthEmailService {
             return "https://api.resend.com";
         }
         return url.endsWith("/") ? url.substring(0, url.length() - 1) : url;
-    }
-
-    private static String shorten(String detail) {
-        String cleaned = detail.replaceAll("\\s+", " ").trim();
-        if (cleaned.length() > 120) {
-            return cleaned.substring(0, 117) + "...";
-        }
-        return cleaned;
     }
 }

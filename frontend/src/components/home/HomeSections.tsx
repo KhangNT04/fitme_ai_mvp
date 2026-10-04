@@ -101,7 +101,7 @@ export function FeaturedReviewsSection() {
       <div className="text-center">
         <p className="text-xs font-semibold uppercase tracking-[0.3em] text-primary">Khách hàng nói gì</p>
         <h2 id="featured-reviews" className="mt-3 font-display text-3xl font-bold text-foreground sm:text-4xl">
-          Đánh giá thật từ người mua
+          Đánh giá từ người dùng FitMe
         </h2>
       </div>
       <div className="mt-10 grid gap-5 md:grid-cols-2 lg:grid-cols-3">

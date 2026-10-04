@@ -1,8 +1,8 @@
 fitme:
   seed:
     enabled: false
-    fashion-catalog-refresh: true
-    top-up-enabled: true
+    fashion-catalog-refresh: ${FITME_SEED_FASHION_REFRESH:true}
+    top-up-enabled: ${FITME_SEED_TOP_UP:true}
   test:
     expose-reset-tokens: false
   auth:

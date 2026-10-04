@@ -11,7 +11,11 @@ import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
 import java.util.Comparator;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 
 @Component
@@ -42,18 +46,30 @@ public class FashionCatalogSeeder {
     }
 
     public boolean needsFashionRefresh(Brand brand, FashionCatalogLoader.BrandEntry entry) {
-        List<Product> existing = productRepository.findByBrandId(brand.getId());
-        if (existing.isEmpty()) {
+        List<Product> active = catalogManagedProducts(brand).stream()
+                .filter(p -> p.getStatus() == ProductStatus.ACTIVE)
+                .toList();
+        if (active.size() != entry.products.size()) {
             return true;
         }
-        long activeCount = existing.stream().filter(p -> p.getStatus() == ProductStatus.ACTIVE).count();
-        if (activeCount != entry.products.size()) {
-            return true;
-        }
-        return existing.stream().anyMatch(p -> p.getName().startsWith(LEGACY_DEMO_PREFIX))
-                || existing.stream().anyMatch(p -> !hasCurrentCatalogMeta(p))
-                || existing.stream().anyMatch(this::missingTargetGenderTag)
-                || usesRemoteCatalogImages(existing);
+        return active.stream().anyMatch(p -> p.getName().startsWith(LEGACY_DEMO_PREFIX))
+                || active.stream().anyMatch(p -> !hasCurrentCatalogMeta(p))
+                || active.stream().anyMatch(this::missingTargetGenderTag)
+                || usesRemoteCatalogImages(active);
+    }
+
+    /** Products the brand created itself (no catalog META tag) are never touched by the seeder. */
+    private List<Product> catalogManagedProducts(Brand brand) {
+        return productRepository.findByBrandId(brand.getId()).stream()
+                .filter(p -> p.getName().startsWith(LEGACY_DEMO_PREFIX) || hasAnyCatalogMeta(p))
+                .toList();
+    }
+
+    private boolean hasAnyCatalogMeta(Product product) {
+        return tagRepository.findByProductId(product.getId()).stream()
+                .anyMatch(t -> "META".equals(t.getTagType())
+                        && t.getTagValue() != null
+                        && t.getTagValue().startsWith("catalog-"));
     }
 
     private boolean missingTargetGenderTag(Product product) {
@@ -80,7 +96,7 @@ public class FashionCatalogSeeder {
 
     /** Updates products in place so FK references (recommendations, try-on, …) stay valid. */
     public void syncBrandCatalog(Brand brand, FashionCatalogLoader.BrandEntry entry) {
-        List<Product> existing = productRepository.findByBrandId(brand.getId()).stream()
+        List<Product> existing = catalogManagedProducts(brand).stream()
                 .sorted(Comparator.comparing(Product::getCreatedAt))
                 .toList();
 
@@ -129,6 +145,58 @@ public class FashionCatalogSeeder {
         saveRelatedData(product.getId(), brandKey, entry, seq);
     }
 
+    private static List<String> colorsOf(FashionCatalogLoader.ProductEntry entry) {
+        return entry.colors != null && !entry.colors.isEmpty()
+                ? entry.colors
+                : List.of("Đen", "Trắng");
+    }
+
+    private static String variantKey(String size, String color) {
+        return size + "|" + color;
+    }
+
+    /**
+     * Variants are referenced by carts and orders, so they are matched by size + colour and kept
+     * (with their stock); variants dropped from the catalog are only marked out of stock.
+     */
+    private void syncVariants(UUID productId, String brandKey, FashionCatalogLoader.ProductEntry entry, int seq) {
+        Map<String, ProductVariant> existing = new HashMap<>();
+        for (ProductVariant variant : variantRepository.findByProductId(productId)) {
+            existing.putIfAbsent(variantKey(variant.getSizeLabel(), variant.getColorName()), variant);
+        }
+
+        Set<String> wanted = new HashSet<>();
+        for (String size : SIZES) {
+            for (String color : colorsOf(entry)) {
+                String key = variantKey(size, color);
+                wanted.add(key);
+                if (!existing.containsKey(key)) {
+                    variantRepository.save(newVariant(productId, brandKey, seq, size, color));
+                }
+            }
+        }
+
+        for (ProductVariant variant : variantRepository.findByProductId(productId)) {
+            if (!wanted.contains(variantKey(variant.getSizeLabel(), variant.getColorName()))
+                    && variant.getStockStatus() != StockStatus.OUT_OF_STOCK) {
+                variant.setStockStatus(StockStatus.OUT_OF_STOCK);
+                variant.setStockQuantity(0);
+                variantRepository.save(variant);
+            }
+        }
+    }
+
+    private static ProductVariant newVariant(UUID productId, String brandKey, int seq, String size, String color) {
+        return ProductVariant.builder()
+                .productId(productId)
+                .colorName(color)
+                .colorHex("#333333")
+                .sizeLabel(size)
+                .sku("FITME-" + brandKey + "-" + seq + "-" + size + "-" + color.charAt(0))
+                .stockStatus(StockStatus.IN_STOCK)
+                .build();
+    }
+
     private void createCatalogProduct(
             Brand brand,
             String brandKey,
@@ -157,7 +225,6 @@ public class FashionCatalogSeeder {
 
     private void clearRelatedData(UUID productId) {
         imageRepository.findByProductIdOrderBySortOrderAsc(productId).forEach(imageRepository::delete);
-        variantRepository.findByProductId(productId).forEach(variantRepository::delete);
         tagRepository.findByProductId(productId).forEach(tagRepository::delete);
         sizeChartRepository.findByProductId(productId).forEach(sizeChartRepository::delete);
     }
@@ -178,22 +245,8 @@ public class FashionCatalogSeeder {
                     .build());
         }
 
-        List<String> colors = entry.colors != null && !entry.colors.isEmpty()
-                ? entry.colors
-                : List.of("Đen", "Trắng");
-
-        for (String size : SIZES) {
-            for (String color : colors) {
-                variantRepository.save(ProductVariant.builder()
-                        .productId(productId)
-                        .colorName(color)
-                        .colorHex("#333333")
-                        .sizeLabel(size)
-                        .sku("FITME-" + brandKey + "-" + seq + "-" + size + "-" + color.charAt(0))
-                        .stockStatus(StockStatus.IN_STOCK)
-                        .build());
-            }
-        }
+        List<String> colors = colorsOf(entry);
+        syncVariants(productId, brandKey, entry, seq);
 
         if (entry.styleTag != null) {
             tagRepository.save(ProductTag.builder()

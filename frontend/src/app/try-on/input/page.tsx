@@ -281,7 +281,7 @@ export default function TryOnInputPage() {
         ...(previewMode === "AVATAR" && data.avatarKey ? { avatarKey: data.avatarKey } : {}),
       });
       for (const item of selectedItems) {
-        await tryonApi.addItem(id, item.productId, item.category);
+        await tryonApi.addItem(id, item.productId, item.category, item.name);
       }
       await profileApi.saveBodyProfile(tryOnFormToBodyProfile(data));
       await queryClient.invalidateQueries({ queryKey: ["body-profile"] });

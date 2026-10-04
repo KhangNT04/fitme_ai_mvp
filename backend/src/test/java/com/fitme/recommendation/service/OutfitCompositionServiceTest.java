@@ -99,9 +99,32 @@ class OutfitCompositionServiceTest {
     }
 
     @Test
-    void guessRole_treatsSkirtAsOnePieceNotBottom() {
-        assertThat(service.guessRole("Chân váy chữ A midi")).isEqualTo(ItemRole.ONE_PIECE);
+    void guessRole_treatsSkirtAsBottomAndDressAsOnePiece() {
+        assertThat(service.guessRole("Chân váy chữ A midi")).isEqualTo(ItemRole.BOTTOM);
         assertThat(service.guessRole("Quần jean slim")).isEqualTo(ItemRole.BOTTOM);
+        assertThat(service.guessRole("Váy", "Chân váy tennis xếp ly")).isEqualTo(ItemRole.BOTTOM);
+        assertThat(service.guessRole("Váy", "Váy wrap linen midi")).isEqualTo(ItemRole.ONE_PIECE);
+        assertThat(service.guessRole("Váy", "Váy hoodie dress")).isEqualTo(ItemRole.ONE_PIECE);
+    }
+
+    @Test
+    void buildOutfit_pairsSkirtWithTopForFemaleProfile() {
+        UUID brandId = UUID.randomUUID();
+        BodyProfile female = BodyProfile.builder()
+                .heightCm(160)
+                .weightKg(BigDecimal.valueOf(50))
+                .gender(com.fitme.common.enums.Gender.FEMALE)
+                .build();
+        List<Product> eligible = List.of(
+                Product.builder().id(UUID.randomUUID()).brandId(brandId).name("Chân váy chữ A midi").category("Váy").build(),
+                product("Áo thun", brandId),
+                product("Giày sneaker", brandId));
+
+        List<RecommendationResponse.OutfitItemDto> items = service.buildOutfit(
+                null, eligible, List.of(), WardrobeMode.NO_WARDROBE_DATA, female, style);
+
+        assertThat(items.stream().map(RecommendationResponse.OutfitItemDto::getRole))
+                .containsExactlyInAnyOrder(ItemRole.TOP, ItemRole.BOTTOM, ItemRole.SHOES);
     }
 
     @Test

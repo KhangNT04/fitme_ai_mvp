@@ -12,6 +12,8 @@ describe("mapCategoryToRole", () => {
     expect(mapCategoryToRole("Áo thun")).toBe("TOP");
     expect(mapCategoryToRole("Quần jean")).toBe("BOTTOM");
     expect(mapCategoryToRole("Váy wrap")).toBe("ONE_PIECE");
+    expect(mapCategoryToRole("Váy", "Chân váy chữ A midi")).toBe("BOTTOM");
+    expect(mapCategoryToRole("Váy", "Váy hoodie dress")).toBe("ONE_PIECE");
     expect(mapCategoryToRole("Giày sneaker")).toBe("SHOES");
   });
 });

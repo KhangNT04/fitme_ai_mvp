@@ -59,7 +59,8 @@ fitme:
     semantic-score-weight: 20
     stylist-mode: rule   # rule | gemini
     gemini-api-key: ${GEMINI_API_KEY:}
-    gemini-model: gemini-2.0-flash
+    gemini-model: gemini-flash-latest
+    gemini-fallback-model: gemini-flash-lite-latest
     stylist-candidate-limit: 30
     stylist-timeout-ms: 15000
 ```

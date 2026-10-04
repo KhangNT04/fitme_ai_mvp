@@ -149,7 +149,7 @@ public class StylistContextBuilder {
         map.put("id", product.getId().toString());
         map.put("name", product.getName());
         map.put("category", product.getCategory());
-        ItemRole role = outfitCompositionService.guessRole(product.getCategory());
+        ItemRole role = outfitCompositionService.guessRole(product);
         map.put("role", role.name());
         map.put("targetGender", productAudienceService.resolveTargetGender(product).name());
         map.put("price", product.getPrice());

@@ -64,6 +64,8 @@ public class FitMeProperties {
         private String stylistMode = "rule";
         private String geminiApiKey;
         private String geminiModel = "gemini-flash-latest";
+        /** Used when the primary model is overloaded (HTTP 503/429); blank disables the fallback. */
+        private String geminiFallbackModel = "gemini-flash-lite-latest";
         private int stylistCandidateLimit = 30;
         private int stylistTimeoutMs = 15000;
 

@@ -44,7 +44,7 @@ public class TryOnOutfitCompletionService {
                 .toList();
 
         Set<ItemRole> presentRoles = selected.stream()
-                .map(p -> outfitCompositionService.guessRole(p.getCategory()))
+                .map(p -> outfitCompositionService.guessRole(p))
                 .collect(Collectors.toCollection(LinkedHashSet::new));
 
         return buildResponse(selected, presentRoles);
@@ -178,14 +178,14 @@ public class TryOnOutfitCompletionService {
         Optional<Product> sameBrand = eligible.stream()
                 .filter(p -> !usedIds.contains(p.getId()))
                 .filter(p -> preferredBrandId != null && preferredBrandId.equals(p.getBrandId()))
-                .filter(p -> outfitCompositionService.guessRole(p.getCategory()) == role)
+                .filter(p -> outfitCompositionService.guessRole(p) == role)
                 .findFirst();
         if (sameBrand.isPresent()) {
             return sameBrand;
         }
         return eligible.stream()
                 .filter(p -> !usedIds.contains(p.getId()))
-                .filter(p -> outfitCompositionService.guessRole(p.getCategory()) == role)
+                .filter(p -> outfitCompositionService.guessRole(p) == role)
                 .findFirst();
     }
 

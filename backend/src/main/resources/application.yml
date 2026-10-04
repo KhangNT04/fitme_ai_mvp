@@ -117,6 +117,7 @@ fitme:
     stylist-mode: ${FITME_AI_STYLIST_MODE:rule}
     gemini-api-key: ${GEMINI_API_KEY:}
     gemini-model: ${GEMINI_MODEL:gemini-flash-latest}
+    gemini-fallback-model: ${GEMINI_FALLBACK_MODEL:gemini-flash-lite-latest}
     stylist-candidate-limit: ${GEMINI_CANDIDATE_LIMIT:30}
     stylist-timeout-ms: ${GEMINI_TIMEOUT_MS:15000}
   storage:

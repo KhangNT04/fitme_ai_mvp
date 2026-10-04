@@ -8,7 +8,12 @@ export type TryOnItemRole =
   | "ACCESSORY"
   | "ONE_PIECE";
 
-export function mapCategoryToRole(category: string): TryOnItemRole {
+/** The "Váy" category mixes skirts and dresses, so the product name decides skirts. */
+export function mapCategoryToRole(category: string, name?: string): TryOnItemRole {
+  const lowerName = name?.toLowerCase() ?? "";
+  if ((lowerName.includes("chân váy") || lowerName.includes("skirt")) && !lowerName.includes("dress")) {
+    return "BOTTOM";
+  }
   const lower = category.toLowerCase();
   if (lower.includes("quần") || lower.includes("bottom") || lower.includes("chân")) {
     return "BOTTOM";
@@ -57,18 +62,18 @@ export function getTryOnItemsToReplace(
   if (items.some((item) => item.productId === incoming.productId)) {
     return [];
   }
-  const rolesToReplace = new Set(rolesToReplaceWhenAdding(mapCategoryToRole(incoming.category)));
-  return items.filter((item) => rolesToReplace.has(mapCategoryToRole(item.category)));
+  const rolesToReplace = new Set(rolesToReplaceWhenAdding(mapCategoryToRole(incoming.category, incoming.name)));
+  return items.filter((item) => rolesToReplace.has(mapCategoryToRole(item.category, item.name)));
 }
 
 export function buildTryOnReplaceConfirmMessage(
   replacing: TryOnItem[],
   incoming: TryOnItem,
 ): { title: string; description: string } {
-  const roleLabel = TRY_ON_ROLE_LABELS[mapCategoryToRole(incoming.category)];
+  const roleLabel = TRY_ON_ROLE_LABELS[mapCategoryToRole(incoming.category, incoming.name)];
   if (replacing.length === 1) {
     const current = replacing[0];
-    const currentRoleLabel = TRY_ON_ROLE_LABELS[mapCategoryToRole(current.category)];
+    const currentRoleLabel = TRY_ON_ROLE_LABELS[mapCategoryToRole(current.category, current.name)];
     return {
       title: `Thay ${roleLabel}?`,
       description: `Bạn đã chọn "${current.name}" (${currentRoleLabel}). Bạn có muốn thay bằng "${incoming.name}" không?`,
@@ -89,9 +94,9 @@ export function mergeTryOnSelection(
     return { items, result: "unchanged" };
   }
 
-  const rolesToReplace = new Set(rolesToReplaceWhenAdding(mapCategoryToRole(incoming.category)));
+  const rolesToReplace = new Set(rolesToReplaceWhenAdding(mapCategoryToRole(incoming.category, incoming.name)));
   const filtered = items.filter(
-    (item) => !rolesToReplace.has(mapCategoryToRole(item.category)),
+    (item) => !rolesToReplace.has(mapCategoryToRole(item.category, item.name)),
   );
   const result: TryOnAddItemResult = filtered.length < items.length ? "replaced" : "added";
 

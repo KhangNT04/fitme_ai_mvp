@@ -11,11 +11,13 @@ import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.client.RestClientException;
+import org.springframework.web.client.RestClientResponseException;
 
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.atomic.AtomicLong;
 
 @Component
 @RequiredArgsConstructor
@@ -23,9 +25,16 @@ import java.util.Optional;
 public class GeminiStylistClient {
 
     private static final String BASE_URL = "https://generativelanguage.googleapis.com";
+    private static final long PRIMARY_COOLDOWN_MS = 60_000;
 
     private final FitMeProperties properties;
     private final ObjectMapper objectMapper;
+    private final AtomicLong primaryOverloadedUntil = new AtomicLong();
+    private String baseUrl = BASE_URL;
+
+    void setBaseUrlForTest(String baseUrl) {
+        this.baseUrl = baseUrl;
+    }
 
     public Optional<GeminiOutfitSuggestion> suggestOutfit(String contextJson) {
         if (!properties.getAi().isGeminiStylistEnabled()) {
@@ -33,14 +42,7 @@ public class GeminiStylistClient {
         }
         String text = null;
         try {
-            Map<String, Object> body = buildRequestBody(contextJson);
-            GeminiApiResponse response = restClient().post()
-                    .uri("/v1beta/models/{model}:generateContent?key={key}",
-                            properties.getAi().getGeminiModel(),
-                            properties.getAi().getGeminiApiKey())
-                    .body(body)
-                    .retrieve()
-                    .body(GeminiApiResponse.class);
+            GeminiApiResponse response = generate(buildRequestBody(contextJson));
             if (response == null || response.getCandidates() == null || response.getCandidates().isEmpty()) {
                 return Optional.empty();
             }
@@ -84,13 +86,7 @@ public class GeminiStylistClient {
                     "parts", List.of(Map.of("text", prompt)))));
             body.put("generationConfig", generationConfig);
 
-            GeminiApiResponse response = restClient().post()
-                    .uri("/v1beta/models/{model}:generateContent?key={key}",
-                            properties.getAi().getGeminiModel(),
-                            properties.getAi().getGeminiApiKey())
-                    .body(body)
-                    .retrieve()
-                    .body(GeminiApiResponse.class);
+            GeminiApiResponse response = generate(body);
             if (response == null || response.getCandidates() == null || response.getCandidates().isEmpty()) {
                 return Optional.empty();
             }
@@ -119,13 +115,49 @@ public class GeminiStylistClient {
         return trimmed.length() <= 300 ? trimmed : trimmed.substring(0, 300) + "...";
     }
 
+    /**
+     * Calls the primary model; when Google reports it overloaded, retries once on the fallback model
+     * and keeps using the fallback for a short cool-down so multi-style chats don't pay the failed call again.
+     */
+    GeminiApiResponse generate(Map<String, Object> body) {
+        String primary = properties.getAi().getGeminiModel();
+        String fallback = properties.getAi().getGeminiFallbackModel();
+        boolean hasFallback = fallback != null && !fallback.isBlank() && !fallback.equals(primary);
+        if (hasFallback && System.currentTimeMillis() < primaryOverloadedUntil.get()) {
+            return callModel(fallback, body);
+        }
+        try {
+            return callModel(primary, body);
+        } catch (RestClientResponseException ex) {
+            if (!hasFallback || !isOverloaded(ex.getStatusCode().value())) {
+                throw ex;
+            }
+            primaryOverloadedUntil.set(System.currentTimeMillis() + PRIMARY_COOLDOWN_MS);
+            log.info("Gemini model {} overloaded (HTTP {}), retrying with {}",
+                    primary, ex.getStatusCode().value(), fallback);
+            return callModel(fallback, body);
+        }
+    }
+
+    static boolean isOverloaded(int status) {
+        return status == 503 || status == 429;
+    }
+
+    private GeminiApiResponse callModel(String model, Map<String, Object> body) {
+        return restClient().post()
+                .uri("/v1beta/models/{model}:generateContent?key={key}", model, properties.getAi().getGeminiApiKey())
+                .body(body)
+                .retrieve()
+                .body(GeminiApiResponse.class);
+    }
+
     private RestClient restClient() {
         SimpleClientHttpRequestFactory factory = new SimpleClientHttpRequestFactory();
         int timeout = properties.getAi().getStylistTimeoutMs();
         factory.setConnectTimeout(timeout);
         factory.setReadTimeout(timeout);
         return RestClient.builder()
-                .baseUrl(BASE_URL)
+                .baseUrl(baseUrl)
                 .requestFactory(factory)
                 .build();
     }
@@ -139,7 +171,7 @@ public class GeminiStylistClient {
                 Chỉ khi khách nói muốn "trẻ trung", "streetwear", "cá tính", "nổi bật"… mới được ưu tiên look trẻ hơn tuổi.
                 Nếu có request.userMessage, ưu tiên ý định trong tin nhắn đó (dịp mặc, vibe, style) nhưng vẫn phải hợp lý với user.age và stylingGuidance.
                 Bắt buộc tạo outfit đúng phong cách style.targetStyle (ví dụ Minimal, Korean Casual, Streetwear, Office Chic). Title nên nhắc phong cách đó.
-                QUAN TRỌNG — giới tính: nếu user.gender=MALE thì KHÔNG chọn váy/chân váy/đầm (category Váy, role ONE_PIECE nữ); chỉ chọn TOP+BOTTOM nam hoặc UNISEX.
+                QUAN TRỌNG — giới tính: nếu user.gender=MALE thì KHÔNG chọn váy/chân váy/đầm (chân váy là BOTTOM, váy/đầm liền là ONE_PIECE — dùng đúng role của candidate); chỉ chọn TOP+BOTTOM nam hoặc UNISEX.
                 Nếu user.gender=FEMALE thì tránh sản phẩm targetGender=MALE. Chỉ chọn productId có trong candidates và phù hợp targetGender.
                 Ưu tiên set TOP+BOTTOM+SHOES hoặc ONE_PIECE (chỉ khi hợp giới tính); có thể thêm OUTERWEAR.
                 Nếu có selectedProductId, giữ sản phẩm đó khi hợp lệ.

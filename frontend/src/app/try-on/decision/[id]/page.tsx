@@ -30,7 +30,7 @@ function itemRoleLabel(item: TryOnItem): string {
   if (item.role && item.role in TRY_ON_ROLE_LABELS) {
     return TRY_ON_ROLE_LABELS[item.role as TryOnItemRole];
   }
-  return TRY_ON_ROLE_LABELS[mapCategoryToRole(item.category)];
+  return TRY_ON_ROLE_LABELS[mapCategoryToRole(item.category, item.name)];
 }
 
 function displaySize(item: TryOnItem): string {

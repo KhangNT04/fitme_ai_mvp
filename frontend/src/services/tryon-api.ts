@@ -113,10 +113,10 @@ export const tryonApi = {
     const body = unwrap(res) as { id: string };
     return { id: body.id };
   },
-  addItem: async (requestId: string, productId: string, category: string): Promise<void> => {
+  addItem: async (requestId: string, productId: string, category: string, name?: string): Promise<void> => {
     await apiClient.post(`/try-on/requests/${requestId}/items`, {
       productId,
-      role: mapCategoryToRole(category),
+      role: mapCategoryToRole(category, name),
     });
   },
   getById: async (id: string): Promise<TryOnResult> => {

@@ -34,7 +34,7 @@ export function useTryOnAddItem() {
       return;
     }
     if (result === "replaced") {
-      const roleLabel = TRY_ON_ROLE_LABELS[mapCategoryToRole(item.category)];
+      const roleLabel = TRY_ON_ROLE_LABELS[mapCategoryToRole(item.category, item.name)];
       toast.success(`Đã chọn ${item.name} làm ${roleLabel}`);
       return;
     }

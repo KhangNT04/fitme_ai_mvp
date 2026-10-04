@@ -463,7 +463,7 @@ public class RecommendationService {
                 .limit(6)
                 .map(p -> RecommendationResponse.OutfitItemDto.builder()
                         .productId(p.getId())
-                        .role(outfitCompositionService.guessRole(p.getCategory()))
+                        .role(outfitCompositionService.guessRole(p))
                         .sourceType(SourceType.BRAND_PRODUCT)
                         .displayName(p.getName())
                         .price(p.getPrice())

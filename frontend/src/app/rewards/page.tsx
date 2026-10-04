@@ -104,7 +104,7 @@ function RewardsContent() {
 
   if (!isAuthenticated) {
     return (
-      <PageShell width="narrow" className={consumerPageShellClass}>
+      <PageShell width="full" className={consumerPageShellClass}>
         <CollapsingPageHeader title="Nhận thưởng" backHref="/profile" />
         <div className="flex flex-col items-center justify-center py-20 text-center">
           <Gift className="h-16 w-16 text-muted-foreground mb-4" />
@@ -123,7 +123,7 @@ function RewardsContent() {
   const showUpsell = wallet !== undefined && wallet.plan !== "PRO";
 
   return (
-    <PageShell width="narrow" className={cn(consumerPageShellClass, "space-y-6")}>
+    <PageShell width="full" className={cn(consumerPageShellClass, "space-y-6")}>
       <CollapsingPageHeader title="Nhận thưởng" backHref="/profile" />
 
       {/* Hero Balance */}

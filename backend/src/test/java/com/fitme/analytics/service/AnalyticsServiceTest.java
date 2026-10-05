@@ -41,6 +41,22 @@ class AnalyticsServiceTest extends AbstractIntegrationTest {
     }
 
     @Test
+    void brandDashboard_clickThroughRateNeverExceedsOneHundredPercent() {
+        UUID brandId = testDataHelper.createBrandOwner().brand().getId();
+        analyticsService.track("PRODUCT_VIEWED", null, null, brandId, null, null, null, null);
+        for (int i = 0; i < 3; i++) {
+            analyticsService.track("BUY_CLICKED", null, null, brandId, null, null, null, null);
+        }
+
+        BrandDashboardResponse dashboard = analyticsService.brandDashboard(brandId);
+
+        assertThat(dashboard.getBuyClicks()).isEqualTo(3);
+        assertThat(dashboard.getClickThroughRate()).isEqualTo(1.0);
+        assertThat(AnalyticsService.rate(1, 4)).isEqualTo(0.25);
+        assertThat(AnalyticsService.rate(5, 0)).isZero();
+    }
+
+    @Test
     void adminDashboard_returnsAggregateCountsOnly() {
         analyticsService.track("RECOMMENDATION_GENERATED", null, null,
                 null, null, null, null, null);

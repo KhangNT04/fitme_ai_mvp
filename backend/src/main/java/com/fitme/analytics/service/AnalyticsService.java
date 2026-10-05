@@ -93,8 +93,8 @@ public class AnalyticsService {
         long recommendations = count(events, "RECOMMENDATION_GENERATED");
         long tryOnStarted = tryOnItemRepository.countBrandTryOns(brandId, false);
         long views = count(events, PRODUCT_VIEWED);
-        double ctr = views > 0 ? (double) buyClicks / views : 0;
-        double tryOnToBuy = tryOnStarted > 0 ? (double) buyClicks / tryOnStarted : 0;
+        double ctr = rate(buyClicks, views);
+        double tryOnToBuy = rate(buyClicks, tryOnStarted);
         return BrandDashboardResponse.builder()
                 .totalProducts(totalProducts)
                 .activeProducts(activeProducts)
@@ -272,5 +272,13 @@ public class AnalyticsService {
 
     private long count(List<AnalyticsEvent> events, String type) {
         return events.stream().filter(e -> type.equals(e.getEventType())).count();
+    }
+
+    /**
+     * Views are de-duplicated per visitor while buy clicks are not, and clicks also come from try-on and
+     * outfit screens, so the raw ratio can exceed 100%.
+     */
+    static double rate(long numerator, long denominator) {
+        return denominator > 0 ? Math.min(1.0, (double) numerator / denominator) : 0;
     }
 }

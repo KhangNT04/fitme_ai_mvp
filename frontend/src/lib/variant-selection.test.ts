@@ -6,6 +6,7 @@ import {
   isSizeAvailable,
   pickInitialVariant,
   resolveSelection,
+  sortSizeLabels,
   stockHint,
 } from "./variant-selection";
 import type { ProductVariant } from "@/types/product";
@@ -23,6 +24,12 @@ describe("variant-selection", () => {
     expect(colors.map((c) => c.name)).toEqual(["Đen", "Trắng"]);
     expect(colors[0].hex).toBe("#000");
     expect(sizes).toEqual(["S", "M"]);
+  });
+
+  it("orders sizes S to XL regardless of variant order", () => {
+    const shuffled = ["M", "L", "XL", "S"].map((sizeLabel, i) => ({ id: String(i), sizeLabel, stockQuantity: 1 }));
+    expect(getVariantOptions(shuffled).sizes).toEqual(["S", "M", "L", "XL"]);
+    expect(sortSizeLabels(["32", "28", "Free Size", "30"])).toEqual(["Free Size", "28", "30", "32"]);
   });
 
   it("finds a variant by color + size", () => {

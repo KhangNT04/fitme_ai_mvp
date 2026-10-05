@@ -1,4 +1,5 @@
 import { PLACEHOLDER_PRODUCT, resolveImageList, resolveOptionalImageSrc } from "@/lib/media-url";
+import { sortSizeLabels } from "@/lib/variant-selection";
 import type { CreateProductRequest } from "@/types/brand";
 import type { Product, ProductVariant, SizeChartRow } from "@/types/product";
 
@@ -128,7 +129,7 @@ export function mapVariants(raw: BackendProductVariant[] | undefined): ProductVa
 
 export function mapProduct(raw: BackendProduct): Product {
   const colors = [...new Set((raw.variants || []).map((v) => v.colorName).filter(Boolean))] as string[];
-  const sizes = [...new Set((raw.variants || []).map((v) => v.sizeLabel).filter(Boolean))] as string[];
+  const sizes = sortSizeLabels([...new Set((raw.variants || []).map((v) => v.sizeLabel).filter(Boolean))] as string[]);
   const tags = raw.tags || [];
 
   const sizeCharts: SizeChartRow[] = (raw.sizeCharts || []).map((row) => ({

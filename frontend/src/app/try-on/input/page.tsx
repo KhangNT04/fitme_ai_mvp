@@ -18,6 +18,7 @@ import { LoadingSkeleton } from "@/components/common/LoadingSkeleton";
 import { tryOnInputSchema, type TryOnInputForm } from "@/utils/validators";
 import { FIT_PREFERENCES } from "@/utils/constants";
 import { useTryOnStore } from "@/stores/tryon-store";
+import { useAuthStore } from "@/stores/auth-store";
 import { useConsultationStore } from "@/stores/consultation-store";
 import { useEnsureSession } from "@/hooks/use-ensure-session";
 import { useConsumerStoresReady } from "@/hooks/use-consumer-stores-ready";
@@ -70,11 +71,12 @@ export default function TryOnInputPage() {
   const [showLoginDialog, setShowLoginDialog] = useState(false);
   const [showFitkenDialog, setShowFitkenDialog] = useState(false);
   const storesReady = useConsumerStoresReady();
-  
+  const isAuthed = useAuthStore((s) => !!s.accessToken);
+
   const { data: wallet } = useQuery({
     queryKey: ["fitken-wallet"],
     queryFn: () => fitkenApi.getWallet(),
-    enabled: storesReady,
+    enabled: storesReady && isAuthed,
   });
   const { data: avatars = [], isLoading: avatarsLoading, isSuccess: avatarsLoaded } = useQuery({
     queryKey: ["tryon-avatars"],

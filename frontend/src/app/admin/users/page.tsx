@@ -260,7 +260,7 @@ export default function AdminUsersPage() {
                     </td>
                     <td className={portalTableTdClass}>
                       <div className="flex flex-col gap-0.5">
-                        <Badge variant={user.role === "ADMIN" ? "default" : "outline"} className="w-fit">
+                        <Badge variant={user.role === "ADMIN" ? "default" : "outline"} className="w-fit whitespace-nowrap">
                           {ROLE_LABELS[user.role]}
                         </Badge>
                         {user.brandName && <span className="text-xs text-muted-foreground">{user.brandName}</span>}

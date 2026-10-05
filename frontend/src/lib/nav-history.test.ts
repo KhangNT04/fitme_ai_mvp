@@ -99,4 +99,12 @@ describe("nav-history", () => {
     expect(isEphemeralNavRoute("/ai/processing")).toBe(true);
     expect(isEphemeralNavRoute("/ai/start")).toBe(true);
   });
+
+  it("never offers login or register pages as a back target", () => {
+    expect(isEphemeralNavRoute("/auth/login?redirect=/profile")).toBe(true);
+    expect(isEphemeralNavRoute("/auth/register")).toBe(true);
+    expect(isEphemeralNavRoute("/admin/login")).toBe(true);
+    expect(isEphemeralNavRoute("/brand/login")).toBe(true);
+    expect(isEphemeralNavRoute("/profile")).toBe(false);
+  });
 });

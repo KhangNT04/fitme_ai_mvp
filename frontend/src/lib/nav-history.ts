@@ -31,7 +31,14 @@ export function normalizeNavHref(pathname: string, search = ""): string {
 /** Transient routes replaced via router.replace — must not appear in back stack. */
 export function isEphemeralNavRoute(href: string): boolean {
   const path = href.split("?")[0].replace(/\/$/, "") || "/";
-  return path === "/try-on/processing" || path === "/ai/processing" || path === "/ai/start";
+  return (
+    path === "/try-on/processing" ||
+    path === "/ai/processing" ||
+    path === "/ai/start" ||
+    path.startsWith("/auth/") ||
+    path === "/admin/login" ||
+    path === "/brand/login"
+  );
 }
 
 function withoutEphemeralRoutes(stack: NavHistoryEntry[]): NavHistoryEntry[] {

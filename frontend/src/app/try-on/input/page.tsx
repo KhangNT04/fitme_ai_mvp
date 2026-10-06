@@ -119,6 +119,8 @@ export default function TryOnInputPage() {
   const { register, handleSubmit, setValue, watch, formState: { errors, isSubmitting } } = useForm<TryOnInputForm>({
     resolver: zodResolver(tryOnInputSchema) as Resolver<TryOnInputForm>,
     values: formValues,
+    // formValues changes on mode switch, avatar pick and photo upload; keep what the user already typed.
+    resetOptions: { keepDirtyValues: true },
   });
 
   useEffect(() => {
@@ -553,7 +555,7 @@ export default function TryOnInputPage() {
                 <Select
                   value={fitPreference}
                   onValueChange={(v) =>
-                    setValue("fitPreference", v as TryOnInputForm["fitPreference"], { shouldValidate: true })
+                    setValue("fitPreference", v as TryOnInputForm["fitPreference"], { shouldValidate: true, shouldDirty: true })
                   }
                 >
                   <SelectTrigger className="mt-1"><SelectValue placeholder="Chọn" /></SelectTrigger>
@@ -570,7 +572,7 @@ export default function TryOnInputPage() {
                 <SkinTonePicker
                   value={skinTone}
                   onChange={(v) =>
-                    setValue("skinTone", v, { shouldValidate: true })
+                    setValue("skinTone", v, { shouldValidate: true, shouldDirty: true })
                   }
                 />
               </div>

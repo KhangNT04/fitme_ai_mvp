@@ -94,8 +94,9 @@ function VerifyEmailForm() {
       </p>
       <div className="mt-4 space-y-4">
         <div>
-          <Label>Email</Label>
+          <Label htmlFor="verify-email">Email</Label>
           <Input
+            id="verify-email"
             type="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
@@ -104,8 +105,9 @@ function VerifyEmailForm() {
           />
         </div>
         <div>
-          <Label>Mã xác nhận</Label>
+          <Label htmlFor="verify-code">Mã xác nhận</Label>
           <Input
+            id="verify-code"
             value={code}
             onChange={(e) => setCode(e.target.value)}
             className="mt-1"

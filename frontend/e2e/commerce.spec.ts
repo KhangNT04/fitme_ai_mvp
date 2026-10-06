@@ -24,8 +24,10 @@ async function findPurchasableProduct(page: Page): Promise<ApiProduct | undefine
 
 async function ensureCheckoutAddress(page: Page) {
   const nameField = page.locator("#checkout-addr-recipientName");
+  const savedAddress = page.getByTestId("checkout-address").first();
   // Either a saved address is preselected, or the inline "new address" form is shown.
-  if (await nameField.isVisible({ timeout: 5_000 }).catch(() => false)) {
+  await expect(nameField.or(savedAddress)).toBeVisible({ timeout: 15_000 });
+  if (await nameField.isVisible()) {
     await nameField.fill("E2E Người Nhận");
     await page.locator("#checkout-addr-phone").fill("0901234567");
     await page.locator("#checkout-addr-province").fill("TP. Hồ Chí Minh");
@@ -54,8 +56,10 @@ test.describe("Commerce flow", () => {
 
     // Product detail: pick default in-stock variant and add to cart.
     await page.goto(`/products/${product!.id}`);
-    await expect(page.getByTestId("purchase-panel")).toBeVisible({ timeout: 30_000 });
-    await page.getByRole("button", { name: "Thêm vào giỏ" }).click();
+    // The layout renders the panel for both breakpoints and hides one with CSS.
+    const purchasePanel = page.getByTestId("purchase-panel").filter({ visible: true });
+    await expect(purchasePanel).toBeVisible({ timeout: 30_000 });
+    await purchasePanel.getByRole("button", { name: "Thêm vào giỏ" }).click();
     await expect(page.getByText("Đã thêm vào giỏ hàng")).toBeVisible({ timeout: 15_000 });
 
     // Cart: item listed, grouped by brand, can proceed to checkout.

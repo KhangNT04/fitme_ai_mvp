@@ -125,7 +125,7 @@ function RegisterForm() {
         </div>
         <div>
           <div className="flex items-center justify-between gap-2">
-            <Label>Xác nhận chống spam</Label>
+            <Label htmlFor="register-captcha">Xác nhận chống spam</Label>
             <button
               type="button"
               className="text-xs underline text-muted-foreground"
@@ -139,6 +139,7 @@ function RegisterForm() {
             {captchaLoading ? "Đang tải..." : (captchaQuery.data?.question ?? "")}
           </p>
           <Input
+            id="register-captcha"
             inputMode="numeric"
             autoComplete="off"
             placeholder="Nhập kết quả"

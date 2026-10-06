@@ -75,7 +75,7 @@ jobs:
         run: npm run build
 
   e2e:
-    name: E2E (smoke + role flows)
+    name: E2E (full suite)
     runs-on: ubuntu-latest
     needs: [backend-test, frontend-build]
     services:
@@ -128,6 +128,7 @@ jobs:
           FITME_SEED_ENABLED: "true"
           FITME_AUTH_EXPOSE_VERIFICATION_CODE: "true"
           FITME_AUTH_MIN_FORM_MS: "0"
+          FITME_TEST_EXPOSE_RESET_TOKENS: "true"
         run: |
           mvn spring-boot:run -q &
           echo $! > ../backend.pid
@@ -168,9 +169,10 @@ jobs:
         env:
           CI: "true"
           JWT_SECRET: ci-jwt-secret-min-256-bits-long-for-testing-only
+          FITME_TEST_EXPOSE_RESET_TOKENS: "true"
         run: |
           # Frontend already running — do not restart webServer between suites
-          npx playwright test e2e/smoke-routes.spec.ts e2e/role-flows.spec.ts e2e/rbac.spec.ts --workers=1 --retries=2
+          npx playwright test --project=chromium --workers=1 --retries=2
           npx playwright test e2e/mobile-nav.spec.ts --project=mobile-chrome --workers=1 --retries=2
 
       - name: Stop frontend

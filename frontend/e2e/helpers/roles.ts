@@ -79,5 +79,5 @@ export async function approveBrandAsAdmin(page: Page, brandName: string) {
   const row = page.locator("tbody tr", { hasText: brandName });
   await expect(row).toBeVisible({ timeout: 15_000 });
   await row.getByRole("button", { name: "Duyệt" }).click();
-  await expect(row.getByText("APPROVED")).toBeVisible({ timeout: 15_000 });
+  await expect(row.getByText("Đã duyệt", { exact: true })).toBeVisible({ timeout: 15_000 });
 }

@@ -38,8 +38,9 @@ test.describe("Try-on flow", () => {
     });
     await expect(page.getByText(/Ảnh đạt chất lượng tốt/i)).toBeVisible({ timeout: 30_000 });
 
-    // Uploading resets the reactive form defaults — re-fill metrics before submitting.
-    await fillTryOnInputMetrics(page);
+    // Metrics typed before switching mode and uploading must survive.
+    await expect(page.getByRole("spinbutton").nth(0)).toHaveValue("168");
+    await expect(page.getByRole("spinbutton").nth(1)).toHaveValue("58");
     await page.getByRole("button", { name: "Tạo preview thử mặc" }).click();
 
     await waitForTryOnResult(page);
@@ -48,7 +49,7 @@ test.describe("Try-on flow", () => {
     await expect(page.getByRole("note")).toBeVisible();
   });
 
-  test("avatar mode and outfit-board-only mode are locked (feature not available)", async ({ page }) => {
+  test("avatar mode asks guests to log in; outfit-board-only mode stays locked", async ({ page }) => {
     await ensureSessionViaHome(page);
     const productId = await getFirstProductIdFromTryOnHub(page);
     await page.goto(`/try-on?product=${productId}`);
@@ -65,17 +66,19 @@ test.describe("Try-on flow", () => {
       hasText: "Tính năng đang được phát triển, hiện tại chưa thể sử dụng.",
     });
 
-    // Avatar mode: tab is selectable, avatar is pickable, but the CTA is locked.
+    // Avatar mode is available; a guest is asked to log in before any Fitken is spent.
     await page.getByRole("button", { name: "Dùng avatar mẫu" }).click();
     await page.locator("button").filter({ hasText: /^Nữ 1$/ }).click();
     await fillTryOnInputMetrics(page);
     await page.getByRole("button", { name: "Tạo preview thử mặc" }).click();
-    await expect(lockedToast).toBeVisible();
-    await expect(page).toHaveURL(/\/try-on\/input/);
-    await lockedToast.getByRole("button", { name: "Đóng thông báo" }).click();
+    const loginDialog = page.getByRole("dialog", { name: "Đăng nhập để tiếp tục" });
+    await expect(loginDialog).toBeVisible();
     await expect(lockedToast).toHaveCount(0);
+    await expect(page).toHaveURL(/\/try-on\/input/);
+    await page.keyboard.press("Escape");
+    await expect(loginDialog).toHaveCount(0);
 
-    // Outfit-board-only mode: tab is selectable, but the CTA is locked too.
+    // Outfit-board-only mode: tab is selectable, but the CTA is locked.
     await page.getByRole("button", { name: "Chỉ xem outfit board" }).click();
     await page.getByRole("button", { name: "Tạo preview thử mặc" }).click();
     await expect(lockedToast).toBeVisible();

@@ -5,30 +5,27 @@ import { loginUser } from "./helpers/auth";
 test.describe("Saved outfits flow", () => {
   test.setTimeout(120_000);
 
-  test("consultation → save → appears in saved list", async ({ page }) => {
+  test("chat outfit card → save → appears in saved list", async ({ page }) => {
     await loginUser(page);
-    await completeConsultationToResult(page);
+    const recommendationId = await completeConsultationToResult(page);
+    expect(recommendationId).toBeTruthy();
 
-    const title = await page.getByRole("heading", { level: 1 }).textContent();
-    expect(title).toBeTruthy();
-
+    const card = page.locator(`[data-recommendation-id="${recommendationId}"]`);
     const saveResponse = page.waitForResponse(
       (resp) =>
-        resp.url().includes("/recommendations/") &&
-        resp.url().includes("/save") &&
+        resp.url().includes(`/recommendations/${recommendationId}/save`) &&
         resp.request().method() === "POST" &&
         resp.status() === 200,
     );
-    await page.getByRole("button", { name: "Lưu gợi ý" }).click();
+    await card.getByRole("button", { name: "Lưu", exact: true }).click();
     await saveResponse;
 
     await page.goto("/saved-outfits");
     await expect(page.getByRole("heading", { name: "Đã lưu" })).toBeVisible();
-    await expect(page.getByText(title!)).toBeVisible({ timeout: 15_000 });
-    await expect(page.getByRole("link", { name: "Xem" }).first()).toBeVisible();
+    const viewLink = page.locator(`a[href^="/ai/result/${recommendationId}"]`);
+    await expect(viewLink).toBeVisible({ timeout: 15_000 });
 
-    await page.getByRole("link", { name: "Xem" }).first().click();
-    await expect(page).toHaveURL(/\/ai\/result\//);
-    await expect(page.getByRole("heading", { level: 1 })).toContainText(title!);
+    await viewLink.click();
+    await expect(page).toHaveURL(new RegExp(`/ai/result/${recommendationId}`));
   });
 });

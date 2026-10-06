@@ -60,18 +60,18 @@ function ResetPasswordForm() {
       ) : (
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
           <div>
-            <Label>Mã token</Label>
-            <Input {...register("token")} className="mt-1" placeholder="Dán mã từ email đặt lại mật khẩu" />
+            <Label htmlFor="reset-token">Mã token</Label>
+            <Input id="reset-token" {...register("token")} className="mt-1" placeholder="Dán mã từ email đặt lại mật khẩu" />
             {errors.token && <p className="mt-1 text-xs text-red-600">{errors.token.message}</p>}
           </div>
           <div>
-            <Label>Mật khẩu mới</Label>
-            <Input type="password" {...register("newPassword")} className="mt-1" />
+            <Label htmlFor="reset-new-password">Mật khẩu mới</Label>
+            <Input id="reset-new-password" type="password" autoComplete="new-password" {...register("newPassword")} className="mt-1" />
             {errors.newPassword && <p className="mt-1 text-xs text-red-600">{errors.newPassword.message}</p>}
           </div>
           <div>
-            <Label>Xác nhận mật khẩu</Label>
-            <Input type="password" {...register("confirmPassword")} className="mt-1" />
+            <Label htmlFor="reset-confirm-password">Xác nhận mật khẩu</Label>
+            <Input id="reset-confirm-password" type="password" autoComplete="new-password" {...register("confirmPassword")} className="mt-1" />
             {errors.confirmPassword && <p className="mt-1 text-xs text-red-600">{errors.confirmPassword.message}</p>}
           </div>
           {error && <p className="text-sm text-red-600">{error}</p>}

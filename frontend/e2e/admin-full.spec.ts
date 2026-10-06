@@ -15,10 +15,12 @@ test.describe("Admin portal — full coverage", () => {
     });
   }
 
-  test("moderation page shows pending products table", async ({ page }) => {
+  test("moderation page shows pending products table or empty state", async ({ page }) => {
     await page.goto("/admin/products/moderation");
     await expect(page.getByRole("heading", { name: "Duyệt sản phẩm" })).toBeVisible();
-    await expect(page.locator("table")).toBeVisible({ timeout: 15_000 });
+    await expect(
+      page.locator("table").or(page.getByText("Không có sản phẩm chờ duyệt.")),
+    ).toBeVisible({ timeout: 15_000 });
   });
 
   test("can approve pending product when available", async ({ page }) => {
@@ -28,7 +30,7 @@ test.describe("Admin portal — full coverage", () => {
 
     if (hasPending) {
       await approveBtn.click();
-      await expect(page.getByText("ACTIVE").first()).toBeVisible({ timeout: 15_000 });
+      await expect(page.getByText("Đã duyệt sản phẩm").first()).toBeVisible({ timeout: 15_000 });
     } else {
       test.info().annotations.push({
         type: "note",

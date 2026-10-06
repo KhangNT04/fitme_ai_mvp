@@ -55,8 +55,8 @@ export default function ForgotPasswordPage() {
       ) : (
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <Label>Email</Label>
-            <Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} className="mt-1" required />
+            <Label htmlFor="forgot-email">Email</Label>
+            <Input id="forgot-email" type="email" autoComplete="email" value={email} onChange={(e) => setEmail(e.target.value)} className="mt-1" required />
           </div>
           {error && <p role="alert" className="text-sm text-red-600">{error}</p>}
           <Button type="submit" className="w-full" disabled={loading}>

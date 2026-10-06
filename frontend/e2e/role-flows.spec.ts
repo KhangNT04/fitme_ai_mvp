@@ -164,7 +164,7 @@ test.describe("Luồng ADMIN", () => {
     const approveBtn = page.getByRole("button", { name: "Duyệt" }).first();
     if (await approveBtn.isVisible().catch(() => false)) {
       await approveBtn.click();
-      await expect(page.getByText("ACTIVE").first()).toBeVisible({ timeout: 15_000 });
+      await expect(page.getByText("Đã duyệt sản phẩm").first()).toBeVisible({ timeout: 15_000 });
     }
   });
 });

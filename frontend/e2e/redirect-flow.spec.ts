@@ -20,7 +20,12 @@ test.describe("Redirect flow", () => {
     expect(href).toMatch(/^\/products\//);
 
     await page.goto(href!);
-    await page.getByRole("link", { name: "Mua ngay" }).click();
+    // In-app purchasable products demote the external shop link to "Mua tại cửa hàng gốc".
+    await page
+      .getByRole("link", { name: /^(Mua ngay|Mua tại cửa hàng gốc)$/ })
+      .filter({ visible: true })
+      .first()
+      .click();
     await page.waitForURL("**/redirect/confirm/**");
 
     await expect(page.getByRole("heading", { name: "Xác nhận chuyển hướng" })).toBeVisible();

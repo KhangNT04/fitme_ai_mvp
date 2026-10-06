@@ -20,6 +20,9 @@ class ConsumerSubscriptionIntegrationTest extends AbstractIntegrationTest {
     @Autowired
     private TestDataHelper testDataHelper;
 
+    @Autowired
+    private org.springframework.jdbc.core.JdbcTemplate jdbc;
+
     @Test
     void plansArePublic() throws Exception {
         mockMvc.perform(get("/api/v1/plans"))
@@ -92,6 +95,30 @@ class ConsumerSubscriptionIntegrationTest extends AbstractIntegrationTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"orderCode\": %d}".formatted(orderCode)))
                 .andExpect(status().is4xxClientError());
+    }
+
+    @Test
+    void webhookActivatesOnlySuccessfulFullPayments() throws Exception {
+        FitMeUserPrincipal principal = new FitMeUserPrincipal(testDataHelper.createUser().user());
+        long orderCode = System.nanoTime() % 1_000_000_000L + 9_000_000_000L;
+        jdbc.update("INSERT INTO consumer_billing_orders (user_id, plan_id, amount_vnd, status, payos_order_code) "
+                + "VALUES (?, ?::uuid, 49000, 'PENDING', ?)", principal.getUserId(), proPlanId(), orderCode);
+
+        for (String data : new String[]{
+                "{\"orderCode\":%d,\"code\":\"01\",\"amount\":49000}".formatted(orderCode),
+                "{\"orderCode\":%d,\"code\":\"00\",\"amount\":1000}".formatted(orderCode)}) {
+            mockMvc.perform(post("/api/v1/webhooks/payos").contentType(MediaType.APPLICATION_JSON)
+                            .content("{\"data\":" + data + "}"))
+                    .andExpect(status().isOk());
+            mockMvc.perform(get("/api/v1/me/entitlement").with(user(principal)))
+                    .andExpect(jsonPath("$.data.plan").value("FREE"));
+        }
+
+        mockMvc.perform(post("/api/v1/webhooks/payos").contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"data\":{\"orderCode\":%d,\"code\":\"00\",\"amount\":49000}}".formatted(orderCode)))
+                .andExpect(status().isOk());
+        mockMvc.perform(get("/api/v1/me/entitlement").with(user(principal)))
+                .andExpect(jsonPath("$.data.plan").value("PRO"));
     }
 
     @Test

@@ -230,7 +230,16 @@ export function BrandProductForm({
       </div>
       <div>
         <Label>Giá (VND)</Label>
-        <Input type="number" value={form.price} onChange={(e) => setForm({ ...form, price: e.target.value })} className="mt-1" required />
+        <Input
+          type="number"
+          min={1000}
+          max={1000000000}
+          step={1000}
+          value={form.price}
+          onChange={(e) => setForm({ ...form, price: e.target.value })}
+          className="mt-1"
+          required
+        />
       </div>
       <div>
         <Label>Mô tả</Label>

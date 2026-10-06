@@ -11,7 +11,7 @@ public class ConsumerSubscriptionWebhookHandler implements PayOsWebhookHandler {
     private final ConsumerSubscriptionService subscriptionService;
 
     @Override
-    public boolean handlePaid(long orderCode) {
-        return subscriptionService.handlePaid(orderCode);
+    public boolean handlePaid(long orderCode, Long amountVnd) {
+        return subscriptionService.handlePaid(orderCode, amountVnd);
     }
 }

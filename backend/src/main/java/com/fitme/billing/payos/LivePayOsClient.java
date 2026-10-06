@@ -46,10 +46,11 @@ public class LivePayOsClient implements PayOsClient {
     }
 
     @Override
-    public long verifyAndParseWebhook(String rawWebhookBody) {
+    public PayOsWebhookEvent verifyAndParseWebhook(String rawWebhookBody) {
         try {
             WebhookData data = client().webhooks().verify(rawWebhookBody);
-            return data.getOrderCode();
+            return new PayOsWebhookEvent(data.getOrderCode(),
+                    PayOsWebhookEvent.SUCCESS_CODE.equals(data.getCode()), data.getAmount());
         } catch (Exception e) {
             throw new BusinessException("Webhook PayOS không hợp lệ");
         }

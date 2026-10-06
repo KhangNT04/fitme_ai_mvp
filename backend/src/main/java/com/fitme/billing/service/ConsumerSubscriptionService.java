@@ -149,10 +149,18 @@ public class ConsumerSubscriptionService {
 
     /** @return true when the order code belongs to a consumer subscription order. */
     @Transactional
-    public boolean handlePaid(long orderCode) {
+    public boolean handlePaid(long orderCode, Long amountVnd) {
         Optional<ConsumerBillingOrder> order = orderRepository.findByPayosOrderCodeForUpdate(orderCode);
-        order.ifPresent(this::markPaid);
-        return order.isPresent();
+        if (order.isEmpty()) {
+            return false;
+        }
+        if (amountVnd != null && amountVnd < order.get().getAmountVnd()) {
+            log.warn("PayOS amount {} VND below {} VND for billing order {} - left unpaid",
+                    amountVnd, order.get().getAmountVnd(), order.get().getId());
+            return true;
+        }
+        markPaid(order.get());
+        return true;
     }
 
     private void markPaid(ConsumerBillingOrder order) {

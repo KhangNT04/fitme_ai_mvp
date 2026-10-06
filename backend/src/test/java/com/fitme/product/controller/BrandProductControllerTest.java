@@ -12,6 +12,7 @@ import org.springframework.http.MediaType;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -19,6 +20,9 @@ class BrandProductControllerTest extends AbstractIntegrationTest {
 
     @Autowired
     private TestDataHelper testDataHelper;
+
+    @Autowired
+    private org.springframework.jdbc.core.JdbcTemplate jdbc;
 
     private TestDataHelper.BrandOwnerContext brandOwner;
     private FitMeUserPrincipal principal;
@@ -92,6 +96,60 @@ class BrandProductControllerTest extends AbstractIntegrationTest {
                 .andExpect(jsonPath("$.data.images.length()").value(2))
                 .andExpect(jsonPath("$.data.variants.length()").value(2))
                 .andExpect(jsonPath("$.data.sizeCharts.length()").value(2));
+    }
+
+    @Test
+    void createAndUpdateProduct_rejectNegativeOrZeroPrice() throws Exception {
+        for (String price : new String[]{"-1000", "0"}) {
+            mockMvc.perform(post("/api/v1/brand/products")
+                            .with(user(principal))
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content("{\"name\":\"Áo\",\"category\":\"Áo\",\"price\":" + price + "}"))
+                    .andExpect(status().isBadRequest())
+                    .andExpect(jsonPath("$.error").value("Giá sản phẩm tối thiểu 1.000đ"));
+        }
+        String productId = createProduct("[{\"colorName\":\"Đen\",\"sizeLabel\":\"M\"}]");
+        mockMvc.perform(put("/api/v1/brand/products/{id}", productId)
+                        .with(user(principal))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"name\":\"Áo\",\"category\":\"Áo\",\"price\":-5}"))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void updateProduct_keepsVariantIdsAndStock() throws Exception {
+        String productId = createProduct(
+                "[{\"colorName\":\"Đen\",\"sizeLabel\":\"M\"},{\"colorName\":\"Đen\",\"sizeLabel\":\"L\"}]");
+        java.util.UUID keptId = jdbc.queryForObject(
+                "SELECT id FROM product_variants WHERE product_id=?::uuid AND size_label='M'", java.util.UUID.class, productId);
+        jdbc.update("UPDATE product_variants SET stock_quantity=7 WHERE id=?", keptId);
+
+        mockMvc.perform(put("/api/v1/brand/products/{id}", productId)
+                        .with(user(principal))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"name":"Áo mới","category":"Áo sơ mi","price":350000,
+                                 "variants":[{"colorName":"Đen","sizeLabel":"M"},{"colorName":"Trắng","sizeLabel":"M"}]}
+                                """))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.variants.length()").value(2));
+
+        org.assertj.core.api.Assertions.assertThat(jdbc.queryForObject(
+                "SELECT stock_quantity FROM product_variants WHERE id=?", Integer.class, keptId)).isEqualTo(7);
+        org.assertj.core.api.Assertions.assertThat(jdbc.queryForObject(
+                "SELECT count(*) FROM product_variants WHERE product_id=?::uuid AND size_label='L'", Long.class, productId))
+                .isZero();
+    }
+
+    private String createProduct(String variantsJson) throws Exception {
+        String json = mockMvc.perform(post("/api/v1/brand/products")
+                        .with(user(principal))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"name\":\"Áo\",\"category\":\"Áo sơ mi\",\"price\":299000,\"variants\":"
+                                + variantsJson + "}"))
+                .andExpect(status().isOk())
+                .andReturn().getResponse().getContentAsString();
+        return objectMapper.readTree(json).get("data").get("id").asText();
     }
 
     @Test

@@ -93,12 +93,23 @@ public class OrderPaymentService {
      */
     @Transactional
     public boolean handlePaid(long payosOrderCode) {
+        return handlePaid(payosOrderCode, null);
+    }
+
+    /** @param amountVnd amount PayOS reports as transferred; null skips the amount check */
+    @Transactional
+    public boolean handlePaid(long payosOrderCode, Long amountVnd) {
         Optional<Order> found = orderRepository.findByPayosOrderCodeForUpdate(payosOrderCode);
         if (found.isEmpty()) {
             return false;
         }
         Order order = found.get();
         if (order.getPaymentStatus() != PaymentStatus.UNPAID) {
+            return true;
+        }
+        if (amountVnd != null && amountVnd < order.getTotalVnd()) {
+            log.warn("PayOS amount {} VND below total {} VND for order {} - left unpaid",
+                    amountVnd, order.getTotalVnd(), order.getOrderCode());
             return true;
         }
         order.setPaymentStatus(PaymentStatus.PAID);

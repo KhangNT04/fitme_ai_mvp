@@ -13,6 +13,8 @@ public interface ProductRepository extends JpaRepository<Product, UUID> {
 
     List<Product> findByBrandIdAndStatus(UUID brandId, ProductStatus status);
 
+    boolean existsByIdAndBrandId(UUID id, UUID brandId);
+
     List<Product> findByStatus(ProductStatus status);
 
     long countByStatus(ProductStatus status);

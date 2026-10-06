@@ -13,6 +13,10 @@ public interface ProductVariantRepository extends JpaRepository<ProductVariant, 
 
     List<ProductVariant> findByProductId(UUID productId);
 
+    @Query(value = "SELECT EXISTS (SELECT 1 FROM order_items WHERE variant_id = :id) "
+            + "OR EXISTS (SELECT 1 FROM cart_items WHERE variant_id = :id)", nativeQuery = true)
+    boolean isReferenced(@Param("id") UUID id);
+
     @Modifying
     @Query("update ProductVariant v set v.stockQuantity = v.stockQuantity - :quantity " +
             "where v.id = :id and v.stockQuantity >= :quantity")

@@ -110,10 +110,89 @@ public class ProductService {
             product.setStockStatus(request.getStockStatus());
         }
         productRepository.save(product);
-        clearRelated(productId);
-        saveRelated(productId, request);
+        imageRepository.findByProductIdOrderBySortOrderAsc(productId).forEach(imageRepository::delete);
+        tagRepository.findByProductId(productId).forEach(tagRepository::delete);
+        sizeChartRepository.findByProductId(productId).forEach(sizeChartRepository::delete);
+        saveImagesTagsAndSizeCharts(productId, request);
+        if (request.getVariants() != null) {
+            syncVariants(productId, request.getVariants());
+        }
         updateAiEligibility(product);
         return toResponse(product);
+    }
+
+    /**
+     * Carts and orders reference variants, so existing ones are matched by id, else by colour + size,
+     * and keep their id and stock unless a new quantity is given. Variants dropped from the request
+     * are deleted when nothing references them, otherwise only marked out of stock.
+     */
+    private void syncVariants(UUID productId, List<ProductVariantDto> requested) {
+        List<ProductVariant> existing = variantRepository.findByProductId(productId);
+        Map<UUID, ProductVariant> byId = new HashMap<>();
+        Map<String, ProductVariant> byKey = new HashMap<>();
+        for (ProductVariant variant : existing) {
+            byId.put(variant.getId(), variant);
+            byKey.putIfAbsent(variantKey(variant.getColorName(), variant.getSizeLabel()), variant);
+        }
+
+        Set<UUID> kept = new HashSet<>();
+        for (ProductVariantDto dto : requested) {
+            ProductVariant variant = dto.getId() != null ? byId.get(dto.getId()) : null;
+            if (variant == null) {
+                variant = byKey.get(variantKey(dto.getColorName(), dto.getSizeLabel()));
+            }
+            if (variant == null || kept.contains(variant.getId())) {
+                kept.add(variantRepository.save(newVariant(productId, dto)).getId());
+                continue;
+            }
+            variant.setColorName(dto.getColorName());
+            if (dto.getColorHex() != null) {
+                variant.setColorHex(dto.getColorHex());
+            }
+            variant.setSizeLabel(dto.getSizeLabel());
+            if (dto.getSku() != null) {
+                variant.setSku(dto.getSku());
+            }
+            if (dto.getStockQuantity() != null) {
+                variant.setStockQuantity(Math.max(0, dto.getStockQuantity()));
+            }
+            if (dto.getStockStatus() != null) {
+                variant.setStockStatus(dto.getStockStatus());
+            } else if (variant.getStockStatus() == com.fitme.common.enums.StockStatus.OUT_OF_STOCK
+                    && variant.getStockQuantity() > 0) {
+                variant.setStockStatus(com.fitme.common.enums.StockStatus.IN_STOCK);
+            }
+            kept.add(variantRepository.save(variant).getId());
+        }
+
+        for (ProductVariant variant : existing) {
+            if (kept.contains(variant.getId())) {
+                continue;
+            }
+            if (variantRepository.isReferenced(variant.getId())) {
+                variant.setStockStatus(com.fitme.common.enums.StockStatus.OUT_OF_STOCK);
+                variant.setStockQuantity(0);
+                variantRepository.save(variant);
+            } else {
+                variantRepository.delete(variant);
+            }
+        }
+    }
+
+    private static String variantKey(String color, String size) {
+        return (color == null ? "" : color.trim().toLowerCase()) + "|" + (size == null ? "" : size.trim().toLowerCase());
+    }
+
+    private static ProductVariant newVariant(UUID productId, ProductVariantDto v) {
+        return ProductVariant.builder()
+                .productId(productId)
+                .colorName(v.getColorName())
+                .colorHex(v.getColorHex())
+                .sizeLabel(v.getSizeLabel())
+                .sku(v.getSku())
+                .stockStatus(v.getStockStatus() != null ? v.getStockStatus() : com.fitme.common.enums.StockStatus.IN_STOCK)
+                .stockQuantity(v.getStockQuantity() != null ? Math.max(0, v.getStockQuantity()) : 100)
+                .build();
     }
 
     @Transactional
@@ -224,6 +303,15 @@ public class ProductService {
     }
 
     private void saveRelated(UUID productId, CreateProductRequest request) {
+        saveImagesTagsAndSizeCharts(productId, request);
+        if (request.getVariants() != null) {
+            for (ProductVariantDto v : request.getVariants()) {
+                variantRepository.save(newVariant(productId, v));
+            }
+        }
+    }
+
+    private void saveImagesTagsAndSizeCharts(UUID productId, CreateProductRequest request) {
         if (request.getImages() != null) {
             int order = 0;
             for (ProductImageDto img : request.getImages()) {
@@ -232,19 +320,6 @@ public class ProductService {
                         .imageUrl(img.getImageUrl())
                         .imageType(img.getImageType() != null ? img.getImageType() : "MAIN")
                         .sortOrder(img.getSortOrder() != null ? img.getSortOrder() : order++)
-                        .build());
-            }
-        }
-        if (request.getVariants() != null) {
-            for (ProductVariantDto v : request.getVariants()) {
-                variantRepository.save(ProductVariant.builder()
-                        .productId(productId)
-                        .colorName(v.getColorName())
-                        .colorHex(v.getColorHex())
-                        .sizeLabel(v.getSizeLabel())
-                        .sku(v.getSku())
-                        .stockStatus(v.getStockStatus() != null ? v.getStockStatus() : com.fitme.common.enums.StockStatus.IN_STOCK)
-                        .stockQuantity(v.getStockQuantity() != null ? Math.max(0, v.getStockQuantity()) : 100)
                         .build());
             }
         }

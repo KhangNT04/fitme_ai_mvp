@@ -8,9 +8,10 @@ package com.fitme.billing.payos;
 public interface PayOsWebhookHandler {
 
     /**
-     * Marks the matching order as paid (idempotently).
+     * Marks the matching order as paid (idempotently). An order is left unpaid when
+     * {@code amountVnd} is known and lower than the amount due.
      *
      * @return true when this handler owns {@code orderCode}
      */
-    boolean handlePaid(long orderCode);
+    boolean handlePaid(long orderCode, Long amountVnd);
 }

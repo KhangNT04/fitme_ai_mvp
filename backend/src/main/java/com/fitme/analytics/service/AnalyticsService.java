@@ -12,6 +12,7 @@ import com.fitme.brand.repository.BrandRepository;
 import com.fitme.common.enums.BrandStatus;
 import com.fitme.common.enums.FlaggedLinkStatus;
 import com.fitme.common.enums.ProductStatus;
+import com.fitme.common.exception.NotFoundException;
 import com.fitme.product.entity.Product;
 import com.fitme.product.repository.ProductRepository;
 import com.fitme.redirect.entity.BuyClickEvent;
@@ -209,6 +210,9 @@ public class AnalyticsService {
     }
 
     public ProductAnalyticsResponse productAnalytics(UUID brandId, UUID productId) {
+        if (!productRepository.existsByIdAndBrandId(productId, brandId)) {
+            throw new NotFoundException("Sản phẩm không tồn tại");
+        }
         List<AnalyticsEvent> events = eventRepository.findByBrandIdAndProductId(brandId, productId);
         return ProductAnalyticsResponse.builder()
                 .views(count(events, PRODUCT_VIEWED))

@@ -78,6 +78,28 @@ class SellerOrderIntegrationTest extends CommerceIntegrationSupport {
     }
 
     @Test
+    void suspendedBrand_cannotProcessOrdersOrSettlements() throws Exception {
+        String token = registerUserAccessToken();
+        ProductFixture fixture = productFixture(5);
+        UUID addressId = createAddress(token);
+        addToCart(token, fixture, 1);
+        JsonNode checkout = placeOrder(token, addressId, "COD", null);
+        UUID sellerOrder = sellerOrderId(checkout, 0);
+        FitMeUserPrincipal seller = new FitMeUserPrincipal(fixture.owner().user());
+        jdbc.update("UPDATE brands SET status='SUSPENDED' WHERE id=?", fixture.owner().brand().getId());
+
+        mockMvc.perform(post("/api/v1/brand/orders/{id}/confirm", sellerOrder).with(user(seller)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.errorCode").value("BRAND_SUSPENDED"));
+        mockMvc.perform(get("/api/v1/brand/orders").with(user(seller)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.errorCode").value("BRAND_SUSPENDED"));
+        mockMvc.perform(get("/api/v1/brand/me").with(user(seller)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.errorCode").value("BRAND_SUSPENDED"));
+    }
+
+    @Test
     void sellerCancelOnPaidMultiSellerOrder_recordsRefundDueForCancelledPart() throws Exception {
         String token = registerUserAccessToken();
         ProductFixture first = productFixture(5);

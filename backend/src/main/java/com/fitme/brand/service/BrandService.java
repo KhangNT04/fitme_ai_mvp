@@ -135,10 +135,18 @@ public class BrandService {
         Brand brand = brandRepository.findByOwnerUserId(ownerUserId).stream()
                 .findFirst()
                 .orElseThrow(() -> new NotFoundException("Chưa có brand"));
-        if (brand.getStatus() != BrandStatus.APPROVED) {
-            throw new BusinessException("Brand chưa được duyệt. Trạng thái: " + brand.getStatus().name());
-        }
+        requireApproved(brand);
         return brand;
+    }
+
+    public static void requireApproved(Brand brand) {
+        if (brand.getStatus() == BrandStatus.SUSPENDED) {
+            throw new BusinessException("Brand đã bị tạm ngưng. Vui lòng liên hệ FitMe để được hỗ trợ.", "BRAND_SUSPENDED");
+        }
+        if (brand.getStatus() != BrandStatus.APPROVED) {
+            throw new BusinessException("Brand chưa được duyệt. Trạng thái: " + brand.getStatus().name(),
+                    "BRAND_NOT_APPROVED");
+        }
     }
 
     @Transactional

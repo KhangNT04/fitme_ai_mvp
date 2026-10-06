@@ -72,6 +72,35 @@ class OrderIntegrationTest extends CommerceIntegrationSupport {
     }
 
     @Test
+    void payosWebhook_ignoresFailedAndUnderpaidTransactions() throws Exception {
+        String token = registerUserAccessToken();
+        ProductFixture fixture = productFixture(4);
+        UUID addressId = createAddress(token);
+        addToCart(token, fixture, 1);
+        UUID orderId = UUID.fromString(placeOrder(token, addressId, "PAYOS", null).at("/order/id").asText());
+        long payosCode = jdbc.queryForObject("SELECT payos_order_code FROM orders WHERE id=?", Long.class, orderId);
+        long total = jdbc.queryForObject("SELECT total_vnd FROM orders WHERE id=?", Long.class, orderId);
+
+        for (String data : new String[]{
+                "{\"orderCode\":%d,\"code\":\"01\",\"amount\":%d}".formatted(payosCode, total),
+                "{\"orderCode\":%d,\"code\":\"00\",\"amount\":%d}".formatted(payosCode, total - 1)}) {
+            mockMvc.perform(post("/api/v1/webhooks/payos").contentType(MediaType.APPLICATION_JSON)
+                            .content("{\"data\":" + data + "}"))
+                    .andExpect(status().isOk());
+            assertThat(jdbc.queryForObject("SELECT payment_status FROM orders WHERE id=?", String.class, orderId))
+                    .isEqualTo("UNPAID");
+        }
+
+        mockMvc.perform(post("/api/v1/webhooks/payos").contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"data\":{\"orderCode\":%d,\"code\":\"00\",\"amount\":%d}}".formatted(payosCode, total)))
+                .andExpect(status().isOk());
+        assertThat(jdbc.queryForObject("SELECT payment_status FROM orders WHERE id=?", String.class, orderId))
+                .isEqualTo("PAID");
+        assertThat(jdbc.queryForObject("SELECT status FROM orders WHERE id=?", String.class, orderId))
+                .isEqualTo("CONFIRMED");
+    }
+
+    @Test
     void cancel_restoresStock_releasesVoucher_andDeniesOtherUser() throws Exception {
         String token = registerUserAccessToken();
         String other = registerUserAccessToken();

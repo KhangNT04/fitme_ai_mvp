@@ -89,6 +89,21 @@ class ProductViewAndBrandStatsIntegrationTest extends CommerceIntegrationSupport
     }
 
     @Test
+    void productAnalytics_ofAnotherBrandsProduct_isNotFound() throws Exception {
+        ProductFixture fixture = productFixture(1);
+        UUID completed = tryOnRequest("COMPLETED");
+        tryOnItem(completed, fixture.product().getId(), "TOP");
+        FitMeUserPrincipal otherBrand = new FitMeUserPrincipal(testData.createBrandOwner().user());
+        FitMeUserPrincipal owner = new FitMeUserPrincipal(fixture.owner().user());
+
+        mockMvc.perform(get("/api/v1/brand/products/{id}/analytics", fixture.product().getId()).with(user(otherBrand)))
+                .andExpect(status().isNotFound());
+        mockMvc.perform(get("/api/v1/brand/products/{id}/analytics", fixture.product().getId()).with(user(owner)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.tryOns").value(1));
+    }
+
+    @Test
     void adminOrderList_showsBuyer_butConsumerListDoesNot() throws Exception {
         String token = registerUserAccessToken();
         ProductFixture fixture = productFixture(2);

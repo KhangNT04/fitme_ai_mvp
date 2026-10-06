@@ -26,14 +26,14 @@ public class MockPayOsClient implements PayOsClient {
     }
 
     @Override
-    public long verifyAndParseWebhook(String rawWebhookBody) {
+    public PayOsWebhookEvent verifyAndParseWebhook(String rawWebhookBody) {
         try {
             JsonNode root = objectMapper.readTree(rawWebhookBody);
-            if (root.has("data") && root.get("data").has("orderCode")) {
-                return root.get("data").get("orderCode").asLong();
-            }
-            if (root.has("orderCode")) {
-                return root.get("orderCode").asLong();
+            JsonNode node = root.has("data") && root.get("data").has("orderCode") ? root.get("data") : root;
+            if (node.has("orderCode")) {
+                boolean paid = !node.has("code") || PayOsWebhookEvent.SUCCESS_CODE.equals(node.get("code").asText());
+                Long amount = node.has("amount") ? node.get("amount").asLong() : null;
+                return new PayOsWebhookEvent(node.get("orderCode").asLong(), paid, amount);
             }
         } catch (Exception ignored) {
             // fall through

@@ -11,7 +11,7 @@ public class OrderPayOsWebhookHandler implements PayOsWebhookHandler {
     private final OrderPaymentService paymentService;
 
     @Override
-    public boolean handlePaid(long orderCode) {
-        return paymentService.handlePaid(orderCode);
+    public boolean handlePaid(long orderCode, Long amountVnd) {
+        return paymentService.handlePaid(orderCode, amountVnd);
     }
 }

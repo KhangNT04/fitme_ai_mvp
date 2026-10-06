@@ -15,4 +15,7 @@ public class AdminBrandListItemDto {
     private String status;
     private Instant createdAt;
     private boolean dashboardEnabled;
+    private boolean plusActive;
+    /** End of the brand's latest Brand Plus period (may be in the past); null if never bought. */
+    private Instant plusEndsAt;
 }

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { formatApiDate, parseApiDate } from "@/lib/date-format";
+import { formatApiDate, formatDateDMY, formatDateTimeDMY, parseApiDate } from "@/lib/date-format";
 
 describe("parseApiDate", () => {
   it("accepts ISO, zone-less, epoch and Jackson array timestamps", () => {
@@ -16,5 +16,15 @@ describe("formatApiDate", () => {
   it("falls back to a dash and formats dates in vi-VN", () => {
     expect(formatApiDate(null)).toBe("—");
     expect(formatApiDate("2026-10-04T01:00:00Z", false)).toMatch(/2026/);
+  });
+});
+
+describe("formatDateDMY / formatDateTimeDMY", () => {
+  it("formats in Vietnam time with zero padding", () => {
+    // 2026-10-06T18:30Z is 01:30 on 7 Oct in Asia/Ho_Chi_Minh.
+    expect(formatDateDMY("2026-10-06T18:30:00Z")).toBe("07/10/2026");
+    expect(formatDateTimeDMY("2026-10-06T18:30:00Z")).toBe("07/10/2026 01:30");
+    expect(formatDateDMY(null)).toBe("—");
+    expect(formatDateTimeDMY("nonsense")).toBe("—");
   });
 });

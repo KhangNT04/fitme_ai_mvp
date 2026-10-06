@@ -173,6 +173,52 @@ export const purchaseUrlSchema = z
   .max(2048, "Link mua hàng tối đa 2048 ký tự")
   .refine(isHttpProductUrl, "Link mua hàng không hợp lệ, cần dạng https://... tới trang sản phẩm của cửa hàng");
 
+const DISCOUNT_PERCENT_MESSAGE = "Phần trăm giảm phải từ 0 đến 100";
+
+/** Admin billing plan form; discount dates are <input type="datetime-local"> values ("" = open bound). */
+export const billingPlanFormSchema = z
+  .object({
+    code: z.string().trim().min(1, "Nhập mã gói"),
+    name: z.string().trim().min(1, "Nhập tên gói"),
+    audience: z.enum(["CONSUMER", "BRAND"]),
+    planType: z.enum(["SUBSCRIPTION", "TOPUP"]),
+    priceVnd: z.number({ error: "Nhập giá" }).int("Giá phải là số nguyên").min(1, "Giá tối thiểu 1đ"),
+    fitkenAmount: z.number({ error: "Nhập số Fitken" }).int("Số Fitken phải là số nguyên").min(0, "Số Fitken không được âm"),
+    billingPeriodDays: z.number().int("Chu kỳ phải là số nguyên").nullable(),
+    active: z.boolean(),
+    sortOrder: z.number({ error: "Nhập thứ tự hiển thị" }).int("Thứ tự phải là số nguyên"),
+    discountPercent: z
+      .number({ error: DISCOUNT_PERCENT_MESSAGE })
+      .int("Phần trăm giảm phải là số nguyên")
+      .min(0, DISCOUNT_PERCENT_MESSAGE)
+      .max(100, DISCOUNT_PERCENT_MESSAGE)
+      .nullable(),
+    discountStartsLocal: z.string(),
+    discountEndsLocal: z.string(),
+  })
+  .superRefine((data, ctx) => {
+    if (data.planType === "SUBSCRIPTION" && (data.billingPeriodDays == null || data.billingPeriodDays < 1)) {
+      ctx.addIssue({ code: "custom", message: "Chu kỳ tối thiểu 1 ngày", path: ["billingPeriodDays"] });
+    }
+    if (data.audience === "CONSUMER" && data.fitkenAmount < 1) {
+      ctx.addIssue({ code: "custom", message: "Gói người dùng cần ít nhất 1 Fitken", path: ["fitkenAmount"] });
+    }
+    if (data.audience === "BRAND" && data.planType !== "SUBSCRIPTION") {
+      ctx.addIssue({ code: "custom", message: "Gói brand phải là gói theo chu kỳ", path: ["planType"] });
+    }
+    if (data.discountStartsLocal && data.discountEndsLocal) {
+      const starts = new Date(data.discountStartsLocal).getTime();
+      const ends = new Date(data.discountEndsLocal).getTime();
+      if (!(ends > starts)) {
+        ctx.addIssue({
+          code: "custom",
+          message: "Thời điểm kết thúc phải sau thời điểm bắt đầu",
+          path: ["discountEndsLocal"],
+        });
+      }
+    }
+  });
+
 export type SkinToneValue = "FAIR" | "MEDIUM" | "TAN" | "DEEP" | "UNSURE";
 export type RiskLevelValue = "SAFE" | "BALANCED" | "BOLD" | "EXPERIMENTAL";
 export type FitPreferenceValue = "SLIM" | "REGULAR" | "RELAXED" | "OVERSIZE" | "UNSURE";
@@ -224,3 +270,4 @@ export type RegisterForm = z.infer<typeof registerSchema>;
 export type ResetPasswordForm = z.infer<typeof resetPasswordSchema>;
 export type ChangePasswordForm = z.infer<typeof changePasswordSchema>;
 export type BrandOnboardingForm = z.infer<typeof brandOnboardingSchema>;
+export type BillingPlanFormValues = z.infer<typeof billingPlanFormSchema>;

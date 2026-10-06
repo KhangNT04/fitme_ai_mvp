@@ -1,5 +1,58 @@
 import { describe, expect, it } from "vitest";
-import { bodyProfileSchema, occasionSchema, purchaseUrlSchema, styleProfileSchema, tryOnInputSchema } from "./validators";
+import {
+  billingPlanFormSchema,
+  bodyProfileSchema,
+  occasionSchema,
+  purchaseUrlSchema,
+  styleProfileSchema,
+  tryOnInputSchema,
+  type BillingPlanFormValues,
+} from "./validators";
+
+describe("billingPlanFormSchema", () => {
+  const brandPlus: BillingPlanFormValues = {
+    code: "BRAND_PLUS",
+    name: "FitMe Brand Plus",
+    audience: "BRAND",
+    planType: "SUBSCRIPTION",
+    priceVnd: 999000,
+    fitkenAmount: 0,
+    billingPeriodDays: 30,
+    active: true,
+    sortOrder: 100,
+    discountPercent: 20,
+    discountStartsLocal: "2026-10-01T00:00",
+    discountEndsLocal: "2026-10-31T23:59",
+  };
+  const firstError = (values: BillingPlanFormValues) => {
+    const result = billingPlanFormSchema.safeParse(values);
+    return result.success ? null : result.error.issues[0];
+  };
+
+  it("accepts a brand plan with a discount window and open bounds", () => {
+    expect(firstError(brandPlus)).toBeNull();
+    expect(firstError({ ...brandPlus, discountStartsLocal: "", discountEndsLocal: "" })).toBeNull();
+    expect(firstError({ ...brandPlus, discountPercent: null })).toBeNull();
+  });
+
+  it("rejects percent outside 0..100 and windows that end before they start", () => {
+    expect(firstError({ ...brandPlus, discountPercent: 120 })?.message).toBe("Phần trăm giảm phải từ 0 đến 100");
+    expect(firstError({ ...brandPlus, discountPercent: -1 })?.message).toBe("Phần trăm giảm phải từ 0 đến 100");
+    const reversed = firstError({ ...brandPlus, discountStartsLocal: "2026-10-31T00:00", discountEndsLocal: "2026-10-01T00:00" });
+    expect(reversed?.message).toBe("Thời điểm kết thúc phải sau thời điểm bắt đầu");
+    expect(reversed?.path).toEqual(["discountEndsLocal"]);
+  });
+
+  it("requires Fitken for consumer plans and a period for subscriptions", () => {
+    expect(firstError({ ...brandPlus, audience: "CONSUMER", discountPercent: null })?.message).toBe(
+      "Gói người dùng cần ít nhất 1 Fitken",
+    );
+    expect(firstError({ ...brandPlus, billingPeriodDays: null })?.message).toBe("Chu kỳ tối thiểu 1 ngày");
+    expect(firstError({ ...brandPlus, planType: "TOPUP", billingPeriodDays: null })?.message).toBe(
+      "Gói brand phải là gói theo chu kỳ",
+    );
+  });
+});
 
 describe("purchaseUrlSchema", () => {
   const message = (value: unknown) => purchaseUrlSchema.safeParse(value).error?.issues[0]?.message;

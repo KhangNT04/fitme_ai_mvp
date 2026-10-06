@@ -9,6 +9,7 @@ import com.fitme.billing.entity.BillingPlan;
 import com.fitme.billing.entity.ConsumerBillingOrder;
 import com.fitme.billing.entity.ConsumerSubscription;
 import com.fitme.billing.payos.PayOsClient;
+import com.fitme.billing.payos.PayOsOrderCodeGenerator;
 import com.fitme.billing.payos.PayOsPaymentLink;
 import com.fitme.billing.repository.BillingPlanRepository;
 import com.fitme.billing.repository.ConsumerBillingOrderRepository;
@@ -20,6 +21,7 @@ import com.fitme.common.enums.ConsumerPlan;
 import com.fitme.common.enums.ConsumerSubscriptionStatus;
 import com.fitme.common.enums.FitkenEntryType;
 import com.fitme.common.enums.OutfitCoherenceMode;
+import com.fitme.common.enums.PlanAudience;
 import com.fitme.common.exception.BusinessException;
 import com.fitme.common.exception.NotFoundException;
 import com.fitme.common.time.AppClock;
@@ -37,7 +39,6 @@ import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
-import java.util.concurrent.ThreadLocalRandom;
 
 @Service
 @RequiredArgsConstructor
@@ -54,6 +55,7 @@ public class ConsumerSubscriptionService {
     private final UserAccountRepository userAccountRepository;
     private final FitkenService fitkenService;
     private final PayOsClient payOsClient;
+    private final PayOsOrderCodeGenerator orderCodes;
     private final FitMeProperties properties;
     private final BillingDtoMapper dtoMapper;
     private final AppClock clock;
@@ -74,7 +76,8 @@ public class ConsumerSubscriptionService {
     /** The plan sold as FitMe Premium (admin-editable price / Fitken), falling back to the first subscription plan. */
     public Optional<BillingPlan> findPremiumPlan() {
         return planRepository.findByCode(PREMIUM_PLAN_CODE)
-                .or(() -> planRepository.findFirstByPlanTypeAndActiveTrueOrderBySortOrderAsc(BillingPlanType.SUBSCRIPTION));
+                .or(() -> planRepository.findFirstByPlanTypeAndAudienceAndActiveTrueOrderBySortOrderAsc(
+                        BillingPlanType.SUBSCRIPTION, PlanAudience.CONSUMER));
     }
 
     public SubscriptionInfoDto describe(UUID userId) {
@@ -95,11 +98,14 @@ public class ConsumerSubscriptionService {
     public CheckoutResponse checkout(UUID userId, UUID planId) {
         BillingPlan plan = planRepository.findById(planId)
                 .orElseThrow(() -> new NotFoundException("Gói không tồn tại"));
+        if (plan.getAudience() != PlanAudience.CONSUMER) {
+            throw new BusinessException("Gói này không dành cho tài khoản người dùng");
+        }
         if (!plan.isActive()) {
             throw new BusinessException("Gói không còn khả dụng");
         }
 
-        long orderCode = nextOrderCode();
+        long orderCode = orderCodes.next();
         ConsumerBillingOrder order = orderRepository.save(ConsumerBillingOrder.builder()
                 .userId(userId)
                 .planId(plan.getId())
@@ -282,13 +288,4 @@ public class ConsumerSubscriptionService {
                 .orElseThrow(() -> new NotFoundException("User không tồn tại"));
     }
 
-    private long nextOrderCode() {
-        for (int attempt = 0; attempt < 5; attempt++) {
-            long code = System.currentTimeMillis() % 9_000_000_000L * 10L + ThreadLocalRandom.current().nextInt(10);
-            if (!orderRepository.existsByPayosOrderCode(code)) {
-                return code;
-            }
-        }
-        throw new BusinessException("Không tạo được mã thanh toán, vui lòng thử lại");
-    }
 }

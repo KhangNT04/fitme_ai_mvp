@@ -19,8 +19,6 @@ public interface ConsumerBillingOrderRepository extends JpaRepository<ConsumerBi
     @Query("select o from ConsumerBillingOrder o where o.payosOrderCode = :orderCode")
     Optional<ConsumerBillingOrder> findByPayosOrderCodeForUpdate(@Param("orderCode") long orderCode);
 
-    boolean existsByPayosOrderCode(long payosOrderCode);
-
     boolean existsByPlanId(UUID planId);
 
     List<ConsumerBillingOrder> findTop10ByUserIdOrderByCreatedAtDesc(UUID userId);

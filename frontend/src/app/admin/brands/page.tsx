@@ -24,6 +24,17 @@ import {
 } from "@/lib/design-tokens";
 import { actionFeedback } from "@/lib/action-feedback";
 import { brandStatusLabel } from "@/lib/status-labels";
+import { formatDateDMY } from "@/lib/date-format";
+import type { Brand } from "@/types/brand";
+
+function PlusBadge({ brand }: { brand: Brand }) {
+  if (!brand.plusActive) return null;
+  return (
+    <Badge variant="success" className="ml-1 align-middle" title={`Brand Plus đến ${formatDateDMY(brand.plusEndsAt)}`}>
+      Plus
+    </Badge>
+  );
+}
 
 export default function AdminBrandsPage() {
   const queryClient = useQueryClient();
@@ -79,7 +90,9 @@ export default function AdminBrandsPage() {
               <article key={b.id} className={portalCardClass}>
                 <div className={portalCardRowClass}>
                   <div className="min-w-0">
-                    <p className="font-medium text-foreground">{b.name}</p>
+                    <p className="font-medium text-foreground">
+                      {b.name} <PlusBadge brand={b} />
+                    </p>
                     <p className="mt-1 truncate text-sm text-muted-foreground">{b.contactEmail ?? "—"}</p>
                   </div>
                   <Badge variant="outline">{brandStatusLabel(b.status)}</Badge>
@@ -117,7 +130,9 @@ export default function AdminBrandsPage() {
             <PortalDataTableBody>
               {data.map((b) => (
                 <tr key={b.id}>
-                  <td className={portalTableTdClass}>{b.name}</td>
+                  <td className={portalTableTdClass}>
+                    {b.name} <PlusBadge brand={b} />
+                  </td>
                   <td className={portalTableTdClass}>{b.contactEmail ?? "—"}</td>
                   <td className={portalTableTdClass}>
                     <Badge variant="outline">{brandStatusLabel(b.status)}</Badge>

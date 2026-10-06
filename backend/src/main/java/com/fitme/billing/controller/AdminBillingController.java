@@ -4,6 +4,7 @@ import com.fitme.billing.dto.BillingPlanDto;
 import com.fitme.billing.dto.BillingPlanRequest;
 import com.fitme.billing.service.BillingPlanService;
 import com.fitme.common.dto.ApiResponse;
+import com.fitme.common.enums.PlanAudience;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -21,8 +22,8 @@ public class AdminBillingController {
     private final BillingPlanService billingPlanService;
 
     @GetMapping("/plans")
-    public ApiResponse<List<BillingPlanDto>> listPlans() {
-        return ApiResponse.ok(billingPlanService.listAll());
+    public ApiResponse<List<BillingPlanDto>> listPlans(@RequestParam(required = false) PlanAudience audience) {
+        return ApiResponse.ok(billingPlanService.listAll(audience));
     }
 
     @GetMapping("/plans/{id}")

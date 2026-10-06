@@ -20,6 +20,34 @@ export function parseApiDate(value: unknown): Date | null {
   return null;
 }
 
+const BUSINESS_TIME_ZONE = "Asia/Ho_Chi_Minh";
+
+const dmyFormatter = new Intl.DateTimeFormat("en-GB", {
+  timeZone: BUSINESS_TIME_ZONE,
+  day: "2-digit",
+  month: "2-digit",
+  year: "numeric",
+});
+
+const hmFormatter = new Intl.DateTimeFormat("en-GB", {
+  timeZone: BUSINESS_TIME_ZONE,
+  hour: "2-digit",
+  minute: "2-digit",
+  hourCycle: "h23",
+});
+
+/** dd/MM/yyyy in Vietnam time, or "—" when the value is not a date. */
+export function formatDateDMY(value: unknown): string {
+  const d = parseApiDate(value);
+  return d ? dmyFormatter.format(d) : "—";
+}
+
+/** dd/MM/yyyy HH:mm in Vietnam time, or "—" when the value is not a date. */
+export function formatDateTimeDMY(value: unknown): string {
+  const d = parseApiDate(value);
+  return d ? `${dmyFormatter.format(d)} ${hmFormatter.format(d)}` : "—";
+}
+
 export function formatApiDate(value: unknown, withTime = true): string {
   const d = parseApiDate(value);
   if (!d) return "—";

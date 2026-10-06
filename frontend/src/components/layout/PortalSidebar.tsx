@@ -16,6 +16,7 @@ import {
   Menu,
   X,
   CreditCard,
+  Crown,
   Gift,
   Star,
   Receipt,
@@ -34,6 +35,7 @@ const brandIcons: Record<string, React.ComponentType<{ className?: string }>> = 
   "/brand/products": Package,
   "/brand/insights/demand": SparklesIcon,
   "/brand/analytics": BarChart3,
+  "/brand/plan": Crown,
   "/brand/settings": Settings,
 };
 

@@ -25,6 +25,7 @@ public class PayOsWebhookController {
     public ApiResponse<Void> payosWebhook(@RequestBody String rawBody) {
         PayOsWebhookEvent event = payOsClient.verifyAndParseWebhook(rawBody);
         if (!event.paid()) {
+            handlers.stream().anyMatch(handler -> handler.handleUnpaid(event.orderCode()));
             log.info("PayOS webhook acknowledged without payment for orderCode={}", event.orderCode());
             return ApiResponse.ok(null);
         }

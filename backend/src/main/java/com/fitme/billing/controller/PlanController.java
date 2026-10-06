@@ -19,6 +19,6 @@ public class PlanController {
 
     @GetMapping
     public ApiResponse<List<BillingPlanDto>> activePlans() {
-        return ApiResponse.ok(billingPlanService.listActive());
+        return ApiResponse.ok(billingPlanService.listActiveConsumerPlans());
     }
 }

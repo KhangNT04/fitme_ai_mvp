@@ -14,6 +14,9 @@ export interface Brand {
   contactPhone?: string;
   status: BrandStatus;
   createdAt: string;
+  /** Only populated by the admin brand list. */
+  plusActive?: boolean;
+  plusEndsAt?: string | null;
 }
 
 export interface BrandOnboardingRequest {

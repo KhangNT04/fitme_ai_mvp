@@ -20,6 +20,7 @@ export const BRAND_PAGES: { path: string; heading: string | RegExp }[] = [
   { path: "/brand/analytics/dropoff", heading: "Phân tích điểm rời bỏ" },
   { path: "/brand/analytics/hesitation", heading: "Phân tích do dự" },
   { path: "/brand/analytics/try-on", heading: "Phân tích thử mặc AI" },
+  { path: "/brand/plan", heading: "Gói Plus" },
   { path: "/brand/settings", heading: "Cài đặt thương hiệu" },
 ];
 
@@ -28,7 +29,7 @@ export const ADMIN_PAGES: { path: string; heading: string | RegExp }[] = [
   { path: "/admin/users", heading: "Quản lý tài khoản" },
   { path: "/admin/traffic", heading: "Thống kê truy cập" },
   { path: "/admin/brands", heading: "Quản lý thương hiệu" },
-  { path: "/admin/billing/plans", heading: "Gói người dùng (Premium & top-up)" },
+  { path: "/admin/billing/plans", heading: "Gói dịch vụ" },
   { path: "/admin/rewards", heading: "Duyệt chia sẻ" },
   { path: "/admin/reviews", heading: "Đánh giá sản phẩm" },
   { path: "/admin/products/moderation", heading: "Duyệt sản phẩm" },

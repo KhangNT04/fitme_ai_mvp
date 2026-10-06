@@ -8,6 +8,7 @@ export const brandNav: PortalNavItem[] = [
   { href: "/brand/products", label: "Sản phẩm" },
   { href: "/brand/insights/demand", label: "Nhu cầu Gen Z" },
   { href: "/brand/analytics", label: "Phân tích" },
+  { href: "/brand/plan", label: "Gói Plus" },
   { href: "/brand/settings", label: "Cài đặt" },
 ];
 
@@ -17,7 +18,7 @@ export const adminNav: PortalNavItem[] = [
   { href: "/admin/traffic", label: "Thống kê truy cập" },
   { href: "/admin/brands", label: "Thương hiệu" },
   { href: "/admin/partnerships", label: "Partnerships" },
-  { href: "/admin/billing/plans", label: "Gói người dùng" },
+  { href: "/admin/billing/plans", label: "Gói dịch vụ" },
   { href: "/admin/rewards", label: "Duyệt chia sẻ" },
   { href: "/admin/reviews", label: "Đánh giá" },
   { href: "/admin/products/moderation", label: "Duyệt sản phẩm" },

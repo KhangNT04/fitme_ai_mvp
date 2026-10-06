@@ -86,6 +86,9 @@ fitme:
     checksum-key: ${PAYOS_CHECKSUM_KEY:}
     subscription-return-url: ${PAYOS_SUBSCRIPTION_RETURN_URL:http://localhost:3000/billing/return?status=success}
     subscription-cancel-url: ${PAYOS_SUBSCRIPTION_CANCEL_URL:http://localhost:3000/billing/return?status=cancel}
+    # Blank = <origin of subscription-return-url>/brand/plan/return?status=success|cancel
+    brand-plus-return-url: ${PAYOS_BRAND_PLUS_RETURN_URL:}
+    brand-plus-cancel-url: ${PAYOS_BRAND_PLUS_CANCEL_URL:}
   fitken:
     trial-amount: ${FITME_FITKEN_TRIAL:5}
     checkin-streak-days: ${FITME_FITKEN_CHECKIN_STREAK_DAYS:3}

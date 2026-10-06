@@ -15,6 +15,17 @@ test.describe("Admin portal — full coverage", () => {
     });
   }
 
+  test("billing plans page splits consumer and brand plans into tabs", async ({ page }) => {
+    await page.goto("/admin/billing/plans");
+    const consumerTab = page.getByRole("tab", { name: "Gói người dùng" });
+    const brandTab = page.getByRole("tab", { name: "Gói brand" });
+    await expect(consumerTab).toBeVisible();
+    await expect(brandTab).toBeVisible();
+    await brandTab.click();
+    await expect(page).toHaveURL(/tab=brand/);
+    await expect(page.getByRole("heading", { name: "Brand đã mua Plus" })).toBeVisible({ timeout: 15_000 });
+  });
+
   test("moderation page shows pending products table or empty state", async ({ page }) => {
     await page.goto("/admin/products/moderation");
     await expect(page.getByRole("heading", { name: "Duyệt sản phẩm" })).toBeVisible();

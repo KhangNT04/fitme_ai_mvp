@@ -12,6 +12,7 @@ import {
 import {
   BillingPlanForm,
   emptyBillingPlanForm,
+  formValuesToWrite,
   planToFormValues,
 } from "@/components/admin/BillingPlanForm";
 import { actionFeedback } from "@/lib/action-feedback";
@@ -38,13 +39,15 @@ export default function AdminBillingPlanEditPage({
     }
   }, [planQuery.data]);
 
+  const listHref = `/admin/billing/plans?tab=${planQuery.data?.audience === "BRAND" ? "brand" : "consumer"}`;
+
   const save = useMutation({
-    mutationFn: () => adminBillingApi.updatePlan(id, form),
+    mutationFn: () => adminBillingApi.updatePlan(id, formValuesToWrite(form)),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["admin-billing-plans"] });
       queryClient.invalidateQueries({ queryKey: ["admin-billing-plan", id] });
       actionFeedback({ successMessage: "Đã cập nhật gói" }).onSuccess();
-      router.push("/admin/billing/plans");
+      router.push(listHref);
     },
     onError: actionFeedback({ errorMessage: "Không thể cập nhật gói" }).onError,
   });
@@ -54,7 +57,7 @@ export default function AdminBillingPlanEditPage({
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["admin-billing-plans"] });
       actionFeedback({ successMessage: "Đã xóa gói" }).onSuccess();
-      router.push("/admin/billing/plans");
+      router.push(listHref);
     },
     onError: actionFeedback({ errorMessage: "Không thể xóa gói" }).onError,
   });
@@ -64,9 +67,13 @@ export default function AdminBillingPlanEditPage({
   return (
     <PortalAdminPage
       title={`Chỉnh sửa: ${planName}`}
-      description="Cập nhật gói FitMe Premium (Fitken, chu kỳ)."
-      backHref="/admin/billing/plans"
-      backLabel="Gói người dùng"
+      description={
+        planQuery.data?.audience === "BRAND"
+          ? "Cập nhật giá, chu kỳ và giảm giá của gói brand."
+          : "Cập nhật gói người dùng (Fitken, chu kỳ)."
+      }
+      backHref={listHref}
+      backLabel="Gói dịch vụ"
       isLoading={planQuery.isLoading}
       error={planQuery.error}
       onRetry={() => planQuery.refetch()}

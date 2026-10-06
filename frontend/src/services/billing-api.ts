@@ -1,9 +1,16 @@
 import apiClient, { unwrap } from "./api-client";
-import type { BillingPlan, BillingPlanWrite } from "@/types/billing";
+import type {
+  AdminBrandSubscription,
+  BillingPlan,
+  BillingPlanWrite,
+  PlanAudience,
+} from "@/types/billing";
 
 export const adminBillingApi = {
-  getPlans: async (): Promise<BillingPlan[]> => {
-    const res = await apiClient.get("/admin/billing/plans");
+  getPlans: async (audience?: PlanAudience): Promise<BillingPlan[]> => {
+    const res = await apiClient.get("/admin/billing/plans", {
+      params: audience ? { audience } : undefined,
+    });
     return unwrap(res);
   },
   getPlan: async (id: string): Promise<BillingPlan> => {
@@ -27,5 +34,10 @@ export const adminBillingApi = {
   },
   deletePlan: async (id: string): Promise<void> => {
     await apiClient.delete(`/admin/billing/plans/${id}`);
+  },
+  getBrandSubscriptions: async (): Promise<AdminBrandSubscription[]> => {
+    const res = await apiClient.get("/admin/brand-subscriptions");
+    const data = unwrap<AdminBrandSubscription[]>(res);
+    return Array.isArray(data) ? data : [];
   },
 };

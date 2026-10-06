@@ -90,6 +90,9 @@ public class FitMeProperties {
         private String checksumKey;
         private String subscriptionReturnUrl = "http://localhost:3000/billing/return?status=success";
         private String subscriptionCancelUrl = "http://localhost:3000/billing/return?status=cancel";
+        /** Brand Plus return/cancel pages; blank = /brand/plan/return on the subscription return URL's origin. */
+        private String brandPlusReturnUrl = "";
+        private String brandPlusCancelUrl = "";
     }
 
     @Data

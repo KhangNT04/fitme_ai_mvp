@@ -82,8 +82,8 @@ export default function BrandPendingPage() {
             {status === "APPROVED" && (
               <div className="space-y-3">
                 <p className="text-sm text-green-700">
-                  Brand đã được duyệt. Đăng xuất và đăng nhập lại để mở portal: quản lý sản phẩm, đơn
-                  hàng marketplace và dashboard phân tích miễn phí.
+                  Brand đã được duyệt. Đăng xuất và đăng nhập lại để mở portal: niêm yết sản phẩm và
+                  dashboard phân tích miễn phí, cùng gói Brand Plus tùy chọn trong mục &quot;Gói Plus&quot;.
                 </p>
                 <Button
                   className="w-full"

@@ -11,10 +11,11 @@ public class RegisterRequest {
     @NotBlank @Email
     private String email;
 
-    @NotBlank @Size(min = 6, message = "Mật khẩu tối thiểu 6 ký tự")
+    @NotBlank @Size(min = 6, max = 100, message = "Mật khẩu cần từ 6 đến 100 ký tự")
     private String password;
 
     @JsonAlias("fullName")
+    @Size(max = 100, message = "Họ tên tối đa 100 ký tự")
     private String displayName;
 
     /** Honeypot — must stay empty. Bots that fill hidden fields are rejected. */

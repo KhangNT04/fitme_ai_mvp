@@ -54,6 +54,7 @@ public class JwtService {
         Date now = new Date();
         Date expiry = new Date(now.getTime() + expirationMs);
         return Jwts.builder()
+                .id(UUID.randomUUID().toString())
                 .subject(email)
                 .claims(Map.of(
                         CLAIM_USER_ID, userId.toString(),

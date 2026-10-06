@@ -31,6 +31,23 @@ class PhotoUploadControllerTest extends AbstractIntegrationTest {
     }
 
     @Test
+    void upload_rejectsNonImageBytesDeclaredAsJpeg() throws Exception {
+        String sessionToken = createAnonymousSessionToken();
+        String consentId = objectMapper.readTree(mockMvc.perform(post("/api/v1/uploads/user-photo/consent")
+                        .header(SESSION_HEADER, sessionToken))
+                .andReturn().getResponse().getContentAsString()).get("data").get("id").asText();
+        MockMultipartFile fake = new MockMultipartFile(
+                "file", "photo.jpg", "image/jpeg", "<html><script>alert(1)</script></html>".getBytes());
+
+        mockMvc.perform(multipart("/api/v1/uploads/user-photo")
+                        .file(fake)
+                        .param("consentId", consentId)
+                        .header(SESSION_HEADER, sessionToken))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.error").value("Chỉ hỗ trợ ảnh JPG, PNG hoặc WEBP"));
+    }
+
+    @Test
     void consentUploadQualityAndDelete_withSession() throws Exception {
         String sessionToken = createAnonymousSessionToken();
 

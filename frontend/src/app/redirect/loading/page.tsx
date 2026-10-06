@@ -21,32 +21,51 @@ export default function RedirectLoadingPage() {
   );
 }
 
-function isSafeExternalHttpUrl(raw: string): boolean {
+function isExternalHttpUrl(raw: string): boolean {
   try {
-    const decoded = decodeURIComponent(raw);
-    const parsed = new URL(decoded);
+    const parsed = new URL(raw);
     return parsed.protocol === "http:" || parsed.protocol === "https:";
   } catch {
     return false;
   }
 }
 
+/** The destination always comes from the recorded buy-click event, never from the query string. */
 function RedirectLoadingContent() {
   const searchParams = useSearchParams();
-  const url = searchParams.get("url");
   const eventId = searchParams.get("event");
+  const [resolved, setResolved] = useState<{ eventId: string; url: string | null } | null>(null);
   const [confirming, setConfirming] = useState(false);
   const [marked, setMarked] = useState(false);
-  const safeUrl = url && isSafeExternalHttpUrl(url) ? url : null;
+  const current = eventId && resolved?.eventId === eventId ? resolved : null;
+  const targetUrl = current?.url ?? null;
+  const invalid = !eventId || (current !== null && !current.url);
 
   useEffect(() => {
-    if (safeUrl) {
-      const timer = setTimeout(() => {
-        window.location.href = decodeURIComponent(safeUrl);
-      }, 2200);
-      return () => clearTimeout(timer);
-    }
-  }, [safeUrl]);
+    if (!eventId) return;
+    let cancelled = false;
+    redirectApi
+      .getEvent(eventId)
+      .then((event) => {
+        if (cancelled) return;
+        const url = event.redirectUrl && isExternalHttpUrl(event.redirectUrl) ? event.redirectUrl : null;
+        setResolved({ eventId, url });
+      })
+      .catch(() => {
+        if (!cancelled) setResolved({ eventId, url: null });
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [eventId]);
+
+  useEffect(() => {
+    if (!targetUrl) return;
+    const timer = setTimeout(() => {
+      window.location.href = targetUrl;
+    }, 2200);
+    return () => clearTimeout(timer);
+  }, [targetUrl]);
 
   const onPurchased = async () => {
     if (!eventId || marked) return;
@@ -62,12 +81,12 @@ function RedirectLoadingContent() {
     }
   };
 
-  if (url && !safeUrl) {
+  if (invalid) {
     return (
       <PageShell width="full" className={cn(consumerPageShellClass, "flex flex-col items-center py-16 text-center sm:py-24")}>
         <PageHeader
           title="Liên kết không hợp lệ"
-          subtitle="URL chuyển hướng phải bắt đầu bằng http:// hoặc https://"
+          subtitle="Không tìm thấy nơi bán cho liên kết này. Hãy bấm Mua ngay từ trang sản phẩm."
           sticky={false}
           className="mt-6 text-center [&_h1]:text-xl [&_h1]:font-semibold"
         />

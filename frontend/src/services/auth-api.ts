@@ -74,12 +74,21 @@ export const authApi = {
     const res = await apiClient.get("/auth/captcha");
     return unwrap(res) as CaptchaChallenge;
   },
-  login: async (data: LoginRequest): Promise<AuthResponse> => {
+  /** `persist: false` leaves storage untouched so portal pages can check the role before keeping the session. */
+  login: async (data: LoginRequest, options: { persist?: boolean } = {}): Promise<AuthResponse> => {
     const res = await apiClient.post("/auth/login", data);
     const auth = mapAuthResponse(unwrap(res));
+    if (options.persist === false) return auth;
     storeTokens(auth.accessToken, auth.refreshToken);
     await linkAnonymousSession();
     return auth;
+  },
+  revokeRefreshToken: async (refreshToken: string): Promise<void> => {
+    try {
+      await apiClient.post("/auth/logout", { refreshToken });
+    } catch {
+      // Best effort: the token expires on its own
+    }
   },
   register: async (data: RegisterRequest): Promise<AuthResponse> => {
     const res = await apiClient.post("/auth/register", {

@@ -26,8 +26,9 @@ export default function BrandLoginPage() {
 
   const onSubmit = async (data: LoginForm) => {
     try {
-      const res = await authApi.login(data);
+      const res = await authApi.login(data, { persist: false });
       if (res.user.role !== "BRAND") {
+        void authApi.revokeRefreshToken(res.refreshToken);
         setError("Tài khoản này không có quyền Brand. Vui lòng dùng tài khoản brand.");
         return;
       }

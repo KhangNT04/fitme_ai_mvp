@@ -4,7 +4,12 @@ import type { AuthUser } from "@/types/auth";
 import { authApi } from "@/services/auth-api";
 import { useConsultationStore } from "@/stores/consultation-store";
 import { isJwtExpired } from "@/lib/jwt-expiry";
-import { AUTH_CLEAR_EVENT, AUTH_DROP_ACCESS_EVENT } from "@/lib/auth-events";
+import {
+  AUTH_CLEAR_EVENT,
+  AUTH_DROP_ACCESS_EVENT,
+  AUTH_TOKENS_REFRESHED_EVENT,
+  type RefreshedTokens,
+} from "@/lib/auth-events";
 import { AUTH_TOKEN_KEY, AUTH_REFRESH_KEY } from "@/utils/constants";
 
 async function syncPortalSession(accessToken: string): Promise<void> {
@@ -82,5 +87,23 @@ if (typeof window !== "undefined") {
     if (token && isJwtExpired(token)) {
       useAuthStore.setState({ accessToken: null });
     }
+  });
+  window.addEventListener(AUTH_TOKENS_REFRESHED_EVENT, (event) => {
+    const { accessToken, refreshToken } = (event as CustomEvent<RefreshedTokens>).detail;
+    const { user } = useAuthStore.getState();
+    if (!user) return;
+    useAuthStore.setState({ accessToken, refreshToken });
+    if (user.role === "BRAND" || user.role === "ADMIN") {
+      syncPortalSession(accessToken).catch(() => undefined);
+    }
+  });
+  // Keep this tab's persisted copy in step when another tab rotates the single-use refresh token.
+  window.addEventListener("storage", (event) => {
+    if (event.key !== AUTH_REFRESH_KEY || !event.newValue) return;
+    if (!useAuthStore.getState().user) return;
+    useAuthStore.setState({
+      refreshToken: event.newValue,
+      accessToken: localStorage.getItem(AUTH_TOKEN_KEY),
+    });
   });
 }

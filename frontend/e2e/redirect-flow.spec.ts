@@ -3,15 +3,12 @@ import { test, expect } from "@playwright/test";
 test.describe("Redirect flow", () => {
   test.setTimeout(60_000);
 
-  test("redirect loading page shows status message", async ({ page }) => {
+  test("loading page ignores a url query param (no open redirect)", async ({ page }) => {
     await page.goto("/redirect/loading?url=https%3A%2F%2Fexample.com");
 
-    await expect(
-      page.getByRole("heading", { name: "Đang chuyển hướng..." }),
-    ).toBeVisible();
-    await expect(
-      page.getByText("Bạn sẽ được chuyển đến trang bán hàng trong giây lát"),
-    ).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Liên kết không hợp lệ" })).toBeVisible();
+    await page.waitForTimeout(3_000);
+    expect(new URL(page.url()).hostname).not.toBe("example.com");
   });
 
   test("product confirm → loading page with external URL", async ({ page }) => {
@@ -31,6 +28,7 @@ test.describe("Redirect flow", () => {
 
     await page.waitForURL("**/redirect/loading**", { timeout: 30_000 });
     await expect(page.getByRole("heading", { name: "Đang chuyển hướng..." })).toBeVisible();
-    expect(page.url()).toMatch(/url=/);
+    expect(page.url()).toMatch(/event=/);
+    expect(page.url()).not.toMatch(/url=/);
   });
 });

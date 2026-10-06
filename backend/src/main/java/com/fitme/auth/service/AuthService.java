@@ -7,6 +7,7 @@ import com.fitme.common.config.FitMeProperties;
 import com.fitme.common.enums.UserRole;
 import com.fitme.common.enums.UserStatus;
 import com.fitme.common.exception.BusinessException;
+import com.fitme.common.exception.TooManyRequestsException;
 import com.fitme.common.security.JwtService;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
@@ -38,6 +39,11 @@ public class AuthService {
     private static final long REGISTER_COOLDOWN_SECONDS = 60;
     private static final long EMAIL_SEND_COOLDOWN_SECONDS = 60;
     private static final int MAX_VERIFICATION_ATTEMPTS = 5;
+    private static final int MAX_LOGIN_FAILURES = 5;
+    private static final long LOGIN_FAILURE_WINDOW_SECONDS = 15 * 60;
+    private static final long LOGIN_LOCK_SECONDS = 15 * 60;
+    private static final String RESEND_VERIFICATION_MESSAGE =
+            "Nếu email tồn tại và chưa xác minh, mã mới đã được gửi tới hộp thư.";
     public static final String ACCOUNT_LOCKED_MESSAGE = "Tài khoản của bạn đã bị khóa. Vui lòng liên hệ FitMe để được hỗ trợ.";
 
     private final UserAccountRepository userAccountRepository;
@@ -54,7 +60,11 @@ public class AuthService {
     private final ConcurrentHashMap<String, Instant> resetCooldownByEmail = new ConcurrentHashMap<>();
     private final ConcurrentHashMap<String, Integer> verificationFailuresByEmail = new ConcurrentHashMap<>();
 
+    private final ConcurrentHashMap<String, LoginFailures> loginFailuresByEmail = new ConcurrentHashMap<>();
+
     private record CaptchaEntry(int answer, Instant expiresAt) {}
+
+    private record LoginFailures(int count, Instant windowStart, Instant lockedUntil) {}
 
     public CaptchaChallengeResponse createCaptchaChallenge() {
         purgeExpiredCaptchas();
@@ -124,9 +134,14 @@ public class AuthService {
 
     public AuthResponse login(LoginRequest request) {
         String email = request.getEmail().toLowerCase(Locale.ROOT).trim();
+        rejectWhileLoginLocked(email);
         try {
             authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(email, request.getPassword()));
+            loginFailuresByEmail.remove(email);
+        } catch (BadCredentialsException ex) {
+            recordLoginFailure(email);
+            throw ex;
         } catch (AccountStatusException ex) {
             // Spring checks the account status before the password; only reveal the lock to the real owner.
             boolean passwordMatches = userAccountRepository.findByEmail(email)
@@ -163,14 +178,15 @@ public class AuthService {
     @Transactional
     public Map<String, String> resendVerification(ResendVerificationRequest request) {
         String email = request.getEmail().toLowerCase(Locale.ROOT).trim();
-        java.util.Optional<UserAccount> found = userAccountRepository.findByEmail(email);
-        if (found.isEmpty() || found.get().isEmailVerified()) {
-            return Map.of("message", "Nếu email tồn tại và chưa xác minh, mã mới đã được tạo.");
-        }
+        // Unknown, verified and unverified emails must look identical (message and cooldown) to callers.
         if (inCooldown(resendCooldownByEmail, email)) {
             throw new BusinessException("Vui lòng đợi 1 phút trước khi gửi lại mã.");
         }
         resendCooldownByEmail.put(email, Instant.now().plusSeconds(EMAIL_SEND_COOLDOWN_SECONDS));
+        java.util.Optional<UserAccount> found = userAccountRepository.findByEmail(email);
+        if (found.isEmpty() || found.get().isEmailVerified()) {
+            return Map.of("message", RESEND_VERIFICATION_MESSAGE);
+        }
         verificationFailuresByEmail.remove(email);
         UserAccount user = found.get();
         String code = generateNumericCode(6);
@@ -184,7 +200,7 @@ public class AuthService {
                     "message", "Đã gửi mã xác minh mới tới email của bạn.",
                     "verificationCode", code);
         }
-        return Map.of("message", "Nếu email tồn tại và chưa xác minh, mã mới đã được gửi tới hộp thư.");
+        return Map.of("message", RESEND_VERIFICATION_MESSAGE);
     }
 
     public Map<String, String> forgotPassword(ForgotPasswordRequest request) {
@@ -263,6 +279,36 @@ public class AuthService {
         return cleaned.length() > maxLength ? cleaned.substring(0, maxLength) : cleaned;
     }
 
+    private void rejectWhileLoginLocked(String email) {
+        LoginFailures failures = loginFailuresByEmail.get(email);
+        if (failures == null || failures.lockedUntil() == null) {
+            return;
+        }
+        Instant now = Instant.now();
+        if (now.isBefore(failures.lockedUntil())) {
+            long minutes = Math.max(1, (failures.lockedUntil().getEpochSecond() - now.getEpochSecond() + 59) / 60);
+            throw new TooManyRequestsException(
+                    "Bạn đã nhập sai mật khẩu quá nhiều lần. Vui lòng thử lại sau " + minutes + " phút.",
+                    "LOGIN_LOCKED");
+        }
+        loginFailuresByEmail.remove(email, failures);
+    }
+
+    private void recordLoginFailure(String email) {
+        Instant now = Instant.now();
+        LoginFailures updated = loginFailuresByEmail.compute(email, (key, current) -> {
+            if (current == null || now.isAfter(current.windowStart().plusSeconds(LOGIN_FAILURE_WINDOW_SECONDS))) {
+                return new LoginFailures(1, now, null);
+            }
+            int count = current.count() + 1;
+            return new LoginFailures(count, current.windowStart(),
+                    count >= MAX_LOGIN_FAILURES ? now.plusSeconds(LOGIN_LOCK_SECONDS) : null);
+        });
+        if (updated.lockedUntil() != null) {
+            log.warn("[AUTH] Login locked for {} after {} failed attempts", email, updated.count());
+        }
+    }
+
     private static boolean inCooldown(ConcurrentHashMap<String, Instant> cooldowns, String email) {
         Instant until = cooldowns.get(email);
         if (until == null) {
@@ -290,7 +336,9 @@ public class AuthService {
             if (jwtService.issuedBeforePasswordChange(token, user.getPasswordChangedAt())) {
                 throw new BusinessException("Mật khẩu đã được đổi. Vui lòng đăng nhập lại");
             }
-            return buildAuthResponse(user);
+            AuthResponse response = buildAuthResponse(user);
+            jwtService.revokeRefreshToken(token);
+            return response;
         } catch (io.jsonwebtoken.JwtException ex) {
             throw new BusinessException("Refresh token không hợp lệ hoặc đã hết hạn");
         }

@@ -42,7 +42,7 @@ export default function RedirectConfirmPage({
         productId: id,
         sourcePage: "PRODUCT_DETAIL",
       });
-      router.push(`/redirect/loading?url=${encodeURIComponent(result.redirectUrl)}&event=${result.eventId}`);
+      router.push(`/redirect/loading?event=${encodeURIComponent(result.eventId)}`);
     } catch {
       setLoading(false);
     }

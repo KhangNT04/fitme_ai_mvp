@@ -10,11 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { AuthCardShell } from "@/components/layout/AuthCardShell";
 import { getUserErrorMessage } from "@/lib/user-error-message";
-
-function safeInternalRedirect(raw: string | null): string {
-  if (!raw || !raw.startsWith("/") || raw.startsWith("//")) return "/profile";
-  return raw;
-}
+import { safeInternalPathOr } from "@/lib/safe-redirect";
 
 export default function VerifyEmailPage() {
   return (
@@ -29,7 +25,7 @@ function VerifyEmailForm() {
   const searchParams = useSearchParams();
   const { user, setAuth } = useAuthStore();
   const emailFromQuery = searchParams.get("email") || "";
-  const redirectTo = safeInternalRedirect(searchParams.get("redirect"));
+  const redirectTo = safeInternalPathOr(searchParams.get("redirect"), "/profile");
   const [email, setEmail] = useState(emailFromQuery || user?.email || "");
   const [code, setCode] = useState("");
   const [error, setError] = useState("");

@@ -25,8 +25,9 @@ export default function AdminLoginPage() {
 
   const onSubmit = async (data: LoginForm) => {
     try {
-      const res = await authApi.login(data);
+      const res = await authApi.login(data, { persist: false });
       if (res.user.role !== "ADMIN") {
+        void authApi.revokeRefreshToken(res.refreshToken);
         setError("Tài khoản này không có quyền Admin.");
         return;
       }

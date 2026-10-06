@@ -26,9 +26,11 @@ export function portalRoleFromJwtRole(role: unknown): PortalRole | null {
   return null;
 }
 
-export async function verifyAccessToken(token: string): Promise<PortalRole | null> {
+const PORTAL_COOKIE_MAX_AGE_SECONDS = 86400;
+
+export async function verifyAccessToken(token: string, clockToleranceSeconds = 0): Promise<PortalRole | null> {
   try {
-    const { payload } = await jwtVerify(token, getJwtSecretKey());
+    const { payload } = await jwtVerify(token, getJwtSecretKey(), { clockTolerance: clockToleranceSeconds });
     if (payload.type !== "access") return null;
     return portalRoleFromJwtRole(payload.role);
   } catch {
@@ -36,16 +38,21 @@ export async function verifyAccessToken(token: string): Promise<PortalRole | nul
   }
 }
 
+/**
+ * Route gate only (every API call is authorised by the backend): a signed access token that expired
+ * while the portal stayed open still identifies the role, so idle admins/brands are not bounced to login
+ * while their refresh token is valid.
+ */
 export async function resolvePortalRole(request: NextRequest): Promise<PortalRole | null> {
   const accessToken = request.cookies.get(PORTAL_ACCESS_COOKIE)?.value;
   if (!accessToken) return null;
-  return verifyAccessToken(accessToken);
+  return verifyAccessToken(accessToken, PORTAL_COOKIE_MAX_AGE_SECONDS);
 }
 
 export function portalCookieOptions() {
   return {
     path: "/",
-    maxAge: 86400,
+    maxAge: PORTAL_COOKIE_MAX_AGE_SECONDS,
     sameSite: "lax" as const,
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",

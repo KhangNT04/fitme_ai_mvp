@@ -1,7 +1,7 @@
 import axios, { type AxiosError, type InternalAxiosRequestConfig } from "axios";
 import { formatUserErrorMessage } from "@/lib/user-error-message";
 import { isJwtExpired } from "@/lib/jwt-expiry";
-import { emitAuthClear, emitAuthDropAccess } from "@/lib/auth-events";
+import { emitAuthClear, emitAuthDropAccess, emitAuthTokensRefreshed } from "@/lib/auth-events";
 import { API_URL, SESSION_STORAGE_KEY, AUTH_TOKEN_KEY, AUTH_REFRESH_KEY } from "@/utils/constants";
 
 export interface ApiError {
@@ -61,9 +61,16 @@ async function refreshAccessToken(): Promise<string | null> {
     if (data && "accessToken" in data) {
       localStorage.setItem(AUTH_TOKEN_KEY, data.accessToken);
       localStorage.setItem(AUTH_REFRESH_KEY, data.refreshToken);
+      emitAuthTokensRefreshed({ accessToken: data.accessToken, refreshToken: data.refreshToken });
       return data.accessToken;
     }
   } catch {
+    // Refresh tokens are single-use: another tab may have rotated this one a moment ago.
+    const latestRefresh = localStorage.getItem(AUTH_REFRESH_KEY);
+    const latestAccess = localStorage.getItem(AUTH_TOKEN_KEY);
+    if (latestRefresh && latestRefresh !== refreshToken && latestAccess && !isJwtExpired(latestAccess)) {
+      return latestAccess;
+    }
     clearAuthTokens();
   }
   return null;

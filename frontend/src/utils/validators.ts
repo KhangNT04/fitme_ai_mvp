@@ -78,9 +78,9 @@ export const loginSchema = z.object({
 });
 
 export const registerSchema = z.object({
-  fullName: z.string().min(2, "Họ tên tối thiểu 2 ký tự"),
+  fullName: z.string().trim().min(2, "Họ tên tối thiểu 2 ký tự").max(100, "Họ tên tối đa 100 ký tự"),
   email: z.string().email("Email không hợp lệ"),
-  password: z.string().min(6, "Mật khẩu tối thiểu 6 ký tự"),
+  password: z.string().min(6, "Mật khẩu tối thiểu 6 ký tự").max(100, "Mật khẩu tối đa 100 ký tự"),
   confirmPassword: z.string(),
   captchaAnswer: z.string().min(1, "Nhập đáp án xác nhận"),
   website: z.string().optional(),
@@ -92,7 +92,7 @@ export const registerSchema = z.object({
 
 export const resetPasswordSchema = z.object({
   token: z.string().min(1, "Nhập token"),
-  newPassword: z.string().min(6, "Mật khẩu tối thiểu 6 ký tự"),
+  newPassword: z.string().min(6, "Mật khẩu tối thiểu 6 ký tự").max(100, "Mật khẩu tối đa 100 ký tự"),
   confirmPassword: z.string(),
 }).refine((data) => data.newPassword === data.confirmPassword, {
   message: "Mật khẩu không khớp",

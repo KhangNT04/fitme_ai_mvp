@@ -12,12 +12,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { AuthCardShell } from "@/components/layout/AuthCardShell";
 import { getUserErrorMessage } from "@/lib/user-error-message";
+import { safeInternalPath } from "@/lib/safe-redirect";
 import { registerSchema, type RegisterForm } from "@/utils/validators";
-
-function safeInternalRedirect(raw: string | null): string | null {
-  if (!raw || !raw.startsWith("/") || raw.startsWith("//")) return null;
-  return raw;
-}
 
 export default function RegisterPage() {
   return (
@@ -30,7 +26,7 @@ export default function RegisterPage() {
 function RegisterForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const redirectAfterVerify = safeInternalRedirect(searchParams.get("redirect"));
+  const redirectAfterVerify = safeInternalPath(searchParams.get("redirect"));
   const [error, setError] = useState("");
   const [formStartedAtMs] = useState(() => Date.now());
   const { register, handleSubmit, setValue, formState: { errors, isSubmitting } } = useForm<RegisterForm>({

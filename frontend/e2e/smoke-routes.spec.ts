@@ -20,7 +20,7 @@ test.describe("Public route smoke", () => {
     { path: "/brand/login", heading: "Brand Portal — Đăng nhập" },
     { path: "/brand/onboarding", heading: "Đăng ký đối tác Brand" },
     { path: "/admin/login", heading: "Admin — Đăng nhập" },
-    { path: "/redirect/loading", heading: "Đang chuyển hướng..." },
+    { path: "/redirect/loading", heading: "Liên kết không hợp lệ" },
   ];
 
   for (const { path, heading } of publicPages) {

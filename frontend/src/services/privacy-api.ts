@@ -11,7 +11,14 @@ export interface DeletionRequestPayload {
   reason?: string;
 }
 
-export type ConsentType = "PRIVACY_NOTICE" | "PHOTO_UPLOAD" | "WARDROBE_IMAGE_UPLOAD" | "AI_PREVIEW";
+export type ConsentType =
+  | "PRIVACY_NOTICE"
+  | "PHOTO_UPLOAD"
+  | "WARDROBE_IMAGE_UPLOAD"
+  | "AI_PREVIEW"
+  | "BRAND_LEAD_SHARING";
+
+export const PRIVACY_CONSENTS_QUERY_KEY = ["privacy-consents"] as const;
 
 export const privacyApi = {
   getConsents: async (): Promise<Partial<Record<ConsentType, boolean>>> => {

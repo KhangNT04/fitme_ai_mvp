@@ -50,6 +50,7 @@ const NAV_LEVEL_2_ROUTES = new Set([
   "/brand/onboarding",
   "/brand/dashboard",
   "/brand/products",
+  "/brand/leads",
   "/brand/analytics",
   "/brand/plan",
   "/brand/settings",

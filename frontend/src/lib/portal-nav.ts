@@ -6,6 +6,7 @@ export interface PortalNavItem {
 export const brandNav: PortalNavItem[] = [
   { href: "/brand/dashboard", label: "Tổng quan" },
   { href: "/brand/products", label: "Sản phẩm" },
+  { href: "/brand/leads", label: "Khách quan tâm" },
   { href: "/brand/insights/demand", label: "Nhu cầu Gen Z" },
   { href: "/brand/analytics", label: "Phân tích" },
   { href: "/brand/plan", label: "Gói Plus" },

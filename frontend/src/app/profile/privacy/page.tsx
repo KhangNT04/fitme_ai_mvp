@@ -6,7 +6,8 @@ import { useRouter } from "next/navigation";
 import { Shield, Trash2, AlertTriangle } from "lucide-react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useAuthStore } from "@/stores/auth-store";
-import { privacyApi, type ConsentType } from "@/services/privacy-api";
+import { PRIVACY_CONSENTS_QUERY_KEY, privacyApi, type ConsentType } from "@/services/privacy-api";
+import { LEAD_SHARING_CONSENT_TEXT } from "@/lib/brand-leads";
 import { toast } from "@/stores/toast-store";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -56,20 +57,39 @@ const WITHDRAWABLE_CONSENTS: { type: ConsentType; label: string }[] = [
   { type: "WARDROBE_IMAGE_UPLOAD", label: "Lưu ảnh tủ đồ" },
 ];
 
+function consentToast(type: ConsentType, accepted: boolean): string {
+  if (type === "BRAND_LEAD_SHARING") {
+    return accepted
+      ? "Đã đồng ý. Khi bạn bấm mua, brand của sản phẩm sẽ thấy tên và email của bạn."
+      : "Đã rút lại đồng ý. Brand sẽ không còn thấy tên và email của bạn.";
+  }
+  return "Đã rút lại đồng ý. FitMe sẽ hỏi lại trước lần upload tiếp theo.";
+}
+
+function ConsentStatus({ loading, granted }: { loading: boolean; granted: boolean }) {
+  return (
+    <p className="text-xs text-muted-foreground">
+      {loading ? "Đang tải..." : granted ? "Đang đồng ý" : "Chưa đồng ý / đã rút lại"}
+    </p>
+  );
+}
+
 function ConsentSection() {
   const queryClient = useQueryClient();
   const { data: consents, isLoading } = useQuery({
-    queryKey: ["privacy-consents"],
+    queryKey: PRIVACY_CONSENTS_QUERY_KEY,
     queryFn: () => privacyApi.getConsents(),
   });
-  const withdraw = useMutation({
-    mutationFn: (type: ConsentType) => privacyApi.recordConsent(type, false),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["privacy-consents"] });
-      toast.success("Đã rút lại đồng ý. FitMe sẽ hỏi lại trước lần upload tiếp theo.");
+  const update = useMutation({
+    mutationFn: ({ type, accepted }: { type: ConsentType; accepted: boolean }) =>
+      privacyApi.recordConsent(type, accepted),
+    onSuccess: (_data, { type, accepted }) => {
+      queryClient.invalidateQueries({ queryKey: PRIVACY_CONSENTS_QUERY_KEY });
+      toast.success(consentToast(type, accepted));
     },
-    onError: (e: unknown) => toast.error(getUserErrorMessage(e, "Không rút lại được đồng ý")),
+    onError: (e: unknown) => toast.error(getUserErrorMessage(e, "Không cập nhật được đồng ý")),
   });
+  const leadSharing = consents?.BRAND_LEAD_SHARING === true;
 
   return (
     <section className="surface-card overflow-hidden rounded-xl sm:rounded-2xl">
@@ -83,23 +103,37 @@ function ConsentSection() {
             <li key={type} className="flex items-center justify-between gap-3 px-3 py-3 sm:px-5">
               <div className="min-w-0">
                 <p className="text-sm text-foreground">{label}</p>
-                <p className="text-xs text-muted-foreground">
-                  {isLoading ? "Đang tải..." : granted ? "Đang đồng ý" : "Chưa đồng ý / đã rút lại"}
-                </p>
+                <ConsentStatus loading={isLoading} granted={granted} />
               </div>
               <Button
                 type="button"
                 size="sm"
                 variant="outline"
                 className="shrink-0 rounded-full"
-                disabled={!granted || withdraw.isPending}
-                onClick={() => withdraw.mutate(type)}
+                disabled={!granted || update.isPending}
+                onClick={() => update.mutate({ type, accepted: false })}
               >
                 Rút lại
               </Button>
             </li>
           );
         })}
+        <li className="flex items-center justify-between gap-3 px-3 py-3 sm:px-5" data-testid="consent-brand-lead-sharing">
+          <div className="min-w-0">
+            <p className="text-sm text-foreground">{LEAD_SHARING_CONSENT_TEXT}</p>
+            <ConsentStatus loading={isLoading} granted={leadSharing} />
+          </div>
+          <Button
+            type="button"
+            size="sm"
+            variant="outline"
+            className="shrink-0 rounded-full"
+            disabled={isLoading || update.isPending}
+            onClick={() => update.mutate({ type: "BRAND_LEAD_SHARING", accepted: !leadSharing })}
+          >
+            {leadSharing ? "Rút lại" : "Đồng ý"}
+          </Button>
+        </li>
       </ul>
     </section>
   );

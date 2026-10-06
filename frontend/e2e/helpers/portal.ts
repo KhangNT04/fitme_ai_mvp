@@ -15,6 +15,7 @@ export const BRAND_PAGES: { path: string; heading: string | RegExp }[] = [
   { path: "/brand/dashboard", heading: "Tổng quan" },
   { path: "/brand/products", heading: "Quản lý sản phẩm" },
   { path: "/brand/products/new", heading: "Thêm sản phẩm mới" },
+  { path: "/brand/leads", heading: "Khách quan tâm" },
   { path: "/brand/analytics", heading: "Phân tích" },
   { path: "/brand/analytics/redirect", heading: "Phân tích chuyển hướng mua" },
   { path: "/brand/analytics/dropoff", heading: "Phân tích điểm rời bỏ" },

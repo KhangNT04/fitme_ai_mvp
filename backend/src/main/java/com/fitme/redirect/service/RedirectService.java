@@ -1,6 +1,7 @@
 package com.fitme.redirect.service;
 
 import com.fitme.analytics.service.AnalyticsService;
+import com.fitme.brandlead.service.BrandLeadService;
 import com.fitme.common.enums.FlaggedLinkReason;
 import com.fitme.common.enums.FlaggedLinkStatus;
 import com.fitme.common.exception.BusinessException;
@@ -40,6 +41,7 @@ public class RedirectService {
     private final ProductRepository productRepository;
     private final AnalyticsService analyticsService;
     private final PreferenceLearningService preferenceLearningService;
+    private final BrandLeadService brandLeadService;
 
     @Transactional
     public BuyClickResponse processBuyClick(BuyClickRequest request) {
@@ -70,7 +72,9 @@ public class RedirectService {
                 .purchaseUrl(url)
                 .channel(product.getPurchaseChannel() != null ? product.getPurchaseChannel().name() : "OTHER")
                 .build();
-        event = buyClickEventRepository.save(event);
+        // Flushed so the lead row can reference the click through JDBC in the same transaction.
+        event = buyClickEventRepository.saveAndFlush(event);
+        brandLeadService.recordLead(event, product);
 
         analyticsService.track("BUY_CLICKED", event.getUserId(), event.getSessionId(),
                 product.getBrandId(), product.getId(), request.getRecommendationId(),

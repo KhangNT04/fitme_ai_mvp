@@ -128,6 +128,8 @@ public class UserDataEraser {
         for (String table : List.of("analytics_events", "buy_click_events", "site_visits")) {
             jdbc.update("UPDATE " + table + " SET user_id = NULL WHERE user_id = :u", p);
         }
+        // Brands keep the lead counts but can no longer see who the customer was.
+        jdbc.update("UPDATE brand_leads SET user_id = NULL, anonymized_at = NOW() WHERE user_id = :u", p);
         p.addValue("hash", passwordEncoder.encode(UUID.randomUUID().toString()));
         jdbc.update("""
                 UPDATE user_accounts SET

@@ -1,12 +1,17 @@
 "use client";
 
-import { use, useMemo, useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
-import { useQuery } from "@tanstack/react-query";
+import { use, useMemo, useRef, useState } from "react";
+import Link from "next/link";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { ExternalLink, ShoppingBag, Info } from "lucide-react";
 import { productApi } from "@/services/product-api";
 import { redirectApi } from "@/services/redirect-api";
+import { PRIVACY_CONSENTS_QUERY_KEY, privacyApi } from "@/services/privacy-api";
+import { useAuthStore } from "@/stores/auth-store";
+import { LEAD_SHARING_CONSENT_TEXT } from "@/lib/brand-leads";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import { LoadingSkeleton } from "@/components/common/LoadingSkeleton";
 import { ErrorState } from "@/components/common/ErrorState";
 import { PageSuspense } from "@/components/common/PageSuspense";
@@ -20,6 +25,57 @@ import { getUserErrorMessage } from "@/lib/user-error-message";
 import { toast } from "@/stores/toast-store";
 
 const BUY_CLICK_ERROR_FALLBACK = "Không thể mở nơi bán lúc này. Vui lòng thử lại.";
+
+function LeadSharingConsent({ pendingRef }: { pendingRef: React.RefObject<Promise<unknown> | null> }) {
+  const queryClient = useQueryClient();
+  const [override, setOverride] = useState<boolean | null>(null);
+  const { data: consents, isLoading } = useQuery({
+    queryKey: PRIVACY_CONSENTS_QUERY_KEY,
+    queryFn: () => privacyApi.getConsents(),
+  });
+  const update = useMutation({
+    mutationFn: (accepted: boolean) => privacyApi.recordConsent("BRAND_LEAD_SHARING", accepted),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: PRIVACY_CONSENTS_QUERY_KEY }),
+    onError: (e: unknown) => {
+      setOverride(null);
+      toast.error(getUserErrorMessage(e, "Không cập nhật được đồng ý chia sẻ thông tin"));
+    },
+  });
+  const checked = override ?? consents?.BRAND_LEAD_SHARING === true;
+
+  const handleChange = (value: boolean) => {
+    setOverride(value);
+    pendingRef.current = update.mutateAsync(value).catch(() => undefined);
+  };
+
+  return (
+    <label className="flex items-start gap-2.5 rounded-xl border border-border/60 p-3 text-xs leading-relaxed text-foreground sm:p-4 sm:text-sm">
+      <Checkbox
+        className="mt-0.5"
+        checked={checked}
+        disabled={isLoading}
+        onCheckedChange={(v) => handleChange(v === true)}
+        data-testid="lead-sharing-consent"
+      />
+      <span>{LEAD_SHARING_CONSENT_TEXT}</span>
+    </label>
+  );
+}
+
+function LeadSharingLoginHint() {
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const query = searchParams.toString();
+  const redirect = encodeURIComponent(query ? `${pathname}?${query}` : pathname);
+  return (
+    <p className="text-xs text-muted-foreground sm:text-sm" data-testid="lead-sharing-login-hint">
+      <Link href={`/auth/login?redirect=${redirect}`} className="font-medium text-primary underline-offset-2 hover:underline">
+        Đăng nhập
+      </Link>{" "}
+      để brand có thể liên hệ tư vấn và hỗ trợ đơn hàng cho bạn. Bạn vẫn có thể mua mà không cần đăng nhập.
+    </p>
+  );
+}
 
 export default function RedirectConfirmPage({
   params,
@@ -45,6 +101,8 @@ function RedirectConfirmContent({
   const { ensureSession } = useEnsureSession();
   const [loading, setLoading] = useState(false);
   const [redirectError, setRedirectError] = useState<string | null>(null);
+  const isAuthenticated = useAuthStore((s) => s.isAuthenticated());
+  const pendingConsentRef = useRef<Promise<unknown> | null>(null);
 
   const { data: product, isLoading, error, refetch } = useQuery({
     queryKey: ["product", id],
@@ -55,6 +113,7 @@ function RedirectConfirmContent({
     setLoading(true);
     setRedirectError(null);
     try {
+      await pendingConsentRef.current;
       const session = await ensureSession();
       if (!session) {
         setLoading(false);
@@ -122,6 +181,8 @@ function RedirectConfirmContent({
             Thanh toán và đơn hàng được xử lý bởi shop/sàn bán hàng. FitMe AI không xử lý thanh toán.
           </p>
         </div>
+
+        {isAuthenticated ? <LeadSharingConsent pendingRef={pendingConsentRef} /> : <LeadSharingLoginHint />}
 
         <Button
           className="min-h-11 w-full rounded-full sm:w-auto"

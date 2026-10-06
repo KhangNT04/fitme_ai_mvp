@@ -106,9 +106,8 @@ public class ReviewService {
                        COALESCE(NULLIF(TRIM(u.display_name), ''), 'Khách hàng FitMe') AS author_name,
                        (SELECT i.image_url FROM product_review_images i WHERE i.review_id = r.id
                         ORDER BY i.sort_order LIMIT 1) AS image_url,
-                       EXISTS (SELECT 1 FROM buy_click_events b
-                               WHERE b.product_id = r.product_id AND b.user_id = r.user_id
-                                 AND b.purchased_confirmed = TRUE) AS verified
+                       """ + PurchaseVerifier.verifiedPurchaseSql("r") + """
+                        AS verified
                 FROM product_reviews r
                 JOIN products p ON p.id = r.product_id
                 JOIN user_accounts u ON u.id = r.user_id

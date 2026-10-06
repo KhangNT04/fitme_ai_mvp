@@ -9,7 +9,7 @@ export const metadata: Metadata = {
 
 export default function PrivacyPolicyPage() {
   return (
-    <LegalPage title="Chính sách bảo mật" subtitle="Cách FitMe AI xử lý dữ liệu cá nhân" updatedAt="04/10/2026">
+    <LegalPage title="Chính sách bảo mật" subtitle="Cách FitMe AI xử lý dữ liệu cá nhân" updatedAt="07/10/2026">
       <p>
         FitMe AI tôn trọng quyền riêng tư của bạn và xử lý dữ liệu cá nhân theo Nghị định 13/2023/NĐ-CP về bảo vệ
         dữ liệu cá nhân. Chính sách này giải thích dữ liệu nào được thu thập, dùng để làm gì và bạn kiểm soát chúng
@@ -38,7 +38,13 @@ export default function PrivacyPolicyPage() {
 
       <LegalSection title="3. Chia sẻ dữ liệu">
         <ul>
-          <li>Brand đối tác: chỉ nhận số liệu tổng hợp, ẩn danh (lượt xem, lượt bấm mua, thử mặc). Khi bạn mua tại cửa hàng của brand, dữ liệu đặt hàng do cửa hàng đó xử lý theo chính sách riêng của họ.</li>
+          <li>Brand đối tác: mặc định chỉ nhận số liệu tổng hợp, ẩn danh (lượt xem, lượt bấm mua, thử mặc). Khi bạn mua tại cửa hàng của brand, dữ liệu đặt hàng do cửa hàng đó xử lý theo chính sách riêng của họ.</li>
+          <li>
+            Chỉ khi bạn đồng ý rõ ràng (ô &quot;Chia sẻ tên và email với brand&quot;), tên và email của bạn được chia sẻ với
+            brand của sản phẩm bạn bấm mua, để brand liên hệ tư vấn và xác nhận đơn. Bạn có thể rút lại đồng ý bất kỳ lúc
+            nào trong <Link href="/profile/privacy">Cài đặt quyền riêng tư</Link>; khi đó brand không còn thấy tên và email
+            của bạn. Khi bạn xóa tài khoản, liên kết giữa bạn và các lượt quan tâm này được ẩn danh hoá.
+          </li>
           <li>Đơn vị thanh toán PayOS: thông tin giao dịch khi bạn mua gói FitMe Premium hoặc Fitken.</li>
           <li>Nhà cung cấp hạ tầng và AI (lưu trữ, gửi email, tạo ảnh thử mặc) xử lý dữ liệu thay mặt FitMe theo hợp đồng bảo mật.</li>
           <li>Cơ quan nhà nước có thẩm quyền khi pháp luật yêu cầu.</li>

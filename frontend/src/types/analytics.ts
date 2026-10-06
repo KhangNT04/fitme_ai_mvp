@@ -6,6 +6,22 @@ export interface DashboardStats {
   clickThroughRate: number;
   tryOnAttempts: number;
   tryOnToBuyRate: number;
+  tryOnCustomers7d: number;
+  tryOnCustomers30d: number;
+  topTryOnProducts: ProductCustomers[];
+  funnel30d: CustomerFunnel;
+}
+
+export interface ProductCustomers {
+  productId: string;
+  productName: string;
+  customers: number;
+}
+
+export interface CustomerFunnel {
+  tryOnCustomers: number;
+  buyClickCustomers: number;
+  soldLeads: number;
 }
 
 export interface ChartDataPoint {

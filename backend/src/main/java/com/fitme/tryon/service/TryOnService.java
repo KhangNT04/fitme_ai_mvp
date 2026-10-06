@@ -37,6 +37,7 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
@@ -188,8 +189,7 @@ public class TryOnService {
         tryOnRequestRepository.save(tryOn);
         VtonTryOnService.Charge charge = vtonTryOnService.startJob(tryOn, chargeUserId, preferFreeTry);
         tryOn = tryOnRequestRepository.findById(id).orElseThrow();
-        analyticsService.track("TRY_ON_GENERATED", tryOn.getUserId(), tryOn.getSessionId(),
-                null, null, null, id, null);
+        trackGenerated(tryOn, items);
         TryOnResponse response = toResponse(tryOn);
         attachItemDetails(tryOn, response);
         attachPreviewIfReady(tryOn, response);
@@ -421,6 +421,24 @@ public class TryOnService {
                 response.setErrorMessage(preview.getErrorMessage());
             }
         });
+    }
+
+    /**
+     * An outfit can mix brands, so the event lists every brand / product it contained (the brand dashboard reads
+     * these); the brand_id / product_id columns are only set when there is exactly one.
+     */
+    private void trackGenerated(TryOnRequest tryOn, List<TryOnItem> items) {
+        List<UUID> productIds = items.stream().map(TryOnItem::getProductId).distinct().toList();
+        List<UUID> brandIds = productRepository.findAllById(productIds).stream()
+                .map(Product::getBrandId)
+                .distinct()
+                .toList();
+        analyticsService.track("TRY_ON_GENERATED", tryOn.getUserId(), tryOn.getSessionId(),
+                brandIds.size() == 1 ? brandIds.getFirst() : null,
+                productIds.size() == 1 ? productIds.getFirst() : null,
+                null, tryOn.getId(),
+                Map.of("brandIds", brandIds.stream().map(UUID::toString).toList(),
+                        "productIds", productIds.stream().map(UUID::toString).toList()));
     }
 
     private void updateVariant(UUID tryOnId, VariantRequest request, String eventType) {

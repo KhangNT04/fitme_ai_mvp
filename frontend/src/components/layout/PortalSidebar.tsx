@@ -26,6 +26,7 @@ import {
   PersonStanding,
   Sparkles as SparklesIcon,
   Ticket,
+  UserCheck,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -34,6 +35,7 @@ import type { PortalNavItem } from "@/lib/portal-nav";
 const brandIcons: Record<string, React.ComponentType<{ className?: string }>> = {
   "/brand/dashboard": LayoutDashboard,
   "/brand/products": Package,
+  "/brand/leads": UserCheck,
   "/brand/insights/demand": SparklesIcon,
   "/brand/analytics": BarChart3,
   "/brand/plan": Crown,

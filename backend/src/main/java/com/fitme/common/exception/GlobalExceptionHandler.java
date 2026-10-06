@@ -56,6 +56,12 @@ public class GlobalExceptionHandler {
                 .body(ApiResponse.fail(ex.getMessage(), PremiumRequiredException.CODE));
     }
 
+    @ExceptionHandler(PlusRequiredException.class)
+    public ResponseEntity<ApiResponse<Void>> handlePlusRequired(PlusRequiredException ex) {
+        return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                .body(ApiResponse.fail(ex.getMessage(), PlusRequiredException.CODE));
+    }
+
     @ExceptionHandler(ConflictException.class)
     public ResponseEntity<ApiResponse<Void>> handleConflict(ConflictException ex) {
         return ResponseEntity.status(HttpStatus.CONFLICT).body(ApiResponse.fail(ex.getMessage(), ex.getCode()));

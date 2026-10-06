@@ -45,6 +45,7 @@ public class AnalyticsService {
     private final FlaggedLinkRepository flaggedLinkRepository;
     private final AdminMetricsService adminMetricsService;
     private final BuyClickEventRepository buyClickEventRepository;
+    private final BrandCustomerMetricsService customerMetricsService;
 
     public void track(String eventType, UUID userId, UUID sessionId, UUID brandId,
                       UUID productId, UUID recommendationId, UUID tryOnRequestId,
@@ -96,6 +97,7 @@ public class AnalyticsService {
         long views = count(events, PRODUCT_VIEWED);
         double ctr = rate(buyClicks, views);
         double tryOnToBuy = rate(buyClicks, tryOnStarted);
+        BrandCustomerMetricsService.Snapshot customers = customerMetricsService.forBrand(brandId);
         return BrandDashboardResponse.builder()
                 .totalProducts(totalProducts)
                 .activeProducts(activeProducts)
@@ -104,6 +106,10 @@ public class AnalyticsService {
                 .clickThroughRate(ctr)
                 .tryOnAttempts(tryOnStarted)
                 .tryOnToBuyRate(tryOnToBuy)
+                .tryOnCustomers7d(customers.tryOnCustomers7d())
+                .tryOnCustomers30d(customers.tryOnCustomers30d())
+                .topTryOnProducts(customers.topProducts())
+                .funnel30d(customers.funnel30d())
                 .build();
     }
 

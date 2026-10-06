@@ -2,6 +2,7 @@ package com.fitme.product.service;
 
 import com.fitme.brand.entity.Brand;
 import com.fitme.brand.repository.BrandRepository;
+import com.fitme.brandplus.service.BrandPlusService;
 import com.fitme.common.enums.BrandStatus;
 import com.fitme.common.enums.ProductStatus;
 import com.fitme.common.exception.BusinessException;
@@ -15,6 +16,7 @@ import com.fitme.product.entity.ProductVariant;
 import com.fitme.product.entity.SizeChart;
 import com.fitme.product.repository.*;
 import com.fitme.product.util.ProductCategoryGroups;
+import com.fitme.settings.service.SystemSettingsService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -34,12 +36,15 @@ public class ProductService {
     private final SizeChartRepository sizeChartRepository;
     private final BrandRepository brandRepository;
     private final ProductEligibilityService eligibilityService;
+    private final BrandPlusService brandPlusService;
+    private final SystemSettingsService settingsService;
 
     public List<ProductResponse> listPublicProducts(ProductFilter filter) {
+        Set<UUID> plusBrandIds = brandPlusService.activePlusBrandIds();
         return productRepository.findByStatus(ProductStatus.ACTIVE).stream()
                 .filter(p -> isBrandApproved(p.getBrandId()))
                 .filter(p -> matchesFilter(p, filter))
-                .map(this::toResponse)
+                .map(p -> toResponse(p, plusBrandIds.contains(p.getBrandId())))
                 .toList();
     }
 
@@ -52,21 +57,28 @@ public class ProductService {
         return toResponse(product);
     }
 
+    /** Same category group; Brand Plus products come first unless the admin turned the Plus boost off. */
     public List<ProductResponse> getSimilarProducts(UUID id) {
         Product product = productRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException("Sản phẩm không tồn tại"));
+        Set<UUID> plusBrandIds = brandPlusService.activePlusBrandIds();
+        boolean prioritizePlus = settingsService.recommendationPlusBoost() > 0;
+        Comparator<Product> plusFirst = Comparator.comparing(
+                (Product p) -> prioritizePlus && plusBrandIds.contains(p.getBrandId()));
         return productRepository.findByStatus(ProductStatus.ACTIVE).stream()
                 .filter(p -> !p.getId().equals(id))
                 .filter(p -> isBrandApproved(p.getBrandId()))
                 .filter(p -> ProductCategoryGroups.sameGroup(p.getCategory(), product.getCategory()))
+                .sorted(plusFirst.reversed())
                 .limit(8)
-                .map(this::toResponse)
+                .map(p -> toResponse(p, plusBrandIds.contains(p.getBrandId())))
                 .toList();
     }
 
     public List<ProductResponse> listBrandProducts(UUID brandId) {
+        boolean plusBrand = brandPlusService.isPlusActive(brandId);
         return productRepository.findByBrandId(brandId).stream()
-                .map(this::toResponse)
+                .map(p -> toResponse(p, plusBrand))
                 .toList();
     }
 
@@ -210,14 +222,17 @@ public class ProductService {
     }
 
     public List<ProductResponse> listPendingProducts() {
-        return productRepository.findByStatus(ProductStatus.PENDING_REVIEW).stream()
-                .map(this::toResponse)
-                .toList();
+        return toResponses(productRepository.findByStatus(ProductStatus.PENDING_REVIEW));
     }
 
     public List<ProductResponse> listFlaggedProducts() {
-        return productRepository.findByStatus(ProductStatus.FLAGGED).stream()
-                .map(this::toResponse)
+        return toResponses(productRepository.findByStatus(ProductStatus.FLAGGED));
+    }
+
+    private List<ProductResponse> toResponses(List<Product> products) {
+        Set<UUID> plusBrandIds = brandPlusService.activePlusBrandIds();
+        return products.stream()
+                .map(p -> toResponse(p, plusBrandIds.contains(p.getBrandId())))
                 .toList();
     }
 
@@ -397,12 +412,17 @@ public class ProductService {
     }
 
     public ProductResponse toResponse(Product product) {
+        return toResponse(product, brandPlusService.isPlusActive(product.getBrandId()));
+    }
+
+    private ProductResponse toResponse(Product product, boolean plusBrand) {
         UUID productId = product.getId();
         String brandName = brandRepository.findById(product.getBrandId()).map(Brand::getName).orElse(null);
         return ProductResponse.builder()
                 .id(productId)
                 .brandId(product.getBrandId())
                 .brandName(brandName)
+                .plusBrand(plusBrand)
                 .name(product.getName())
                 .description(product.getDescription())
                 .category(product.getCategory())

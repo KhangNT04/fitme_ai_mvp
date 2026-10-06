@@ -8,6 +8,7 @@ import { productApi } from "@/services/product-api";
 import { publicBrandApi } from "@/services/brand-api";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import { BrandPlusBadge } from "@/components/common/BrandPlusBadge";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ProductCard } from "@/components/common/ProductCard";
@@ -131,7 +132,10 @@ export default function DiscoverBrandPage() {
             </div>
           )}
           <div className="min-w-0">
-            <h2 className="truncate font-display text-lg font-bold text-foreground sm:text-xl">{brandName}</h2>
+            <div className="flex min-w-0 items-center gap-2">
+              <h2 className="truncate font-display text-lg font-bold text-foreground sm:text-xl">{brandName}</h2>
+              {brand.plusBrand && <BrandPlusBadge />}
+            </div>
             {brand.description && (
               <p className="mt-0.5 line-clamp-2 text-sm text-muted-foreground">{brand.description}</p>
             )}

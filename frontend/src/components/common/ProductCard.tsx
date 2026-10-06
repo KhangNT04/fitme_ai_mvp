@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useState } from "react";
 import { AppImage } from "@/components/common/AppImage";
+import { BrandPlusBadge } from "@/components/common/BrandPlusBadge";
 import { Sparkles } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -143,14 +144,17 @@ export function ProductCard({
           cardSize === "default" && "p-4"
         )}
       >
-        <p
-          className={cn(
-            "truncate font-semibold uppercase tracking-wider text-muted-foreground",
-            cardSize === "catalog" || cardSize === "compact" ? "text-[9px] sm:text-[10px]" : "text-[10px]"
-          )}
-        >
-          {product.brandName}
-        </p>
+        <div className="flex min-w-0 items-center gap-1">
+          <p
+            className={cn(
+              "truncate font-semibold uppercase tracking-wider text-muted-foreground",
+              cardSize === "catalog" || cardSize === "compact" ? "text-[9px] sm:text-[10px]" : "text-[10px]"
+            )}
+          >
+            {product.brandName}
+          </p>
+          {product.plusBrand && <BrandPlusBadge size="compact" />}
+        </div>
         <Link href={productHref}>
           <h3
             className={cn(

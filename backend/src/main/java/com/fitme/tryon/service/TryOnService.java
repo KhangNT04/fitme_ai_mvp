@@ -59,6 +59,7 @@ public class TryOnService {
     private final StyleProfileService styleProfileService;
     private final AiVtonClient aiVtonClient;
     private final TryOnAvatarService tryOnAvatarService;
+    private final PlusFreeTryOnService plusFreeTryOnService;
 
     @Transactional
     public TryOnResponse create(CreateTryOnRequest request) {
@@ -168,6 +169,7 @@ public class TryOnService {
         }
 
         UUID chargeUserId = null;
+        boolean preferFreeTry = false;
         if (isAiMode(tryOn.getPreviewMode())) {
             chargeUserId = RequestContext.getCurrentUserId()
                     .orElseThrow(() -> new BusinessException(
@@ -176,12 +178,15 @@ public class TryOnService {
             if (tryOn.getUserId() == null) {
                 tryOn.setUserId(chargeUserId);
             }
-            fitkenService.assertCanAfford(chargeUserId, fitkenService.tryOnCost());
+            preferFreeTry = plusFreeTryOnService.allPlus(items.stream().map(TryOnItem::getProductId).toList());
+            if (!preferFreeTry || plusFreeTryOnService.remainingToday(chargeUserId) <= 0) {
+                fitkenService.assertCanAfford(chargeUserId, fitkenService.tryOnCost());
+            }
         }
 
         tryOn.setStatus(TryOnStatus.PROCESSING);
         tryOnRequestRepository.save(tryOn);
-        vtonTryOnService.startJob(tryOn, chargeUserId);
+        VtonTryOnService.Charge charge = vtonTryOnService.startJob(tryOn, chargeUserId, preferFreeTry);
         tryOn = tryOnRequestRepository.findById(id).orElseThrow();
         analyticsService.track("TRY_ON_GENERATED", tryOn.getUserId(), tryOn.getSessionId(),
                 null, null, null, id, null);
@@ -191,8 +196,14 @@ public class TryOnService {
         attachOutfitCompletion(tryOn.getId(), response);
         if (chargeUserId != null) {
             response.setFitkenBalance(fitkenService.balance(chargeUserId));
+            response.setFreeTry(charge == VtonTryOnService.Charge.FREE_TRY);
+            response.setChargedFitken(charge == VtonTryOnService.Charge.FITKEN ? fitkenService.tryOnCost() : 0);
         }
         return response;
+    }
+
+    public TryOnQuoteResponse quote(List<UUID> productIds) {
+        return plusFreeTryOnService.quote(RequestContext.getCurrentUserId().orElse(null), productIds);
     }
 
     public TryOnResponse getResult(UUID id) {

@@ -84,12 +84,29 @@ public class OutfitScoringService {
 
         score += preferenceAndCoherenceBonus(p, targetStyle, ctx);
         score += favoriteBrandBonus(p, ctx);
+        score += plusBrandBonus(p, ctx);
         return score;
+    }
+
+    /**
+     * Brand Plus priority (admin setting, default +15). In FAVORITES_ONLY it is capped below the favorite /
+     * non-favorite swing (+40 / -30) so a Premium user's favorite brands always outrank Plus brands, whatever
+     * the admin sets the boost to.
+     */
+    double plusBrandBonus(Product p, OutfitScoreContext ctx) {
+        if (ctx == null || !ctx.isPlusBrand(p.getBrandId())) {
+            return 0;
+        }
+        if (ctx.favoritesOnly()) {
+            return Math.min(ctx.plusBoost(), FAVORITE_ONLY_BONUS - NON_FAVORITE_PENALTY - 1);
+        }
+        return ctx.plusBoost();
     }
 
     /**
      * Premium brand preference: DIVERSE gives favorite brands a mild bonus, FAVORITES_ONLY a strong bonus
      * and pushes other brands down. Free users carry no favorites, so this is always 0 for them.
+     * In DIVERSE the bonus stays just above the Plus boost so a favorite still outranks a non-favorite Plus brand.
      */
     double favoriteBrandBonus(Product p, OutfitScoreContext ctx) {
         if (ctx == null || ctx.favoriteBrandIds().isEmpty()) {
@@ -99,7 +116,7 @@ public class OutfitScoringService {
         if (ctx.brandMixMode() == BrandMixMode.FAVORITES_ONLY) {
             return favorite ? FAVORITE_ONLY_BONUS : NON_FAVORITE_PENALTY;
         }
-        return favorite ? FAVORITE_DIVERSE_BONUS : 0;
+        return favorite ? Math.max(FAVORITE_DIVERSE_BONUS, ctx.plusBoost() + 1) : 0;
     }
 
     public boolean isFavoriteBrand(Product p, OutfitScoreContext ctx) {

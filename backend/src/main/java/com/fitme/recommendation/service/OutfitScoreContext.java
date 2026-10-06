@@ -10,7 +10,8 @@ import java.util.UUID;
 
 /**
  * Scoring context for brand coherence + learned preference weights, plus the Premium favorite brands
- * ({@code favoriteBrandIds} stays empty for Free users).
+ * ({@code favoriteBrandIds} stays empty for Free users) and the Brand Plus priority resolved once per request
+ * ({@code plusBrandIds} is empty when the boost is off).
  */
 public record OutfitScoreContext(
         OutfitCoherenceMode coherenceMode,
@@ -21,7 +22,9 @@ public record OutfitScoreContext(
         Map<String, Double> colorWeights,
         double preferenceScale,
         Set<UUID> favoriteBrandIds,
-        BrandMixMode brandMixMode) {
+        BrandMixMode brandMixMode,
+        Set<UUID> plusBrandIds,
+        double plusBoost) {
 
     public OutfitScoreContext(
             OutfitCoherenceMode coherenceMode,
@@ -33,6 +36,20 @@ public record OutfitScoreContext(
             double preferenceScale) {
         this(coherenceMode, preferredBrandId, partnerBrandIds, styleWeights, brandWeights, colorWeights,
                 preferenceScale, Set.of(), BrandMixMode.DIVERSE);
+    }
+
+    public OutfitScoreContext(
+            OutfitCoherenceMode coherenceMode,
+            UUID preferredBrandId,
+            Set<UUID> partnerBrandIds,
+            Map<String, Double> styleWeights,
+            Map<String, Double> brandWeights,
+            Map<String, Double> colorWeights,
+            double preferenceScale,
+            Set<UUID> favoriteBrandIds,
+            BrandMixMode brandMixMode) {
+        this(coherenceMode, preferredBrandId, partnerBrandIds, styleWeights, brandWeights, colorWeights,
+                preferenceScale, favoriteBrandIds, brandMixMode, Set.of(), 0);
     }
 
     public static OutfitScoreContext empty() {
@@ -76,5 +93,17 @@ public record OutfitScoreContext(
 
     public boolean favoritesOnly() {
         return brandMixMode() == BrandMixMode.FAVORITES_ONLY && !favoriteBrandIds().isEmpty();
+    }
+
+    public Set<UUID> plusBrandIds() {
+        return plusBrandIds == null ? Set.of() : plusBrandIds;
+    }
+
+    public double plusBoost() {
+        return Math.max(0, plusBoost);
+    }
+
+    public boolean isPlusBrand(UUID brandId) {
+        return brandId != null && plusBoost() > 0 && plusBrandIds().contains(brandId);
     }
 }

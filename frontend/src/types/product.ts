@@ -43,6 +43,8 @@ export interface Product {
   stockStatus: StockStatus;
   status: ProductStatus;
   aiTryOnEligible: boolean;
+  /** Brand has an active Brand Plus subscription. */
+  plusBrand?: boolean;
   description?: string;
   flagReason?: string;
   rejectReason?: string;

@@ -32,10 +32,15 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-/** Fitken charging around a stubbed async VTON provider: charge on start, refund on failure. */
+/**
+ * Fitken charging around a stubbed async VTON provider: charge on start, refund on failure. The scheduled
+ * poller is pushed out so only the explicit polls consume the stub's FIFO queue (shared with
+ * {@link PlusFreeTryOnIntegrationTest}, which uses the same configuration and therefore the same context).
+ */
 @TestPropertySource(properties = {
         "fitme.ai.mode=hf",
-        "fitme.ai.public-base-url=http://localhost:8080"
+        "fitme.ai.public-base-url=http://localhost:8080",
+        "fitme.ai.poll-interval-ms=3600000"
 })
 @Import(TryOnFitkenChargingIntegrationTest.StubConfig.class)
 class TryOnFitkenChargingIntegrationTest extends AbstractIntegrationTest {

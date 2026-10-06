@@ -51,6 +51,7 @@ export interface BackendProduct {
   stockStatus?: Product["stockStatus"];
   status: Product["status"];
   aiTryOnEligible: boolean;
+  plusBrand?: boolean;
   images?: BackendProductImage[];
   variants?: BackendProductVariant[];
   tags?: BackendProductTag[];
@@ -155,6 +156,7 @@ export function mapProduct(raw: BackendProduct): Product {
     stockStatus: raw.stockStatus || "IN_STOCK",
     status: raw.status,
     aiTryOnEligible: raw.aiTryOnEligible,
+    plusBrand: raw.plusBrand === true,
     description: raw.description,
   };
 }

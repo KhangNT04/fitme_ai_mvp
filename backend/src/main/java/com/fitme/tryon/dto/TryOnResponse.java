@@ -36,6 +36,10 @@ public class TryOnResponse {
     private String recommendedColor;
     /** Remaining Fitken after an AI generate call; null for free (outfit board) previews. */
     private Integer fitkenBalance;
+    /** AI generate only: Fitken spent on this try-on (0 when free or not billable). */
+    private Integer chargedFitken;
+    /** AI generate only: paid with one of today's free Brand Plus tries instead of Fitken. */
+    private Boolean freeTry;
 
     @Data
     @Builder

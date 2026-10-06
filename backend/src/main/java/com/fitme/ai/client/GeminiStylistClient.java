@@ -175,6 +175,7 @@ public class GeminiStylistClient {
                 Nếu user.gender=FEMALE thì tránh sản phẩm targetGender=MALE. Chỉ chọn productId có trong candidates và phù hợp targetGender.
                 Ưu tiên set TOP+BOTTOM+SHOES hoặc ONE_PIECE (chỉ khi hợp giới tính); có thể thêm OUTERWEAR.
                 Nếu có selectedProductId, giữ sản phẩm đó khi hợp lệ.
+                Khi hai sản phẩm hợp ngang nhau, ưu tiên candidate có plus=true (brand đối tác Plus); không nhắc tới "Plus" trong lời giải thích.
                 Nếu có user.age, bắt buộc cân nhắc độ tuổi khi chọn form và vibe — không giảng bài về tuổi nhưng outfit phải trông hợp lý với khách.
 
                 explanation.narrative: viết tiếng Việt, 2 đoạn (cách nhau bằng xuống dòng), theo mẫu tự nhiên sau:

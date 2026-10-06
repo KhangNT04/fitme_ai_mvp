@@ -22,4 +22,6 @@ public class BrandResponse {
     private String contactPhone;
     private String status;
     private Instant createdAt;
+    /** Active FitMe Brand Plus; only filled on the public brand endpoints. */
+    private Boolean plusBrand;
 }

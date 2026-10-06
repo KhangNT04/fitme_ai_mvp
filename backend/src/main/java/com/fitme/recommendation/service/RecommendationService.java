@@ -5,6 +5,7 @@ import com.fitme.ai.StylistSuggestOutcome;
 import com.fitme.ai.dto.GeminiStylistResult;
 import com.fitme.analytics.service.AnalyticsService;
 import com.fitme.brand.service.BrandPartnershipService;
+import com.fitme.brandplus.service.BrandPlusPriority;
 import com.fitme.common.enums.Confidence;
 import com.fitme.common.enums.ItemRole;
 import com.fitme.common.enums.OutfitCoherenceMode;
@@ -56,6 +57,8 @@ public class RecommendationService {
 
     private static final String DEFAULT_OCCASION = "Casual hàng ngày";
     private static final int MIN_BUDGET_POOL = 8;
+    /** Similarity runs 0-7 where outfit scores run ~0-100, so the Plus boost is scaled down (15 -> 1.5). */
+    private static final double SIMILARITY_PLUS_SCALE = 0.1;
 
     private final OutfitRequestRepository outfitRequestRepository;
     private final RecommendationRepository recommendationRepository;
@@ -76,6 +79,7 @@ public class RecommendationService {
     private final BrandPartnershipService brandPartnershipService;
     private final PreferenceLearningService preferenceLearningService;
     private final BrandPreferenceService brandPreferenceService;
+    private final BrandPlusPriority brandPlusPriority;
 
     @Transactional
     public RecommendationOptionsResponse generate(CreateRecommendationRequest request) {
@@ -477,13 +481,16 @@ public class RecommendationService {
                 .map(productAudienceService::resolveTargetGender)
                 .filter(g -> g != ProductTargetGender.UNISEX)
                 .collect(java.util.stream.Collectors.toSet());
+        BrandPlusPriority.Snapshot plus = brandPlusPriority.snapshot();
         return productRepository.findByStatus(ProductStatus.ACTIVE).stream()
                 .filter(p -> !anchorIds.contains(p.getId()))
                 .filter(eligibilityService::canBeRecommended)
                 .filter(p -> genderCompatible(productAudienceService.resolveTargetGender(p), anchorGenders))
                 .map(p -> java.util.Map.entry(p, similarityScore(p, anchors)))
                 .filter(e -> anchors.isEmpty() || e.getValue() > 0)
-                .sorted(java.util.Map.Entry.<Product, Integer>comparingByValue().reversed())
+                .map(e -> java.util.Map.entry(e.getKey(),
+                        e.getValue() + plus.bonus(e.getKey().getBrandId()) * SIMILARITY_PLUS_SCALE))
+                .sorted(java.util.Map.Entry.<Product, Double>comparingByValue().reversed())
                 .limit(6)
                 .map(java.util.Map.Entry::getKey)
                 .map(p -> RecommendationResponse.OutfitItemDto.builder()
@@ -531,6 +538,7 @@ public class RecommendationService {
         UUID preferredBrandId = resolvePreferredBrandId(anchor);
         Set<UUID> partners = brandPartnershipService.findPartnerBrandIds(preferredBrandId);
         BrandPreferenceService.ScoringPreference favorites = brandPreferenceService.forScoring(userId);
+        BrandPlusPriority.Snapshot plus = brandPlusPriority.snapshot();
         return new OutfitScoreContext(
                 mode,
                 preferredBrandId,
@@ -540,7 +548,9 @@ public class RecommendationService {
                 preferenceLearningService.colorWeights(),
                 preferenceScale,
                 favorites.favoriteBrandIds(),
-                favorites.mode());
+                favorites.mode(),
+                plus.plusBrandIds(),
+                plus.boost());
     }
 
     /**

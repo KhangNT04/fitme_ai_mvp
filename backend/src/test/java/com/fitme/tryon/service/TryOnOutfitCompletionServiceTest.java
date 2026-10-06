@@ -1,6 +1,7 @@
 package com.fitme.tryon.service;
 
 import com.fitme.brand.repository.BrandRepository;
+import com.fitme.brandplus.service.BrandPlusPriority;
 import com.fitme.common.enums.ProductStatus;
 import com.fitme.product.entity.Product;
 import com.fitme.product.repository.ProductImageRepository;
@@ -33,6 +34,8 @@ class TryOnOutfitCompletionServiceTest {
     private ProductRepository productRepository;
     @Mock
     private BrandRepository brandRepository;
+    @Mock
+    private BrandPlusPriority brandPlusPriority;
 
     private TryOnOutfitCompletionService service;
 
@@ -46,7 +49,7 @@ class TryOnOutfitCompletionServiceTest {
                 null, null, null, null, null, null, null, null, new OutfitExplanationComposer(),
                 new ProductAudienceService(mock(com.fitme.product.repository.ProductTagRepository.class)));
         service = new TryOnOutfitCompletionService(
-                productRepository, eligibilityService, composition, brandRepository, null);
+                productRepository, eligibilityService, composition, brandRepository, null, brandPlusPriority);
     }
 
     @Test
@@ -61,10 +64,42 @@ class TryOnOutfitCompletionServiceTest {
 
         when(productRepository.findById(productId)).thenReturn(Optional.of(suit));
         when(productRepository.findByStatus(ProductStatus.ACTIVE)).thenReturn(List.of());
+        when(brandPlusPriority.snapshot()).thenReturn(BrandPlusPriority.Snapshot.NONE);
 
         OutfitSuggestionsResponse response = service.analyzeProductIds(List.of(productId));
 
         assertThat(response.isOutfitComplete()).isTrue();
         assertThat(response.getMissingRoles()).isEmpty();
+    }
+
+    @Test
+    void missingRoleSuggestion_prefersBrandPlusProductOverEarlierRegularOne() {
+        ProductEligibilityService eligibilityService = mock(ProductEligibilityService.class);
+        OutfitCompositionService composition = new OutfitCompositionService(
+                null, mock(ProductImageRepository.class), null, null, null, null, null, null,
+                new OutfitExplanationComposer(),
+                new ProductAudienceService(mock(com.fitme.product.repository.ProductTagRepository.class)));
+        TryOnOutfitCompletionService plusAware = new TryOnOutfitCompletionService(
+                productRepository, eligibilityService, composition, brandRepository, null, brandPlusPriority);
+
+        UUID plusBrand = UUID.randomUUID();
+        Product top = Product.builder().id(UUID.randomUUID()).brandId(UUID.randomUUID())
+                .name("Áo thun").category("Áo").build();
+        Product regularBottom = Product.builder().id(UUID.randomUUID()).brandId(UUID.randomUUID())
+                .name("Quần jean").category("Quần").build();
+        Product plusBottom = Product.builder().id(UUID.randomUUID()).brandId(plusBrand)
+                .name("Quần tây").category("Quần").build();
+
+        when(productRepository.findById(top.getId())).thenReturn(Optional.of(top));
+        when(productRepository.findByStatus(ProductStatus.ACTIVE)).thenReturn(List.of(regularBottom, plusBottom));
+        when(brandRepository.findById(org.mockito.ArgumentMatchers.any())).thenReturn(Optional.of(
+                com.fitme.brand.entity.Brand.builder().status(com.fitme.common.enums.BrandStatus.APPROVED).build()));
+        when(eligibilityService.canBeUsedForAiTryOn(org.mockito.ArgumentMatchers.any())).thenReturn(true);
+        when(brandPlusPriority.snapshot()).thenReturn(new BrandPlusPriority.Snapshot(java.util.Set.of(plusBrand), 15));
+
+        OutfitSuggestionsResponse response = plusAware.analyzeProductIds(List.of(top.getId()));
+
+        assertThat(response.getSuggestedItems()).singleElement()
+                .satisfies(item -> assertThat(item.getProductId()).isEqualTo(plusBottom.getId()));
     }
 }

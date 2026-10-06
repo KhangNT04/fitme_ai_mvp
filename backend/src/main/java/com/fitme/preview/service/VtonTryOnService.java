@@ -18,6 +18,7 @@ import com.fitme.tryon.entity.TryOnItem;
 import com.fitme.tryon.entity.TryOnRequest;
 import com.fitme.tryon.repository.TryOnItemRepository;
 import com.fitme.tryon.repository.TryOnRequestRepository;
+import com.fitme.tryon.service.PlusFreeTryOnService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -54,6 +55,7 @@ public class VtonTryOnService {
     private final PreviewGenerationRepository previewRepository;
     private final PreviewGenerator previewGenerator;
     private final FitkenService fitkenService;
+    private final PlusFreeTryOnService plusFreeTryOnService;
     private final GalleryService galleryService;
     private final AiVtonClient aiVtonClient;
     private final VtonCategoryMapper vtonCategoryMapper;
@@ -61,21 +63,26 @@ public class VtonTryOnService {
     private final VtonOutputMirrorService vtonOutputMirrorService;
     private final FitMeProperties fitMeProperties;
 
+    /** How a started try-on was paid for. */
+    public enum Charge { NONE, FITKEN, FREE_TRY }
+
     @Transactional
     public void startJob(TryOnRequest tryOn) {
-        startJob(tryOn, null);
+        startJob(tryOn, null, false);
     }
 
     /**
-     * @param chargeUserId when set, one AI try-on worth of Fitken is consumed from this user, keyed
-     *                     by the new preview generation id, once the provider accepted the job (or a
-     *                     sync AI render succeeded). Submit-time failures and illustration fallbacks
-     *                     are never charged; a job that later fails while polling is refunded.
-     *                     Charging after the provider call keeps the wallet row lock out of the HTTP
-     *                     round-trip.
+     * @param chargeUserId  when set, one AI try-on is paid for by this user, keyed by the new preview
+     *                      generation id, once the provider accepted the job (or a sync AI render
+     *                      succeeded). Submit-time failures and illustration fallbacks are never charged;
+     *                      a job that later fails while polling is refunded. Charging after the provider
+     *                      call keeps the wallet row lock out of the HTTP round-trip.
+     * @param preferFreeTry every item belongs to a Brand Plus brand: spend one of today's free tries if
+     *                      the user has one left, otherwise fall back to Fitken. Exactly one of the two
+     *                      is ever recorded for a try-on.
      */
     @Transactional
-    public void startJob(TryOnRequest tryOn, UUID chargeUserId) {
+    public Charge startJob(TryOnRequest tryOn, UUID chargeUserId, boolean preferFreeTry) {
         PreviewType previewType = toPreviewType(tryOn.getPreviewMode());
         PreviewGeneration preview = PreviewGeneration.builder()
                 .tryOnRequestId(tryOn.getId())
@@ -89,11 +96,18 @@ public class VtonTryOnService {
         boolean billable = shouldUseAsyncVton(tryOn)
                 ? dispatchAsyncVton(tryOn, preview)
                 : completeSyncPreview(tryOn, preview, false);
+        Charge charge = Charge.NONE;
         if (chargeUserId != null && billable) {
-            fitkenService.consumeForTryOn(chargeUserId, preview.getId());
+            if (preferFreeTry && plusFreeTryOnService.tryConsume(chargeUserId, preview.getId())) {
+                charge = Charge.FREE_TRY;
+            } else {
+                fitkenService.consumeForTryOn(chargeUserId, preview.getId());
+                charge = Charge.FITKEN;
+            }
         }
         previewRepository.save(preview);
         tryOnRequestRepository.save(tryOn);
+        return charge;
     }
 
     @Transactional
@@ -261,7 +275,7 @@ public class VtonTryOnService {
             if (isIllustrationFallback(response)) {
                 log.info("VTON returned a non-AI '{}' result for preview {}, refunding",
                         response.getFallbackMode(), preview.getId());
-                fitkenService.refundTryOn(preview.getId(), "Hoàn Fitken do AI thử mặc chỉ trả ảnh minh họa");
+                refundTryOn(preview.getId(), "Hoàn Fitken do AI thử mặc chỉ trả ảnh minh họa");
             } else {
                 galleryService.recordTryOn(tryOn, preview);
             }
@@ -296,7 +310,13 @@ public class VtonTryOnService {
             preview.setErrorMessage(message != null ? message : ex.getMessage());
             tryOn.setStatus(TryOnStatus.FAILED);
         }
-        fitkenService.refundTryOn(preview.getId(), "Hoàn Fitken do AI thử mặc lỗi");
+        refundTryOn(preview.getId(), "Hoàn Fitken do AI thử mặc lỗi");
+    }
+
+    /** A try-on was paid by Fitken or by a free Plus try, never both; each refund is a no-op for the other. */
+    private void refundTryOn(UUID previewGenerationId, String note) {
+        fitkenService.refundTryOn(previewGenerationId, note);
+        plusFreeTryOnService.refund(previewGenerationId);
     }
 
     private void finalizeTimeout(PreviewGeneration preview) {

@@ -8,6 +8,7 @@ import { productApi } from "@/services/product-api";
 import { publicBrandApi } from "@/services/brand-api";
 import { Input } from "@/components/ui/input";
 import { ProductCard } from "@/components/common/ProductCard";
+import { BrandPlusBadge } from "@/components/common/BrandPlusBadge";
 import { LoadingSkeleton } from "@/components/common/LoadingSkeleton";
 import { EmptyState } from "@/components/common/EmptyState";
 import { ErrorState } from "@/components/common/ErrorState";
@@ -98,7 +99,10 @@ export default function TryOnBrandPage() {
             </div>
           )}
           <div className="min-w-0">
-            <h2 className="truncate font-display text-lg font-bold text-foreground sm:text-xl">{brandName}</h2>
+            <div className="flex min-w-0 items-center gap-2">
+              <h2 className="truncate font-display text-lg font-bold text-foreground sm:text-xl">{brandName}</h2>
+              {brand.plusBrand && <BrandPlusBadge />}
+            </div>
             {brand.description && (
               <p className="mt-0.5 line-clamp-2 text-sm text-muted-foreground">{brand.description}</p>
             )}

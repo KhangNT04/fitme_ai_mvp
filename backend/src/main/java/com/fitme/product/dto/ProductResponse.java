@@ -18,6 +18,8 @@ public class ProductResponse {
     private UUID id;
     private UUID brandId;
     private String brandName;
+    /** The brand has an active FitMe Brand Plus subscription. */
+    private boolean plusBrand;
     private String name;
     private String description;
     private String category;

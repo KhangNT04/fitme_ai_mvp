@@ -1,7 +1,7 @@
 import apiClient, { unwrap, type ApiError } from "./api-client";
 import { mapCategoryToRole } from "@/lib/tryon-role";
 import { resolveOptionalImageSrc } from "@/lib/media-url";
-import type { TryOnResult, TryOnInputMode, TryOnPreviewType, OutfitSuggestions, TryOnSuggestedItem, TryOnItem, TryOnAvatar } from "@/types/tryon";
+import type { TryOnResult, TryOnInputMode, TryOnPreviewType, OutfitSuggestions, TryOnSuggestedItem, TryOnItem, TryOnAvatar, TryOnQuote } from "@/types/tryon";
 
 /** Generate may wait for a sleeping AI try-on host to boot before the job is accepted. */
 const GENERATE_TIMEOUT_MS = 60_000;
@@ -51,6 +51,8 @@ type RawTryOnResult = {
   improvementSuggestions?: string[];
   suggestedItems?: TryOnSuggestedItem[];
   items?: RawTryOnItem[];
+  chargedFitken?: number | null;
+  freeTry?: boolean | null;
 };
 
 function mapTryOnItem(item: RawTryOnItem): TryOnItem {
@@ -95,6 +97,8 @@ function mapTryOnResult(data: RawTryOnResult): TryOnResult {
       ...item,
       imageUrl: resolveOptionalImageSrc(item.imageUrl),
     })),
+    chargedFitken: data.chargedFitken ?? undefined,
+    freeTry: data.freeTry ?? undefined,
   };
 }
 
@@ -140,6 +144,12 @@ export const tryonApi = {
     } catch {
       // Warm-up is an optimisation only.
     }
+  },
+  getQuote: async (productIds: string[]): Promise<TryOnQuote> => {
+    const res = await apiClient.get("/try-on/quote", {
+      params: { productIds: productIds.join(",") },
+    });
+    return unwrap(res) as TryOnQuote;
   },
   generate: async (id: string): Promise<TryOnResult> => {
     const res = await apiClient.post(`/try-on/requests/${id}/generate`, undefined, {

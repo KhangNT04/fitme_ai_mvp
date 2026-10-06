@@ -46,11 +46,13 @@ public class SystemSettingsService {
                     0, 100_000, 50),
             new Definition(TRYON_PLUS_FREE_DAILY,
                     "Lượt thử đồ miễn phí mỗi ngày (brand Plus)",
-                    "Số lượt thử đồ AI miễn phí mỗi ngày cho sản phẩm của brand gói Plus (áp dụng từ phase sau).",
+                    "Số lượt thử đồ AI miễn phí mỗi ngày (theo giờ Việt Nam) khi mọi sản phẩm trong lượt thử "
+                            + "đều thuộc brand gói Plus. Hết lượt thì trừ Fitken như bình thường.",
                     0, 100, 3),
             new Definition(RECOMMENDATION_PLUS_BOOST,
                     "Điểm ưu tiên gợi ý (brand Plus)",
-                    "Điểm cộng thêm khi xếp hạng sản phẩm của brand gói Plus trong gợi ý outfit (áp dụng từ phase sau).",
+                    "Điểm cộng thêm khi xếp hạng sản phẩm của brand gói Plus trong gợi ý outfit, sản phẩm tương tự "
+                            + "và gợi ý hoàn thiện set thử đồ. Đặt 0 để tắt ưu tiên.",
                     0, 100, 15));
 
     private final SystemSettingRepository repository;
@@ -85,6 +87,14 @@ public class SystemSettingsService {
 
     public int fitkenMaxBalance() {
         return Math.max(0, getInt(FITKEN_MAX_BALANCE));
+    }
+
+    public int tryOnPlusFreeDaily() {
+        return Math.max(0, getInt(TRYON_PLUS_FREE_DAILY));
+    }
+
+    public int recommendationPlusBoost() {
+        return Math.max(0, getInt(RECOMMENDATION_PLUS_BOOST));
     }
 
     public List<SystemSettingDto> list() {

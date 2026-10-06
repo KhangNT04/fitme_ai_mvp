@@ -77,6 +77,19 @@ export interface TryOnResult {
   suggestedItems?: TryOnSuggestedItem[];
   items: TryOnItem[];
   disclaimer: string;
+  /** Only set by generate for signed-in AI try-ons. */
+  chargedFitken?: number;
+  freeTry?: boolean;
+}
+
+/** What generating an AI try-on of these products would cost the current user right now. */
+export interface TryOnQuote {
+  free: boolean;
+  freeRemainingToday: number;
+  freeDailyLimit: number;
+  fitkenCost: number;
+  /** Every product belongs to an active Brand Plus brand. */
+  allPlus: boolean;
 }
 
 export interface CreateTryOnRequest {

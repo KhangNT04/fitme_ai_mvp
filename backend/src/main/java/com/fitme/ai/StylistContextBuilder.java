@@ -137,14 +137,14 @@ public class StylistContextBuilder {
         int limit = properties.getAi().getStylistCandidateLimit();
         List<Map<String, Object>> candidateList = new ArrayList<>();
         for (Product product : candidates.stream().limit(limit).toList()) {
-            candidateList.add(toCandidate(product));
+            candidateList.add(toCandidate(product, ctx));
         }
         root.put("candidates", candidateList);
 
         return objectMapper.writeValueAsString(root);
     }
 
-    private Map<String, Object> toCandidate(Product product) {
+    private Map<String, Object> toCandidate(Product product, OutfitScoreContext ctx) {
         Map<String, Object> map = new LinkedHashMap<>();
         map.put("id", product.getId().toString());
         map.put("name", product.getName());
@@ -155,6 +155,9 @@ public class StylistContextBuilder {
         map.put("price", product.getPrice());
         map.put("fitType", product.getFitType() != null ? product.getFitType().name() : null);
         map.put("brandName", brandRepository.findById(product.getBrandId()).map(Brand::getName).orElse(""));
+        if (ctx.isPlusBrand(product.getBrandId())) {
+            map.put("plus", true);
+        }
         map.put("description", product.getDescription());
 
         List<String> tags = tagRepository.findByProductId(product.getId()).stream()

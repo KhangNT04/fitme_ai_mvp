@@ -17,6 +17,8 @@ export interface Brand {
   /** Only populated by the admin brand list. */
   plusActive?: boolean;
   plusEndsAt?: string | null;
+  /** Only populated by the public brand endpoints. */
+  plusBrand?: boolean;
 }
 
 export interface BrandOnboardingRequest {

@@ -4,6 +4,7 @@ import { use, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { productApi } from "@/services/product-api";
 import { Badge } from "@/components/ui/badge";
+import { BrandPlusBadge } from "@/components/common/BrandPlusBadge";
 import { LoadingSkeleton } from "@/components/common/LoadingSkeleton";
 import { ErrorState } from "@/components/common/ErrorState";
 import {
@@ -134,7 +135,10 @@ function ProductDetailContent({
         >
           <div className={productDetailInfoColumnClass}>
             <div className={productDetailSummaryClass}>
-              <p className="text-sm text-muted-foreground">{product.brandName}</p>
+              <div className="flex flex-wrap items-center gap-2">
+                <p className="text-sm text-muted-foreground">{product.brandName}</p>
+                {product.plusBrand && <BrandPlusBadge />}
+              </div>
               <h1 className={pageTitle}>{product.name}</h1>
               <p className="text-2xl font-semibold">{formatPrice(product.price)}</p>
 

@@ -1,6 +1,7 @@
 package com.fitme.tryon.service;
 
 import com.fitme.brand.repository.BrandRepository;
+import com.fitme.brandplus.service.BrandPlusPriority;
 import com.fitme.common.enums.BrandStatus;
 import com.fitme.common.enums.ItemRole;
 import com.fitme.common.enums.ProductStatus;
@@ -26,6 +27,7 @@ public class TryOnOutfitCompletionService {
     private final OutfitCompositionService outfitCompositionService;
     private final BrandRepository brandRepository;
     private final TryOnItemRepository tryOnItemRepository;
+    private final BrandPlusPriority brandPlusPriority;
 
     public OutfitSuggestionsResponse analyzeProductIds(List<UUID> productIds) {
         if (productIds == null || productIds.isEmpty()) {
@@ -189,12 +191,15 @@ public class TryOnOutfitCompletionService {
                 .findFirst();
     }
 
+    /** Brand Plus products first (stable), so both the same-brand pick and the fallback prefer them. */
     private List<Product> loadEligibleProducts() {
+        BrandPlusPriority.Snapshot plus = brandPlusPriority.snapshot();
         return productRepository.findByStatus(ProductStatus.ACTIVE).stream()
                 .filter(p -> brandRepository.findById(p.getBrandId())
                         .map(b -> b.getStatus() == BrandStatus.APPROVED)
                         .orElse(false))
                 .filter(eligibilityService::canBeUsedForAiTryOn)
+                .sorted(Comparator.comparingInt((Product p) -> plus.bonus(p.getBrandId())).reversed())
                 .toList();
     }
 

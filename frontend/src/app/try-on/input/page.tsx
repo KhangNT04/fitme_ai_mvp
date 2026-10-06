@@ -46,6 +46,7 @@ import { SkinTonePicker } from "@/components/ui/skin-tone-picker";
 import { getUserErrorMessage } from "@/lib/user-error-message";
 import { isServerPreviewUrl, resolveImageSrc } from "@/lib/media-url";
 import { toast } from "@/stores/toast-store";
+import { needsFitkenTopUp, tryOnCostLabel } from "@/lib/tryon-cost";
 
 const INPUT_MODES = [
   { value: "USER_PHOTO", label: "Dùng ảnh cá nhân" },
@@ -98,6 +99,16 @@ export default function TryOnInputPage() {
     setPhotoQuality,
     clearPhoto,
   } = useTryOnStore();
+  const quoteProductIds = useMemo(
+    () => [...new Set(selectedItems.map((item) => item.productId))].sort(),
+    [selectedItems],
+  );
+  const quoteQueryKey = ["tryon-quote", quoteProductIds] as const;
+  const { data: quote } = useQuery({
+    queryKey: quoteQueryKey,
+    queryFn: () => tryonApi.getQuote(quoteProductIds),
+    enabled: storesReady && isAuthed && quoteProductIds.length > 0,
+  });
   const { ensureSession } = useEnsureSession();
   const draftBodyProfile = useConsultationStore((s) => s.draft.bodyProfile);
   const { bodyProfile: savedBodyProfile, isLoading } = useHydrateConsultationProfiles();
@@ -177,6 +188,7 @@ export default function TryOnInputPage() {
   const skinTone = watch("skinTone");
 
   const selectedAvatar = avatars.find((a) => a.key === avatarKey);
+  const costLabel = tryOnCostLabel(quote, wallet);
 
   useEffect(() => {
     if (!avatarsLoaded || !avatarKey || avatars.some((a) => a.key === avatarKey)) return;
@@ -277,7 +289,12 @@ export default function TryOnInputPage() {
       setShowLoginDialog(true);
       return;
     }
-    if (wallet && wallet.balance < wallet.tryOnCost) {
+    const currentQuote = quote ?? (quoteProductIds.length > 0
+      ? await queryClient
+        .ensureQueryData({ queryKey: quoteQueryKey, queryFn: () => tryonApi.getQuote(quoteProductIds) })
+        .catch(() => undefined)
+      : undefined);
+    if (needsFitkenTopUp(currentQuote, wallet)) {
       setShowFitkenDialog(true);
       return;
     }
@@ -308,6 +325,7 @@ export default function TryOnInputPage() {
       await profileApi.saveBodyProfile(tryOnFormToBodyProfile(data));
       await queryClient.invalidateQueries({ queryKey: ["body-profile"] });
       await queryClient.invalidateQueries({ queryKey: ["fitken-wallet"] });
+      await queryClient.invalidateQueries({ queryKey: ["tryon-quote"] });
       setRequestId(id);
       router.push("/try-on/processing");
     } catch (e: unknown) {
@@ -590,9 +608,9 @@ export default function TryOnInputPage() {
               disabled={isSubmitting || !storesReady}
             >
               {isSubmitting ? "Đang tạo..." : "Tạo preview thử mặc"}
-              {inputMode !== "OUTFIT_BOARD_ONLY" && wallet && (
+              {inputMode !== "OUTFIT_BOARD_ONLY" && wallet && costLabel && (
                 <span className="ml-2 text-xs opacity-80 font-normal">
-                  (Tốn {wallet.tryOnCost} Fitken · còn {wallet.balance})
+                  ({quote?.free ? costLabel : `${costLabel} · còn ${wallet.balance}`})
                 </span>
               )}
             </Button>

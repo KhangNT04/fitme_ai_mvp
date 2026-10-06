@@ -7,6 +7,7 @@ import com.fitme.brand.dto.BrandOnboardingRequest;
 import com.fitme.brand.dto.BrandResponse;
 import com.fitme.brand.entity.Brand;
 import com.fitme.brand.repository.BrandRepository;
+import com.fitme.brandplus.service.BrandPlusService;
 import com.fitme.common.enums.BrandStatus;
 import com.fitme.common.enums.UserRole;
 import com.fitme.common.exception.BusinessException;
@@ -20,6 +21,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 @Service
@@ -29,6 +31,7 @@ public class BrandService {
     private final BrandRepository brandRepository;
     private final UserAccountRepository userAccountRepository;
     private final StorageService storageService;
+    private final BrandPlusService brandPlusService;
 
     @Transactional
     public BrandResponse applyForBrand(UUID userId, BrandOnboardingRequest request) {
@@ -183,8 +186,9 @@ public class BrandService {
     }
 
     public List<BrandResponse> listPublicBrands() {
+        Set<UUID> plusBrandIds = brandPlusService.activePlusBrandIds();
         return brandRepository.findByStatus(BrandStatus.APPROVED).stream()
-                .map(this::toResponse)
+                .map(brand -> withPlus(toResponse(brand), plusBrandIds.contains(brand.getId())))
                 .toList();
     }
 
@@ -194,7 +198,12 @@ public class BrandService {
         if (brand.getStatus() != BrandStatus.APPROVED) {
             throw new NotFoundException("Brand không khả dụng");
         }
-        return toResponse(brand);
+        return withPlus(toResponse(brand), brandPlusService.isPlusActive(brand.getId()));
+    }
+
+    private static BrandResponse withPlus(BrandResponse response, boolean plusBrand) {
+        response.setPlusBrand(plusBrand);
+        return response;
     }
 
     public List<BrandResponse> listAllBrands() {

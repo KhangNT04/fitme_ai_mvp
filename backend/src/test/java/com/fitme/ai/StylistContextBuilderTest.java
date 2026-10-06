@@ -5,6 +5,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fitme.brand.entity.Brand;
 import com.fitme.brand.repository.BrandRepository;
 import com.fitme.common.config.FitMeProperties;
+import com.fitme.common.enums.BrandMixMode;
+import com.fitme.common.enums.OutfitCoherenceMode;
 import com.fitme.common.enums.ProductTargetGender;
 import com.fitme.common.enums.WardrobeMode;
 import com.fitme.product.entity.Product;
@@ -16,6 +18,7 @@ import com.fitme.product.service.ProductAudienceService;
 import com.fitme.product.service.ProductEligibilityService;
 import com.fitme.recommendation.dto.CreateRecommendationRequest;
 import com.fitme.recommendation.service.OutfitCompositionService;
+import com.fitme.recommendation.service.OutfitScoreContext;
 import com.fitme.recommendation.service.UserStylingContextService;
 import com.fitme.recommendation.service.OutfitExplanationComposer;
 import com.fitme.recommendation.service.SizeResolutionService;
@@ -31,7 +34,9 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -109,5 +114,31 @@ class StylistContextBuilderTest {
         assertThat(root.get("candidates")).hasSize(2);
         assertThat(root.get("user").get("heightCm").asInt()).isEqualTo(165);
         assertThat(root.get("style").get("primaryStyle").asText()).isEqualTo("Casual");
+    }
+
+    @Test
+    void buildContext_flagsOnlyBrandPlusCandidates() throws Exception {
+        UUID plusBrand = UUID.randomUUID();
+        Product plus = Product.builder().id(UUID.randomUUID()).brandId(plusBrand).name("A").category("Áo").build();
+        Product regular = Product.builder().id(UUID.randomUUID()).brandId(UUID.randomUUID()).name("B")
+                .category("Quần").build();
+
+        when(brandRepository.findById(any())).thenReturn(Optional.of(Brand.builder().name("Brand").build()));
+        when(tagRepository.findByProductId(any())).thenReturn(List.of());
+        when(variantRepository.findByProductId(any())).thenReturn(List.of());
+        when(productAudienceService.resolveTargetGender(any(Product.class)))
+                .thenReturn(ProductTargetGender.UNISEX);
+
+        OutfitScoreContext ctx = new OutfitScoreContext(OutfitCoherenceMode.OFF, null, Set.of(), Map.of(), Map.of(),
+                Map.of(), 1.0, Set.of(), BrandMixMode.DIVERSE, Set.of(plusBrand), 15);
+        CreateRecommendationRequest request = new CreateRecommendationRequest();
+        String json = builder.buildContext(
+                BodyProfile.builder().heightCm(165).weightKg(BigDecimal.valueOf(55)).build(),
+                StyleProfile.builder().primaryStyle("Casual").build(),
+                request, List.of(), List.of(plus, regular), null, ctx);
+        JsonNode candidates = new ObjectMapper().readTree(json).get("candidates");
+
+        assertThat(candidates.get(0).get("plus").asBoolean()).isTrue();
+        assertThat(candidates.get(1).has("plus")).isFalse();
     }
 }

@@ -151,6 +151,87 @@ class OutfitScoringServiceTest {
                 .isZero();
     }
 
+    @Test
+    void plusBrand_outranksNonPlusWithEqualOtherFactors() {
+        UUID plusBrand = UUID.randomUUID();
+        Product plus = equalProduct(plusBrand);
+        Product regular = equalProduct(UUID.randomUUID());
+        OutfitScoreContext ctx = plusContext(Set.of(), BrandMixMode.DIVERSE, Set.of(plusBrand), 15);
+
+        double plusScore = outfitScoringService.scoreProduct(plus, "Minimal", null, null, ctx);
+        double regularScore = outfitScoringService.scoreProduct(regular, "Minimal", null, null, ctx);
+
+        assertThat(plusScore - regularScore).isEqualTo(15);
+    }
+
+    @Test
+    void plusBrand_boostOfZeroHasNoEffect() {
+        UUID plusBrand = UUID.randomUUID();
+        OutfitScoreContext ctx = plusContext(Set.of(), BrandMixMode.DIVERSE, Set.of(plusBrand), 0);
+        assertThat(ctx.isPlusBrand(plusBrand)).isFalse();
+        assertThat(outfitScoringService.plusBrandBonus(equalProduct(plusBrand), ctx)).isZero();
+    }
+
+    @Test
+    void favoritesOnly_favoriteNonPlusOutranksNonFavoritePlus() {
+        UUID favorite = UUID.randomUUID();
+        UUID plusBrand = UUID.randomUUID();
+        Product favoriteProduct = equalProduct(favorite);
+        Product plusProduct = equalProduct(plusBrand);
+        OutfitScoreContext ctx = plusContext(Set.of(favorite), BrandMixMode.FAVORITES_ONLY, Set.of(plusBrand), 15);
+
+        assertThat(outfitScoringService.scoreProduct(favoriteProduct, "Minimal", null, null, ctx))
+                .isGreaterThan(outfitScoringService.scoreProduct(plusProduct, "Minimal", null, null, ctx));
+    }
+
+    @Test
+    void diverse_favoriteNonPlusOutranksNonFavoritePlus() {
+        UUID favorite = UUID.randomUUID();
+        UUID plusBrand = UUID.randomUUID();
+        OutfitScoreContext ctx = plusContext(Set.of(favorite), BrandMixMode.DIVERSE, Set.of(plusBrand), 15);
+
+        assertThat(outfitScoringService.scoreProduct(equalProduct(favorite), "Minimal", null, null, ctx))
+                .isGreaterThan(outfitScoringService.scoreProduct(equalProduct(plusBrand), "Minimal", null, null, ctx));
+    }
+
+    @Test
+    void favoritesOnly_favoriteStillWinsWhenAdminMaxesThePlusBoost() {
+        UUID favorite = UUID.randomUUID();
+        UUID plusBrand = UUID.randomUUID();
+        OutfitScoreContext ctx = plusContext(Set.of(favorite), BrandMixMode.FAVORITES_ONLY, Set.of(plusBrand), 100);
+
+        assertThat(outfitScoringService.scoreProduct(equalProduct(favorite), "Minimal", null, null, ctx))
+                .isGreaterThan(outfitScoringService.scoreProduct(equalProduct(plusBrand), "Minimal", null, null, ctx));
+    }
+
+    @Test
+    void favoritesOnly_plusFavoriteBeatsPlainFavorite() {
+        UUID plainFavorite = UUID.randomUUID();
+        UUID plusFavorite = UUID.randomUUID();
+        OutfitScoreContext ctx = plusContext(Set.of(plainFavorite, plusFavorite), BrandMixMode.FAVORITES_ONLY,
+                Set.of(plusFavorite), 15);
+
+        assertThat(outfitScoringService.scoreProduct(equalProduct(plusFavorite), "Minimal", null, null, ctx))
+                .isGreaterThan(outfitScoringService.scoreProduct(equalProduct(plainFavorite), "Minimal", null, null, ctx));
+    }
+
+    private static Product equalProduct(UUID brandId) {
+        return Product.builder()
+                .id(UUID.randomUUID())
+                .brandId(brandId)
+                .name("Áo sơ mi")
+                .category("Áo")
+                .stockStatus(StockStatus.IN_STOCK)
+                .build();
+    }
+
+    private static OutfitScoreContext plusContext(
+            Set<UUID> favorites, BrandMixMode mode, Set<UUID> plusBrandIds, double boost) {
+        return new OutfitScoreContext(
+                OutfitCoherenceMode.OFF, null, Set.of(), Map.of(), Map.of(), Map.of(), 1.0, favorites, mode,
+                plusBrandIds, boost);
+    }
+
     private static OutfitScoreContext favoritesContext(Set<UUID> favorites, BrandMixMode mode) {
         return new OutfitScoreContext(
                 OutfitCoherenceMode.OFF, null, Set.of(), Map.of(), Map.of(), Map.of(), 1.0, favorites, mode);

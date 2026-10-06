@@ -3,7 +3,6 @@
 import { useState, useRef, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Upload, Camera } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Disclaimer } from "@/components/layout/Disclaimer";
@@ -16,6 +15,7 @@ import { AI_FLOW_STEPS } from "@/components/layout/FlowStepper";
 import { consumerPageShellClass } from "@/lib/design-tokens";
 import { PreviewOutfitTray } from "@/components/ai/PreviewOutfitTray";
 import { getUserErrorMessage } from "@/lib/user-error-message";
+import { ALLOWED_IMAGE_TYPES, validateImageFile } from "@/lib/upload-file";
 
 export default function PhotoUploadPage() {
   return (
@@ -45,6 +45,11 @@ function PhotoUploadContent() {
   const handleUpload = async (file: File) => {
     if (!consented) {
       setError("Vui lòng đồng ý trước khi upload ảnh.");
+      return;
+    }
+    const validationError = validateImageFile(file);
+    if (validationError) {
+      setError(validationError);
       return;
     }
     setUploading(true);
@@ -104,9 +109,13 @@ function PhotoUploadContent() {
       <input
         ref={fileRef}
         type="file"
-        accept="image/jpeg,image/png"
+        accept={ALLOWED_IMAGE_TYPES.join(",")}
         className="hidden"
-        onChange={(e) => e.target.files?.[0] && handleUpload(e.target.files[0])}
+        onChange={(e) => {
+          const file = e.target.files?.[0];
+          e.target.value = "";
+          if (file) void handleUpload(file);
+        }}
       />
 
       <button

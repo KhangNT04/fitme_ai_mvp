@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { useForm, type Resolver } from "react-hook-form";
+import { useForm, type FieldErrors, type Resolver } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -18,6 +18,24 @@ import {
 import { cn } from "@/lib/utils";
 import { SkinTonePicker } from "@/components/ui/skin-tone-picker";
 import type { BodyProfile } from "@/types/user";
+
+const MEASUREMENT_FIELDS = [
+  ["shoulderWidthCm", "Vai (cm)"],
+  ["chestCm", "Ngực (cm)"],
+  ["waistCm", "Eo (cm)"],
+  ["abdomenCm", "Bụng (cm)"],
+  ["hipCm", "Hông (cm)"],
+  ["thighCm", "Đùi (cm)"],
+  ["inseamCm", "Inseam (cm)"],
+  ["armLengthCm", "Tay (cm)"],
+] as const;
+
+type MeasurementField = (typeof MEASUREMENT_FIELDS)[number][0];
+
+/** First errored field inside the collapsible "Số đo chi tiết" card, in display order. */
+export function firstMeasurementError(errors: FieldErrors<BodyProfileForm>): MeasurementField | null {
+  return MEASUREMENT_FIELDS.find(([field]) => errors[field])?.[0] ?? null;
+}
 
 export function bodyProfileToForm(profile: BodyProfile): BodyProfileForm {
   return {
@@ -95,22 +113,44 @@ export function BodyProfileEditor({
     () => !!initial?.measurements && Object.values(initial.measurements).some((v) => v != null),
   );
 
-  const { register, handleSubmit, setValue, watch, formState: { errors } } = useForm<BodyProfileForm>({
+  const [pendingFocus, setPendingFocus] = useState<MeasurementField | null>(null);
+
+  const { register, handleSubmit, setValue, setFocus, watch, formState: { errors } } = useForm<BodyProfileForm>({
     resolver: zodResolver(bodyProfileSchema) as Resolver<BodyProfileForm>,
     values: formValues,
   });
+  const hasErrors = Object.keys(errors).length > 0;
 
   useEffect(() => {
     if (initial?.measurements && Object.values(initial.measurements).some((v) => v != null)) {
       setShowMeasurements(true);
     }
   }, [initial]);
+
+  // Collapsed inputs are display:none, so focus can only move once the card has re-rendered open.
+  useEffect(() => {
+    if (!pendingFocus || !showMeasurements) return;
+    setFocus(pendingFocus);
+    document.getElementById(pendingFocus)?.scrollIntoView({ behavior: "smooth", block: "center" });
+    setPendingFocus(null);
+  }, [pendingFocus, showMeasurements, setFocus]);
+
+  const onInvalid = (formErrors: FieldErrors<BodyProfileForm>) => {
+    const firstHidden = firstMeasurementError(formErrors);
+    if (!firstHidden) return;
+    setShowMeasurements(true);
+    // react-hook-form already focuses these registered inputs; only take over when none of them failed.
+    const visibleInputHasError = (["heightCm", "weightKg", "age"] as const).some((field) => formErrors[field]);
+    if (!visibleInputHasError) {
+      setPendingFocus(firstHidden);
+    }
+  };
   const gender = watch("gender");
   const fitPreference = watch("fitPreference");
   const skinTone = watch("skinTone");
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 sm:space-y-6">
+    <form onSubmit={handleSubmit(onSubmit, onInvalid)} className="space-y-4 sm:space-y-6">
       <Card>
         <CardHeader><CardTitle className="text-base">Số đo cơ bản</CardTitle></CardHeader>
         <CardContent className="grid gap-4 sm:grid-cols-2">
@@ -188,16 +228,7 @@ export function BodyProfileEditor({
           </Button>
         </CardHeader>
         <CardContent className={cn("grid gap-4 sm:grid-cols-2", !showMeasurements && "hidden")}>
-          {([
-            ["shoulderWidthCm", "Vai (cm)"],
-            ["chestCm", "Ngực (cm)"],
-            ["waistCm", "Eo (cm)"],
-            ["abdomenCm", "Bụng (cm)"],
-            ["hipCm", "Hông (cm)"],
-            ["thighCm", "Đùi (cm)"],
-            ["inseamCm", "Inseam (cm)"],
-            ["armLengthCm", "Tay (cm)"],
-          ] as const).map(([field, label]) => (
+          {MEASUREMENT_FIELDS.map(([field, label]) => (
             <div key={field}>
               <Label htmlFor={field}>{label}</Label>
               <Input
@@ -214,6 +245,12 @@ export function BodyProfileEditor({
           ))}
         </CardContent>
       </Card>
+
+      {hasErrors && (
+        <p role="alert" className="text-sm text-red-600">
+          Vui lòng kiểm tra lại các trường được đánh dấu đỏ ở trên.
+        </p>
+      )}
 
       <div className="flex flex-col-reverse gap-3 sm:flex-row">
         {footer}

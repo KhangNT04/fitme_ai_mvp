@@ -34,7 +34,11 @@ function optionalTextField() {
 
 /** Optional body measurement — empty inputs are normalized via optionalNumberRegisterOptions. */
 function optionalMeasurementField(min: number, max: number) {
-  return z.number({ error: "Nhập số hợp lệ" }).min(min).max(max).optional();
+  return z
+    .number({ error: "Nhập số hợp lệ" })
+    .min(min, `Tối thiểu ${min}cm`)
+    .max(max, `Tối đa ${max}cm`)
+    .optional();
 }
 
 export const bodyProfileSchema = z.object({

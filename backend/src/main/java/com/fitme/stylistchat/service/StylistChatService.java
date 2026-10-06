@@ -131,6 +131,7 @@ public class StylistChatService {
                 ? request.getWardrobeMode()
                 : WardrobeMode.NO_WARDROBE_DATA);
         genRequest.setUserMessage(message);
+        applyBudget(genRequest, body);
         genRequest.setStyleLabels(intent.styleLabels());
         genRequest.setConversationHistory(buildHistoryLines(request, recentUserMessages));
         if (conversation != null) {
@@ -204,6 +205,13 @@ public class StylistChatService {
                 .build();
     }
 
+    private static void applyBudget(CreateRecommendationRequest request, BodyProfile body) {
+        BudgetBand.fromGoals(body.getGoals()).ifPresent(band -> {
+            request.setBudgetMin(band.min());
+            request.setBudgetMax(band.max());
+        });
+    }
+
     /**
      * Generates one concise, profile-aware outfit for each common daily context.
      * This is used once immediately after a body profile is completed.
@@ -219,7 +227,7 @@ public class StylistChatService {
         }
 
         enforceRateLimit(userId, sessionId);
-        bodyProfileService.findProfileEntity()
+        BodyProfile body = bodyProfileService.findProfileEntity()
                 .orElseThrow(() -> new BusinessException("Vui lòng cập nhật body profile trước"));
 
         List<RecommendationOptionsResponse.StyleOptionDto> options = new ArrayList<>();
@@ -236,6 +244,7 @@ public class StylistChatService {
                     "Gợi ý outfit " + preset.label().toLowerCase() + " phù hợp hồ sơ của tôi");
             generationRequest.setStyleLabels(List.of(preset.style()));
             generationRequest.setSingleStyle(true);
+            applyBudget(generationRequest, body);
 
             RecommendationService.ChatGenerationResult result;
             try {

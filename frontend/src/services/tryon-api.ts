@@ -43,6 +43,7 @@ type RawTryOnResult = {
   previewSource?: string;
   disclaimer?: string;
   errorMessage?: string;
+  processingStepLabel?: string | null;
   recommendedSize?: string;
   alternativeSize?: string;
   recommendedForm?: string;
@@ -83,6 +84,7 @@ function mapTryOnResult(data: RawTryOnResult): TryOnResult {
     previewSource: data.previewSource as TryOnResult["previewSource"],
     disclaimer: data.disclaimer || "",
     errorMessage: data.errorMessage,
+    processingStepLabel: data.processingStepLabel?.trim() || undefined,
     recommendedSize: data.recommendedSize,
     alternativeSize: data.alternativeSize,
     recommendedForm: data.recommendedForm,

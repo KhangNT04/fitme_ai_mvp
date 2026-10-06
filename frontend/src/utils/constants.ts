@@ -109,6 +109,9 @@ export const TRY_ON_CATEGORIES = [
   { value: "accessory", label: "Phụ kiện" },
 ] as const;
 
+/** Fallback until GET /rewards loads; mirrors backend `fitme.fitken.share-reward` default. */
+export const DEFAULT_SHARE_REWARD_FITKEN = 3;
+
 export const SESSION_STORAGE_KEY = "fitme_session_token";
 export const AUTH_TOKEN_KEY = "fitme_access_token";
 export const AUTH_REFRESH_KEY = "fitme_refresh_token";

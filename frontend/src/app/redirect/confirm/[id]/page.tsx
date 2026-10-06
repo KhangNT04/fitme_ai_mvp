@@ -1,7 +1,7 @@
 "use client";
 
-import { use, useState } from "react";
-import { useRouter } from "next/navigation";
+import { use, useMemo, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import { ExternalLink, ShoppingBag, Info } from "lucide-react";
 import { productApi } from "@/services/product-api";
@@ -9,21 +9,42 @@ import { redirectApi } from "@/services/redirect-api";
 import { Button } from "@/components/ui/button";
 import { LoadingSkeleton } from "@/components/common/LoadingSkeleton";
 import { ErrorState } from "@/components/common/ErrorState";
+import { PageSuspense } from "@/components/common/PageSuspense";
 import { formatPrice } from "@/utils/format-price";
 import { useEnsureSession } from "@/hooks/use-ensure-session";
 import { PageShell } from "@/components/layout/PageShell";
 import { CollapsingPageHeader } from "@/components/layout/CollapsingPageHeader";
 import { consumerPageShellClass } from "@/lib/design-tokens";
+import { buyClickContextFromSearch } from "@/lib/redirect-href";
+import { getUserErrorMessage } from "@/lib/user-error-message";
+import { toast } from "@/stores/toast-store";
+
+const BUY_CLICK_ERROR_FALLBACK = "Không thể mở nơi bán lúc này. Vui lòng thử lại.";
 
 export default function RedirectConfirmPage({
   params,
 }: {
   params: Promise<{ id: string }>;
 }) {
+  return (
+    <PageSuspense>
+      <RedirectConfirmContent params={params} />
+    </PageSuspense>
+  );
+}
+
+function RedirectConfirmContent({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
   const { id } = use(params);
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const buyContext = useMemo(() => buyClickContextFromSearch(searchParams), [searchParams]);
   const { ensureSession } = useEnsureSession();
   const [loading, setLoading] = useState(false);
+  const [redirectError, setRedirectError] = useState<string | null>(null);
 
   const { data: product, isLoading, error, refetch } = useQuery({
     queryKey: ["product", id],
@@ -32,21 +53,27 @@ export default function RedirectConfirmPage({
 
   const handleRedirect = async () => {
     setLoading(true);
+    setRedirectError(null);
     try {
       const session = await ensureSession();
       if (!session) {
         setLoading(false);
         return;
       }
-      const result = await redirectApi.trackBuyClick({
-        productId: id,
-        sourcePage: "PRODUCT_DETAIL",
-      });
+      const result = await redirectApi.trackBuyClick({ productId: id, ...buyContext });
       router.push(`/redirect/loading?event=${encodeURIComponent(result.eventId)}`);
-    } catch {
+    } catch (e) {
+      const message = getUserErrorMessage(e, BUY_CLICK_ERROR_FALLBACK);
+      setRedirectError(message);
+      toast.error(message);
       setLoading(false);
     }
   };
+
+  const backHref = buyContext.tryOnRequestId
+    ? `/try-on/decision/${buyContext.tryOnRequestId}`
+    : `/products/${id}`;
+  const backLabel = buyContext.tryOnRequestId ? "Quyết định tiếp theo" : "Thông tin sản phẩm";
 
   if (isLoading) {
     return (
@@ -69,8 +96,8 @@ export default function RedirectConfirmPage({
       <CollapsingPageHeader
         title="Xác nhận chuyển hướng"
         subtitle="Bạn sắp được chuyển đến nơi bán sản phẩm"
-        backHref={`/products/${id}`}
-        backLabel="Thông tin sản phẩm"
+        backHref={backHref}
+        backLabel={backLabel}
         showMobileBack
       />
 
@@ -105,6 +132,11 @@ export default function RedirectConfirmPage({
           <ExternalLink className="mr-2 h-4 w-4" aria-hidden="true" />
           {loading ? "Đang xử lý..." : "Tiếp tục đến nơi bán"}
         </Button>
+        {redirectError && (
+          <p role="alert" className="text-sm text-red-600">
+            {redirectError}
+          </p>
+        )}
       </div>
     </PageShell>
   );

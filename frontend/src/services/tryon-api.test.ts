@@ -28,4 +28,23 @@ describe("tryonApi", () => {
     });
     expect(res.id).toBe("req-1");
   });
+
+  it("getById keeps the backend processing step label while polling", async () => {
+    vi.mocked(apiClient.get).mockResolvedValue({
+      data: {
+        success: true,
+        data: { id: "req-1", status: "PROCESSING", processingStepLabel: "Đang mặc áo... (1/2)" },
+      },
+    });
+    const res = await tryonApi.getById("req-1");
+    expect(res.processingStepLabel).toBe("Đang mặc áo... (1/2)");
+  });
+
+  it("generate drops a blank processing step label", async () => {
+    vi.mocked(apiClient.post).mockResolvedValue({
+      data: { success: true, data: { id: "req-1", status: "PROCESSING", processingStepLabel: "  " } },
+    });
+    const res = await tryonApi.generate("req-1");
+    expect(res.processingStepLabel).toBeUndefined();
+  });
 });

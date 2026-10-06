@@ -3,7 +3,7 @@
 import { useRouter, useSearchParams } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import { CheckCircle, AlertTriangle, XCircle } from "lucide-react";
-import { uploadApi } from "@/services/upload-api";
+import { uploadApi, type PhotoQualityResult } from "@/services/upload-api";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { PreviewOutfitTray } from "@/components/ai/PreviewOutfitTray";
@@ -16,10 +16,10 @@ import { FlowWizardToolbar } from "@/components/layout/FlowWizardToolbar";
 import { AI_FLOW_STEPS } from "@/components/layout/FlowStepper";
 import { consumerPageShellClass } from "@/lib/design-tokens";
 
-const qualityConfig = {
+const qualityConfig: Record<PhotoQualityResult["quality"], { icon: typeof CheckCircle; color: string; label: string }> = {
   GOOD: { icon: CheckCircle, color: "text-emerald-600", label: "Ảnh tốt" },
-  ACCEPTABLE: { icon: AlertTriangle, color: "text-amber-600", label: "Ảnh chấp nhận được" },
-  POOR: { icon: AlertTriangle, color: "text-amber-600", label: "Ảnh chưa rõ" },
+  LOW_QUALITY: { icon: AlertTriangle, color: "text-amber-600", label: "Ảnh chưa đạt" },
+  PENDING: { icon: AlertTriangle, color: "text-amber-600", label: "Đang kiểm tra ảnh" },
   INVALID: { icon: XCircle, color: "text-red-600", label: "Ảnh không hợp lệ" },
 };
 

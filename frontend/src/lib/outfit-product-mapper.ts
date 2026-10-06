@@ -1,5 +1,6 @@
 import { PLACEHOLDER_PRODUCT } from "@/lib/media-url";
 import { productDetailFromAiResultHref } from "@/lib/nav-context";
+import { redirectConfirmHref } from "@/lib/redirect-href";
 import type { OutfitItem } from "@/types/outfit";
 import type { Product } from "@/types/product";
 
@@ -28,7 +29,7 @@ export function outfitItemToProduct(item: OutfitItem): Product {
     fitType: "REGULAR",
     styleTags: [],
     occasionTags: [],
-    purchaseUrl: item.productId ? `/redirect/confirm/${item.productId}` : "",
+    purchaseUrl: item.productId ? redirectConfirmHref(item.productId, { sourcePage: "AI_RESULT" }) : "",
     stockStatus: "IN_STOCK",
     status: "ACTIVE",
     aiTryOnEligible: !item.fromWardrobe && !!item.productId,

@@ -16,6 +16,7 @@ import { getUserErrorMessage } from "@/lib/user-error-message";
 import { toast } from "@/stores/toast-store";
 import { cn } from "@/lib/utils";
 import { formatPrice } from "@/utils/format-price";
+import { useShareRewardAmount } from "@/hooks/use-share-reward-amount";
 
 const formatDate = (dateStr: string) => {
   const d = new Date(dateStr);
@@ -49,6 +50,7 @@ export default function PricingPage() {
     queryFn: () => subscriptionApi.getPlans(),
     staleTime: 5 * 60_000,
   });
+  const shareReward = useShareRewardAmount();
   const proPlan = plans?.find((p) => p.planType !== "TOPUP");
   const topupPlans = plans?.filter((p) => p.planType === "TOPUP") ?? [];
 
@@ -213,7 +215,7 @@ export default function PricingPage() {
             </li>
             <li className="flex items-center justify-between p-3 rounded-xl bg-muted/30">
               <span>Chia sẻ ảnh Try-on lên mạng xã hội (1 lần/ngày)</span>
-              <span className="font-medium text-primary">+3 Fitken</span>
+              <span className="font-medium text-primary">+{shareReward} Fitken</span>
             </li>
             <li className="flex items-center justify-between p-3 rounded-xl bg-muted/30">
               <span>Đánh giá sản phẩm đã mua kèm ảnh (1 lần/ngày)</span>

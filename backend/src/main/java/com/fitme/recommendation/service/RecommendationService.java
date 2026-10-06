@@ -8,6 +8,7 @@ import com.fitme.brand.service.BrandPartnershipService;
 import com.fitme.common.enums.Confidence;
 import com.fitme.common.enums.OutfitCoherenceMode;
 import com.fitme.common.enums.ProductStatus;
+import com.fitme.common.enums.ProductTargetGender;
 import com.fitme.common.enums.RecommendationStatus;
 import com.fitme.common.enums.SourceType;
 import com.fitme.common.enums.WardrobeMode;
@@ -52,6 +53,7 @@ import java.util.UUID;
 public class RecommendationService {
 
     private static final String DEFAULT_OCCASION = "Casual hàng ngày";
+    private static final int MIN_BUDGET_POOL = 8;
 
     private final OutfitRequestRepository outfitRequestRepository;
     private final RecommendationRepository recommendationRepository;
@@ -124,11 +126,15 @@ public class RecommendationService {
         outfitRequest = outfitRequestRepository.save(outfitRequest);
 
         List<WardrobeItem> wardrobe = wardrobeBlendService.loadWardrobe(userId, sessionId, mode);
-        List<Product> baseEligible = productRepository.findByStatus(ProductStatus.ACTIVE).stream()
+        List<Product> audienceEligible = productRepository.findByStatus(ProductStatus.ACTIVE).stream()
                 .filter(eligibilityService::canBeRecommended)
                 .filter(p -> productAudienceService.isRecommendableFor(body, p))
+                .toList();
+        List<Product> withinBudget = audienceEligible.stream()
                 .filter(p -> outfitScoringService.withinBudget(p, request.getBudgetMin(), request.getBudgetMax()))
                 .toList();
+        // A tight budget on a small catalog can leave nothing to build a full outfit from.
+        List<Product> baseEligible = withinBudget.size() >= MIN_BUDGET_POOL ? withinBudget : audienceEligible;
 
         Product anchor = selectedProductId != null
                 ? productRepository.findById(selectedProductId).orElse(null) : null;
@@ -458,9 +464,24 @@ public class RecommendationService {
 
     public List<RecommendationResponse.OutfitItemDto> similarProducts(UUID id) {
         getOwnedRecommendation(id);
+        Set<UUID> anchorIds = recommendationItemRepository.findByRecommendationIdOrderBySortOrderAsc(id).stream()
+                .map(RecommendationItem::getProductId)
+                .filter(java.util.Objects::nonNull)
+                .collect(java.util.stream.Collectors.toSet());
+        List<Product> anchors = productRepository.findAllById(anchorIds);
+        Set<ProductTargetGender> anchorGenders = anchors.stream()
+                .map(productAudienceService::resolveTargetGender)
+                .filter(g -> g != ProductTargetGender.UNISEX)
+                .collect(java.util.stream.Collectors.toSet());
         return productRepository.findByStatus(ProductStatus.ACTIVE).stream()
+                .filter(p -> !anchorIds.contains(p.getId()))
                 .filter(eligibilityService::canBeRecommended)
+                .filter(p -> genderCompatible(productAudienceService.resolveTargetGender(p), anchorGenders))
+                .map(p -> java.util.Map.entry(p, similarityScore(p, anchors)))
+                .filter(e -> anchors.isEmpty() || e.getValue() > 0)
+                .sorted(java.util.Map.Entry.<Product, Integer>comparingByValue().reversed())
                 .limit(6)
+                .map(java.util.Map.Entry::getKey)
                 .map(p -> RecommendationResponse.OutfitItemDto.builder()
                         .productId(p.getId())
                         .role(outfitCompositionService.guessRole(p))
@@ -471,6 +492,33 @@ public class RecommendationService {
                         .imageUrl(outfitCompositionService.resolveProductImageUrl(p.getId()))
                         .build())
                 .toList();
+    }
+
+    private static boolean genderCompatible(ProductTargetGender candidate, Set<ProductTargetGender> anchorGenders) {
+        return candidate == ProductTargetGender.UNISEX || anchorGenders.isEmpty() || anchorGenders.contains(candidate);
+    }
+
+    private int similarityScore(Product candidate, List<Product> anchors) {
+        int best = 0;
+        for (Product anchor : anchors) {
+            int score = 0;
+            if (candidate.getCategory() != null && candidate.getCategory().equalsIgnoreCase(anchor.getCategory())) {
+                score += 3;
+            }
+            if (outfitCompositionService.guessRole(candidate) == outfitCompositionService.guessRole(anchor)) {
+                score += 2;
+            }
+            if (score == 0) continue;
+            if (candidate.getBrandId() != null && candidate.getBrandId().equals(anchor.getBrandId())) {
+                score += 1;
+            }
+            if (candidate.getPrice() != null && anchor.getPrice() != null && anchor.getPrice().signum() > 0) {
+                double ratio = candidate.getPrice().doubleValue() / anchor.getPrice().doubleValue();
+                if (ratio >= 0.7 && ratio <= 1.3) score += 1;
+            }
+            best = Math.max(best, score);
+        }
+        return best;
     }
 
     private OutfitScoreContext buildScoreContext(Product anchor) {

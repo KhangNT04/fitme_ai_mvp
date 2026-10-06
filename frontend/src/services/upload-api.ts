@@ -4,7 +4,8 @@ import { resolveOptionalImageSrc } from "@/lib/media-url";
 
 export interface PhotoQualityResult {
   photoUploadId: string;
-  quality: "GOOD" | "ACCEPTABLE" | "POOR" | "INVALID";
+  /** Mirrors backend `PhotoQualityStatus`. */
+  quality: "GOOD" | "LOW_QUALITY" | "INVALID" | "PENDING";
   message: string;
   canProceed: boolean;
   fileUrl?: string;
@@ -37,16 +38,8 @@ interface BackendPreviewResponse {
 
 function normalizePhotoUpload(data: BackendPhotoUploadResponse): PhotoQualityResult {
   const raw = (data.qualityStatus || "PENDING").toUpperCase();
-  if (raw === "PENDING") {
-    return {
-      photoUploadId: data.id,
-      quality: "POOR",
-      message: "Đang kiểm tra chất lượng ảnh...",
-      canProceed: false,
-      fileUrl: resolveOptionalImageSrc(data.fileUrl),
-    };
-  }
-  const quality = raw as PhotoQualityResult["quality"];
+  const quality: PhotoQualityResult["quality"] =
+    raw === "GOOD" || raw === "LOW_QUALITY" || raw === "INVALID" ? raw : "PENDING";
   return {
     photoUploadId: data.id,
     quality,
@@ -54,10 +47,10 @@ function normalizePhotoUpload(data: BackendPhotoUploadResponse): PhotoQualityRes
       data.qualityMessage ||
       (quality === "GOOD"
         ? "Ảnh đạt chất lượng tốt"
-        : quality === "ACCEPTABLE"
-          ? "Ảnh chấp nhận được"
+        : quality === "PENDING"
+          ? "Đang kiểm tra chất lượng ảnh..."
           : "Ảnh chưa đạt yêu cầu"),
-    canProceed: quality === "GOOD" || quality === "ACCEPTABLE",
+    canProceed: quality === "GOOD",
     fileUrl: resolveOptionalImageSrc(data.fileUrl),
   };
 }

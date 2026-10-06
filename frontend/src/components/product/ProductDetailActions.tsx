@@ -10,6 +10,7 @@ import { QuantityStepper } from "@/components/commerce/QuantityStepper";
 import { VariantPicker } from "@/components/commerce/VariantPicker";
 import { buildLoginHref, isUserLoggedIn } from "@/hooks/use-require-login";
 import { getCommerceErrorMessage } from "@/lib/commerce-errors";
+import { redirectConfirmHref } from "@/lib/redirect-href";
 import {
   findVariant,
   isVariantInStock,
@@ -34,6 +35,8 @@ interface ProductDetailActionsProps {
   variants?: ProductVariant[];
   /** External shop link — secondary option when the product is purchasable in-app. */
   purchaseUrl?: string;
+  /** Loaded recommendation this product was opened from, attributed on the buy click. */
+  recommendationId?: string;
   className?: string;
 }
 
@@ -153,9 +156,11 @@ export function ProductDetailActions({
   purchasable,
   variants,
   purchaseUrl,
+  recommendationId,
   className,
 }: ProductDetailActionsProps) {
   const hasInAppPurchase = !!purchasable && !!variants && variants.length > 0;
+  const buyHref = redirectConfirmHref(productId, { sourcePage: "PRODUCT_DETAIL", recommendationId });
   const allSoldOut = hasInAppPurchase && variants.every((v) => v.stockQuantity <= 0);
 
   return (
@@ -180,7 +185,7 @@ export function ProductDetailActions({
         {hasInAppPurchase ? (
           purchaseUrl ? (
             <Button variant="ghost" asChild>
-              <Link href={`/redirect/confirm/${productId}`}>
+              <Link href={buyHref}>
                 <ExternalLink className="mr-2 h-4 w-4" />
                 Mua tại cửa hàng gốc
               </Link>
@@ -188,7 +193,7 @@ export function ProductDetailActions({
           ) : null
         ) : (
           <Button variant="outline" asChild>
-            <Link href={`/redirect/confirm/${productId}`}>Mua ngay</Link>
+            <Link href={buyHref}>Mua ngay</Link>
           </Button>
         )}
       </div>

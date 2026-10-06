@@ -1,5 +1,6 @@
 export type RedirectChannel = "SHOPEE" | "TIKTOK_SHOP" | "WEBSITE" | "OTHER";
-export type SourcePage = "AI_RESULT" | "TRY_ON_RESULT" | "PRODUCT_DETAIL" | "PREVIEW";
+export const SOURCE_PAGES = ["AI_RESULT", "TRY_ON_RESULT", "PRODUCT_DETAIL", "PREVIEW"] as const;
+export type SourcePage = (typeof SOURCE_PAGES)[number];
 
 export interface BuyClickRequest {
   productId: string;

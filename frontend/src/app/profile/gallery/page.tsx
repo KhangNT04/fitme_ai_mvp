@@ -12,6 +12,7 @@ import { galleryApi, nextGalleryPage } from "@/services/gallery-api";
 import { useAuthStore } from "@/stores/auth-store";
 import { toast } from "@/stores/toast-store";
 import { consumerPageShellClass } from "@/lib/design-tokens";
+import { useShareRewardAmount } from "@/hooks/use-share-reward-amount";
 import { GalleryImageDto } from "@/types";
 
 const formatDateTime = (dateStr: string) => {
@@ -41,6 +42,7 @@ export default function GalleryPage() {
   const queryClient = useQueryClient();
   const [selectedImage, setSelectedImage] = useState<GalleryImageDto | null>(null);
   const [isLightboxOpen, setIsLightboxOpen] = useState(false);
+  const shareReward = useShareRewardAmount();
 
   const { data, isLoading, hasNextPage, fetchNextPage, isFetchingNextPage } = useInfiniteQuery({
     queryKey: ["gallery-images"],
@@ -215,7 +217,7 @@ export default function GalleryPage() {
                   <div className="flex items-start gap-3">
                     <AlertCircle className="h-5 w-5 text-amber-400 shrink-0 mt-0.5" />
                     <div>
-                      <p className="text-sm font-medium text-amber-400 mb-1">Nhận 2 Fitken</p>
+                      <p className="text-sm font-medium text-amber-400 mb-1">Nhận {shareReward} Fitken</p>
                       <p className="text-xs text-zinc-400 mb-3">Chia sẻ ảnh này lên MXH và dán link để nhận thưởng.</p>
                       <Button asChild size="sm" className="w-full rounded-full bg-amber-500 hover:bg-amber-600 text-black">
                         <Link href={`/rewards?galleryImageId=${selectedImage.id}`}>

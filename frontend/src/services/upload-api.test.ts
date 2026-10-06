@@ -44,4 +44,18 @@ describe("upload-api", () => {
     expect(result.canProceed).toBe(false);
     expect(result.message).toContain("Đang kiểm tra");
   });
+
+  it("surfaces backend LOW_QUALITY reason and blocks proceeding", async () => {
+    vi.mocked(apiClient.get).mockResolvedValue({
+      data: {
+        success: true,
+        data: { id: "low-1", qualityStatus: "LOW_QUALITY", qualityMessage: "Ảnh quá tối. Hãy chụp ở nơi đủ sáng." },
+      },
+    });
+
+    const result = await uploadApi.checkQuality("low-1");
+    expect(result.quality).toBe("LOW_QUALITY");
+    expect(result.canProceed).toBe(false);
+    expect(result.message).toBe("Ảnh quá tối. Hãy chụp ở nơi đủ sáng.");
+  });
 });

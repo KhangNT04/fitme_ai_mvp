@@ -25,6 +25,7 @@ import { formatPrice } from "@/utils/format-price";
 import type { TryOnItem } from "@/types/tryon";
 import { TryOnOutfitSuggestions } from "@/components/tryon/TryOnOutfitSuggestions";
 import { useEnrichedTryOnItems } from "@/hooks/use-enriched-tryon-items";
+import { redirectConfirmHref } from "@/lib/redirect-href";
 
 function itemRoleLabel(item: TryOnItem): string {
   if (item.role && item.role in TRY_ON_ROLE_LABELS) {
@@ -41,10 +42,16 @@ function displayColor(item: TryOnItem): string | undefined {
   return item.selectedColor ?? item.color;
 }
 
-function DecisionItemCard({ item }: { item: TryOnItem }) {
+function DecisionItemCard({ item, tryOnRequestId }: { item: TryOnItem; tryOnRequestId: string }) {
   const size = displaySize(item);
   const color = displayColor(item);
   const canBuy = item.canBuy !== false;
+  const buyHref = redirectConfirmHref(item.productId, {
+    sourcePage: "TRY_ON_RESULT",
+    tryOnRequestId,
+    selectedSize: item.selectedSize ?? item.suggestedSize ?? item.size,
+    selectedColor: color,
+  });
 
   return (
     <Card>
@@ -77,7 +84,7 @@ function DecisionItemCard({ item }: { item: TryOnItem }) {
         <div className="flex shrink-0 flex-col gap-2 self-center">
           {canBuy ? (
             <Button size="sm" asChild>
-              <Link href={`/redirect/confirm/${item.productId}`}>
+              <Link href={buyHref}>
                 <ShoppingBag className="mr-1 h-4 w-4" />
                 Mua
               </Link>
@@ -163,7 +170,7 @@ export default function TryOnDecisionPage({ params }: { params: Promise<{ id: st
             <h2 className="text-sm font-medium text-muted-foreground">Sản phẩm trong outfit</h2>
             {outfitItems.length > 0 ? (
               outfitItems.map((item) => (
-                <DecisionItemCard key={item.productId} item={item} />
+                <DecisionItemCard key={item.productId} item={item} tryOnRequestId={data.id} />
               ))
             ) : (
               <Card>

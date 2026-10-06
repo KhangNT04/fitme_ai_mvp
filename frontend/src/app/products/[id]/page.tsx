@@ -106,6 +106,7 @@ function ProductDetailContent({
       purchasable={product.purchasable}
       variants={product.variants}
       purchaseUrl={product.purchaseUrl}
+      recommendationId={recommendation?.id}
       onTryOn={fromTryOn && product.aiTryOnEligible ? handleTryOn : undefined}
     />
   );

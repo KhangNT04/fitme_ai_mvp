@@ -21,6 +21,8 @@ import { getUserErrorMessage } from "@/lib/user-error-message";
 import { consumerPageShellClass } from "@/lib/design-tokens";
 import { cn } from "@/lib/utils";
 import { formatPrice } from "@/utils/format-price";
+import { DEFAULT_SHARE_REWARD_FITKEN } from "@/utils/constants";
+import { shareClaimSuccessMessage } from "@/lib/share-reward";
 
 const VOUCHER_STATUS_LABEL: Record<string, string> = {
   AVAILABLE: "Có thể dùng",
@@ -99,10 +101,12 @@ function RewardsContent() {
 
   const shareMutation = useMutation({
     mutationFn: (postUrl: string) => rewardsApi.claimShare({ postUrl, galleryImageId }),
-    onSuccess: () => {
+    onSuccess: (res) => {
       setShareUrl("");
       void queryClient.invalidateQueries({ queryKey: ["rewards-summary"] });
-      toast.success("Đã gửi link chia sẻ. Admin sẽ duyệt và cộng Fitken sớm nhé!");
+      void queryClient.invalidateQueries({ queryKey: ["fitken-wallet"] });
+      void queryClient.invalidateQueries({ queryKey: ["fitken-ledger"] });
+      toast.success(shareClaimSuccessMessage(res.rewardGranted));
     },
     onError: (e) => toast.error(getUserErrorMessage(e, "Gửi link thất bại.")),
   });
@@ -211,7 +215,7 @@ function RewardsContent() {
               <div className="flex-1">
                 <h3 className="font-semibold">Chia sẻ mạng xã hội</h3>
                 <p className="text-xs text-muted-foreground">
-                  +{summary?.share.rewardAmount ?? 3} Fitken/lần (còn {summary?.share.remainingToday ?? 0}/{summary?.share.dailyLimit ?? 0} lần hôm nay)
+                  +{summary?.share.rewardAmount ?? DEFAULT_SHARE_REWARD_FITKEN} Fitken/lần (còn {summary?.share.remainingToday ?? 0}/{summary?.share.dailyLimit ?? 0} lần hôm nay)
                 </p>
               </div>
             </div>

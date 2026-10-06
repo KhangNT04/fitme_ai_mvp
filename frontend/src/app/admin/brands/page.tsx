@@ -23,6 +23,7 @@ import {
   portalTableActionsClass,
 } from "@/lib/design-tokens";
 import { actionFeedback } from "@/lib/action-feedback";
+import { brandStatusLabel } from "@/lib/status-labels";
 
 export default function AdminBrandsPage() {
   const queryClient = useQueryClient();
@@ -81,7 +82,7 @@ export default function AdminBrandsPage() {
                     <p className="font-medium text-foreground">{b.name}</p>
                     <p className="mt-1 truncate text-sm text-muted-foreground">{b.contactEmail ?? "—"}</p>
                   </div>
-                  <Badge variant="outline">{b.status}</Badge>
+                  <Badge variant="outline">{brandStatusLabel(b.status)}</Badge>
                 </div>
                 <PortalActionGroup className={portalCardActionsClass}>
                   {b.status === "PENDING" && (
@@ -119,7 +120,7 @@ export default function AdminBrandsPage() {
                   <td className={portalTableTdClass}>{b.name}</td>
                   <td className={portalTableTdClass}>{b.contactEmail ?? "—"}</td>
                   <td className={portalTableTdClass}>
-                    <Badge variant="outline">{b.status}</Badge>
+                    <Badge variant="outline">{brandStatusLabel(b.status)}</Badge>
                   </td>
                   <td className={portalTableTdClass}>
                     <PortalActionGroup className={portalTableActionsClass}>

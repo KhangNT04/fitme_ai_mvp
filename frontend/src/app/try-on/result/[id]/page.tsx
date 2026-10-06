@@ -21,6 +21,7 @@ import { isFromSavedList, resolveSavedResultBack } from "@/lib/nav-context";
 import type { TryOnPreviewType } from "@/types/tryon";
 import { toast } from "@/stores/toast-store";
 import { TryOnOutfitSuggestions } from "@/components/tryon/TryOnOutfitSuggestions";
+import { useShareRewardAmount } from "@/hooks/use-share-reward-amount";
 
 const PREVIEW_TYPE_LABELS: Record<TryOnPreviewType, string> = {
   OUTFIT_BOARD: "Outfit board",
@@ -51,6 +52,7 @@ export default function TryOnResultPage({
   const queryClient = useQueryClient();
   const searchParams = useSearchParams();
   const resultBack = resolveSavedResultBack("tryon", isFromSavedList(searchParams));
+  const shareReward = useShareRewardAmount();
 
   const { data, isLoading, error, refetch } = useQuery({
     queryKey: ["tryon-result", id],
@@ -198,7 +200,7 @@ export default function TryOnResultPage({
       {data.saved && (
         <div className="mt-4 p-4 rounded-xl border border-amber-200 bg-amber-50 dark:bg-amber-950/20 flex flex-col sm:flex-row items-center justify-between gap-4">
           <div>
-            <p className="font-medium text-amber-800 dark:text-amber-400">Nhận 2 Fitken miễn phí!</p>
+            <p className="font-medium text-amber-800 dark:text-amber-400">Nhận {shareReward} Fitken miễn phí!</p>
             <p className="text-sm text-amber-700 dark:text-amber-500">Chia sẻ ảnh này lên mạng xã hội để nhận thưởng.</p>
           </div>
           <Button asChild variant="outline" className="shrink-0 border-amber-300 text-amber-700 hover:bg-amber-100">

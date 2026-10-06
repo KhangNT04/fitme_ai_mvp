@@ -5,6 +5,7 @@ import com.fitme.privacy.entity.ConsentRecord;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 public interface ConsentRecordRepository extends JpaRepository<ConsentRecord, UUID> {
@@ -17,7 +18,7 @@ public interface ConsentRecordRepository extends JpaRepository<ConsentRecord, UU
 
     List<ConsentRecord> findBySessionIdAndConsentType(UUID sessionId, ConsentType consentType);
 
-    boolean existsByUserIdAndConsentTypeAndAcceptedTrue(UUID userId, ConsentType consentType);
+    Optional<ConsentRecord> findFirstByUserIdAndConsentTypeOrderByCreatedAtDesc(UUID userId, ConsentType consentType);
 
-    boolean existsBySessionIdAndConsentTypeAndAcceptedTrue(UUID sessionId, ConsentType consentType);
+    Optional<ConsentRecord> findFirstBySessionIdAndConsentTypeOrderByCreatedAtDesc(UUID sessionId, ConsentType consentType);
 }

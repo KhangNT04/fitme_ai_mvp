@@ -24,7 +24,7 @@ import { actionFeedback } from "@/lib/action-feedback";
 interface ConsentRecord {
   id?: string;
   consentType?: string;
-  granted?: boolean;
+  accepted?: boolean;
   createdAt?: string;
 }
 
@@ -82,7 +82,7 @@ export default function AdminPrivacyPage() {
                   <tr key={c.id ?? i}>
                     <td className={portalTableTdClass}>{c.consentType ?? "—"}</td>
                     <td className={portalTableTdClass}>
-                      <Badge variant="outline">{c.granted ? "Có" : "Không"}</Badge>
+                      <Badge variant="outline">{c.accepted ? "Có" : "Rút lại"}</Badge>
                     </td>
                     <td className={portalTableTdClass}>
                       {c.createdAt ? new Date(c.createdAt).toLocaleString("vi-VN") : "—"}

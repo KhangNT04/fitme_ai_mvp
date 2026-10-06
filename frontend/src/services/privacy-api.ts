@@ -11,7 +11,13 @@ export interface DeletionRequestPayload {
   reason?: string;
 }
 
+export type ConsentType = "PRIVACY_NOTICE" | "PHOTO_UPLOAD" | "WARDROBE_IMAGE_UPLOAD" | "AI_PREVIEW";
+
 export const privacyApi = {
+  getConsents: async (): Promise<Partial<Record<ConsentType, boolean>>> => {
+    const res = await apiClient.get("/privacy/consent");
+    return (unwrap(res) as Partial<Record<ConsentType, boolean>>) ?? {};
+  },
   requestDeletion: async (data: DeletionRequestPayload): Promise<unknown> => {
     const res = await apiClient.post("/privacy/deletion-requests", data);
     return unwrap(res);

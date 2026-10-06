@@ -4,8 +4,10 @@ import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Shield, Trash2, AlertTriangle } from "lucide-react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useAuthStore } from "@/stores/auth-store";
-import { privacyApi } from "@/services/privacy-api";
+import { privacyApi, type ConsentType } from "@/services/privacy-api";
+import { toast } from "@/stores/toast-store";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { PageShell } from "@/components/layout/PageShell";
@@ -14,7 +16,7 @@ import { consumerPageShellClass, consumerGuestPromptClass } from "@/lib/design-t
 import { getUserErrorMessage } from "@/lib/user-error-message";
 import { cn } from "@/lib/utils";
 
-type DeletionRequestType = "RECOMMENDATION_HISTORY" | "PHOTO_UPLOAD" | "ALL";
+type DeletionRequestType = "RECOMMENDATION_HISTORY" | "PHOTO_UPLOAD" | "WARDROBE" | "BODY_PROFILE" | "ALL";
 
 const REQUEST_OPTIONS: {
   value: DeletionRequestType;
@@ -24,19 +26,84 @@ const REQUEST_OPTIONS: {
   {
     value: "RECOMMENDATION_HISTORY",
     label: "Dữ liệu session / tư vấn",
-    description: "Lịch sử tư vấn AI, gợi ý outfit và session ẩn danh liên quan.",
+    description: "Lịch sử tư vấn AI, chat stylist và gợi ý outfit.",
   },
   {
     value: "PHOTO_UPLOAD",
     label: "Chỉ ảnh đã upload",
-    description: "Ảnh thử mặc hoặc preview đã tải lên, không xóa tài khoản.",
+    description: "Ảnh thử mặc, ảnh kết quả thử đồ và thư viện outfit. Không xóa tài khoản.",
+  },
+  {
+    value: "WARDROBE",
+    label: "Tủ đồ",
+    description: "Các món đồ và ảnh bạn đã thêm vào tủ đồ.",
+  },
+  {
+    value: "BODY_PROFILE",
+    label: "Số đo cơ thể",
+    description: "Chiều cao, cân nặng và số đo đã lưu.",
   },
   {
     value: "ALL",
     label: "Toàn bộ tài khoản",
-    description: "Xóa toàn bộ dữ liệu cá nhân và đăng xuất sau khi admin xử lý.",
+    description:
+      "Xóa hồ sơ, ảnh, tủ đồ, lịch sử tư vấn, đánh giá, địa chỉ và vô hiệu hoá tài khoản. Đơn hàng đã đặt được giữ ở dạng ẩn danh cho mục đích đối soát.",
   },
 ];
+
+const WITHDRAWABLE_CONSENTS: { type: ConsentType; label: string }[] = [
+  { type: "PHOTO_UPLOAD", label: "Xử lý ảnh chân dung để thử đồ AI" },
+  { type: "WARDROBE_IMAGE_UPLOAD", label: "Lưu ảnh tủ đồ" },
+];
+
+function ConsentSection() {
+  const queryClient = useQueryClient();
+  const { data: consents, isLoading } = useQuery({
+    queryKey: ["privacy-consents"],
+    queryFn: () => privacyApi.getConsents(),
+  });
+  const withdraw = useMutation({
+    mutationFn: (type: ConsentType) => privacyApi.recordConsent(type, false),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["privacy-consents"] });
+      toast.success("Đã rút lại đồng ý. FitMe sẽ hỏi lại trước lần upload tiếp theo.");
+    },
+    onError: (e: unknown) => toast.error(getUserErrorMessage(e, "Không rút lại được đồng ý")),
+  });
+
+  return (
+    <section className="surface-card overflow-hidden rounded-xl sm:rounded-2xl">
+      <div className="border-b border-border/40 px-3 py-2.5 sm:px-5 sm:py-3">
+        <h2 className="font-display text-sm font-semibold text-foreground sm:text-base">Đồng ý xử lý dữ liệu</h2>
+      </div>
+      <ul className="divide-y divide-border/40">
+        {WITHDRAWABLE_CONSENTS.map(({ type, label }) => {
+          const granted = consents?.[type] === true;
+          return (
+            <li key={type} className="flex items-center justify-between gap-3 px-3 py-3 sm:px-5">
+              <div className="min-w-0">
+                <p className="text-sm text-foreground">{label}</p>
+                <p className="text-xs text-muted-foreground">
+                  {isLoading ? "Đang tải..." : granted ? "Đang đồng ý" : "Chưa đồng ý / đã rút lại"}
+                </p>
+              </div>
+              <Button
+                type="button"
+                size="sm"
+                variant="outline"
+                className="shrink-0 rounded-full"
+                disabled={!granted || withdraw.isPending}
+                onClick={() => withdraw.mutate(type)}
+              >
+                Rút lại
+              </Button>
+            </li>
+          );
+        })}
+      </ul>
+    </section>
+  );
+}
 
 function GuestPrivacyPrompt() {
   return (
@@ -117,6 +184,8 @@ export default function ProfilePrivacyPage() {
             </div>
           </div>
         </section>
+
+        <ConsentSection />
 
         <section className="surface-card overflow-hidden rounded-xl sm:rounded-2xl">
           <div className="flex items-center gap-2 border-b border-border/40 px-3 py-2.5 sm:gap-3 sm:px-5 sm:py-3">

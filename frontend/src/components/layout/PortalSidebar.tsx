@@ -25,6 +25,7 @@ import {
   LineChart,
   PersonStanding,
   Sparkles as SparklesIcon,
+  Ticket,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -46,6 +47,7 @@ const adminIcons: Record<string, React.ComponentType<{ className?: string }>> = 
   "/admin/brands": Users,
   "/admin/partnerships": Users,
   "/admin/billing/plans": CreditCard,
+  "/admin/vouchers": Ticket,
   "/admin/rewards": Gift,
   "/admin/reviews": Star,
   "/admin/products/moderation": Package,

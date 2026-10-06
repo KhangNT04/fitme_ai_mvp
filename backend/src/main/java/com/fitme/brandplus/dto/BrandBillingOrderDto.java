@@ -15,6 +15,8 @@ public class BrandBillingOrderDto {
     private String planName;
     private long listPriceVnd;
     private int discountPercentApplied;
+    /** Voucher applied to this order, if any. */
+    private String voucherCode;
     private long amountVnd;
     private BillingOrderStatus status;
     private String checkoutUrl;

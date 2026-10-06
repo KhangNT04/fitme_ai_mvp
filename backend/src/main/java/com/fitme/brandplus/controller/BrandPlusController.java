@@ -2,7 +2,9 @@ package com.fitme.brandplus.controller;
 
 import com.fitme.brand.service.BrandService;
 import com.fitme.brandplus.dto.BrandBillingOrderDto;
+import com.fitme.brandplus.dto.BrandPlusCheckoutRequest;
 import com.fitme.brandplus.dto.BrandPlusCheckoutResponse;
+import com.fitme.brandplus.dto.BrandPlusQuoteDto;
 import com.fitme.brandplus.dto.BrandPlusStatusDto;
 import com.fitme.brandplus.service.BrandPlusService;
 import com.fitme.common.dto.ApiResponse;
@@ -26,9 +28,17 @@ public class BrandPlusController {
         return ApiResponse.ok(brandPlusService.status(brandId(principal)));
     }
 
+    @GetMapping("/quote")
+    public ApiResponse<BrandPlusQuoteDto> quote(@AuthenticationPrincipal FitMeUserPrincipal principal,
+                                                @RequestParam(required = false) UUID voucherId) {
+        return ApiResponse.ok(brandPlusService.quote(brandId(principal), voucherId));
+    }
+
     @PostMapping("/checkout")
-    public ApiResponse<BrandPlusCheckoutResponse> checkout(@AuthenticationPrincipal FitMeUserPrincipal principal) {
-        return ApiResponse.ok(brandPlusService.checkout(brandId(principal), principal.getUserId()));
+    public ApiResponse<BrandPlusCheckoutResponse> checkout(@AuthenticationPrincipal FitMeUserPrincipal principal,
+                                                           @RequestBody(required = false) BrandPlusCheckoutRequest request) {
+        return ApiResponse.ok(brandPlusService.checkout(brandId(principal), principal.getUserId(),
+                request != null ? request.getVoucherId() : null));
     }
 
     @GetMapping("/orders/{orderCode}")

@@ -11,11 +11,14 @@ import com.fitme.brand.repository.BrandRepository;
 import com.fitme.brandplus.dto.AdminBrandSubscriptionDto;
 import com.fitme.brandplus.dto.BrandBillingOrderDto;
 import com.fitme.brandplus.dto.BrandPlusCheckoutResponse;
+import com.fitme.brandplus.dto.BrandPlusQuoteDto;
 import com.fitme.brandplus.dto.BrandPlusStatusDto;
 import com.fitme.brandplus.entity.BrandBillingOrder;
 import com.fitme.brandplus.entity.BrandSubscription;
 import com.fitme.brandplus.repository.BrandBillingOrderRepository;
 import com.fitme.brandplus.repository.BrandSubscriptionRepository;
+import com.fitme.brandvoucher.entity.BrandVoucher;
+import com.fitme.brandvoucher.service.BrandVoucherService;
 import com.fitme.common.config.FitMeProperties;
 import com.fitme.common.enums.BillingOrderStatus;
 import com.fitme.common.enums.BillingPlanType;
@@ -57,6 +60,7 @@ public class BrandPlusService {
     private final BrandRepository brandRepository;
     private final PayOsClient payOsClient;
     private final PayOsOrderCodeGenerator orderCodes;
+    private final BrandVoucherService brandVoucherService;
     private final FitMeProperties properties;
     private final AppClock clock;
 
@@ -119,22 +123,48 @@ public class BrandPlusService {
         return builder.build();
     }
 
+    /** Price preview: the larger of the running discount and the (optional) voucher, never both. */
+    @Transactional(readOnly = true)
+    public BrandPlusQuoteDto quote(UUID brandId, UUID voucherId) {
+        BillingPlan plan = requirePlanOnSale();
+        BrandVoucher voucher = voucherId != null ? brandVoucherService.requireUsable(brandId, voucherId) : null;
+        BrandPlusDiscount discount = BrandPlusDiscount.decide(PlanPricing.appliedDiscountPercent(plan, clock.now()),
+                voucher != null ? voucher.getDiscountPercent() : null);
+        return BrandPlusQuoteDto.builder()
+                .listPriceVnd(plan.getPriceVnd())
+                .billingPeriodDays(periodDays(plan))
+                .windowPercent(discount.windowPercent())
+                .voucherId(voucher != null ? voucher.getId() : null)
+                .voucherCode(voucher != null ? voucher.getCode() : null)
+                .voucherPercent(discount.voucherPercent())
+                .appliedPercent(discount.appliedPercent())
+                .source(discount.source())
+                .amountVnd(PlanPricing.discounted(plan.getPriceVnd(), discount.appliedPercent()))
+                .voucherApplied(discount.voucherApplied())
+                .voucherIgnoredReason(discount.voucherIgnoredReason())
+                .build();
+    }
+
     /**
      * Creates a PENDING order at the current effective price and a PayOS payment link for it.
      * With mock PayOS the link is the FitMe return page; the order is confirmed when that page polls
      * {@link #getOrder}. With live PayOS the webhook is the source of truth.
+     * A voucher that beats the running discount is RESERVED for the order under a row lock, so the same voucher
+     * cannot back two checkouts; otherwise it is left ISSUED.
      */
     @Transactional
-    public BrandPlusCheckoutResponse checkout(UUID brandId, UUID userId) {
-        BillingPlan plan = findPlan()
-                .filter(BillingPlan::isActive)
-                .orElseThrow(() -> new BusinessException("Gói Brand Plus hiện chưa mở bán", "BRAND_PLUS_UNAVAILABLE"));
+    public BrandPlusCheckoutResponse checkout(UUID brandId, UUID userId, UUID voucherId) {
+        BillingPlan plan = requirePlanOnSale();
         Instant now = clock.now();
-        int discountPercent = PlanPricing.appliedDiscountPercent(plan, now);
+        BrandVoucher voucher = voucherId != null ? brandVoucherService.lockUsable(brandId, voucherId) : null;
+        BrandPlusDiscount discount = BrandPlusDiscount.decide(PlanPricing.appliedDiscountPercent(plan, now),
+                voucher != null ? voucher.getDiscountPercent() : null);
+        int discountPercent = discount.appliedPercent();
         long amount = PlanPricing.discounted(plan.getPriceVnd(), discountPercent);
         if (amount <= 0) {
             throw new BusinessException("Giá gói sau giảm phải lớn hơn 0đ. Vui lòng liên hệ FitMe để được kích hoạt.");
         }
+        BrandVoucher appliedVoucher = discount.voucherApplied() ? voucher : null;
 
         long orderCode = orderCodes.next();
         BrandBillingOrder order = orderRepository.save(BrandBillingOrder.builder()
@@ -144,9 +174,13 @@ public class BrandPlusService {
                 .listPrice(plan.getPriceVnd())
                 .discountPercentApplied(discountPercent)
                 .amount(amount)
+                .voucherId(appliedVoucher != null ? appliedVoucher.getId() : null)
                 .status(BillingOrderStatus.PENDING)
                 .createdByUserId(userId)
                 .build());
+        if (appliedVoucher != null) {
+            brandVoucherService.reserve(appliedVoucher, order.getId());
+        }
 
         PayOsPaymentLink link = payOsClient.createPaymentLink(orderCode, amount, PAYMENT_DESCRIPTION,
                 returnUrl(), cancelUrl());
@@ -159,9 +193,14 @@ public class BrandPlusService {
                 .orderCode(orderCode)
                 .listPriceVnd(order.getListPrice())
                 .discountPercentApplied(discountPercent)
+                .discountSource(discount.source())
                 .amountVnd(amount)
                 .checkoutUrl(link.checkoutUrl())
                 .mock(properties.getPayos().isMock())
+                .voucherId(appliedVoucher != null ? appliedVoucher.getId() : null)
+                .voucherCode(appliedVoucher != null ? appliedVoucher.getCode() : null)
+                .voucherApplied(discount.voucherApplied())
+                .voucherIgnoredReason(discount.voucherIgnoredReason())
                 .build();
     }
 
@@ -182,6 +221,7 @@ public class BrandPlusService {
         if (order.getStatus() == BillingOrderStatus.PENDING) {
             order.setStatus(BillingOrderStatus.CANCELLED);
             orderRepository.save(order);
+            brandVoucherService.onOrderClosed(order);
         }
         return toDto(order);
     }
@@ -219,6 +259,7 @@ public class BrandPlusService {
         if (order.get().getStatus() == BillingOrderStatus.PENDING) {
             order.get().setStatus(BillingOrderStatus.FAILED);
             orderRepository.save(order.get());
+            brandVoucherService.onOrderClosed(order.get());
         }
         return true;
     }
@@ -262,6 +303,7 @@ public class BrandPlusService {
         order.setStatus(BillingOrderStatus.PAID);
         order.setPaidAt(now);
         orderRepository.save(order);
+        brandVoucherService.onOrderPaid(order);
 
         BrandSubscription subscription = subscriptionRepository.findByBrandIdForUpdate(order.getBrandId())
                 .orElseGet(() -> BrandSubscription.builder().brandId(order.getBrandId()).build());
@@ -279,6 +321,12 @@ public class BrandPlusService {
                 subscription.getEndsAt());
     }
 
+    private BillingPlan requirePlanOnSale() {
+        return findPlan()
+                .filter(BillingPlan::isActive)
+                .orElseThrow(() -> new BusinessException("Gói Brand Plus hiện chưa mở bán", "BRAND_PLUS_UNAVAILABLE"));
+    }
+
     private BrandBillingOrder requireOwnOrder(UUID brandId, long orderCode) {
         return orderRepository.findByOrderCodeForUpdate(orderCode)
                 .filter(order -> order.getBrandId().equals(brandId))
@@ -290,16 +338,18 @@ public class BrandPlusService {
         Instant plusEndsAt = order.getStatus() == BillingOrderStatus.PAID
                 ? subscriptionRepository.findByBrandId(order.getBrandId()).map(BrandSubscription::getEndsAt).orElse(null)
                 : null;
-        return toDto(order, plan, plusEndsAt);
+        return toDto(order, plan, plusEndsAt, brandVoucherService.codeOf(order.getVoucherId()).orElse(null));
     }
 
-    private static BrandBillingOrderDto toDto(BrandBillingOrder order, BillingPlan plan, Instant plusEndsAt) {
+    private static BrandBillingOrderDto toDto(BrandBillingOrder order, BillingPlan plan, Instant plusEndsAt,
+                                              String voucherCode) {
         return BrandBillingOrderDto.builder()
                 .orderId(order.getId())
                 .orderCode(order.getOrderCode())
                 .planName(plan != null ? plan.getName() : null)
                 .listPriceVnd(order.getListPrice())
                 .discountPercentApplied(order.getDiscountPercentApplied())
+                .voucherCode(voucherCode)
                 .amountVnd(order.getAmount())
                 .status(order.getStatus())
                 .checkoutUrl(order.getCheckoutUrl())

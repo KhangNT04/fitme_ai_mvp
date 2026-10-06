@@ -30,6 +30,7 @@ export const ADMIN_PAGES: { path: string; heading: string | RegExp }[] = [
   { path: "/admin/traffic", heading: "Thống kê truy cập" },
   { path: "/admin/brands", heading: "Quản lý thương hiệu" },
   { path: "/admin/billing/plans", heading: "Gói dịch vụ" },
+  { path: "/admin/vouchers", heading: "Voucher brand" },
   { path: "/admin/rewards", heading: "Duyệt chia sẻ" },
   { path: "/admin/reviews", heading: "Đánh giá sản phẩm" },
   { path: "/admin/products/moderation", heading: "Duyệt sản phẩm" },

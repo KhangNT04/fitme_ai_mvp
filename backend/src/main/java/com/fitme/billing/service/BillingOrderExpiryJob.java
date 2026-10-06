@@ -1,5 +1,6 @@
 package com.fitme.billing.service;
 
+import com.fitme.brandvoucher.service.BrandVoucherService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -10,7 +11,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Marks consumer and Brand Plus checkouts that were never paid as EXPIRED. A late PayOS webhook still activates the plan,
- * because the paid handlers only skip orders that are already PAID.
+ * because the paid handlers only skip orders that are already PAID. Brand vouchers held by unpaid orders are freed.
  */
 @Component
 @RequiredArgsConstructor
@@ -18,6 +19,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class BillingOrderExpiryJob {
 
     private final JdbcTemplate jdbc;
+    private final BrandVoucherService brandVoucherService;
 
     @Value("${fitme.billing.pending-expiry-hours:24}")
     private int pendingExpiryHours;
@@ -33,6 +35,7 @@ public class BillingOrderExpiryJob {
         if (expired > 0) {
             log.info("[BILLING] Expired {} unpaid plan checkout(s) older than {}h", expired, pendingExpiryHours);
         }
+        brandVoucherService.releaseReservationsOfClosedOrders();
         return expired;
     }
 }

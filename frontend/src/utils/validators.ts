@@ -219,6 +219,44 @@ export const billingPlanFormSchema = z
     }
   });
 
+const VOUCHER_PERCENT_MESSAGE = "Phần trăm giảm phải từ 1 đến 99";
+const VOUCHERS_PER_BRAND_MESSAGE = "Số voucher mỗi brand phải từ 1 đến 100";
+const MAX_BRANDS_MESSAGE = "Số brand tối đa phải từ 1 trở lên";
+
+/** Admin voucher campaign form; window dates are <input type="datetime-local"> values ("" = open bound). */
+export const voucherCampaignFormSchema = z
+  .object({
+    name: z.string().trim().min(1, "Nhập tên chiến dịch").max(255, "Tên chiến dịch tối đa 255 ký tự"),
+    description: z.string().max(2000, "Mô tả tối đa 2000 ký tự"),
+    discountPercent: z
+      .number({ error: VOUCHER_PERCENT_MESSAGE })
+      .int(VOUCHER_PERCENT_MESSAGE)
+      .min(1, VOUCHER_PERCENT_MESSAGE)
+      .max(99, VOUCHER_PERCENT_MESSAGE),
+    vouchersPerBrand: z
+      .number({ error: VOUCHERS_PER_BRAND_MESSAGE })
+      .int(VOUCHERS_PER_BRAND_MESSAGE)
+      .min(1, VOUCHERS_PER_BRAND_MESSAGE)
+      .max(100, VOUCHERS_PER_BRAND_MESSAGE),
+    maxBrands: z.number({ error: MAX_BRANDS_MESSAGE }).int(MAX_BRANDS_MESSAGE).min(1, MAX_BRANDS_MESSAGE),
+    validFromLocal: z.string(),
+    validUntilLocal: z.string(),
+    active: z.boolean(),
+  })
+  .superRefine((data, ctx) => {
+    if (data.validFromLocal && data.validUntilLocal) {
+      const from = new Date(data.validFromLocal).getTime();
+      const until = new Date(data.validUntilLocal).getTime();
+      if (!(until > from)) {
+        ctx.addIssue({
+          code: "custom",
+          message: "Thời điểm kết thúc phải sau thời điểm bắt đầu",
+          path: ["validUntilLocal"],
+        });
+      }
+    }
+  });
+
 export type SkinToneValue = "FAIR" | "MEDIUM" | "TAN" | "DEEP" | "UNSURE";
 export type RiskLevelValue = "SAFE" | "BALANCED" | "BOLD" | "EXPERIMENTAL";
 export type FitPreferenceValue = "SLIM" | "REGULAR" | "RELAXED" | "OVERSIZE" | "UNSURE";
@@ -271,3 +309,4 @@ export type ResetPasswordForm = z.infer<typeof resetPasswordSchema>;
 export type ChangePasswordForm = z.infer<typeof changePasswordSchema>;
 export type BrandOnboardingForm = z.infer<typeof brandOnboardingSchema>;
 export type BillingPlanFormValues = z.infer<typeof billingPlanFormSchema>;
+export type VoucherCampaignFormValues = z.infer<typeof voucherCampaignFormSchema>;

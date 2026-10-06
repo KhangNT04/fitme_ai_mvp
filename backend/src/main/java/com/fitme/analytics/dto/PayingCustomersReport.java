@@ -17,7 +17,7 @@ public record PayingCustomersReport(
 ) {
 
     public enum Kind {
-        PRO_SUBSCRIPTION
+        PREMIUM_SUBSCRIPTION
     }
 
     public record Row(

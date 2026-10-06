@@ -12,7 +12,9 @@ export interface FitkenWalletResponse {
   bonusRemaining: number;
   trialGranted: boolean;
   tryOnCost: number;
-  plan: "FREE" | "PRO";
+  plan: "FREE" | "PREMIUM";
+  /** Free Fitken (trial / rewards) stops once the balance reaches this cap. */
+  maxBalance: number;
   subscription?: SubscriptionInfoDto;
 }
 

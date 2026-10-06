@@ -1,5 +1,6 @@
 package com.fitme.recommendation.service;
 
+import com.fitme.common.enums.BrandMixMode;
 import com.fitme.common.enums.OutfitCoherenceMode;
 import com.fitme.common.enums.StockStatus;
 import com.fitme.common.util.FitCompatibility;
@@ -19,6 +20,10 @@ import java.util.UUID;
 @Service
 @RequiredArgsConstructor
 public class OutfitScoringService {
+
+    static final double FAVORITE_DIVERSE_BONUS = 8;
+    static final double FAVORITE_ONLY_BONUS = 40;
+    static final double NON_FAVORITE_PENALTY = -30;
 
     private final ProductTagRepository tagRepository;
     private final ProductAudienceService productAudienceService;
@@ -78,12 +83,32 @@ public class OutfitScoringService {
                 p.getCategory());
 
         score += preferenceAndCoherenceBonus(p, targetStyle, ctx);
+        score += favoriteBrandBonus(p, ctx);
         return score;
     }
 
     /**
+     * Premium brand preference: DIVERSE gives favorite brands a mild bonus, FAVORITES_ONLY a strong bonus
+     * and pushes other brands down. Free users carry no favorites, so this is always 0 for them.
+     */
+    double favoriteBrandBonus(Product p, OutfitScoreContext ctx) {
+        if (ctx == null || ctx.favoriteBrandIds().isEmpty()) {
+            return 0;
+        }
+        boolean favorite = p.getBrandId() != null && ctx.favoriteBrandIds().contains(p.getBrandId());
+        if (ctx.brandMixMode() == BrandMixMode.FAVORITES_ONLY) {
+            return favorite ? FAVORITE_ONLY_BONUS : NON_FAVORITE_PENALTY;
+        }
+        return favorite ? FAVORITE_DIVERSE_BONUS : 0;
+    }
+
+    public boolean isFavoriteBrand(Product p, OutfitScoreContext ctx) {
+        return ctx != null && p.getBrandId() != null && ctx.favoriteBrandIds().contains(p.getBrandId());
+    }
+
+    /**
      * Soft brand coherence + learned affinity. Free (OFF) skips coherence bonuses so looks mix;
-     * Plus (PREFER/STRICT) boosts same-brand / partner and applies preferenceScale for deeper personalization.
+     * Premium (PREFER/STRICT) boosts same-brand / partner and applies preferenceScale for deeper personalization.
      */
     double preferenceAndCoherenceBonus(Product p, String targetStyle, OutfitScoreContext ctx) {
         if (ctx == null) {

@@ -55,13 +55,13 @@ export interface AdminMetrics {
     payingUsersAllTime: number;
     payingUsersInRange: number;
     paidTransactionsInRange: number;
-    proRevenueVnd: number;
-    activeProSubscribers: number;
+    premiumRevenueVnd: number;
+    activePremiumSubscribers: number;
   };
   checkout: {
-    proCheckoutsStarted: number;
-    proCheckoutsPaid: number;
-    proConversionRate: number;
+    premiumCheckoutsStarted: number;
+    premiumCheckoutsPaid: number;
+    premiumConversionRate: number;
   };
   funnel: Array<{ key: string; label: string; users: number }>;
   daily: Array<{
@@ -116,7 +116,7 @@ export interface TrafficStats {
   };
 }
 
-export type PayingTransactionKind = "PRO_SUBSCRIPTION";
+export type PayingTransactionKind = "PREMIUM_SUBSCRIPTION";
 
 export interface PayingCustomersReport {
   payingCustomers: number;

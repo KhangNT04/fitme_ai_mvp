@@ -208,7 +208,7 @@ export const adminApi = {
     const res = await apiClient.patch(`/admin/users/${userId}/status`, { status });
     return unwrap(res);
   },
-  setUserConsumerPlan: async (userId: string, plan: "FREE" | "PRO"): Promise<void> => {
+  setUserConsumerPlan: async (userId: string, plan: "FREE" | "PREMIUM"): Promise<void> => {
     await apiClient.patch(`/admin/users/${userId}/consumer-plan`, { plan });
   },
   listTryOnAvatars: async (): Promise<TryOnAvatar[]> => {
@@ -294,7 +294,7 @@ export interface AdminUser {
   role: AdminUserRole;
   status: AdminUserStatus;
   emailVerified: boolean;
-  consumerPlan: "FREE" | "PRO";
+  consumerPlan: "FREE" | "PREMIUM";
   fitkenBalance: number;
   createdAt: string;
   lastActiveDate?: string | null;
@@ -313,7 +313,7 @@ export interface AdminUserPage {
     brandOwners: number;
     admins: number;
     suspended: number;
-    proUsers: number;
+    premiumUsers: number;
   };
 }
 

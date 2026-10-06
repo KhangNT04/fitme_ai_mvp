@@ -21,7 +21,7 @@ export default function PrivacyPolicyPage() {
           <li>Thông tin tài khoản: họ tên hiển thị, email, mật khẩu (được mã hóa một chiều).</li>
           <li>Hồ sơ cơ thể và phong cách bạn tự nhập: chiều cao, cân nặng, số đo, dáng người, sở thích.</li>
           <li>Ảnh bạn tải lên để thử mặc AI và ảnh kết quả được tạo ra.</li>
-          <li>Lịch sử thanh toán gói FitMe Pro / Fitken và các lượt bạn bấm mua sang cửa hàng của brand.</li>
+          <li>Lịch sử thanh toán gói FitMe Premium / Fitken và các lượt bạn bấm mua sang cửa hàng của brand.</li>
           <li>Dữ liệu sử dụng: trang đã xem, tính năng đã dùng, nguồn truy cập (UTM), thiết bị và trình duyệt.</li>
         </ul>
       </LegalSection>
@@ -29,7 +29,7 @@ export default function PrivacyPolicyPage() {
       <LegalSection title="2. Mục đích sử dụng">
         <ul>
           <li>Tư vấn size, gợi ý outfit và tạo ảnh thử mặc theo yêu cầu của bạn.</li>
-          <li>Xử lý thanh toán gói FitMe Pro / Fitken và chăm sóc khách hàng.</li>
+          <li>Xử lý thanh toán gói FitMe Premium / Fitken và chăm sóc khách hàng.</li>
           <li>Gửi email xác minh tài khoản, đặt lại mật khẩu và xác nhận thanh toán gói.</li>
           <li>Thống kê ẩn danh để cải thiện sản phẩm (Google Analytics, Microsoft Clarity).</li>
         </ul>
@@ -39,7 +39,7 @@ export default function PrivacyPolicyPage() {
       <LegalSection title="3. Chia sẻ dữ liệu">
         <ul>
           <li>Brand đối tác: chỉ nhận số liệu tổng hợp, ẩn danh (lượt xem, lượt bấm mua, thử mặc). Khi bạn mua tại cửa hàng của brand, dữ liệu đặt hàng do cửa hàng đó xử lý theo chính sách riêng của họ.</li>
-          <li>Đơn vị thanh toán PayOS: thông tin giao dịch khi bạn mua gói FitMe Pro hoặc Fitken.</li>
+          <li>Đơn vị thanh toán PayOS: thông tin giao dịch khi bạn mua gói FitMe Premium hoặc Fitken.</li>
           <li>Nhà cung cấp hạ tầng và AI (lưu trữ, gửi email, tạo ảnh thử mặc) xử lý dữ liệu thay mặt FitMe theo hợp đồng bảo mật.</li>
           <li>Cơ quan nhà nước có thẩm quyền khi pháp luật yêu cầu.</li>
         </ul>

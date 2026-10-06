@@ -2,14 +2,15 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { PageShell } from "@/components/layout/PageShell";
 import { FlowWizardToolbar } from "@/components/layout/FlowWizardToolbar";
 import { AI_FLOW_STEPS } from "@/components/layout/FlowStepper";
 import { LoadingSkeleton } from "@/components/common/LoadingSkeleton";
 import { ChatMessageList } from "@/components/stylist-chat/ChatMessageList";
 import { ChatComposer } from "@/components/stylist-chat/ChatComposer";
-import { ProUpsellBanner } from "@/components/stylist-chat/ProUpsellBanner";
+import { PremiumUpsellBanner } from "@/components/stylist-chat/PremiumUpsellBanner";
+import { WardrobeModeSelector } from "@/components/stylist-chat/WardrobeModeSelector";
 import { StyleResultsBoard } from "@/components/stylist-chat/StyleResultsBoard";
 import { useEnsureSession } from "@/hooks/use-ensure-session";
 import { useBodyProfileReady } from "@/hooks/use-body-profile-ready";
@@ -18,6 +19,8 @@ import { useAuthStore } from "@/stores/auth-store";
 import { useConsultationStore } from "@/stores/consultation-store";
 import { useStylistChatStore } from "@/stores/stylist-chat-store";
 import { stylistChatApi } from "@/services/stylist-chat-api";
+import { entitlementApi } from "@/services/entitlement-api";
+import { effectiveWardrobeMode } from "@/lib/wardrobe-mode";
 import type { ApiError } from "@/services/api-client";
 import { ensureServerBodyProfile } from "@/lib/ensure-server-body-profile";
 import { consumerPageShellClass } from "@/lib/design-tokens";
@@ -52,6 +55,14 @@ export default function AiChatPage() {
   const { ensureSession } = useEnsureSession();
   const { ready, isLoading, profile, refreshGuest } = useBodyProfileReady();
   const selectedProductId = useConsultationStore((s) => s.draft.selectedProductId);
+  const wardrobeMode = useConsultationStore((s) => s.draft.wardrobeMode);
+  const setWardrobeMode = useConsultationStore((s) => s.setWardrobeMode);
+  const { data: entitlement } = useQuery({
+    queryKey: ["consumer-entitlement"],
+    queryFn: () => entitlementApi.get(),
+    staleTime: 60_000,
+  });
+  const premium = entitlement?.premium ?? false;
   const messages = useStylistChatStore((s) => s.messages);
   const conversationId = useStylistChatStore((s) => s.conversationId);
   const starterRecommendations = useStylistChatStore((s) => s.starterRecommendations);
@@ -186,7 +197,7 @@ export default function AiChatPage() {
           conversationId: authenticated ? conversationId : undefined,
           history: authenticated ? undefined : history,
           selectedProductId,
-          wardrobeMode: useConsultationStore.getState().draft.wardrobeMode,
+          wardrobeMode: effectiveWardrobeMode(useConsultationStore.getState().draft.wardrobeMode, premium),
         });
 
         if (result.conversationId) {
@@ -227,6 +238,7 @@ export default function AiChatPage() {
       profile,
       conversationId,
       selectedProductId,
+      premium,
       setConversationId,
       refreshGuest,
     ],
@@ -256,7 +268,7 @@ export default function AiChatPage() {
       />
 
       <div className="flex min-h-0 flex-1 flex-col gap-4">
-        <ProUpsellBanner />
+        <PremiumUpsellBanner />
 
         {showBoards && (
           <StyleResultsBoard
@@ -288,6 +300,12 @@ export default function AiChatPage() {
               Đang chuẩn bị 3 style cơ bản cho bạn…
             </p>
           )}
+          <WardrobeModeSelector
+            value={wardrobeMode}
+            premium={premium}
+            onChange={setWardrobeMode}
+            disabled={busy}
+          />
           <ChatComposer onSend={(m) => void send(m)} disabled={!ready} sending={busy} />
         </div>
       </div>

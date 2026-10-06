@@ -21,6 +21,7 @@ import { consumerPageShellClass } from "@/lib/design-tokens";
 import { cn } from "@/lib/utils";
 import { DEFAULT_SHARE_REWARD_FITKEN } from "@/utils/constants";
 import { shareClaimSuccessMessage } from "@/lib/share-reward";
+import { fitkenCapMessage, fitkenCapProgressLabel, isAtFreeFitkenCap } from "@/lib/fitken-cap";
 
 const REWARD_TABS = ["tasks", "history"];
 
@@ -70,7 +71,10 @@ function RewardsContent() {
       void queryClient.invalidateQueries({ queryKey: ["rewards-summary"] });
       void queryClient.invalidateQueries({ queryKey: ["fitken-wallet"] });
       void queryClient.invalidateQueries({ queryKey: ["fitken-ledger"] });
-      if (res.rewardGranted > 0) {
+      const capMessage = fitkenCapMessage(res);
+      if (capMessage) {
+        toast.success(`Điểm danh thành công! ${capMessage}.`);
+      } else if (res.rewardGranted > 0) {
         toast.success(`Điểm danh thành công! Bạn nhận được ${res.rewardGranted} Fitken.`);
       } else {
         toast.success("Điểm danh thành công!");
@@ -86,7 +90,7 @@ function RewardsContent() {
       void queryClient.invalidateQueries({ queryKey: ["rewards-summary"] });
       void queryClient.invalidateQueries({ queryKey: ["fitken-wallet"] });
       void queryClient.invalidateQueries({ queryKey: ["fitken-ledger"] });
-      toast.success(shareClaimSuccessMessage(res.rewardGranted));
+      toast.success(shareClaimSuccessMessage(res));
     },
     onError: (e) => toast.error(getUserErrorMessage(e, "Gửi link thất bại.")),
   });
@@ -109,7 +113,11 @@ function RewardsContent() {
     );
   }
 
-  const showUpsell = wallet !== undefined && wallet.plan !== "PRO";
+  const showUpsell = wallet !== undefined && wallet.plan !== "PREMIUM";
+  const balance = wallet?.balance ?? summary?.balance ?? 0;
+  const maxBalance = summary?.maxBalance ?? wallet?.maxBalance;
+  const capLabel = fitkenCapProgressLabel(balance, maxBalance);
+  const atCap = isAtFreeFitkenCap(balance, maxBalance);
 
   return (
     <PageShell width="full" className={cn(consumerPageShellClass, "space-y-6")}>
@@ -121,11 +129,16 @@ function RewardsContent() {
           <Coins className="w-32 h-32" />
         </div>
         <p className="text-primary-foreground/80 text-sm font-medium mb-1">Số dư Fitken</p>
-        <div className="text-5xl font-bold mb-4">{wallet?.balance ?? "—"}</div>
+        <div className={cn("text-5xl font-bold", capLabel ? "mb-1" : "mb-4")}>{wallet?.balance ?? "—"}</div>
+        {capLabel && (
+          <p className="mb-4 text-xs text-primary-foreground/80" data-testid="fitken-cap-hint">
+            {capLabel}
+          </p>
+        )}
         
         {showUpsell && (
           <div className="bg-primary-foreground/10 rounded-xl p-3 text-sm flex items-center justify-between">
-            <span className="text-left">Nâng cấp Pro để nhận 15 Fitken/tháng</span>
+            <span className="text-left">Nâng cấp FitMe Premium để nhận Fitken hàng tháng</span>
             <Button asChild size="sm" variant="secondary" className="rounded-full shrink-0">
               <Link href="/pricing">Nâng cấp</Link>
             </Button>
@@ -140,6 +153,19 @@ function RewardsContent() {
         </TabsList>
 
         <TabsContent value="tasks" className="space-y-4">
+          {maxBalance != null && maxBalance > 0 && (
+            <div
+              className={cn(
+                "rounded-2xl border p-4 text-sm",
+                atCap ? "border-amber-300 bg-amber-50 text-amber-900" : "border-border/60 bg-muted/30 text-muted-foreground",
+              )}
+            >
+              {atCap
+                ? `Ví đã đạt trần ${maxBalance} Fitken miễn phí. Thưởng điểm danh, chia sẻ và đánh giá sẽ tạm dừng cộng cho đến khi bạn dùng bớt Fitken.`
+                : `Fitken miễn phí từ nhiệm vụ chỉ cộng tới tối đa ${maxBalance} Fitken trong ví. Fitken từ gói Premium hoặc mua thêm không bị giới hạn.`}
+            </div>
+          )}
+
           {/* Check-in */}
           <div className="rounded-2xl border border-border/60 bg-card p-5">
             <div className="flex items-center gap-3 mb-4">

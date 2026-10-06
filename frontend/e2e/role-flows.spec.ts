@@ -1,5 +1,5 @@
 import { test, expect } from "@playwright/test";
-import { loginUser, loginBrand, loginAdmin, DEMO_PASSWORD } from "./helpers/auth";
+import { loginUser, loginPremiumUser, loginBrand, loginAdmin, DEMO_PASSWORD } from "./helpers/auth";
 import {
   completeConsultationToResult,
   ensureReachedAiChat,
@@ -109,7 +109,7 @@ test.describe("Luồng USER", () => {
 
   test("tủ đồ → thêm item → tư vấn outfit", async ({ page }) => {
     const itemName = `Áo sơ mi trắng E2E ${Date.now()}`;
-    await loginUser(page);
+    await loginPremiumUser(page);
     await page.goto("/wardrobe");
     await page.getByRole("button", { name: "Thêm item", exact: true }).click();
     const dialog = page.getByRole("dialog");

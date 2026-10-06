@@ -36,9 +36,9 @@ class CustomerEmailIntegrationTest extends AbstractIntegrationTest {
     private JwtService jwtService;
 
     @Test
-    void proCheckout_sendsPlanPurchasedEmail() throws Exception {
+    void premiumCheckout_sendsPlanPurchasedEmail() throws Exception {
         String token = registerUserAccessToken();
-        UUID planId = planRepository.findByCode(ConsumerSubscriptionService.PRO_PLAN_CODE).orElseThrow().getId();
+        UUID planId = planRepository.findByCode(ConsumerSubscriptionService.PREMIUM_PLAN_CODE).orElseThrow().getId();
 
         mockMvc.perform(post("/api/v1/me/subscription/checkout")
                         .header("Authorization", "Bearer " + token)
@@ -46,7 +46,7 @@ class CustomerEmailIntegrationTest extends AbstractIntegrationTest {
                         .content("{\"planId\":\"" + planId + "\"}"))
                 .andExpect(status().isOk());
 
-        verify(mail, timeout(5000)).sendNotification(eq(email(token)), contains("Pro"), contains("Hiệu lực Pro đến"),
+        verify(mail, timeout(5000)).sendNotification(eq(email(token)), contains("Premium"), contains("Hiệu lực Premium đến"),
                 anyString(), eq("plan purchased"));
     }
 

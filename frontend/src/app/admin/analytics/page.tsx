@@ -181,7 +181,7 @@ export default function AdminAnalyticsPage() {
             <div className="flex flex-wrap items-end justify-between gap-3">
               <div>
                 <h2 className="font-display text-lg font-semibold text-foreground">Doanh thu & khách trả tiền</h2>
-                <p className="text-sm text-muted-foreground">Gói FitMe Pro và gói Fitken đã thanh toán.</p>
+                <p className="text-sm text-muted-foreground">Gói FitMe Premium và gói Fitken đã thanh toán.</p>
               </div>
               <Button variant="outline" size="sm" asChild>
                 <Link href="/admin/paying-customers">Danh sách khách trả tiền</Link>
@@ -190,7 +190,7 @@ export default function AdminAnalyticsPage() {
             <StatCardGrid>
               <StatCard label="Khách trả tiền (tổng)" value={formatChartNumber(data.revenue.payingUsersAllTime)} sub={`${formatChartNumber(data.revenue.payingUsersInRange)} trong ${data.rangeDays} ngày`} icon={<Wallet className="h-5 w-5" />} tone="emerald" />
               <StatCard label="Giao dịch đã thanh toán" value={formatChartNumber(data.revenue.paidTransactionsInRange)} sub={`${data.rangeDays} ngày gần nhất`} icon={<CalendarCheck className="h-5 w-5" />} tone="sky" />
-              <StatCard label="Doanh thu gói Pro" value={formatPrice(data.revenue.proRevenueVnd)} sub={`${formatChartNumber(data.revenue.activeProSubscribers)} thuê bao đang hoạt động`} icon={<CreditCard className="h-5 w-5" />} tone="violet" />
+              <StatCard label="Doanh thu gói Premium" value={formatPrice(data.revenue.premiumRevenueVnd)} sub={`${formatChartNumber(data.revenue.activePremiumSubscribers)} thuê bao đang hoạt động`} icon={<CreditCard className="h-5 w-5" />} tone="violet" />
             </StatCardGrid>
             <ChartCard title="Doanh thu theo ngày">
               <RevenueTrendChart daily={data.daily} />
@@ -204,11 +204,11 @@ export default function AdminAnalyticsPage() {
             >
               <FunnelChart funnel={data.funnel} />
             </ChartCard>
-            <ChartCard title="Thanh toán gói Pro" description={`Phiên thanh toán PayOS bắt đầu trong ${data.rangeDays} ngày.`}>
+            <ChartCard title="Thanh toán gói Premium" description={`Phiên thanh toán PayOS bắt đầu trong ${data.rangeDays} ngày.`}>
               <dl className="grid gap-3 sm:grid-cols-2">
-                <Metric label="Mở thanh toán gói Pro" value={formatChartNumber(data.checkout.proCheckoutsStarted)} />
-                <Metric label="Đã thanh toán" value={formatChartNumber(data.checkout.proCheckoutsPaid)} />
-                <Metric label="Tỉ lệ chuyển đổi" value={formatPercent(data.checkout.proConversionRate)} />
+                <Metric label="Mở thanh toán gói Premium" value={formatChartNumber(data.checkout.premiumCheckoutsStarted)} />
+                <Metric label="Đã thanh toán" value={formatChartNumber(data.checkout.premiumCheckoutsPaid)} />
+                <Metric label="Tỉ lệ chuyển đổi" value={formatPercent(data.checkout.premiumConversionRate)} />
               </dl>
             </ChartCard>
           </section>

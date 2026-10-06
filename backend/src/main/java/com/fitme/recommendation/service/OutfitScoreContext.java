@@ -1,5 +1,6 @@
 package com.fitme.recommendation.service;
 
+import com.fitme.common.enums.BrandMixMode;
 import com.fitme.common.enums.OutfitCoherenceMode;
 
 import java.util.Collections;
@@ -8,7 +9,8 @@ import java.util.Set;
 import java.util.UUID;
 
 /**
- * Scoring context for brand coherence + learned preference weights.
+ * Scoring context for brand coherence + learned preference weights, plus the Premium favorite brands
+ * ({@code favoriteBrandIds} stays empty for Free users).
  */
 public record OutfitScoreContext(
         OutfitCoherenceMode coherenceMode,
@@ -17,7 +19,21 @@ public record OutfitScoreContext(
         Map<String, Double> styleWeights,
         Map<String, Double> brandWeights,
         Map<String, Double> colorWeights,
-        double preferenceScale) {
+        double preferenceScale,
+        Set<UUID> favoriteBrandIds,
+        BrandMixMode brandMixMode) {
+
+    public OutfitScoreContext(
+            OutfitCoherenceMode coherenceMode,
+            UUID preferredBrandId,
+            Set<UUID> partnerBrandIds,
+            Map<String, Double> styleWeights,
+            Map<String, Double> brandWeights,
+            Map<String, Double> colorWeights,
+            double preferenceScale) {
+        this(coherenceMode, preferredBrandId, partnerBrandIds, styleWeights, brandWeights, colorWeights,
+                preferenceScale, Set.of(), BrandMixMode.DIVERSE);
+    }
 
     public static OutfitScoreContext empty() {
         return new OutfitScoreContext(
@@ -48,5 +64,17 @@ public record OutfitScoreContext(
 
     public double preferenceScale() {
         return preferenceScale > 0 ? preferenceScale : 1.0;
+    }
+
+    public Set<UUID> favoriteBrandIds() {
+        return favoriteBrandIds == null ? Set.of() : favoriteBrandIds;
+    }
+
+    public BrandMixMode brandMixMode() {
+        return brandMixMode == null ? BrandMixMode.DIVERSE : brandMixMode;
+    }
+
+    public boolean favoritesOnly() {
+        return brandMixMode() == BrandMixMode.FAVORITES_ONLY && !favoriteBrandIds().isEmpty();
     }
 }

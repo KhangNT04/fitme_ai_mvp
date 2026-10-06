@@ -1,5 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { formatUserErrorMessage, getUserErrorMessage } from "./user-error-message";
+import {
+  PREMIUM_REQUIRED_MESSAGE,
+  formatUserErrorMessage,
+  getUserErrorMessage,
+  isPremiumRequiredError,
+} from "./user-error-message";
 
 describe("formatUserErrorMessage", () => {
   it("keeps Vietnamese backend messages", () => {
@@ -47,5 +52,21 @@ describe("getUserErrorMessage", () => {
 
   it("uses fallback when message is empty", () => {
     expect(getUserErrorMessage({}, { fallback: "Đăng nhập thất bại" })).toBe("Đăng nhập thất bại");
+  });
+
+  it("keeps the backend Vietnamese message for PREMIUM_REQUIRED", () => {
+    const error = { message: "Tủ đồ là tính năng của FitMe Premium", status: 403, code: "PREMIUM_REQUIRED" };
+    expect(isPremiumRequiredError(error)).toBe(true);
+    expect(getUserErrorMessage(error)).toBe("Tủ đồ là tính năng của FitMe Premium");
+  });
+
+  it("explains PREMIUM_REQUIRED instead of a generic 403", () => {
+    expect(getUserErrorMessage({ message: "Request failed with status code 403", status: 403, code: "PREMIUM_REQUIRED" })).toBe(
+      PREMIUM_REQUIRED_MESSAGE,
+    );
+    expect(
+      isPremiumRequiredError({ response: { status: 403, data: { errorCode: "PREMIUM_REQUIRED" } } }),
+    ).toBe(true);
+    expect(isPremiumRequiredError({ message: "x", status: 403 })).toBe(false);
   });
 });

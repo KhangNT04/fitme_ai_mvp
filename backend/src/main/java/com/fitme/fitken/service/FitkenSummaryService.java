@@ -35,6 +35,7 @@ public class FitkenSummaryService {
                 .bonusRemaining(wallet.getBonusRemaining())
                 .trialGranted(wallet.getTrialGrantedAt() != null)
                 .tryOnCost(fitkenService.tryOnCost())
+                .maxBalance(fitkenService.maxFreeBalance())
                 .plan(subscriptionService.resolvePlan(userId))
                 .subscription(subscriptionService.describe(userId))
                 .build();

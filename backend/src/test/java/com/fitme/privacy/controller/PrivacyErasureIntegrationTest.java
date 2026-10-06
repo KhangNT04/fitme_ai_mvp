@@ -56,6 +56,8 @@ class PrivacyErasureIntegrationTest extends AbstractIntegrationTest {
         jdbc.update("INSERT INTO body_profiles (user_id, height_cm, weight_kg) VALUES (?, 170, 60)", userId);
         jdbc.update("INSERT INTO wardrobe_items (user_id, name) VALUES (?, 'Áo thun')", userId);
         jdbc.update("INSERT INTO style_profiles (user_id, primary_style) VALUES (?, 'Minimal')", userId);
+        jdbc.update("INSERT INTO user_favorite_brands (user_id, brand_id) VALUES (?, ?)",
+                userId, testDataHelper.createApprovedBrand().getId());
 
         String requestId = requestDeletion(new FitMeUserPrincipal(account), "ALL");
         FitMeUserPrincipal admin = new FitMeUserPrincipal(testDataHelper.createAdmin().user());
@@ -63,7 +65,7 @@ class PrivacyErasureIntegrationTest extends AbstractIntegrationTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.status").value("COMPLETED"));
 
-        for (String table : new String[] {"body_profiles", "wardrobe_items", "style_profiles"}) {
+        for (String table : new String[] {"body_profiles", "wardrobe_items", "style_profiles", "user_favorite_brands"}) {
             Integer left = jdbc.queryForObject("SELECT COUNT(*) FROM " + table + " WHERE user_id = ?", Integer.class, userId);
             assertThat(left).as(table).isZero();
         }

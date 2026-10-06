@@ -9,7 +9,7 @@ import org.hibernate.annotations.UpdateTimestamp;
 import java.time.Instant;
 import java.util.UUID;
 
-/** Consumer plan (FitMe Pro). {@code quotaAmount} is the Fitken granted per purchase/period. */
+/** Consumer plan (FitMe Premium or a Fitken top-up). {@code quotaAmount} is the Fitken granted per purchase/period. */
 @Entity
 @Table(name = "billing_plans")
 @Getter

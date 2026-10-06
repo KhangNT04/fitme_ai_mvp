@@ -44,7 +44,7 @@ import java.util.concurrent.ThreadLocalRandom;
 @Slf4j
 public class ConsumerSubscriptionService {
 
-    public static final String PRO_PLAN_CODE = "PRO_MONTHLY";
+    public static final String PREMIUM_PLAN_CODE = "PREMIUM_MONTHLY";
     private static final int DEFAULT_PERIOD_DAYS = 30;
     private static final String REF_ADMIN_GRANT = "ADMIN_GRANT";
 
@@ -68,7 +68,13 @@ public class ConsumerSubscriptionService {
     }
 
     public ConsumerPlan resolvePlan(UUID userId) {
-        return findActive(userId).isPresent() ? ConsumerPlan.PRO : ConsumerPlan.FREE;
+        return findActive(userId).isPresent() ? ConsumerPlan.PREMIUM : ConsumerPlan.FREE;
+    }
+
+    /** The plan sold as FitMe Premium (admin-editable price / Fitken), falling back to the first subscription plan. */
+    public Optional<BillingPlan> findPremiumPlan() {
+        return planRepository.findByCode(PREMIUM_PLAN_CODE)
+                .or(() -> planRepository.findFirstByPlanTypeAndActiveTrueOrderBySortOrderAsc(BillingPlanType.SUBSCRIPTION));
     }
 
     public SubscriptionInfoDto describe(UUID userId) {
@@ -207,36 +213,34 @@ public class ConsumerSubscriptionService {
 
         fitkenService.grant(userId, FitkenEntryType.SUBSCRIPTION_GRANT, plan.getQuotaAmount(),
                 FitkenService.Bucket.SUBSCRIPTION, grantReferenceType, grantReferenceId, note);
-        syncUserPlan(userId, ConsumerPlan.PRO, null);
+        syncUserPlan(userId, ConsumerPlan.PREMIUM, null);
         return subscription;
     }
 
     /**
-     * Admin manual grant: a paid-equivalent Pro period (Fitken) without PayOS.
-     * Users who already have an active Pro period only get their coherence preference updated.
+     * Admin manual grant: a paid-equivalent Premium period (Fitken) without PayOS.
+     * Users who already have an active Premium period only get their coherence preference updated.
      */
     @Transactional
-    public void adminGrantPro(UUID userId, OutfitCoherenceMode coherenceMode) {
+    public void adminGrantPremium(UUID userId, OutfitCoherenceMode coherenceMode) {
         requireUser(userId);
         if (findActive(userId).isEmpty()) {
-            BillingPlan plan = planRepository.findByCode(PRO_PLAN_CODE)
-                    .or(() -> planRepository.findFirstByPlanTypeAndActiveTrueOrderBySortOrderAsc(
-                            BillingPlanType.SUBSCRIPTION))
-                    .orElseThrow(() -> new NotFoundException("Chưa cấu hình gói FitMe Pro"));
+            BillingPlan plan = findPremiumPlan()
+                    .orElseThrow(() -> new NotFoundException("Chưa cấu hình gói FitMe Premium"));
             activateSubscription(userId, plan, null, REF_ADMIN_GRANT, UUID.randomUUID(),
                     "Admin kích hoạt " + plan.getName());
         }
-        syncUserPlan(userId, ConsumerPlan.PRO, coherenceMode);
+        syncUserPlan(userId, ConsumerPlan.PREMIUM, coherenceMode);
     }
 
     @Transactional
-    public void adminRevokePro(UUID userId) {
+    public void adminRevokePremium(UUID userId) {
         requireUser(userId);
         subscriptionRepository.findByUserIdForUpdate(userId).ifPresent(sub -> {
             if (sub.getStatus() == ConsumerSubscriptionStatus.ACTIVE) {
                 sub.setStatus(ConsumerSubscriptionStatus.CANCELLED);
                 subscriptionRepository.save(sub);
-                fitkenService.resetSubscriptionBucket(userId, sub.getId(), "Admin hủy gói FitMe Pro");
+                fitkenService.resetSubscriptionBucket(userId, sub.getId(), "Admin hủy gói FitMe Premium");
             }
         });
         syncUserPlan(userId, ConsumerPlan.FREE, null);
@@ -250,7 +254,7 @@ public class ConsumerSubscriptionService {
         for (ConsumerSubscription sub : expired) {
             sub.setStatus(ConsumerSubscriptionStatus.EXPIRED);
             subscriptionRepository.save(sub);
-            fitkenService.resetSubscriptionBucket(sub.getUserId(), sub.getId(), "Hết hạn gói FitMe Pro");
+            fitkenService.resetSubscriptionBucket(sub.getUserId(), sub.getId(), "Hết hạn gói FitMe Premium");
             syncUserPlan(sub.getUserId(), ConsumerPlan.FREE, null);
         }
         if (!expired.isEmpty()) {

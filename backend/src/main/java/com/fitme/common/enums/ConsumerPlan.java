@@ -6,17 +6,17 @@ import java.util.Locale;
 
 public enum ConsumerPlan {
     FREE,
-    PRO;
+    PREMIUM;
 
-    /** Accepts the legacy {@code PLUS} value from older clients/admin tools as {@link #PRO}. */
+    /** Accepts the legacy {@code PRO} / {@code PLUS} values from older clients/admin tools as {@link #PREMIUM}. */
     @JsonCreator
     public static ConsumerPlan fromValue(String raw) {
         if (raw == null || raw.isBlank()) {
             return FREE;
         }
         String normalized = raw.trim().toUpperCase(Locale.ROOT);
-        if ("PLUS".equals(normalized)) {
-            return PRO;
+        if ("PRO".equals(normalized) || "PLUS".equals(normalized)) {
+            return PREMIUM;
         }
         return ConsumerPlan.valueOf(normalized);
     }

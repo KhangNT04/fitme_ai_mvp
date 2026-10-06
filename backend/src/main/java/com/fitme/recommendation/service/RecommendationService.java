@@ -6,6 +6,7 @@ import com.fitme.ai.dto.GeminiStylistResult;
 import com.fitme.analytics.service.AnalyticsService;
 import com.fitme.brand.service.BrandPartnershipService;
 import com.fitme.common.enums.Confidence;
+import com.fitme.common.enums.ItemRole;
 import com.fitme.common.enums.OutfitCoherenceMode;
 import com.fitme.common.enums.ProductStatus;
 import com.fitme.common.enums.ProductTargetGender;
@@ -17,6 +18,7 @@ import com.fitme.common.exception.NotFoundException;
 import com.fitme.common.security.OwnershipChecker;
 import com.fitme.common.security.RequestContext;
 import com.fitme.entitlement.service.ConsumerEntitlementService;
+import com.fitme.preference.service.BrandPreferenceService;
 import com.fitme.preference.service.PreferenceLearningService;
 import com.fitme.product.entity.Product;
 import com.fitme.product.repository.ProductRepository;
@@ -73,6 +75,7 @@ public class RecommendationService {
     private final ConsumerEntitlementService consumerEntitlementService;
     private final BrandPartnershipService brandPartnershipService;
     private final PreferenceLearningService preferenceLearningService;
+    private final BrandPreferenceService brandPreferenceService;
 
     @Transactional
     public RecommendationOptionsResponse generate(CreateRecommendationRequest request) {
@@ -102,9 +105,8 @@ public class RecommendationService {
         String occasion = request.getOccasion() != null && !request.getOccasion().isBlank()
                 ? request.getOccasion()
                 : DEFAULT_OCCASION;
-        WardrobeMode mode = request.getWardrobeMode() != null
-                ? request.getWardrobeMode()
-                : WardrobeMode.NO_WARDROBE_DATA;
+        // Wardrobe is Premium-only: Free users asking for it silently get brand-only outfits.
+        WardrobeMode mode = consumerEntitlementService.effectiveWardrobeMode(request.getWardrobeMode(), userId);
 
         UUID selectedProductId = request.getSelectedProductId();
         if (selectedProductId != null && productRepository.findById(selectedProductId).isEmpty()) {
@@ -134,7 +136,7 @@ public class RecommendationService {
                 .filter(p -> outfitScoringService.withinBudget(p, request.getBudgetMin(), request.getBudgetMax()))
                 .toList();
         // A tight budget on a small catalog can leave nothing to build a full outfit from.
-        List<Product> baseEligible = withinBudget.size() >= MIN_BUDGET_POOL ? withinBudget : audienceEligible;
+        List<Product> budgetPool = withinBudget.size() >= MIN_BUDGET_POOL ? withinBudget : audienceEligible;
 
         Product anchor = selectedProductId != null
                 ? productRepository.findById(selectedProductId).orElse(null) : null;
@@ -142,9 +144,11 @@ public class RecommendationService {
             throw new BusinessException("Sản phẩm đã chọn không phù hợp với giới tính trong hồ sơ của bạn.");
         }
 
-        OutfitScoreContext scoreContext = buildScoreContext(anchor);
+        OutfitScoreContext scoreContext = buildScoreContext(anchor, userId);
+        List<Product> baseEligible = applyFavoriteBrandFilter(budgetPool, scoreContext);
 
         CreateRecommendationRequest stylistRequest = copyRequest(request, occasion);
+        stylistRequest.setWardrobeMode(mode);
         List<String> styles = resolveStyleLabels(request, body);
         List<RecommendationOptionsResponse.StyleOptionDto> options = new ArrayList<>();
         List<RecommendationResponse> recommendations = new ArrayList<>();
@@ -521,11 +525,12 @@ public class RecommendationService {
         return best;
     }
 
-    private OutfitScoreContext buildScoreContext(Product anchor) {
+    private OutfitScoreContext buildScoreContext(Product anchor, UUID userId) {
         OutfitCoherenceMode mode = consumerEntitlementService.resolveCoherenceModeForCurrentUser();
         double preferenceScale = consumerEntitlementService.resolvePreferenceScaleForCurrentUser();
         UUID preferredBrandId = resolvePreferredBrandId(anchor);
         Set<UUID> partners = brandPartnershipService.findPartnerBrandIds(preferredBrandId);
+        BrandPreferenceService.ScoringPreference favorites = brandPreferenceService.forScoring(userId);
         return new OutfitScoreContext(
                 mode,
                 preferredBrandId,
@@ -533,7 +538,31 @@ public class RecommendationService {
                 preferenceLearningService.styleWeights(),
                 preferenceLearningService.brandWeights(),
                 preferenceLearningService.colorWeights(),
-                preferenceScale);
+                preferenceScale,
+                favorites.favoriteBrandIds(),
+                favorites.mode());
+    }
+
+    /**
+     * FAVORITES_ONLY soft filter: keep only favorite-brand products when they can still form an outfit
+     * (top + bottom, or a one-piece); otherwise keep the full pool and rely on scoring to rank favorites first.
+     */
+    List<Product> applyFavoriteBrandFilter(List<Product> pool, OutfitScoreContext scoreContext) {
+        if (!scoreContext.favoritesOnly()) {
+            return pool;
+        }
+        List<Product> favorites = pool.stream()
+                .filter(p -> outfitScoringService.isFavoriteBrand(p, scoreContext))
+                .toList();
+        return hasCoreOutfitRoles(favorites) ? favorites : pool;
+    }
+
+    private boolean hasCoreOutfitRoles(List<Product> products) {
+        Set<ItemRole> roles = products.stream()
+                .map(outfitCompositionService::guessRole)
+                .collect(java.util.stream.Collectors.toSet());
+        return roles.contains(ItemRole.ONE_PIECE)
+                || (roles.contains(ItemRole.TOP) && roles.contains(ItemRole.BOTTOM));
     }
 
     private UUID resolvePreferredBrandId(Product anchor) {
@@ -568,10 +597,12 @@ public class RecommendationService {
                 pool = filtered;
             }
         }
+        java.util.Map<Product, Double> scores = new java.util.IdentityHashMap<>();
+        for (Product p : pool) {
+            scores.put(p, outfitScoringService.scoreProduct(p, styleLabel, body, userMessage, scoreContext));
+        }
         return pool.stream()
-                .sorted((a, b) -> Double.compare(
-                        outfitScoringService.scoreProduct(b, styleLabel, body, userMessage, scoreContext),
-                        outfitScoringService.scoreProduct(a, styleLabel, body, userMessage, scoreContext)))
+                .sorted((a, b) -> Double.compare(scores.get(b), scores.get(a)))
                 .toList();
     }
 

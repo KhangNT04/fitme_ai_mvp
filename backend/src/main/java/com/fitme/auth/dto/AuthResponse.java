@@ -23,6 +23,6 @@ public class AuthResponse {
      */
     private String verificationCode;
     private String message;
-    /** FREE | PRO — synced from the consumer's FitMe Pro subscription. */
+    /** FREE | PREMIUM — synced from the consumer's FitMe Premium subscription. */
     private String consumerPlan;
 }

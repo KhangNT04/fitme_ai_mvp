@@ -78,7 +78,7 @@ class P0BillingWebhookIntegrationTest extends AbstractIntegrationTest {
         assertThat(jdbc.queryForObject("SELECT paid_at IS NOT NULL FROM consumer_billing_orders WHERE id = ?",
                 Boolean.class, order.id())).isTrue();
         mockMvc.perform(get("/api/v1/me/entitlement").with(user(order.principal())))
-                .andExpect(jsonPath("$.data.plan").value("PRO"));
+                .andExpect(jsonPath("$.data.plan").value("PREMIUM"));
     }
 
     /** SUB-10 */
@@ -96,7 +96,7 @@ class P0BillingWebhookIntegrationTest extends AbstractIntegrationTest {
         mockMvc.perform(get("/api/v1/me/fitken").with(user(order.principal())))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.subscriptionRemaining").value(15))
-                .andExpect(jsonPath("$.data.plan").value("PRO"));
+                .andExpect(jsonPath("$.data.plan").value("PREMIUM"));
         assertThat(billingStatus(order)).isEqualTo("PAID");
     }
 
@@ -161,10 +161,10 @@ class P0BillingWebhookIntegrationTest extends AbstractIntegrationTest {
                 .andExpect(status().isOk())
                 .andReturn().getResponse().getContentAsString()).get("data");
         for (JsonNode plan : plans) {
-            if ("PRO_MONTHLY".equals(plan.get("code").asText())) {
+            if ("PREMIUM_MONTHLY".equals(plan.get("code").asText())) {
                 return plan.get("id").asText();
             }
         }
-        throw new AssertionError("PRO_MONTHLY plan seeded by V18");
+        throw new AssertionError("PREMIUM_MONTHLY plan (renamed by V28)");
     }
 }

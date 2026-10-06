@@ -1,11 +1,14 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import Link from "next/link";
 import { AppImage } from "@/components/common/AppImage";
 import { validateImageFile } from "@/lib/upload-file";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Pencil, Plus, Trash2, Upload } from "lucide-react";
+import { Lock, Pencil, Plus, Sparkles, Trash2, Upload } from "lucide-react";
 import { wardrobeApi } from "@/services/wardrobe-api";
+import { entitlementApi } from "@/services/entitlement-api";
+import { PREMIUM_PERKS, PREMIUM_PLAN_NAME, premiumUpgradeCta } from "@/lib/premium";
 import { useEnsureSession } from "@/hooks/use-ensure-session";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -22,7 +25,7 @@ import { PageShell } from "@/components/layout/PageShell";
 import { CollapsingPageHeader } from "@/components/layout/CollapsingPageHeader";
 import { PRODUCT_CATEGORIES } from "@/utils/constants";
 import { catalogProductGridClass, consumerPageShellClass } from "@/lib/design-tokens";
-import { getUserErrorMessage } from "@/lib/user-error-message";
+import { getUserErrorMessage, isPremiumRequiredError } from "@/lib/user-error-message";
 import { toast } from "@/stores/toast-store";
 import type { WardrobeItem } from "@/types/user";
 
@@ -75,11 +78,26 @@ export default function WardrobePage() {
     setShowAdd(true);
   };
 
+  const {
+    data: entitlement,
+    isLoading: entitlementLoading,
+    error: entitlementError,
+    refetch: refetchEntitlement,
+  } = useQuery({
+    queryKey: ["consumer-entitlement"],
+    queryFn: () => entitlementApi.get(),
+    staleTime: 60_000,
+    enabled: sessionReady,
+  });
+  const premium = entitlement?.premium ?? false;
+
   const { data, isLoading, error, refetch } = useQuery({
     queryKey: ["wardrobe"],
     queryFn: () => wardrobeApi.list(),
-    enabled: sessionReady,
+    enabled: sessionReady && premium,
+    retry: (failureCount, err) => !isPremiumRequiredError(err) && failureCount < 2,
   });
+  const locked = (entitlement !== undefined && !premium) || isPremiumRequiredError(error);
 
   const saveMutation = useMutation({
     mutationFn: async () => {
@@ -149,23 +167,29 @@ export default function WardrobePage() {
         backHref="/"
         backLabel="Trang chủ"
         trailing={
-          <Button
-            onClick={() => {
-              resetForm();
-              setShowAdd(true);
-            }}
-            className="h-8 shrink-0 rounded-full px-3 text-xs sm:h-9 sm:px-4 sm:text-sm"
-          >
-            <Plus className="mr-1.5 h-3.5 w-3.5" />
-            Thêm item
-          </Button>
+          locked ? undefined : (
+            <Button
+              onClick={() => {
+                resetForm();
+                setShowAdd(true);
+              }}
+              disabled={!premium}
+              className="h-8 shrink-0 rounded-full px-3 text-xs sm:h-9 sm:px-4 sm:text-sm"
+            >
+              <Plus className="mr-1.5 h-3.5 w-3.5" />
+              Thêm item
+            </Button>
+          )
         }
       />
 
       <div>
-        {(!sessionReady || isLoading) && <LoadingSkeleton />}
-        {error && <ErrorState onRetry={() => refetch()} />}
-        {sessionReady && data && data.length === 0 && (
+        {locked && <WardrobePremiumUpsell priceVnd={entitlement?.premiumPriceVnd} />}
+        {!locked && (!sessionReady || entitlementLoading || isLoading) && <LoadingSkeleton />}
+        {!locked && (error || entitlementError) && (
+          <ErrorState onRetry={() => void (entitlementError ? refetchEntitlement() : refetch())} />
+        )}
+        {!locked && sessionReady && data && data.length === 0 && (
           <EmptyState
             title="Tủ đồ trống"
             description="Thêm item thủ công hoặc upload ảnh để AI phối đồ từ những gì bạn đã có."
@@ -176,7 +200,7 @@ export default function WardrobePage() {
             }}
           />
         )}
-        {data && data.length > 0 && (
+        {!locked && data && data.length > 0 && (
           <div className={catalogProductGridClass}>
             {data.map((item) => (
               <Card key={item.id}>
@@ -340,5 +364,34 @@ export default function WardrobePage() {
         }}
       />
     </PageShell>
+  );
+}
+
+function WardrobePremiumUpsell({ priceVnd }: { priceVnd?: number | null }) {
+  return (
+    <Card className="border-primary/30 bg-primary/5" data-testid="wardrobe-premium-upsell">
+      <CardContent className="space-y-4 p-6 text-center sm:p-8">
+        <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-primary/10 text-primary">
+          <Lock className="h-5 w-5" aria-hidden="true" />
+        </div>
+        <div className="space-y-1">
+          <h2 className="text-lg font-semibold">Tủ đồ là tính năng của {PREMIUM_PLAN_NAME}</h2>
+          <p className="text-sm text-muted-foreground">
+            Lưu đồ bạn đang có để stylist AI phối kèm với sản phẩm từ các brand. Dữ liệu tủ đồ cũ của bạn vẫn được giữ nguyên.
+          </p>
+        </div>
+        <ul className="mx-auto max-w-sm space-y-1 text-left text-sm">
+          {PREMIUM_PERKS.map((perk) => (
+            <li key={perk} className="flex items-start gap-2">
+              <Sparkles className="mt-0.5 h-4 w-4 shrink-0 text-primary" aria-hidden="true" />
+              {perk}
+            </li>
+          ))}
+        </ul>
+        <Button asChild className="rounded-full">
+          <Link href="/pricing">{premiumUpgradeCta(priceVnd)}</Link>
+        </Button>
+      </CardContent>
+    </Card>
   );
 }

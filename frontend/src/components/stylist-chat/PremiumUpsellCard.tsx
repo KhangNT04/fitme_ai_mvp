@@ -5,15 +5,16 @@ import { useQuery } from "@tanstack/react-query";
 import { Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { entitlementApi } from "@/services/entitlement-api";
+import { premiumUpgradeCta } from "@/lib/premium";
 
-export function FitMeProUpsellCard() {
+export function PremiumUpsellCard() {
   const { data, isLoading } = useQuery({
     queryKey: ["consumer-entitlement"],
     queryFn: () => entitlementApi.getCurrent(),
     staleTime: 60_000,
   });
 
-  if (isLoading || !data || data.pro) {
+  if (isLoading || !data || data.premium) {
     return null;
   }
 
@@ -27,7 +28,7 @@ export function FitMeProUpsellCard() {
             <p className="text-xs text-muted-foreground">{data.upsellMessage}</p>
           )}
           <Button asChild size="sm" variant="outline" className="rounded-full">
-            <Link href="/pricing">Nâng cấp Pro 49k</Link>
+            <Link href="/pricing">{premiumUpgradeCta(data.premiumPriceVnd)}</Link>
           </Button>
         </div>
       </div>

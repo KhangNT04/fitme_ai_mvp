@@ -10,6 +10,7 @@ import { reviewApi } from "@/services/review-api";
 import { useAuthStore } from "@/stores/auth-store";
 import { toast } from "@/stores/toast-store";
 import { getUserErrorMessage } from "@/lib/user-error-message";
+import { fitkenCapMessage } from "@/lib/fitken-cap";
 import { cn } from "@/lib/utils";
 import type { ProductReviewsResponse, ReviewItemDto } from "@/types";
 
@@ -39,7 +40,11 @@ export function ProductReviewsSection({ productId }: { productId: string }) {
   const submitMutation = useMutation({
     mutationFn: () => reviewApi.createReview(productId, { rating, content, imageUrls: images }),
     onSuccess: (res) => {
-      if (res?.rewardGranted > 0) {
+      const capMessage = res ? fitkenCapMessage(res) : null;
+      if (capMessage) {
+        toast.success(`Đánh giá đã được gửi! ${capMessage}.`);
+        void queryClient.invalidateQueries({ queryKey: ["fitken-wallet"] });
+      } else if (res?.rewardGranted > 0) {
         toast.success(`Đánh giá đã được gửi! Bạn nhận +${res.rewardGranted} Fitken.`);
         void queryClient.invalidateQueries({ queryKey: ["fitken-wallet"] });
       } else if (res?.rewardLimitReached) {

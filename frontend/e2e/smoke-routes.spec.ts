@@ -12,7 +12,7 @@ test.describe("Public route smoke", () => {
     { path: "/profile", heading: "Hồ sơ người dùng" },
     { path: "/rewards", heading: /^Nhận thưởng$/ },
     { path: "/profile/gallery", heading: "Thư viện ảnh" },
-    { path: "/pricing", heading: "FitMe Free & Pro" },
+    { path: "/pricing", heading: "FitMe Free & Premium" },
     { path: "/auth/login", heading: "Đăng nhập" },
     { path: "/auth/register", heading: "Đăng ký tài khoản" },
     { path: "/auth/forgot-password", heading: "Quên mật khẩu" },

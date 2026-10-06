@@ -173,6 +173,27 @@ function extractErrorDetails(error: unknown): { message?: string; status?: numbe
   return { status };
 }
 
+export const PREMIUM_REQUIRED_CODE = "PREMIUM_REQUIRED";
+export const PREMIUM_REQUIRED_MESSAGE =
+  "Tính năng này dành cho FitMe Premium. Nâng cấp tại trang Bảng giá để sử dụng.";
+
+function extractErrorCode(error: unknown): string | undefined {
+  if (!error || typeof error !== "object") return undefined;
+  const candidate = error as { code?: unknown; response?: { data?: unknown } };
+  if (typeof candidate.code === "string") return candidate.code;
+  const data = candidate.response?.data;
+  if (data && typeof data === "object") {
+    const code = (data as { errorCode?: unknown }).errorCode;
+    if (typeof code === "string") return code;
+  }
+  return undefined;
+}
+
+/** True when the API refused a FitMe Premium-only feature (HTTP 403, errorCode PREMIUM_REQUIRED). */
+export function isPremiumRequiredError(error: unknown): boolean {
+  return extractErrorCode(error) === PREMIUM_REQUIRED_CODE;
+}
+
 export function getUserErrorMessage(
   error: unknown,
   options?: string | UserErrorOptions
@@ -181,5 +202,11 @@ export function getUserErrorMessage(
     typeof options === "string" ? { fallback: options } : (options ?? {});
 
   const { message, status } = extractErrorDetails(error);
+  if (isPremiumRequiredError(error)) {
+    const trimmed = message?.trim();
+    return trimmed && isLikelyVietnamese(trimmed) && !isCorruptedVietnamese(trimmed)
+      ? trimmed
+      : PREMIUM_REQUIRED_MESSAGE;
+  }
   return formatUserErrorMessage(message, status, normalizedOptions);
 }

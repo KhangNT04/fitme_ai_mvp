@@ -170,6 +170,7 @@ public class ReviewService {
         }
 
         int granted = 0;
+        int intended = 0;
         boolean limitReached = false;
         if (!imagePaths.isEmpty() && content.length() >= MIN_REWARD_CONTENT_LENGTH) {
             // Locking the wallet serializes concurrent reviews of the same user against the daily limit.
@@ -177,8 +178,9 @@ public class ReviewService {
             if (rewardedReviewsToday(userId) >= reviewDailyLimit()) {
                 limitReached = true;
             } else {
+                intended = Math.max(0, properties.getFitken().getReviewReward());
                 granted = fitkenService.grant(userId, FitkenEntryType.REVIEW_REWARD,
-                        properties.getFitken().getReviewReward(), FitkenService.Bucket.BONUS,
+                        intended, FitkenService.Bucket.BONUS,
                         REF_REVIEW, review.getId(), "Đánh giá sản phẩm có ảnh");
                 review.setRewardGranted(granted);
                 review = reviewRepository.save(review);
@@ -188,6 +190,9 @@ public class ReviewService {
         return CreateReviewResponse.builder()
                 .review(toDtos(List.of(review), buyers).getFirst())
                 .rewardGranted(granted)
+                .rewardIntended(intended)
+                .rewardCapped(granted < intended)
+                .maxBalance(fitkenService.maxFreeBalance())
                 .rewardLimitReached(limitReached)
                 .build();
     }

@@ -2,6 +2,7 @@ package com.fitme.support;
 
 import com.fitme.auth.entity.UserAccount;
 import com.fitme.auth.repository.UserAccountRepository;
+import com.fitme.billing.service.ConsumerSubscriptionService;
 import com.fitme.brand.entity.Brand;
 import com.fitme.brand.repository.BrandRepository;
 import com.fitme.common.enums.*;
@@ -29,6 +30,7 @@ public class TestDataHelper {
     private final ProductVariantRepository variantRepository;
     private final UserAccountRepository userAccountRepository;
     private final PasswordEncoder passwordEncoder;
+    private final ConsumerSubscriptionService consumerSubscriptionService;
 
     public record BrandOwnerContext(UserAccount user, Brand brand) {}
 
@@ -47,6 +49,13 @@ public class TestDataHelper {
                 .status(UserStatus.ACTIVE)
                 .build());
         return new UserContext(user);
+    }
+
+    /** Consumer with an active FitMe Premium period (wardrobe, brand preferences). */
+    public UserContext createPremiumUser() {
+        UserAccount user = createUser().user();
+        consumerSubscriptionService.adminGrantPremium(user.getId(), null);
+        return new UserContext(userAccountRepository.findById(user.getId()).orElseThrow());
     }
 
     @Transactional
@@ -83,12 +92,20 @@ public class TestDataHelper {
 
     @Transactional
     public Product createEligibleProduct(String name, String category) {
-        Brand brand = brandRepository.save(Brand.builder()
+        return createEligibleProductForBrand(createApprovedBrand(), name, category);
+    }
+
+    @Transactional
+    public Brand createApprovedBrand() {
+        return brandRepository.save(Brand.builder()
                 .name("Test Brand " + UUID.randomUUID())
                 .status(BrandStatus.APPROVED)
                 .contactEmail("test@fitme.ai")
                 .build());
+    }
 
+    @Transactional
+    public Product createEligibleProductForBrand(Brand brand, String name, String category) {
         Product product = productRepository.save(Product.builder()
                 .brandId(brand.getId())
                 .name(name)

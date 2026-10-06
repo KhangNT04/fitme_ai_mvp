@@ -76,7 +76,7 @@ public class AdminMetricsService {
 
     public PayingCustomersReport payingCustomers() {
         List<PayingCustomersReport.Row> rows = jdbc.query("""
-                SELECT 'PRO_SUBSCRIPTION' AS kind, b.id, CAST(b.payos_order_code AS VARCHAR) AS reference,
+                SELECT 'PREMIUM_SUBSCRIPTION' AS kind, b.id, CAST(b.payos_order_code AS VARCHAR) AS reference,
                        b.payos_order_code, b.amount_vnd AS amount, b.paid_at, u.id AS user_id,
                        u.display_name AS customer_name, u.email,
                        COALESCE(b.payos_payment_link_id LIKE 'mock-%', FALSE) AS mock
@@ -167,13 +167,13 @@ public class AdminMetricsService {
     }
 
     private Checkout checkout(Timestamp fromUtc) {
-        Map<String, Object> pro = jdbc.queryForMap("""
+        Map<String, Object> premium = jdbc.queryForMap("""
                 SELECT COUNT(*) AS started, COUNT(*) FILTER (WHERE status = 'PAID') AS paid
                 FROM consumer_billing_orders WHERE created_at >= ?
                 """, fromUtc);
-        long proStarted = asLong(pro.get("started"));
-        long proPaid = asLong(pro.get("paid"));
-        return new Checkout(proStarted, proPaid, ratio(proPaid, proStarted));
+        long premiumStarted = asLong(premium.get("started"));
+        long premiumPaid = asLong(premium.get("paid"));
+        return new Checkout(premiumStarted, premiumPaid, ratio(premiumPaid, premiumStarted));
     }
 
     private List<FunnelStep> funnel(Timestamp fromUtc) {
@@ -201,7 +201,7 @@ public class AdminMetricsService {
                 new FunnelStep("signed_up", "Đăng ký", asLong(row.get("signed_up"))),
                 new FunnelStep("verified", "Xác minh email", asLong(row.get("verified"))),
                 new FunnelStep("used_ai", "Dùng tư vấn / thử đồ AI", asLong(row.get("used_ai"))),
-                new FunnelStep("checkout", "Bắt đầu thanh toán gói Pro", asLong(row.get("checkout"))),
+                new FunnelStep("checkout", "Bắt đầu thanh toán gói Premium", asLong(row.get("checkout"))),
                 new FunnelStep("paid", "Đã thanh toán", asLong(row.get("paid"))));
     }
 
@@ -279,7 +279,7 @@ public class AdminMetricsService {
 
     private static String kindLabel(PayingCustomersReport.Kind kind) {
         return switch (kind) {
-            case PRO_SUBSCRIPTION -> "Gói FitMe Pro";
+            case PREMIUM_SUBSCRIPTION -> "Gói FitMe Premium";
         };
     }
 

@@ -2,6 +2,7 @@ import apiClient, { unwrap } from "./api-client";
 import {
   ProductReviewsResponse,
   CreateReviewRequest,
+  CreateReviewResponse,
   FeaturedReview,
   HelpfulVoteResponse,
 } from "@/types";
@@ -20,7 +21,7 @@ export const reviewApi = {
   createReview: async (
     productId: string,
     data: CreateReviewRequest,
-  ): Promise<{ rewardGranted: number; rewardLimitReached: boolean }> => {
+  ): Promise<CreateReviewResponse> => {
     const res = await apiClient.post(`/products/${productId}/reviews`, data);
     return unwrap(res);
   },

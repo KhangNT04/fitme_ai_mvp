@@ -50,8 +50,8 @@ export default function AdminBillingPlansPage() {
 
   return (
     <PortalAdminPage
-      title="Gói người dùng (Pro & top-up)"
-      description="Quản lý gói FitMe Pro (Fitken, chu kỳ) và gói mua thêm Fitken một lần."
+      title="Gói người dùng (Premium & top-up)"
+      description="Quản lý gói FitMe Premium (Fitken, chu kỳ) và gói mua thêm Fitken một lần."
       headerActions={
         <Button size="sm" asChild>
           <Link href="/admin/billing/plans/new">Thêm gói</Link>
@@ -62,7 +62,7 @@ export default function AdminBillingPlansPage() {
       onRetry={() => refetch()}
       empty={!data?.length}
       emptyTitle="Chưa có gói nào"
-      emptyDescription="Tạo gói Pro để người dùng đăng ký qua PayOS."
+      emptyDescription="Tạo gói Premium để người dùng đăng ký qua PayOS."
     >
       {data && (
         <>

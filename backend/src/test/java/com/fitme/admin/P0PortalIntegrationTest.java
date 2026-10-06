@@ -96,11 +96,11 @@ class P0PortalIntegrationTest extends AbstractIntegrationTest {
         String planId = null;
         for (JsonNode plan : objectMapper.readTree(mockMvc.perform(get("/api/v1/plans"))
                 .andReturn().getResponse().getContentAsString()).get("data")) {
-            if ("PRO_MONTHLY".equals(plan.get("code").asText())) {
+            if ("PREMIUM_MONTHLY".equals(plan.get("code").asText())) {
                 planId = plan.get("id").asText();
             }
         }
-        assertThat(planId).as("PRO_MONTHLY plan seeded by V18").isNotNull();
+        assertThat(planId).as("PREMIUM_MONTHLY plan (renamed by V28)").isNotNull();
         long orderCode = objectMapper.readTree(mockMvc.perform(post("/api/v1/me/subscription/checkout")
                         .with(user(buyer))
                         .contentType(MediaType.APPLICATION_JSON)

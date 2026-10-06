@@ -115,12 +115,12 @@ public class AdminUserService {
                        COUNT(*) FILTER (WHERE role = 'BRAND_OWNER') AS brand_owners,
                        COUNT(*) FILTER (WHERE role = 'ADMIN') AS admins,
                        COUNT(*) FILTER (WHERE status = 'SUSPENDED') AS suspended,
-                       COUNT(*) FILTER (WHERE role = 'USER' AND consumer_plan = 'PRO') AS pro
+                       COUNT(*) FILTER (WHERE role = 'USER' AND consumer_plan = 'PREMIUM') AS premium
                 FROM user_accounts WHERE status <> 'DELETED'
                 """);
         return new AdminUserDto.Summary(asLong(row.get("total")), asLong(row.get("consumers")),
                 asLong(row.get("brand_owners")), asLong(row.get("admins")), asLong(row.get("suspended")),
-                asLong(row.get("pro")));
+                asLong(row.get("premium")));
     }
 
     private static AdminUserDto map(ResultSet rs) throws SQLException {

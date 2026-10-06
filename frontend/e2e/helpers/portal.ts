@@ -28,7 +28,7 @@ export const ADMIN_PAGES: { path: string; heading: string | RegExp }[] = [
   { path: "/admin/users", heading: "Quản lý tài khoản" },
   { path: "/admin/traffic", heading: "Thống kê truy cập" },
   { path: "/admin/brands", heading: "Quản lý thương hiệu" },
-  { path: "/admin/billing/plans", heading: "Gói người dùng (Pro & top-up)" },
+  { path: "/admin/billing/plans", heading: "Gói người dùng (Premium & top-up)" },
   { path: "/admin/rewards", heading: "Duyệt chia sẻ" },
   { path: "/admin/reviews", heading: "Đánh giá sản phẩm" },
   { path: "/admin/products/moderation", heading: "Duyệt sản phẩm" },
@@ -37,5 +37,6 @@ export const ADMIN_PAGES: { path: string; heading: string | RegExp }[] = [
   { path: "/admin/paying-customers", heading: "Khách hàng trả tiền" },
   { path: "/admin/privacy", heading: "Quyền riêng tư & Consent" },
   { path: "/admin/try-on-monitoring", heading: "Giám sát thử mặc" },
+  { path: "/admin/settings", heading: "Cài đặt hệ thống" },
   { path: "/admin/account", heading: "Đổi mật khẩu" },
 ];

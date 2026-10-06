@@ -23,7 +23,7 @@ import { formatPrice } from "@/utils/format-price";
 import type { PayingCustomersReport, PayingTransactionKind } from "@/types/analytics";
 
 const KIND_LABELS: Record<PayingTransactionKind, string> = {
-  PRO_SUBSCRIPTION: "Gói FitMe Pro",
+  PREMIUM_SUBSCRIPTION: "Gói FitMe Premium",
 };
 
 type Row = PayingCustomersReport["rows"][number];
@@ -62,13 +62,13 @@ export default function AdminPayingCustomersPage() {
   return (
     <PortalAdminPage
       title="Khách hàng trả tiền"
-      description="Danh sách giao dịch gói Pro đã thanh toán kèm email khách hàng — dùng làm báo cáo doanh thu."
+      description="Danh sách giao dịch gói Premium đã thanh toán kèm email khách hàng — dùng làm báo cáo doanh thu."
       isLoading={isLoading}
       error={error}
       onRetry={() => refetch()}
       empty={data != null && data.rows.length === 0}
       emptyTitle="Chưa có giao dịch đã thanh toán"
-      emptyDescription="Khi khách mua gói Pro, giao dịch sẽ xuất hiện tại đây."
+      emptyDescription="Khi khách mua gói Premium, giao dịch sẽ xuất hiện tại đây."
       skeleton="list"
       headerActions={
         <Button size="sm" onClick={handleExport} disabled={downloading || !data?.rows.length}>
@@ -87,7 +87,7 @@ export default function AdminPayingCustomersPage() {
                   ? "PayOS đang chạy chế độ giả lập: giao dịch mới không phải tiền thật. "
                   : ""}
                 {data.mockTransactions > 0
-                  ? `${data.mockTransactions} giao dịch gói Pro được đánh dấu "Giả lập" và không tính vào doanh thu thật.`
+                  ? `${data.mockTransactions} giao dịch gói Premium được đánh dấu "Giả lập" và không tính vào doanh thu thật.`
                   : ""}
               </p>
             </div>

@@ -17,6 +17,7 @@ import {
   Package,
   Coins,
   KeyRound,
+  Heart,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
@@ -64,8 +65,15 @@ const hubLinks = [
     accent: "bg-violet-500/10 text-violet-700",
   },
   {
+    href: "/profile/style-preferences",
+    label: "Brand yêu thích",
+    description: "Tùy biến phối đồ (Premium)",
+    icon: Heart,
+    accent: "bg-rose-500/10 text-rose-700",
+  },
+  {
     href: "/pricing",
-    label: "FitMe Free & Pro",
+    label: "FitMe Free & Premium",
     description: "Quản lý gói cước",
     icon: Sparkles,
     accent: "bg-sky-500/10 text-sky-700",
@@ -282,7 +290,7 @@ export default function ProfilePage() {
                 )}
                 {wallet && (
                   <Badge variant="outline" className="px-2 py-0 text-[10px] sm:text-xs border-primary text-primary">
-                    Gói {wallet.plan === "PRO" ? "Pro" : "Free"}
+                    Gói {wallet.plan === "PREMIUM" ? "Premium" : "Free"}
                   </Badge>
                 )}
                 {hasBody && bodyProfile && (

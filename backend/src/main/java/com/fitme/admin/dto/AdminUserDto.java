@@ -28,6 +28,6 @@ public record AdminUserDto(
     }
 
     public record Summary(long totalAccounts, long consumers, long brandOwners, long admins, long suspended,
-                          long proUsers) {
+                          long premiumUsers) {
     }
 }

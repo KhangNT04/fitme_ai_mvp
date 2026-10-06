@@ -4,7 +4,7 @@ import { LegalPage, LegalSection } from "@/components/legal/LegalPage";
 
 export const metadata: Metadata = {
   title: "Điều khoản sử dụng — FitMe AI",
-  description: "Điều khoản sử dụng dịch vụ FitMe AI, gói FitMe Pro, Fitken và mua sắm trong ứng dụng.",
+  description: "Điều khoản sử dụng dịch vụ FitMe AI, gói FitMe Premium, Fitken và mua sắm trong ứng dụng.",
 };
 
 export default function TermsPage() {
@@ -30,11 +30,12 @@ export default function TermsPage() {
         <p>Bạn chỉ được tải lên ảnh của chính mình hoặc ảnh đã được người trong ảnh đồng ý; không tải nội dung phản cảm hoặc vi phạm pháp luật.</p>
       </LegalSection>
 
-      <LegalSection title="3. Fitken và FitMe Pro">
+      <LegalSection title="3. Fitken và FitMe Premium">
         <ul>
           <li>Fitken là đơn vị sử dụng tính năng trong ứng dụng, không quy đổi thành tiền mặt và không chuyển nhượng.</li>
           <li>Mỗi lượt thử mặc AI thành công trừ 1 Fitken; lượt lỗi do hệ thống được hoàn Fitken.</li>
-          <li>FitMe Pro có giá 49.000đ/tháng, gồm 15 Fitken mỗi kỳ; quyền lợi có hiệu lực ngay sau khi thanh toán thành công.</li>
+          <li>FitMe Premium là gói trả theo tháng (giá hiển thị tại trang Bảng giá), gồm tùy biến phối đồ theo brand yêu thích, tủ đồ cá nhân và Fitken mỗi kỳ; quyền lợi có hiệu lực ngay sau khi thanh toán thành công.</li>
+          <li>Fitken miễn phí (dùng thử, điểm danh, chia sẻ, đánh giá) chỉ được cộng tới trần số dư do FitMe công bố; Fitken từ gói Premium hoặc mua thêm không bị giới hạn bởi trần này.</li>
           <li>Phần thưởng nhiệm vụ (điểm danh, chia sẻ, đánh giá) có thể bị thu hồi nếu phát hiện gian lận.</li>
         </ul>
       </LegalSection>

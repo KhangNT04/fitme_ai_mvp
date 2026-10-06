@@ -17,6 +17,12 @@ public class ShareClaimDto {
     private String platform;
     private ShareClaimStatus status;
     private int rewardGranted;
+    /** Only set on the submit response: reward before the free-Fitken cap was applied. */
+    private Integer rewardIntended;
+    /** Only set on the submit response: true when the free-Fitken cap reduced the reward. */
+    private Boolean rewardCapped;
+    /** Only set on the submit response: free-Fitken balance cap. */
+    private Integer maxBalance;
     private UUID tryOnRequestId;
     private UUID galleryImageId;
     private String adminNote;

@@ -10,6 +10,8 @@ import java.util.List;
 @Builder
 public class RewardsSummaryDto {
     private int balance;
+    /** Free-Fitken cap: rewards stop adding Fitken once the balance reaches it. */
+    private int maxBalance;
     private CheckinStatus checkin;
     private ShareStatus share;
     private ReviewRewardStatus review;

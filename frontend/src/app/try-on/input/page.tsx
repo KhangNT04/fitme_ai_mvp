@@ -622,7 +622,7 @@ export default function TryOnInputPage() {
           <DialogHeader>
             <DialogTitle>Không đủ Fitken</DialogTitle>
             <DialogDescription>
-              Bạn đã hết Fitken để tạo ảnh AI. Nâng cấp Pro để nhận 15 Fitken/tháng hoặc làm nhiệm vụ để nhận thêm.
+              Bạn đã hết Fitken để tạo ảnh AI. Nâng cấp FitMe Premium để nhận Fitken hàng tháng hoặc làm nhiệm vụ để nhận thêm.
             </DialogDescription>
           </DialogHeader>
           <div className="flex flex-col sm:flex-row gap-2 mt-4 justify-end">
@@ -630,7 +630,7 @@ export default function TryOnInputPage() {
               <Link href="/rewards">Nhận Fitken miễn phí</Link>
             </Button>
             <Button asChild>
-              <Link href="/pricing">Nâng cấp Pro 49k</Link>
+              <Link href="/pricing">Nâng cấp Premium</Link>
             </Button>
           </div>
         </DialogContent>

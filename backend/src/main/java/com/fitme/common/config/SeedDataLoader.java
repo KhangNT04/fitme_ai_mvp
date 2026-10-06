@@ -6,6 +6,7 @@ import com.fitme.admin.repository.OccasionRuleRepository;
 import com.fitme.admin.repository.StyleRuleRepository;
 import com.fitme.auth.entity.UserAccount;
 import com.fitme.auth.repository.UserAccountRepository;
+import com.fitme.billing.service.ConsumerSubscriptionService;
 import com.fitme.brand.entity.Brand;
 import com.fitme.brand.repository.BrandRepository;
 import com.fitme.brand.service.BrandPartnershipService;
@@ -47,6 +48,7 @@ public class SeedDataLoader implements CommandLineRunner {
     private final FashionCatalogLoader fashionCatalogLoader;
     private final FashionCatalogSeeder fashionCatalogSeeder;
     private final FitkenService fitkenService;
+    private final ConsumerSubscriptionService consumerSubscriptionService;
     private final BrandPartnershipService brandPartnershipService;
 
     @Value("${fitme.seed.admin-email:admin@fitme.ai}")
@@ -57,6 +59,10 @@ public class SeedDataLoader implements CommandLineRunner {
 
     @Value("${fitme.seed.user-email:user@fitme.ai}")
     private String userEmail;
+
+    /** Demo consumer with an active FitMe Premium period (wardrobe, brand preferences). */
+    @Value("${fitme.seed.premium-email:premium@fitme.ai}")
+    private String premiumEmail;
 
     @Value("${fitme.seed.password:fitme123}")
     private String seedPassword;
@@ -123,6 +129,16 @@ public class SeedDataLoader implements CommandLineRunner {
                 .status(UserStatus.ACTIVE)
                 .build());
         fitkenService.adminAdjust(demoUser.getId(), 20, "Fitken demo cho tài khoản mẫu");
+
+        UserAccount premiumUser = userRepository.save(UserAccount.builder()
+                .email(premiumEmail)
+                .passwordHash(passwordEncoder.encode(seedPassword))
+                .displayName("Bảo Ngọc")
+                .role(UserRole.USER)
+                .emailVerified(true)
+                .status(UserStatus.ACTIVE)
+                .build());
+        consumerSubscriptionService.adminGrantPremium(premiumUser.getId(), null);
 
         int totalProducts = 0;
         for (FashionCatalogLoader.BrandEntry entry : fashionCatalogLoader.load().brands) {

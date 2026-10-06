@@ -71,6 +71,7 @@ public class RewardService {
 
         return RewardsSummaryDto.builder()
                 .balance(balance)
+                .maxBalance(fitkenService.maxFreeBalance())
                 .checkin(RewardsSummaryDto.CheckinStatus.builder()
                         .checkedInToday(todayCheckin.isPresent())
                         .currentStreak(aliveStreak)
@@ -115,9 +116,11 @@ public class RewardService {
                 .build());
 
         int granted = 0;
+        int intended = 0;
         if (streak % streakTarget() == 0) {
+            intended = Math.max(0, properties.getFitken().getCheckinReward());
             granted = fitkenService.grant(userId, FitkenEntryType.CHECKIN_REWARD,
-                    properties.getFitken().getCheckinReward(), FitkenService.Bucket.BONUS,
+                    intended, FitkenService.Bucket.BONUS,
                     REF_CHECKIN, checkin.getId(), "Điểm danh " + streak + " ngày liên tiếp");
             checkin.setRewardGranted(granted);
             checkinRepository.save(checkin);
@@ -126,6 +129,9 @@ public class RewardService {
                 .checkedInToday(true)
                 .currentStreak(streak)
                 .rewardGranted(granted)
+                .rewardIntended(intended)
+                .rewardCapped(granted < intended)
+                .maxBalance(fitkenService.maxFreeBalance())
                 .balance(fitkenService.balance(userId))
                 .build();
     }
@@ -168,11 +174,17 @@ public class RewardService {
         } catch (DataIntegrityViolationException e) {
             throw new BusinessException("Link bài đăng này đã được dùng để nhận thưởng", "SHARE_DUPLICATE");
         }
+        int intended = Math.max(0, properties.getFitken().getShareReward());
         int granted = fitkenService.grant(userId, FitkenEntryType.SHARE_REWARD,
-                properties.getFitken().getShareReward(), FitkenService.Bucket.BONUS,
+                intended, FitkenService.Bucket.BONUS,
                 REF_SHARE_CLAIM, claim.getId(), "Chia sẻ bài đăng " + post.platform());
+        // Only what was actually credited is stored, so an admin reject never revokes more than that.
         claim.setRewardGranted(granted);
-        return ShareClaimDto.from(shareRepository.save(claim));
+        ShareClaimDto dto = ShareClaimDto.from(shareRepository.save(claim));
+        dto.setRewardIntended(intended);
+        dto.setRewardCapped(granted < intended);
+        dto.setMaxBalance(fitkenService.maxFreeBalance());
+        return dto;
     }
 
     public List<ShareClaimDto> listShares(UUID userId) {

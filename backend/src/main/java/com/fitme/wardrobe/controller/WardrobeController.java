@@ -1,6 +1,7 @@
 package com.fitme.wardrobe.controller;
 
 import com.fitme.common.dto.ApiResponse;
+import com.fitme.entitlement.service.ConsumerEntitlementService;
 import com.fitme.wardrobe.dto.WardrobeItemRequest;
 import com.fitme.wardrobe.dto.WardrobeItemResponse;
 import com.fitme.wardrobe.service.WardrobeService;
@@ -13,31 +14,37 @@ import java.io.IOException;
 import java.util.List;
 import java.util.UUID;
 
+/** Wardrobe is a FitMe Premium feature; Free users keep their items but cannot access them until they upgrade. */
 @RestController
 @RequestMapping("/api/v1/wardrobe")
 @RequiredArgsConstructor
 public class WardrobeController {
 
     private final WardrobeService wardrobeService;
+    private final ConsumerEntitlementService entitlementService;
 
     @GetMapping("/items")
     public ApiResponse<List<WardrobeItemResponse>> list() {
+        requirePremium();
         return ApiResponse.ok(wardrobeService.list());
     }
 
     @PostMapping("/items")
     public ApiResponse<WardrobeItemResponse> create(@Valid @RequestBody WardrobeItemRequest request) {
+        requirePremium();
         return ApiResponse.ok(wardrobeService.create(request));
     }
 
     @PutMapping("/items/{id}")
     public ApiResponse<WardrobeItemResponse> update(@PathVariable UUID id,
                                                     @Valid @RequestBody WardrobeItemRequest request) {
+        requirePremium();
         return ApiResponse.ok(wardrobeService.update(id, request));
     }
 
     @DeleteMapping("/items/{id}")
     public ApiResponse<Void> delete(@PathVariable UUID id) throws IOException {
+        requirePremium();
         wardrobeService.delete(id);
         return ApiResponse.ok(null);
     }
@@ -45,6 +52,11 @@ public class WardrobeController {
     @PostMapping("/items/{id}/image")
     public ApiResponse<WardrobeItemResponse> uploadImage(@PathVariable UUID id,
                                                          @RequestParam("file") MultipartFile file) throws IOException {
+        requirePremium();
         return ApiResponse.ok(wardrobeService.uploadImage(id, file));
+    }
+
+    private void requirePremium() {
+        entitlementService.requirePremium(ConsumerEntitlementService.WARDROBE_PREMIUM_MESSAGE);
     }
 }

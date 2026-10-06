@@ -208,13 +208,14 @@ class P0SecurityIntegrationTest extends AbstractIntegrationTest {
                         .header(SESSION_HEADER, sessionToken))
                 .andExpect(status().isOk())
                 .andReturn().getResponse().getContentAsString()).get("data").get("id").asText();
+        FitMeUserPrincipal premium = new FitMeUserPrincipal(testDataHelper.createPremiumUser().user());
         mockMvc.perform(post("/api/v1/privacy/consent")
-                        .header(SESSION_HEADER, sessionToken)
+                        .with(user(premium))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"consentType\":\"WARDROBE_IMAGE_UPLOAD\",\"accepted\":true}"))
                 .andExpect(status().isOk());
         String wardrobeItemId = objectMapper.readTree(mockMvc.perform(post("/api/v1/wardrobe/items")
-                        .header(SESSION_HEADER, sessionToken)
+                        .with(user(premium))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"name\":\"Áo test\",\"itemType\":\"TOP\",\"category\":\"Áo thun\"}"))
                 .andExpect(status().isOk())
@@ -227,7 +228,7 @@ class P0SecurityIntegrationTest extends AbstractIntegrationTest {
                 "try-on photo", file -> multipart("/api/v1/uploads/user-photo")
                         .file(file).param("consentId", consentId).header(SESSION_HEADER, sessionToken),
                 "wardrobe", file -> multipart("/api/v1/wardrobe/items/{id}/image", wardrobeItemId)
-                        .file(file).header(SESSION_HEADER, sessionToken),
+                        .file(file).with(user(premium)),
                 "review", file -> multipart("/api/v1/reviews/images")
                         .file(file).header("Authorization", "Bearer " + consumerToken),
                 "brand logo", file -> multipart("/api/v1/brand/me/logo").file(file).with(user(brandOwner)),

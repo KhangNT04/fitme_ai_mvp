@@ -1,5 +1,6 @@
 package com.fitme.recommendation.service;
 
+import com.fitme.common.enums.BrandMixMode;
 import com.fitme.common.enums.FitPreference;
 import com.fitme.common.enums.OutfitCoherenceMode;
 import com.fitme.common.enums.ProductTargetGender;
@@ -118,5 +119,40 @@ class OutfitScoringServiceTest {
                 Product.builder().brandId(partner).build(), ctx)).isTrue();
         assertThat(outfitScoringService.matchesCoherenceFilter(
                 Product.builder().brandId(other).build(), ctx)).isFalse();
+    }
+
+    @Test
+    void favoriteBrandBonus_diverseGivesSmallBoostOnly() {
+        UUID favorite = UUID.randomUUID();
+        OutfitScoreContext ctx = favoritesContext(Set.of(favorite), BrandMixMode.DIVERSE);
+        assertThat(outfitScoringService.favoriteBrandBonus(Product.builder().brandId(favorite).build(), ctx))
+                .isEqualTo(8);
+        assertThat(outfitScoringService.favoriteBrandBonus(Product.builder().brandId(UUID.randomUUID()).build(), ctx))
+                .isZero();
+    }
+
+    @Test
+    void favoriteBrandBonus_favoritesOnlyBoostsFavoritesAndPenalizesOthers() {
+        UUID favorite = UUID.randomUUID();
+        OutfitScoreContext ctx = favoritesContext(Set.of(favorite), BrandMixMode.FAVORITES_ONLY);
+        assertThat(ctx.favoritesOnly()).isTrue();
+        assertThat(outfitScoringService.favoriteBrandBonus(Product.builder().brandId(favorite).build(), ctx))
+                .isEqualTo(40);
+        assertThat(outfitScoringService.favoriteBrandBonus(Product.builder().brandId(UUID.randomUUID()).build(), ctx))
+                .isEqualTo(-30);
+    }
+
+    @Test
+    void favoriteBrandBonus_noFavoritesMeansNoEffect() {
+        OutfitScoreContext ctx = new OutfitScoreContext(
+                OutfitCoherenceMode.OFF, null, Set.of(), Map.of(), Map.of(), Map.of(), 1.0);
+        assertThat(ctx.favoritesOnly()).isFalse();
+        assertThat(outfitScoringService.favoriteBrandBonus(Product.builder().brandId(UUID.randomUUID()).build(), ctx))
+                .isZero();
+    }
+
+    private static OutfitScoreContext favoritesContext(Set<UUID> favorites, BrandMixMode mode) {
+        return new OutfitScoreContext(
+                OutfitCoherenceMode.OFF, null, Set.of(), Map.of(), Map.of(), Map.of(), 1.0, favorites, mode);
     }
 }

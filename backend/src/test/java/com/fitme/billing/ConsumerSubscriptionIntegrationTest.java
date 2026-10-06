@@ -30,15 +30,15 @@ class ConsumerSubscriptionIntegrationTest extends AbstractIntegrationTest {
     void plansArePublic() throws Exception {
         mockMvc.perform(get("/api/v1/plans"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.data[?(@.code == 'PRO_MONTHLY')].fitkenAmount").value(15))
+                .andExpect(jsonPath("$.data[?(@.code == 'PREMIUM_MONTHLY')].fitkenAmount").value(15))
                 .andExpect(jsonPath("$.data[0].freeshipVouchers").doesNotExist())
-                .andExpect(jsonPath("$.data[?(@.code == 'PRO_MONTHLY')].priceVnd").value(49000));
+                .andExpect(jsonPath("$.data[?(@.code == 'PREMIUM_MONTHLY')].priceVnd").value(49000));
     }
 
     @Test
-    void mockProCheckoutGrantsFitken() throws Exception {
+    void mockPremiumCheckoutGrantsFitken() throws Exception {
         FitMeUserPrincipal principal = new FitMeUserPrincipal(testDataHelper.createUser().user());
-        String planId = proPlanId();
+        String planId = premiumPlanId();
 
         String checkoutJson = mockMvc.perform(post("/api/v1/me/subscription/checkout")
                         .with(user(principal))
@@ -63,14 +63,16 @@ class ConsumerSubscriptionIntegrationTest extends AbstractIntegrationTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.subscriptionRemaining").value(15))
                 .andExpect(jsonPath("$.data.balance").value(20))
-                .andExpect(jsonPath("$.data.plan").value("PRO"))
+                .andExpect(jsonPath("$.data.plan").value("PREMIUM"))
                 .andExpect(jsonPath("$.data.subscription.status").value("ACTIVE"));
 
         mockMvc.perform(get("/api/v1/me/entitlement").with(user(principal)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.data.plan").value("PRO"))
+                .andExpect(jsonPath("$.data.plan").value("PREMIUM"))
+                .andExpect(jsonPath("$.data.premium").value(true))
                 .andExpect(jsonPath("$.data.pro").value(true))
-                .andExpect(jsonPath("$.data.plus").value(true));
+                .andExpect(jsonPath("$.data.label").value("FitMe Premium"))
+                .andExpect(jsonPath("$.data.plus").doesNotExist());
 
         mockMvc.perform(get("/api/v1/me/subscription/orders").with(user(principal)))
                 .andExpect(status().isOk())
@@ -84,7 +86,7 @@ class ConsumerSubscriptionIntegrationTest extends AbstractIntegrationTest {
         String checkoutJson = mockMvc.perform(post("/api/v1/me/subscription/checkout")
                         .with(user(owner))
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"planId\": \"%s\"}".formatted(proPlanId())))
+                        .content("{\"planId\": \"%s\"}".formatted(premiumPlanId())))
                 .andExpect(status().isOk())
                 .andReturn().getResponse().getContentAsString();
         long orderCode = objectMapper.readTree(checkoutJson).get("data").get("payosOrderCode").asLong();
@@ -101,7 +103,7 @@ class ConsumerSubscriptionIntegrationTest extends AbstractIntegrationTest {
         FitMeUserPrincipal principal = new FitMeUserPrincipal(testDataHelper.createUser().user());
         long orderCode = System.nanoTime() % 1_000_000_000L + 9_000_000_000L;
         jdbc.update("INSERT INTO consumer_billing_orders (user_id, plan_id, amount_vnd, status, payos_order_code) "
-                + "VALUES (?, ?::uuid, 49000, 'PENDING', ?)", principal.getUserId(), proPlanId(), orderCode);
+                + "VALUES (?, ?::uuid, 49000, 'PENDING', ?)", principal.getUserId(), premiumPlanId(), orderCode);
 
         for (String data : new String[]{
                 "{\"orderCode\":%d,\"code\":\"01\",\"amount\":49000}".formatted(orderCode),
@@ -117,7 +119,7 @@ class ConsumerSubscriptionIntegrationTest extends AbstractIntegrationTest {
                         .content("{\"data\":{\"orderCode\":%d,\"code\":\"00\",\"amount\":49000}}".formatted(orderCode)))
                 .andExpect(status().isOk());
         mockMvc.perform(get("/api/v1/me/entitlement").with(user(principal)))
-                .andExpect(jsonPath("$.data.plan").value("PRO"));
+                .andExpect(jsonPath("$.data.plan").value("PREMIUM"));
     }
 
     @Test
@@ -126,9 +128,9 @@ class ConsumerSubscriptionIntegrationTest extends AbstractIntegrationTest {
         long staleCode = System.nanoTime() % 1_000_000_000L + 8_000_000_000L;
         long freshCode = staleCode + 1;
         jdbc.update("INSERT INTO consumer_billing_orders (user_id, plan_id, amount_vnd, status, payos_order_code, created_at) "
-                + "VALUES (?, ?::uuid, 49000, 'PENDING', ?, NOW() - INTERVAL '2 days')", principal.getUserId(), proPlanId(), staleCode);
+                + "VALUES (?, ?::uuid, 49000, 'PENDING', ?, NOW() - INTERVAL '2 days')", principal.getUserId(), premiumPlanId(), staleCode);
         jdbc.update("INSERT INTO consumer_billing_orders (user_id, plan_id, amount_vnd, status, payos_order_code) "
-                + "VALUES (?, ?::uuid, 49000, 'PENDING', ?)", principal.getUserId(), proPlanId(), freshCode);
+                + "VALUES (?, ?::uuid, 49000, 'PENDING', ?)", principal.getUserId(), premiumPlanId(), freshCode);
 
         billingOrderExpiryJob.expireStalePendingOrders();
 
@@ -138,7 +140,7 @@ class ConsumerSubscriptionIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
-    void adminGrantProCreatesSubscriptionWithFitken() throws Exception {
+    void adminGrantPremiumCreatesSubscriptionWithFitken() throws Exception {
         FitMeUserPrincipal admin = new FitMeUserPrincipal(testDataHelper.createAdmin().user());
         FitMeUserPrincipal principal = new FitMeUserPrincipal(testDataHelper.createUser().user());
 
@@ -149,25 +151,25 @@ class ConsumerSubscriptionIntegrationTest extends AbstractIntegrationTest {
                         .put("/api/v1/me/entitlement/users/{userId}", principal.getUserId())
                         .with(user(admin))
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"plan\": \"PLUS\"}"))
+                        .content("{\"plan\": \"PREMIUM\"}"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.data.plan").value("PRO"));
+                .andExpect(jsonPath("$.data.plan").value("PREMIUM"));
 
         mockMvc.perform(get("/api/v1/me/fitken").with(user(principal)))
                 .andExpect(jsonPath("$.data.subscriptionRemaining").value(15))
-                .andExpect(jsonPath("$.data.plan").value("PRO"));
+                .andExpect(jsonPath("$.data.plan").value("PREMIUM"));
     }
 
-    private String proPlanId() throws Exception {
+    private String premiumPlanId() throws Exception {
         String json = mockMvc.perform(get("/api/v1/plans"))
                 .andExpect(status().isOk())
                 .andReturn().getResponse().getContentAsString();
         for (JsonNode plan : objectMapper.readTree(json).get("data")) {
-            if ("PRO_MONTHLY".equals(plan.get("code").asText())) {
+            if ("PREMIUM_MONTHLY".equals(plan.get("code").asText())) {
                 return plan.get("id").asText();
             }
         }
-        assertThat(false).as("PRO_MONTHLY plan seeded by V18").isTrue();
+        assertThat(false).as("PREMIUM_MONTHLY plan (renamed by V28)").isTrue();
         return null;
     }
 }

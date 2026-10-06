@@ -48,13 +48,13 @@ public class FitMeProperties {
 
     @Data
     public static class Consumer {
-        /** When false, all users get Plus coherence (dev escape hatch). */
+        /** When false, every user gets Premium features (dev escape hatch). */
         private boolean entitlementEnabled = true;
         private String freeCoherenceMode = "OFF";
-        private String plusCoherenceMode = "PREFER";
-        /** Multiplier on learned preference weights (Free vs Plus personalization depth). */
+        private String premiumCoherenceMode = "PREFER";
+        /** Multiplier on learned preference weights (Free vs Premium personalization depth). */
         private double freePreferenceScale = 1.0;
-        private double plusPreferenceScale = 1.75;
+        private double premiumPreferenceScale = 1.75;
     }
 
     @Data

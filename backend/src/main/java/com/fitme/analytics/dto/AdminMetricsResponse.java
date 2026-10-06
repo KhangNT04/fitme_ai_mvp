@@ -31,15 +31,15 @@ public record AdminMetricsResponse(
             long payingUsersAllTime,
             long payingUsersInRange,
             long paidTransactionsInRange,
-            long proRevenueVnd,
-            long activeProSubscribers
+            long premiumRevenueVnd,
+            long activePremiumSubscribers
     ) {
     }
 
     public record Checkout(
-            long proCheckoutsStarted,
-            long proCheckoutsPaid,
-            double proConversionRate
+            long premiumCheckoutsStarted,
+            long premiumCheckoutsPaid,
+            double premiumConversionRate
     ) {
     }
 

@@ -17,6 +17,8 @@ import { toast } from "@/stores/toast-store";
 import { cn } from "@/lib/utils";
 import { formatPrice } from "@/utils/format-price";
 import { useShareRewardAmount } from "@/hooks/use-share-reward-amount";
+import { PREMIUM_PERKS, PREMIUM_PLAN_NAME, premiumFitkenPerk } from "@/lib/premium";
+import { fitkenCapProgressLabel } from "@/lib/fitken-cap";
 
 const formatDate = (dateStr: string) => {
   const d = new Date(dateStr);
@@ -25,15 +27,9 @@ const formatDate = (dateStr: string) => {
 
 const FREE_PERKS = [
   "5 Fitken dùng thử (tài khoản mới)",
-  "Phối đồ trên bảng (miễn phí)",
-  "Lưu outfit & tủ đồ",
-  "Nhận thêm Fitken qua nhiệm vụ",
-];
-
-const PRO_PERKS = [
-  "15 Fitken mỗi tháng",
-  "Tạo ảnh AI Try-on chất lượng cao",
-  "Mở khóa tính năng Pro khác",
+  "Phối đồ từ sản phẩm của các brand (miễn phí)",
+  "Lưu outfit yêu thích",
+  "Nhận thêm Fitken miễn phí qua nhiệm vụ",
 ];
 
 export default function PricingPage() {
@@ -51,7 +47,9 @@ export default function PricingPage() {
     staleTime: 5 * 60_000,
   });
   const shareReward = useShareRewardAmount();
-  const proPlan = plans?.find((p) => p.planType !== "TOPUP");
+  const premiumPlan =
+    plans?.find((p) => p.code === "PREMIUM_MONTHLY") ?? plans?.find((p) => p.planType !== "TOPUP");
+  const premiumPerks = [PREMIUM_PERKS[0], PREMIUM_PERKS[1], premiumFitkenPerk(premiumPlan?.fitkenAmount)];
   const topupPlans = plans?.filter((p) => p.planType === "TOPUP") ?? [];
 
   const checkoutMutation = useMutation({
@@ -66,14 +64,14 @@ export default function PricingPage() {
 
   const handleCheckout = () => {
     if (!isAuthenticated) {
-      toast.info("Vui lòng đăng nhập để nâng cấp Pro.");
+      toast.info("Vui lòng đăng nhập để nâng cấp Premium.");
       return;
     }
-    if (!proPlan) {
-      toast.error("Gói Pro hiện chưa mở bán.");
+    if (!premiumPlan) {
+      toast.error("Gói Premium hiện chưa mở bán.");
       return;
     }
-    checkoutMutation.mutate(proPlan.id);
+    checkoutMutation.mutate(premiumPlan.id);
   };
 
   const handleTopup = (planId: string) => {
@@ -85,14 +83,15 @@ export default function PricingPage() {
   };
 
   const walletPending = isAuthenticated && wallet === undefined;
-  const isPro = wallet?.plan === "PRO";
+  const isPremium = wallet?.plan === "PREMIUM";
   const subscription = wallet?.subscription;
+  const capLabel = wallet ? fitkenCapProgressLabel(wallet.balance, wallet.maxBalance) : null;
 
   return (
     <PageShell width="full" className={consumerPageShellClass}>
       <CollapsingPageHeader
-        title="FitMe Free & Pro"
-        subtitle="Nâng cấp Pro để nhận thêm Fitken mỗi tháng"
+        title="FitMe Free & Premium"
+        subtitle="Nâng cấp Premium để phối đồ theo brand yêu thích, dùng tủ đồ và nhận Fitken mỗi tháng"
         backHref="/ai/chat"
         backLabel="Tư vấn"
       />
@@ -102,10 +101,10 @@ export default function PricingPage() {
           <PlanCard
             eyebrow="Free"
             title="Miễn phí"
-            active={isAuthenticated && !walletPending && !isPro}
+            active={isAuthenticated && !walletPending && !isPremium}
             perks={FREE_PERKS}
             footer={
-              isPro || walletPending ? null : (
+              isPremium || walletPending ? null : (
                 <p className="mt-4 text-sm font-medium text-foreground text-center">
                   {isAuthenticated ? "Đang dùng" : "Mặc định cho tài khoản mới"}
                 </p>
@@ -114,16 +113,22 @@ export default function PricingPage() {
           />
 
           <PlanCard
-            eyebrow="FitMe Pro"
-            title={`${formatPrice(proPlan?.priceVnd ?? 49000)} / tháng`}
+            eyebrow={PREMIUM_PLAN_NAME}
+            title={
+              premiumPlan
+                ? `${formatPrice(premiumPlan.priceVnd)} / tháng`
+                : plansLoading
+                  ? "Đang tải giá…"
+                  : "Sắp mở bán"
+            }
             highlighted
-            active={isPro}
-            perks={PRO_PERKS}
+            active={isPremium}
+            perks={premiumPerks}
             footer={
               <>
-                {isPro ? (
+                {isPremium ? (
                   <div className="mt-4 space-y-2">
-                    <p className="text-sm font-medium text-primary text-center">Bạn đang dùng Pro</p>
+                    <p className="text-sm font-medium text-primary text-center">Bạn đang dùng Premium</p>
                     {subscription?.expiresAt && (
                       <p className="text-xs text-center text-muted-foreground">
                         Hết hạn: {formatDate(subscription.expiresAt)}
@@ -134,11 +139,11 @@ export default function PricingPage() {
                   <Button
                     type="button"
                     className="mt-4 w-full rounded-full"
-                    disabled={checkoutMutation.isPending || isLoading || walletPending || plansLoading}
+                    disabled={checkoutMutation.isPending || isLoading || walletPending || plansLoading || !premiumPlan}
                     onClick={handleCheckout}
                   >
                     <Sparkles className="mr-1.5 h-4 w-4" />
-                    Nâng cấp Pro ngay
+                    Nâng cấp Premium ngay
                   </Button>
                 )}
               </>
@@ -204,7 +209,11 @@ export default function PricingPage() {
             </div>
             <div>
               <h3 className="font-semibold text-lg">Cách nhận thêm Fitken</h3>
-              <p className="text-sm text-muted-foreground">Làm nhiệm vụ để nhận Fitken miễn phí mỗi ngày</p>
+              <p className="text-sm text-muted-foreground">
+                Làm nhiệm vụ để nhận Fitken miễn phí mỗi ngày. Fitken miễn phí chỉ cộng tới trần của ví
+                {wallet?.maxBalance ? ` (${wallet.maxBalance} Fitken)` : ""}; Fitken từ gói Premium hoặc mua thêm không bị giới hạn.
+              </p>
+              {capLabel && <p className="mt-1 text-xs font-medium text-primary">{capLabel}</p>}
             </div>
           </div>
           

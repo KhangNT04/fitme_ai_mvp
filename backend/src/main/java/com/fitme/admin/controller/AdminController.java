@@ -210,7 +210,7 @@ public class AdminController {
         try {
             plan = ConsumerPlan.fromValue(body.getOrDefault("plan", "FREE"));
         } catch (IllegalArgumentException ex) {
-            throw new BusinessException("Gói không hợp lệ (FREE hoặc PRO)");
+            throw new BusinessException("Gói không hợp lệ (FREE hoặc PREMIUM)");
         }
         return ApiResponse.ok(consumerEntitlementService.setPlan(id, plan));
     }

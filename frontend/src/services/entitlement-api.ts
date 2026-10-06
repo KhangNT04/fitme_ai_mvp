@@ -1,37 +1,52 @@
 import apiClient, { unwrap } from "./api-client";
 
-export type ConsumerPlan = "FREE" | "PRO";
+export type ConsumerPlan = "FREE" | "PREMIUM";
 export type OutfitCoherenceMode = "OFF" | "PREFER" | "STRICT";
+
+export const PREMIUM_LABEL = "FitMe Premium";
+export const FREE_LABEL = "FitMe Free";
 
 export interface ConsumerEntitlement {
   plan: ConsumerPlan;
   coherenceMode: OutfitCoherenceMode;
-  pro: boolean;
-  plus: boolean;
+  premium: boolean;
   label: string;
   mixPolicy: string;
   upsellMessage?: string | null;
+  premiumPriceVnd?: number | null;
+  premiumMonthlyFitken?: number | null;
 }
 
 interface BackendEntitlement {
   plan: string;
   coherenceMode: string;
-  pro: boolean;
-  plus: boolean;
+  premium?: boolean;
+  /** @deprecated legacy alias of `premium`. */
+  pro?: boolean;
   label: string;
   mixPolicy: string;
   upsellMessage?: string | null;
+  premiumPriceVnd?: number | null;
+  premiumMonthlyFitken?: number | null;
 }
 
-function mapEntitlement(data: BackendEntitlement): ConsumerEntitlement {
+/** Accepts the legacy PRO / PLUS plan values still found in old payloads. */
+export function normalizeConsumerPlan(plan: string | null | undefined): ConsumerPlan {
+  const value = (plan ?? "").toUpperCase();
+  return value === "PREMIUM" || value === "PRO" || value === "PLUS" ? "PREMIUM" : "FREE";
+}
+
+export function mapEntitlement(data: BackendEntitlement): ConsumerEntitlement {
+  const premium = Boolean(data.premium ?? data.pro) || normalizeConsumerPlan(data.plan) === "PREMIUM";
   return {
-    plan: data.plan === "PRO" ? "PRO" : "FREE",
+    plan: premium ? "PREMIUM" : "FREE",
     coherenceMode: (data.coherenceMode || "OFF") as OutfitCoherenceMode,
-    pro: Boolean(data.pro),
-    plus: Boolean(data.plus),
-    label: data.label || (data.pro ? "FitMe Pro" : "FitMe Free"),
+    premium,
+    label: data.label || (premium ? PREMIUM_LABEL : FREE_LABEL),
     mixPolicy: data.mixPolicy || "",
     upsellMessage: data.upsellMessage,
+    premiumPriceVnd: data.premiumPriceVnd ?? null,
+    premiumMonthlyFitken: data.premiumMonthlyFitken ?? null,
   };
 }
 

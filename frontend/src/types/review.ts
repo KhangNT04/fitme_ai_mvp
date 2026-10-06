@@ -28,6 +28,14 @@ export interface CreateReviewRequest {
   imageUrls?: string[];
 }
 
+export interface CreateReviewResponse {
+  rewardGranted: number;
+  rewardLimitReached: boolean;
+  rewardIntended?: number | null;
+  rewardCapped?: boolean | null;
+  maxBalance?: number | null;
+}
+
 export interface HelpfulVoteResponse {
   reviewId: string;
   helpfulCount: number;

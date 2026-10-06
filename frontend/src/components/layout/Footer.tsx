@@ -34,7 +34,7 @@ export function Footer({ showOnMobile = false }: { showOnMobile?: boolean }) {
               <li><Link href="/discover" className={linkClass}>Sản phẩm</Link></li>
               <li><Link href="/ai/start" className={linkClass}>Tư vấn AI</Link></li>
               <li><Link href="/try-on" className={linkClass}>Thử mặc AI</Link></li>
-              <li><Link href="/pricing" className={linkClass}>Bảng giá FitMe Pro</Link></li>
+              <li><Link href="/pricing" className={linkClass}>Bảng giá FitMe Premium</Link></li>
             </ul>
           </div>
           <div>

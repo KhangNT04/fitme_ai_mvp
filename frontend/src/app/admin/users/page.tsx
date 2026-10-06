@@ -110,12 +110,12 @@ export default function AdminUsersPage() {
   });
 
   const planMutation = useMutation({
-    mutationFn: ({ user, plan }: { user: AdminUser; plan: "FREE" | "PRO" }) =>
+    mutationFn: ({ user, plan }: { user: AdminUser; plan: "FREE" | "PREMIUM" }) =>
       adminApi.setUserConsumerPlan(user.id, plan),
     onSuccess: (_, { user, plan }) => {
       refresh();
       actionFeedback({
-        successMessage: plan === "PRO" ? `Đã nâng ${user.email} lên Pro` : `Đã chuyển ${user.email} về Free`,
+        successMessage: plan === "PREMIUM" ? `Đã nâng ${user.email} lên Premium` : `Đã chuyển ${user.email} về Free`,
       }).onSuccess();
     },
     onError: actionFeedback({ errorMessage: "Không thể đổi gói" }).onError,
@@ -157,7 +157,7 @@ export default function AdminUsersPage() {
             <StatCard
               label="Người dùng"
               value={summary.consumers}
-              sub={`${summary.proUsers} đang dùng Pro`}
+              sub={`${summary.premiumUsers} đang dùng Premium`}
               icon={<Crown className="h-5 w-5" />}
               tone="emerald"
             />
@@ -269,8 +269,8 @@ export default function AdminUsersPage() {
                     <td className={portalTableTdClass}>
                       {isConsumer ? (
                         <div className="flex flex-col">
-                          <span className={cn("font-medium", user.consumerPlan === "PRO" && "text-primary")}>
-                            {user.consumerPlan === "PRO" ? "Pro" : "Free"}
+                          <span className={cn("font-medium", user.consumerPlan === "PREMIUM" && "text-primary")}>
+                            {user.consumerPlan === "PREMIUM" ? "Premium" : "Free"}
                           </span>
                           <span className="text-xs text-muted-foreground tabular-nums">{user.fitkenBalance} Fitken</span>
                         </div>
@@ -292,10 +292,10 @@ export default function AdminUsersPage() {
                               hideIcon
                               disabled={planMutation.isPending}
                               onClick={() =>
-                                planMutation.mutate({ user, plan: user.consumerPlan === "PRO" ? "FREE" : "PRO" })
+                                planMutation.mutate({ user, plan: user.consumerPlan === "PREMIUM" ? "FREE" : "PREMIUM" })
                               }
                             >
-                              {user.consumerPlan === "PRO" ? "Về Free" : "Lên Pro"}
+                              {user.consumerPlan === "PREMIUM" ? "Về Free" : "Lên Premium"}
                             </PortalActionButton>
                             <PortalActionButton variant="edit" hideIcon onClick={() => openFitken(user)}>
                               Fitken

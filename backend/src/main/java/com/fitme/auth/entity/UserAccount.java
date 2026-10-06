@@ -1,5 +1,6 @@
 package com.fitme.auth.entity;
 
+import com.fitme.common.enums.BrandMixMode;
 import com.fitme.common.enums.ConsumerPlan;
 import com.fitme.common.enums.OutfitCoherenceMode;
 import com.fitme.common.enums.UserRole;
@@ -54,19 +55,25 @@ public class UserAccount {
     @Builder.Default
     private UserStatus status = UserStatus.ACTIVE;
 
-    /** Consumer Free/Pro entitlement, kept in sync with the active consumer subscription. */
-    @Enumerated(EnumType.STRING)
+    /** Consumer Free/Premium entitlement, kept in sync with the active consumer subscription. */
+    @Convert(converter = ConsumerPlanConverter.class)
     @Column(name = "consumer_plan", nullable = false)
     @Builder.Default
     private ConsumerPlan consumerPlan = ConsumerPlan.FREE;
 
     /**
-     * Optional Plus advanced coherence (PREFER/STRICT). Null = use FitMeProperties default for plan.
+     * Optional Premium advanced coherence (PREFER/STRICT). Null = use FitMeProperties default for plan.
      * Ignored when plan is FREE.
      */
     @Enumerated(EnumType.STRING)
     @Column(name = "coherence_mode_override")
     private OutfitCoherenceMode coherenceModeOverride;
+
+    /** Premium brand preference mode; only applied to recommendations while the user is Premium. */
+    @Enumerated(EnumType.STRING)
+    @Column(name = "brand_mix_mode", nullable = false, length = 20)
+    @Builder.Default
+    private BrandMixMode brandMixMode = BrandMixMode.DIVERSE;
 
     @Column(name = "signup_source", length = 100)
     private String signupSource;

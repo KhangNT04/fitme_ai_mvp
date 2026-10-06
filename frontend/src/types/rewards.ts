@@ -7,7 +7,14 @@ export interface CheckinStatus {
   recentDays: string[];
 }
 
-export interface ShareClaimDto {
+/** Present on reward responses when the free-Fitken cap may have reduced the grant. */
+export interface RewardCapInfo {
+  rewardIntended?: number | null;
+  rewardCapped?: boolean | null;
+  maxBalance?: number | null;
+}
+
+export interface ShareClaimDto extends RewardCapInfo {
   id: string;
   userId: string;
   postUrl: string;
@@ -39,12 +46,14 @@ export interface ReviewRewardStatus {
 
 export interface RewardsSummaryDto {
   balance: number;
+  /** Free Fitken cap; rewards stop adding once the balance reaches it. */
+  maxBalance: number;
   checkin: CheckinStatus;
   share: ShareStatus;
   review: ReviewRewardStatus;
 }
 
-export interface CheckinResultDto {
+export interface CheckinResultDto extends RewardCapInfo {
   checkedInToday: boolean;
   currentStreak: number;
   rewardGranted: number;

@@ -54,6 +54,11 @@ public class UserDataEraser {
     public void eraseStyleProfile(UUID userId, UUID sessionId) {
         jdbc.update("DELETE FROM style_profiles WHERE " + OWNER, owner(userId, sessionId));
         jdbc.update("DELETE FROM user_preference_weights WHERE " + OWNER, owner(userId, sessionId));
+        if (userId != null) {
+            MapSqlParameterSource p = owner(userId, sessionId);
+            jdbc.update("DELETE FROM user_favorite_brands WHERE user_id = :u", p);
+            jdbc.update("UPDATE user_accounts SET brand_mix_mode = 'DIVERSE' WHERE id = :u", p);
+        }
     }
 
     @Transactional

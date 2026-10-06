@@ -48,6 +48,13 @@ export async function loginUser(page: Page, email = "user@fitme.ai") {
   await expect(page.getByText(email, { exact: true }).first()).toBeVisible({ timeout: 15_000 });
 }
 
+/** Seeded consumer with an active FitMe Premium period (wardrobe, brand preferences). */
+export const PREMIUM_USER_EMAIL = "premium@fitme.ai";
+
+export async function loginPremiumUser(page: Page) {
+  await loginUser(page, PREMIUM_USER_EMAIL);
+}
+
 export async function expectPath(page: Page, pathPattern: RegExp) {
   await expect(page).toHaveURL(pathPattern);
 }

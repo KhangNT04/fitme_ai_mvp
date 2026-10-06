@@ -5,6 +5,8 @@ import { useQuery } from "@tanstack/react-query";
 import { ArrowRight, Camera, CheckCircle2, ChevronDown, ShoppingBag, Sparkles, Star, ThumbsUp, UserRound } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { reviewApi } from "@/services/review-api";
+import { subscriptionApi } from "@/services/subscription-api";
+import { premiumFitkenPerk, premiumPriceLabel } from "@/lib/premium";
 import { consumerShellHorizontalClass, consumerShellMaxWidthClass } from "@/lib/design-tokens";
 import { cn } from "@/lib/utils";
 
@@ -47,8 +49,8 @@ export const HOME_FAQ = [
     a: "Fitken là đơn vị dùng cho mỗi lượt thử mặc AI (1 Fitken/lượt). Tài khoản mới được tặng 5 Fitken; bạn nhận thêm khi điểm danh 3 ngày liên tục (+1), chia sẻ ảnh thử đồ (+3) hoặc đánh giá sản phẩm đã mua kèm ảnh (+2), mỗi nhiệm vụ 1 lần/ngày.",
   },
   {
-    q: "FitMe Pro có gì?",
-    a: "Gói Pro 49.000đ/tháng gồm 15 Fitken mỗi tháng. Tư vấn size, phối đồ và mua sắm vẫn miễn phí cho mọi người.",
+    q: "FitMe Premium có gì?",
+    a: "Gói Premium trả theo tháng: tùy biến phối đồ theo brand yêu thích, tủ đồ cá nhân để phối kèm đồ có sẵn và Fitken hàng tháng cho thử mặc AI. Tư vấn size, phối đồ từ brand và mua sắm vẫn miễn phí cho mọi người.",
   },
   {
     q: "Ảnh của tôi có an toàn không?",
@@ -145,13 +147,22 @@ export function FeaturedReviewsSection() {
 }
 
 export function PricingTeaserSection() {
+  const { data: plans } = useQuery({
+    queryKey: ["consumer-plans"],
+    queryFn: () => subscriptionApi.getPlans(),
+    staleTime: 5 * 60_000,
+  });
+  const premiumPlan =
+    plans?.find((p) => p.code === "PREMIUM_MONTHLY") ?? plans?.find((p) => p.planType !== "TOPUP");
+  const price = premiumPriceLabel(premiumPlan?.priceVnd);
+
   return (
     <section className={sectionClass} aria-labelledby="pricing-teaser">
       <div className="grid items-center gap-8 rounded-3xl border border-primary/20 bg-gradient-to-br from-violet-50 via-white to-pink-50 p-6 sm:p-10 lg:grid-cols-2">
         <div>
           <p className="text-xs font-semibold uppercase tracking-[0.3em] text-primary">Bảng giá</p>
           <h2 id="pricing-teaser" className="mt-3 font-display text-3xl font-bold text-foreground">
-            Miễn phí để bắt đầu, Pro khi bạn cần nhiều hơn
+            Miễn phí để bắt đầu, Premium khi bạn cần nhiều hơn
           </h2>
           <p className="mt-3 text-muted-foreground">
             Tư vấn size, phối đồ và mua sắm luôn miễn phí. Thử mặc AI dùng Fitken — tài khoản mới được tặng 5 Fitken.
@@ -164,9 +175,11 @@ export function PricingTeaserSection() {
             <p className="mt-2 text-sm text-muted-foreground">5 Fitken dùng thử + nhiệm vụ nhận thêm Fitken</p>
           </div>
           <div className="rounded-2xl border border-primary/40 bg-white p-5 shadow-md shadow-violet-500/10">
-            <p className="text-xs font-medium uppercase tracking-wide text-primary">FitMe Pro</p>
-            <p className="mt-1 font-display text-2xl font-bold">49.000đ<span className="text-sm font-medium text-muted-foreground">/tháng</span></p>
-            <p className="mt-2 text-sm text-muted-foreground">15 Fitken mỗi tháng cho thử mặc AI</p>
+            <p className="text-xs font-medium uppercase tracking-wide text-primary">FitMe Premium</p>
+            <p className="mt-1 font-display text-2xl font-bold">{price ?? "Theo tháng"}</p>
+            <p className="mt-2 text-sm text-muted-foreground">
+              Phối đồ theo brand yêu thích, tủ đồ cá nhân và {premiumFitkenPerk(premiumPlan?.fitkenAmount).toLowerCase()}
+            </p>
           </div>
           <Button asChild variant="outline" className="rounded-full sm:col-span-2">
             <Link href="/pricing">

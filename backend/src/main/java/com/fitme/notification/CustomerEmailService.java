@@ -67,9 +67,9 @@ public class CustomerEmailService {
             lines.add("Số tiền: " + vnd(order.getAmountVnd()));
             lines.add("Fitken được cộng: " + plan.getQuotaAmount());
             if (expiresAt != null) {
-                lines.add("Hiệu lực Pro đến: " + DATE.format(expiresAt));
+                lines.add("Hiệu lực Premium đến: " + DATE.format(expiresAt));
             }
-            String heading = topup ? "Đã cộng Fitken vào ví của bạn" : "Gói Pro đã được kích hoạt";
+            String heading = topup ? "Đã cộng Fitken vào ví của bạn" : "Gói Premium đã được kích hoạt";
             String subject = "FitMe · " + heading;
             String link = mail.frontendLink(topup ? "/try-on" : "/pricing");
             String text = "FitMe AI — " + heading + "\n\n"

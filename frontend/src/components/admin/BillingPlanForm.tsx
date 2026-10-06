@@ -77,7 +77,7 @@ export function BillingPlanForm({
               );
             }}
           >
-            <option value="SUBSCRIPTION">Gói tháng (Pro)</option>
+            <option value="SUBSCRIPTION">Gói tháng (Premium)</option>
             <option value="TOPUP">Gói mua thêm Fitken (top-up, dùng một lần)</option>
           </select>
         </div>
@@ -85,7 +85,7 @@ export function BillingPlanForm({
           <Label htmlFor="plan-code">Mã gói</Label>
           <Input
             id="plan-code"
-            placeholder="PRO_MONTHLY"
+            placeholder="PREMIUM_MONTHLY"
             value={form.code}
             readOnly={codeReadOnly}
             disabled={codeReadOnly}
@@ -96,7 +96,7 @@ export function BillingPlanForm({
           <Label htmlFor="plan-name">Tên gói</Label>
           <Input
             id="plan-name"
-            placeholder="FitMe Pro"
+            placeholder="FitMe Premium"
             value={form.name}
             onChange={(e) => setForm({ ...form, name: e.target.value })}
           />

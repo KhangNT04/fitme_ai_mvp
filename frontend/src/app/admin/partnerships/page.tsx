@@ -45,7 +45,7 @@ export default function AdminPartnershipsPage() {
       void queryClient.invalidateQueries({ queryKey: ["admin-brand-partnerships"] });
       setBrandAId("");
       setBrandBId("");
-      actionFeedback({ successMessage: "Đã lưu partnership (cặp brand cho Plus look)" }).onSuccess();
+      actionFeedback({ successMessage: "Đã lưu partnership (cặp brand cho Partner look)" }).onSuccess();
     },
     onError: actionFeedback({ errorMessage: "Không tạo được partnership" }).onError,
   });
@@ -57,7 +57,7 @@ export default function AdminPartnershipsPage() {
   return (
     <PortalAdminPage
       title="Brand partnerships"
-      description="Cặp brand liên kết — Plus scoring dùng để boost “Partner look”."
+      description="Cặp brand liên kết — gợi ý outfit FitMe Premium dùng để boost “Partner look”."
       isLoading={isLoading}
       error={error}
       onRetry={() => {

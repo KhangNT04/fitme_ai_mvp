@@ -75,11 +75,11 @@ class AdminGrowthMetricsIntegrationTest extends AbstractIntegrationTest {
         String planId = null;
         for (JsonNode plan : objectMapper.readTree(mockMvc.perform(get("/api/v1/plans"))
                 .andReturn().getResponse().getContentAsString()).get("data")) {
-            if ("PRO_MONTHLY".equals(plan.get("code").asText())) {
+            if ("PREMIUM_MONTHLY".equals(plan.get("code").asText())) {
                 planId = plan.get("id").asText();
             }
         }
-        assertThat(planId).as("PRO_MONTHLY plan seeded by V18").isNotNull();
+        assertThat(planId).as("PREMIUM_MONTHLY plan (renamed by V28)").isNotNull();
         mockMvc.perform(post("/api/v1/me/subscription/checkout")
                         .with(user(buyer))
                         .contentType(MediaType.APPLICATION_JSON)
@@ -98,7 +98,7 @@ class AdminGrowthMetricsIntegrationTest extends AbstractIntegrationTest {
             }
         }
         assertThat(buyerRow).isNotNull();
-        assertThat(buyerRow.get("kind").asText()).isEqualTo("PRO_SUBSCRIPTION");
+        assertThat(buyerRow.get("kind").asText()).isEqualTo("PREMIUM_SUBSCRIPTION");
         assertThat(buyerRow.get("amountVnd").asLong()).isEqualTo(49000);
         assertThat(buyerRow.get("mock").asBoolean()).isTrue();
         assertThat(report.get("payingCustomers").asLong()).isGreaterThanOrEqualTo(1);
@@ -108,7 +108,7 @@ class AdminGrowthMetricsIntegrationTest extends AbstractIntegrationTest {
                 .andExpect(header().string("Content-Disposition", org.hamcrest.Matchers.containsString(".csv")))
                 .andReturn();
         String content = new String(csv.getResponse().getContentAsByteArray(), StandardCharsets.UTF_8);
-        assertThat(content).contains(buyerRow.get("email").asText()).contains("Gói FitMe Pro");
+        assertThat(content).contains(buyerRow.get("email").asText()).contains("Gói FitMe Premium");
     }
 
     @Test

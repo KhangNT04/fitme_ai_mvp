@@ -50,6 +50,12 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS).body(ApiResponse.fail(ex.getMessage(), ex.getCode()));
     }
 
+    @ExceptionHandler(PremiumRequiredException.class)
+    public ResponseEntity<ApiResponse<Void>> handlePremiumRequired(PremiumRequiredException ex) {
+        return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                .body(ApiResponse.fail(ex.getMessage(), PremiumRequiredException.CODE));
+    }
+
     @ExceptionHandler(BusinessException.class)
     public ResponseEntity<ApiResponse<Void>> handleBusiness(BusinessException ex) {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ApiResponse.fail(ex.getMessage(), ex.getCode()));

@@ -142,8 +142,8 @@ export default function HomePage() {
                 <dd className="mt-1 font-display text-2xl font-bold text-foreground">Ảnh thật</dd>
               </div>
               <div>
-                <dt className="text-xs font-medium uppercase tracking-widest text-muted-foreground">FitMe Pro</dt>
-                <dd className="mt-1 font-display text-2xl font-bold text-foreground">49k</dd>
+                <dt className="text-xs font-medium uppercase tracking-widest text-muted-foreground">FitMe Premium</dt>
+                <dd className="mt-1 font-display text-2xl font-bold text-foreground">Brand yêu thích</dd>
               </div>
             </dl>
           </div>

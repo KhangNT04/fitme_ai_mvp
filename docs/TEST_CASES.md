@@ -1,0 +1,214 @@
+# FitMe AI: bộ test case toàn hệ thống
+
+Cập nhật: 07/10/2026 · Prod: frontend https://fitme-ai-mvp.vercel.app · backend https://fitme-ai-mvp.onrender.com
+
+**Tổng quan:**
+
+- **860 test case**: 315 happy, 287 edge, 258 worst.
+- **Độ phủ:** 488 case đã pass ở ít nhất một loại test, 372 case chưa pass ở loại nào.
+- **Theo ưu tiên:** 130 P0, 399 P1, 331 P2. Còn **11 case P0 chưa được test** (05/10 là 33).
+- **Lỗi đã biết:** 55 case từng ghi nhận lỗi (🐞), gộp thành 50 lỗi. **Cả 50 lỗi đã được sửa** và kiểm tra lại, xem [KNOWN_ISSUES.md](test-cases/KNOWN_ISSUES.md). Trong file module, ghi chú 🐞 cũ được đổi thành "Đã sửa #N (commit)".
+
+Mỗi case gồm: tiền điều kiện, các bước, dữ liệu test, kết quả mong đợi (thông báo tiếng Việt và giới hạn lấy đúng từ code), trạng thái theo 4 loại test và ghi chú tham chiếu tên test.
+
+## 1. Thống kê
+
+### Theo loại test
+
+| Loại test | ✅ Pass | ❌ Chưa test | 🟡 Có spec, chưa chạy CI | ⚠️ Lỗi thời | — Không áp dụng |
+|---|---|---|---|---|---|
+| BE (JUnit) | 318 | 311 | — | — | 231 |
+| FE (Vitest) | 157 | 151 | — | — | 552 |
+| E2E (Playwright) | 105 | 384 | 0 | 0 | 371 |
+| PROD | 167 | 676 | — | — | 17 |
+
+### Theo loại case
+
+| Loại case | Số case | Đã pass ≥ 1 loại test | Tỉ lệ |
+|---|---|---|---|
+| H (happy) | 315 | 240 | 76% |
+| E (edge) | 287 | 133 | 46% |
+| W (worst) | 258 | 115 | 45% |
+| **Tổng** | **860** | **488** | **57%** |
+
+Worst case tăng từ 30% lên 45% nhờ bộ test BE cho P0 (tấn công, đồng thời, webhook giả). Phần còn yếu là edge case ở FE và các kiểm tra chỉ làm được trên prod.
+
+## 2. Danh mục module
+
+| # | Module | Nhóm (tiền tố ID) | Số case | H / E / W | Đã pass | Chưa pass | 🐞 |
+|---|---|---|---|---|---|---|---|
+| 01 | [Xác thực & tài khoản](test-cases/01-auth.md) | AUTH-REG, AUTH-VER, AUTH-LOG, AUTH-TOK, AUTH-PWD, AUTH-CHP, AUTH-POR | 113 | 23 / 48 / 42 | 50 | 63 | 0 |
+| 02 | [Phiên ẩn danh, hồ sơ, vibe quiz](test-cases/02-session-profile.md) | SES, PRO, QUIZ | 46 | 12 / 23 / 11 | 27 | 19 | 0 |
+| 03 | [Tư vấn AI (stylist chat)](test-cases/03-ai-stylist.md) | AI-CHAT, AI-TOP, AI-GEM, AI-REC, AI-ACT | 77 | 35 / 22 / 20 | 47 | 30 | 0 |
+| 04 | [Thử mặc AI & avatar mẫu](test-cases/04-try-on.md) | TRY-SEL, TRY-INP, TRY-GEN, TRY-RES, TRY-2D, AVA | 90 | 37 / 33 / 20 | 70 | 20 | 0 |
+| 05 | [Danh mục, sản phẩm, đánh giá](test-cases/05-catalog-review.md) | CAT-DIS, CAT-PDP, REV | 59 | 27 / 24 / 8 | 33 | 26 | 0 |
+| 06 | [Giỏ hàng, đặt hàng, thanh toán, đơn, địa chỉ](test-cases/06-cart-checkout-order.md) | CART, CHK, PAY, ORD, ADR | 77 | 26 / 27 / 24 | 53 | 24 | 0 |
+| 07 | [Fitken, gói Pro, nhận thưởng, voucher](test-cases/07-fitken-pro-rewards.md) | FIT, SUB, RWD-CHK, RWD-SHR, VCH | 46 | 19 / 17 / 10 | 24 | 22 | 0 |
+| 08 | [Tủ đồ, thư viện, đã lưu, chuyển hướng mua](test-cases/08-wardrobe-gallery-redirect.md) | WAR, GAL, SAV, RED, PUR | 46 | 21 / 15 / 10 | 30 | 16 | 0 |
+| 09 | [Quyền riêng tư & email](test-cases/09-privacy-email.md) | PRV, MAIL | 31 | 13 / 6 / 12 | 20 | 11 | 0 |
+| 10 | [Cổng thương hiệu (Brand portal)](test-cases/10-brand-portal.md) | BR-APP, BR-PRD, BR-ORD, BR-STL, BR-ANA, BR-SET | 70 | 25 / 31 / 14 | 35 | 35 | 0 |
+| 11 | [Cổng quản trị (Admin portal)](test-cases/11-admin-portal.md) | ADM-DSH, ADM-USR, ADM-BRD, ADM-PRD, ADM-ORD, ADM-PLN, ADM-TRF, ADM-GRW, ADM-ACC | 78 | 37 / 29 / 12 | 42 | 36 | 0 |
+| 12 | [Bảo mật](test-cases/12-security.md) | SEC-AUZ, SEC-INJ, SEC-UPL, SEC-ABU, SEC-CFG | 45 | 0 / 0 / 45 | 17 | 28 | 0 |
+| 13 | [Giao diện, điều hướng, responsive, SEO](test-cases/13-ui-navigation-seo.md) | NAV, UI, RSP, A11Y, SEO | 50 | 29 / 8 / 13 | 27 | 23 | 0 |
+| 14 | [Hạ tầng, tác vụ nền, hiệu năng, CI](test-cases/14-infra-performance.md) | INF, JOB, PERF, CI | 32 | 11 / 4 / 17 | 13 | 19 | 0 |
+| | **Tổng** | | **860** | **315 / 287 / 258** | **488** | **372** | **0** |
+
+Lỗi đã biết, phân theo mức độ kèm gợi ý vị trí sửa: [test-cases/KNOWN_ISSUES.md](test-cases/KNOWN_ISSUES.md).
+
+## 3. Bốn loại test
+
+| Mã | Loại test | Công cụ | Chạy ở đâu | Quy mô hiện tại |
+|---|---|---|---|---|
+| **BE** | Backend unit + integration | JUnit 5, MockMvc, Spring Boot Test (`backend/src/test`) | CI mỗi lần push | 313 test / 88 class; pass hết, 3 test @Disabled là lỗ hổng đã biết |
+| **FE** | Frontend unit | Vitest + Testing Library (`frontend/src/**/*.test.ts(x)`) | CI mỗi lần push | 246 test / 54 file, tất cả pass |
+| **E2E** | End-to-end trên trình duyệt | Playwright (`frontend/e2e`) | CI chạy **toàn bộ** mỗi lần push | 23 spec / 120 test chromium + 5 test mobile-chrome |
+| **PROD** | Kiểm thử trên môi trường thật | Playwright headless + script API + thao tác tay | Vercel + Render, 04–07/10/2026 | 95 trang × 4 vai trò, 45 kiểm tra API, script kiểm tra từng vòng sửa lỗi, 5 luồng hồi quy |
+
+### Cách chạy
+
+```powershell
+# BE: cần Docker (Testcontainers) hoặc Postgres local
+cd backend; mvn test
+
+# FE unit
+cd frontend; npm test
+
+# E2E: cần backend + frontend đang chạy local. Backend chạy như CI:
+# FITME_SEED_ENABLED, FITME_AUTH_EXPOSE_VERIFICATION_CODE, FITME_TEST_EXPOSE_RESET_TOKENS = true; FITME_AUTH_MIN_FORM_MS=0
+cd frontend; npx playwright test --project=chromium --workers=1
+npx playwright test e2e/mobile-nav.spec.ts --project=mobile-chrome
+npm run test:e2e -- e2e/commerce.spec.ts   # chạy 1 spec
+npm run test:e2e:roles                     # luồng theo vai trò
+```
+
+PROD: thao tác theo cột "Các bước" trong từng file module, chỉ dùng tài khoản test.
+Không thanh toán PayOS thật, hạn chế tạo preview FASHN (tốn phí), dọn dữ liệu test sau khi chạy.
+
+## 4. Quy ước
+
+### Ký hiệu trạng thái
+
+| Ký hiệu | Ý nghĩa |
+|---|---|
+| ✅ | Đã có test và **pass** (BE / FE / E2E pass trong CI ở commit `1352ea1`; PROD đã kiểm tra thực tế) |
+| 🟡 | Có spec E2E nhưng **không chạy trong CI**, chưa xác nhận đang pass |
+| ⚠️ | Có test nhưng **lỗi thời**, sẽ fail nếu chạy (cần sửa spec) |
+| ❌ | **Chưa test** |
+| — | Không áp dụng cho loại test này |
+| 🐞 (cột ghi chú) | Rà code thấy hành vi hiện tại **khác** kết quả mong đợi, nên case sẽ fail. Xem [KNOWN_ISSUES.md](test-cases/KNOWN_ISSUES.md) |
+
+### Loại case và ưu tiên
+
+| Mã | Ý nghĩa |
+|---|---|
+| **H** | Happy case: luồng chuẩn, dữ liệu hợp lệ |
+| **E** | Edge case: giá trị biên, dữ liệu sai, trạng thái bất thường |
+| **W** | Worst case: tấn công, lạm dụng, đồng thời, mất mạng, dịch vụ ngoài lỗi, chi phí |
+| **P0** | Hỏng là mất tiền, mất dữ liệu, lộ dữ liệu hoặc chặn luồng chính; phải test trước mỗi release |
+| **P1** | Chức năng quan trọng; test khi đụng tới module |
+| **P2** | Phụ, hiển thị, trải nghiệm |
+
+### Cột của mỗi bảng
+
+`ID | Loại | Ưu tiên | Tiền điều kiện | Các bước | Dữ liệu test | Kết quả mong đợi | BE | FE | E2E | PROD | Ghi chú`
+
+Đầu mỗi file module có mục **"Quy tắc nghiệp vụ (đọc từ code)"** tóm tắt giới hạn, thời hạn, phí và thông báo lỗi dùng làm căn cứ cho kết quả mong đợi.
+
+### Tài khoản test
+
+| Vai trò | Email |
+|---|---|
+| User | `khangntse180776@fpt.edu.vn`, `user@fitme.ai` |
+| Admin | `admin@fitme.ai` |
+| Brand | `brand@fitme.ai` |
+
+Mật khẩu không ghi trong tài liệu; xem seed data hoặc hỏi người quản lý môi trường.
+
+## 5. Spec E2E và trạng thái
+
+Từ commit `8255502`, CI chạy toàn bộ 23 spec mỗi lần push (job "E2E (full suite)": chromium 1 worker, retry 2; mobile-nav trên mobile-chrome). Trước đó CI chỉ chạy 4 spec.
+
+| Spec | Số test | Chạy trong CI | Trạng thái |
+|---|---|---|---|
+| smoke-routes.spec.ts | 20 | Có | ✅ Pass |
+| role-flows.spec.ts | 34 | Có | ✅ Pass |
+| rbac.spec.ts | 5 | Có | ✅ Pass |
+| mobile-nav.spec.ts | 5 | Có (mobile-chrome) | ✅ Pass |
+| try-on.spec.ts | 3 | Có | ✅ Pass (đã sửa: avatar yêu cầu đăng nhập, số đo không bị xoá khi upload ảnh) |
+| admin-full.spec.ts | 16 | Có | ✅ Pass |
+| admin-portal.spec.ts | 1 | Có | ✅ Pass |
+| ai-extras.spec.ts | 2 | Có | ✅ Pass |
+| auth-flow.spec.ts | 5 | Có | ✅ Pass |
+| auth-pages.spec.ts | 2 | Có | ✅ Pass |
+| brand-full.spec.ts | 13 | Có | ✅ Pass |
+| brand-portal.spec.ts | 1 | Có | ✅ Pass |
+| commerce.spec.ts | 2 | Có | ✅ Pass (đặt đơn COD trên DB của CI) |
+| consultation-anonymous.spec.ts | 2 | Có | ✅ Pass |
+| discover.spec.ts | 1 | Có | ✅ Pass |
+| navigation.spec.ts | 4 | Có | ✅ Pass |
+| photo-preview.spec.ts | 1 | Có | ✅ Pass |
+| product-advice.spec.ts | 1 | Có | ✅ Pass |
+| redirect-flow.spec.ts | 2 | Có | ✅ Pass |
+| reset-password.spec.ts | 1 | Có | ✅ Pass (dùng tài khoản mới tạo, không đụng tài khoản seed) |
+| saved-outfits.spec.ts | 1 | Có | ✅ Pass |
+| try-on-extras.spec.ts | 2 | Có | ✅ Pass |
+| wardrobe.spec.ts | 1 | Có | ✅ Pass |
+
+## 6. Kết quả kiểm thử trên prod
+
+### Đợt 1 (04–05/10/2026): quét toàn hệ thống
+
+| Hạng mục | Phạm vi | Kết quả |
+|---|---|---|
+| Quét trang | Khách 23 · User 34 · Admin 23 · Brand 15 trang | 95/95 tải được, không crash / 404 / 5xx |
+| API | Đăng nhập, RBAC, danh mục, giỏ, xem trước đơn, tủ đồ, Fitken, khoá / mở tài khoản, dashboard admin / brand | 45/45 pass |
+| Luồng UI | Tư vấn AI khách vãng lai đến thử mặc; mua sắm đến trang thanh toán; form đăng ký | Pass |
+| Avatar mẫu | Admin thêm / đổi thứ tự / ẩn / xoá; người dùng chọn avatar | Pass |
+| Email | Quên mật khẩu qua Gmail relay; relay sai secret | Pass |
+| Lỗi tìm thấy và đã sửa | CTR 350%, thứ tự size, nút quay lại về trang đăng nhập, 403 ví Fitken cho khách, badge vai trò xuống dòng, số thứ tự avatar sau khi xoá | Đã deploy và kiểm tra lại |
+
+### Đợt 2 (06–07/10/2026): sửa 50 lỗi và hồi quy
+
+Mỗi vòng sửa lỗi chạy script API kiểm tra đúng các lỗi của vòng đó sau khi Render deploy xong (chi tiết từng lỗi ở [KNOWN_ISSUES.md](test-cases/KNOWN_ISSUES.md)). Sau vòng cuối, chạy bộ hồi quy Playwright trên prod (commit backend `8255502`, test `1352ea1`):
+
+| Luồng | Kết quả |
+|---|---|
+| Tư vấn AI, lưu outfit, gợi ý sản phẩm tương tự (#40) | ✅ 6 sản phẩm cùng loại (váy / giày), không trùng món gốc; outfit đã bỏ lưu sau khi test |
+| 1 lần thử mặc FASHN bằng avatar mẫu | ✅ Kết quả VTON, trừ đúng 1 Fitken |
+| Đặt 1 đơn COD qua giao diện rồi huỷ | ✅ Đơn CANCELLED, tồn kho trả lại, địa chỉ test đã xoá |
+| Tạo đơn PayOS qua API (không mở link thanh toán) rồi huỷ | ✅ Có `checkoutUrl`, trạng thái PENDING_PAYMENT, huỷ xong tồn kho trả lại |
+| Portal brand và admin | ✅ Tải được |
+| Cố ý không chạy | Thanh toán gói Pro qua PayOS: prod đang bật `PAYOS_MOCK=true`, gói sẽ tự đánh dấu đã trả và cộng Fitken thật |
+
+## 7. Đề xuất ưu tiên
+
+### P0: 22/33 case đã có test BE (07/10/2026)
+
+Bộ test mới gồm 7 class `P0*IntegrationTest` trong `backend/src/test`, chạy cùng CI. Không phát hiện lỗi sản phẩm mới.
+
+| Nhóm | Đã có test BE |
+|---|---|
+| Tiền & đơn hàng | PAY-07 (webhook ký sai, chạy chế độ live), PAY-08, PAY-14 (bấm đặt 2 lần), PAY-15 (5 người tranh món cuối), SUB-10, CART-15, CHK-13, CHK-14 |
+| Phân quyền & token | SEC-AUZ-05, SEC-AUZ-06, AUTH-PWD-14, BR-PRD-20, GAL-09, TRY-INP-17 |
+| Injection | SEC-INJ-01, CAT-DIS-06, ADM-GRW-04 (CSV injection) |
+| Lạm dụng & cấu hình | AI-CHAT-12, AUTH-LOG-10, SEC-CFG-02 (CORS), SEC-UPL-02 |
+| Pháp lý | PRV-08 |
+
+Ghi chú: BR-PRD-20 hiện trả 400 thay vì 403 (test chấp nhận mọi 4xx và kiểm tra sản phẩm không đổi). `GET /products` không phân trang, trả toàn bộ kết quả trong một lần.
+
+### 11 case P0 còn lại
+
+| Case | Lý do |
+|---|---|
+| SEC-ABU-01, SEC-ABU-02, TRY-GEN-21 | **Lỗ hổng đã biết**, test BE đang `@Disabled`: chưa có giới hạn theo IP / toàn hệ thống cho chat AI, đăng ký hàng loạt và tạo thử mặc. Cần quyết định mức giới hạn trước khi làm |
+| SEC-AUZ-07, SEC-CFG-01, INF-08 | Cấu hình và hạ tầng prod, kiểm tra tay |
+| AUTH-POR-11, AUTH-TOK-02 | Middleware và xử lý token ở FE, cần test FE / E2E |
+| SEC-INJ-02, REV-17 | XSS hiển thị trên trình duyệt, cần E2E |
+| AI-TOP-06 | Prompt injection, phụ thuộc Gemini thật |
+
+### Thứ tự đề xuất
+
+1. **Giới hạn chi phí:** rate limit theo IP và trần toàn hệ thống cho chat AI, thử mặc FASHN và đăng ký (bật lại 3 test `@Disabled`).
+2. **Test FE / E2E còn thiếu:** AUTH-POR-03 (không lưu token khi sai role), AUTH-POR-10 / AUTH-POR-11 (cookie portal), AUTH-TOK-02, XSS (SEC-INJ-02, REV-17).
+3. **Quét prod:** header bảo mật, chuỗi bí mật trong bundle JS (SEC-CFG-01), secret JWT prod khác dev (SEC-AUZ-07).
+4. **Hạ tầng:** UI khi Render khởi động lạnh (INF-05), tác vụ hẹn giờ bị lỡ khi Render ngủ (JOB-05, JOB-06), load test cơ bản (PERF-01, PERF-03).

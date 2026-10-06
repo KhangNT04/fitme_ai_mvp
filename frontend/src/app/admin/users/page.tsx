@@ -26,7 +26,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { actionFeedback } from "@/lib/action-feedback";
-import { formatCommerceDate } from "@/lib/commerce-utils";
+import { formatApiDate } from "@/lib/date-format";
 import { portalTableActionsClass } from "@/lib/design-tokens";
 import { cn } from "@/lib/utils";
 import { useAuthStore } from "@/stores/auth-store";
@@ -279,7 +279,7 @@ export default function AdminUsersPage() {
                       )}
                     </td>
                     <td className={portalTableTdClass}>{formatDay(user.lastActiveDate)}</td>
-                    <td className={portalTableTdClass}>{formatCommerceDate(user.createdAt, false)}</td>
+                    <td className={portalTableTdClass}>{formatApiDate(user.createdAt, false)}</td>
                     <td className={portalTableTdClass}>
                       <Badge variant={locked ? "warning" : "success"}>{locked ? "Đã khóa" : "Hoạt động"}</Badge>
                     </td>

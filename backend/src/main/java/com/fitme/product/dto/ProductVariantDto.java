@@ -13,5 +13,4 @@ public class ProductVariantDto {
     private String sizeLabel;
     private String sku;
     private StockStatus stockStatus;
-    private Integer stockQuantity;
 }

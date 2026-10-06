@@ -64,7 +64,7 @@ export default function AdminBrandsPage() {
   return (
     <PortalAdminPage
       title="Quản lý thương hiệu"
-      description="Duyệt đăng ký seller mới và quản lý trạng thái brand trên marketplace."
+      description="Duyệt đăng ký brand mới và quản lý trạng thái brand trên FitMe."
       isLoading={isLoading}
       error={error}
       onRetry={() => refetch()}

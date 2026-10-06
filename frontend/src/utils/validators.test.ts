@@ -1,5 +1,25 @@
 import { describe, expect, it } from "vitest";
-import { bodyProfileSchema, occasionSchema, styleProfileSchema, tryOnInputSchema } from "./validators";
+import { bodyProfileSchema, occasionSchema, purchaseUrlSchema, styleProfileSchema, tryOnInputSchema } from "./validators";
+
+describe("purchaseUrlSchema", () => {
+  const message = (value: unknown) => purchaseUrlSchema.safeParse(value).error?.issues[0]?.message;
+
+  it("requires a link to the store's product page", () => {
+    expect(message("")).toBe("Link mua hàng không được để trống");
+    expect(message("   ")).toBe("Link mua hàng không được để trống");
+    expect(message(undefined)).toBe("Link mua hàng không được để trống");
+  });
+
+  it("rejects links that are not http(s) with a real host", () => {
+    for (const bad of ["not-a-valid-url", "javascript:alert(1)", "ftp://shop.vn/a", "https://localhost/a"]) {
+      expect(message(bad)).toContain("Link mua hàng không hợp lệ");
+    }
+  });
+
+  it("accepts and trims a valid store link", () => {
+    expect(purchaseUrlSchema.parse("  https://brand.vn/products/ao  ")).toBe("https://brand.vn/products/ao");
+  });
+});
 
 const validBodyProfile = {
   heightCm: 170,

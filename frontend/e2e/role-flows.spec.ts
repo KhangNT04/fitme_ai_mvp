@@ -44,8 +44,7 @@ test.describe("Luồng công khai (không đăng nhập)", () => {
   test("khám phá → chi tiết sản phẩm → chuyển hướng mua", async ({ page }) => {
     const productId = await getFirstProductIdFromDiscover(page);
     await page.goto(`/products/${productId}`);
-    // In-app purchasable products demote the external shop link to "Mua tại cửa hàng gốc".
-    await page.getByRole("link", { name: /^(Mua ngay|Mua tại cửa hàng gốc)$/ }).click();
+    await page.getByRole("link", { name: "Mua tại cửa hàng gốc" }).click();
     await page.waitForURL("**/redirect/confirm/**");
     await page.getByRole("button", { name: "Tiếp tục đến nơi bán" }).click();
     await page.waitForURL("**/redirect/loading**", { timeout: 30_000 });

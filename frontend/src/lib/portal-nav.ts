@@ -6,8 +6,6 @@ export interface PortalNavItem {
 export const brandNav: PortalNavItem[] = [
   { href: "/brand/dashboard", label: "Tổng quan" },
   { href: "/brand/products", label: "Sản phẩm" },
-  { href: "/brand/orders", label: "Đơn hàng" },
-  { href: "/brand/settlements", label: "Đối soát" },
   { href: "/brand/insights/demand", label: "Nhu cầu Gen Z" },
   { href: "/brand/analytics", label: "Phân tích" },
   { href: "/brand/settings", label: "Cài đặt" },
@@ -20,8 +18,6 @@ export const adminNav: PortalNavItem[] = [
   { href: "/admin/brands", label: "Thương hiệu" },
   { href: "/admin/partnerships", label: "Partnerships" },
   { href: "/admin/billing/plans", label: "Gói người dùng" },
-  { href: "/admin/orders", label: "Đơn hàng" },
-  { href: "/admin/settlements", label: "Đối soát seller" },
   { href: "/admin/rewards", label: "Duyệt chia sẻ" },
   { href: "/admin/reviews", label: "Đánh giá" },
   { href: "/admin/products/moderation", label: "Duyệt sản phẩm" },

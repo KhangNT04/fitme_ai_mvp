@@ -66,10 +66,22 @@ public class ProductEligibilityService {
         return meetsProductMetadataForTryOn(product);
     }
 
-    public java.util.List<String> getModerationIssues(UUID productId) {
+    static final String MISSING_IMAGE_ISSUE = "Thiếu ảnh sản phẩm";
+    static final String MISSING_PURCHASE_URL_ISSUE = "Thiếu link mua hàng hợp lệ";
+
+    /** Issues that stop an admin from approving: shoppers need a photo and a working link to the brand's store. */
+    public static boolean isBlockingModerationIssue(String issue) {
+        return MISSING_IMAGE_ISSUE.equals(issue) || MISSING_PURCHASE_URL_ISSUE.equals(issue);
+    }
+
+    public java.util.List<String> getModerationIssues(Product product) {
+        UUID productId = product.getId();
         java.util.List<String> issues = new java.util.ArrayList<>();
         if (imageRepository.findByProductIdOrderBySortOrderAsc(productId).isEmpty()) {
-            issues.add("Thiếu ảnh sản phẩm");
+            issues.add(MISSING_IMAGE_ISSUE);
+        }
+        if (!UrlValidator.isValidHttpUrl(product.getPurchaseUrl())) {
+            issues.add(MISSING_PURCHASE_URL_ISSUE);
         }
         boolean hasVariants = !variantRepository.findByProductId(productId).isEmpty();
         boolean hasCharts = !sizeChartRepository.findByProductId(productId).isEmpty();

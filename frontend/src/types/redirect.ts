@@ -1,4 +1,6 @@
-export type RedirectChannel = "SHOPEE" | "TIKTOK_SHOP" | "WEBSITE" | "OTHER";
+/** Mirrors the backend PurchaseChannel enum. */
+export const REDIRECT_CHANNELS = ["SHOPEE", "TIKTOK_SHOP", "BRAND_WEBSITE", "INSTAGRAM", "FACEBOOK", "OTHER"] as const;
+export type RedirectChannel = (typeof REDIRECT_CHANNELS)[number];
 export const SOURCE_PAGES = ["AI_RESULT", "TRY_ON_RESULT", "PRODUCT_DETAIL", "PREVIEW"] as const;
 export type SourcePage = (typeof SOURCE_PAGES)[number];
 

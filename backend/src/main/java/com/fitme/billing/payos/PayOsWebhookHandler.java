@@ -1,7 +1,7 @@
 package com.fitme.billing.payos;
 
 /**
- * One PayOS account serves every payable flow (Pro subscription, commerce orders).
+ * One PayOS account serves every payable flow (currently the consumer Pro subscription and Fitken top-ups).
  * PayOS order codes are globally unique across flows, so the webhook controller asks
  * each handler in turn and stops at the first one that owns the code.
  */

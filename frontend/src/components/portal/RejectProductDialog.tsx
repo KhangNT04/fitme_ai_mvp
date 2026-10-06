@@ -1,6 +1,6 @@
 "use client";
 
-import { ReasonDialog } from "@/components/commerce/ReasonDialog";
+import { ReasonDialog } from "@/components/common/ReasonDialog";
 
 /** Backend stores moderation reasons in product_tags.tag_value VARCHAR(100). */
 export const PRODUCT_REASON_MAX_LENGTH = 100;

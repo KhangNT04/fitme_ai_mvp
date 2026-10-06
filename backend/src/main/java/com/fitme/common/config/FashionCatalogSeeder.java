@@ -2,6 +2,7 @@ package com.fitme.common.config;
 
 import com.fitme.brand.entity.Brand;
 import com.fitme.common.enums.*;
+import com.fitme.common.util.UrlValidator;
 import com.fitme.product.entity.*;
 import com.fitme.product.repository.*;
 import lombok.RequiredArgsConstructor;
@@ -10,6 +11,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
+import java.text.Normalizer;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -24,7 +26,8 @@ public class FashionCatalogSeeder {
 
     private static final Logger log = LoggerFactory.getLogger(FashionCatalogSeeder.class);
     private static final String LEGACY_DEMO_PREFIX = "Sản phẩm demo ";
-    private static final String CATALOG_META_TAG = "catalog-v7";
+    /** Bump when seeded product fields change so existing databases re-sync on startup. */
+    private static final String CATALOG_META_TAG = "catalog-v8";
     private static final String[] SIZES = {"S", "M", "L", "XL"};
     /** Per size (same order as SIZES): chest, waist, hip, heightMin, heightMax, weightMin, weightMax. */
     private static final int[][] SIZE_CHART = {
@@ -152,8 +155,8 @@ public class FashionCatalogSeeder {
         product.setPrice(BigDecimal.valueOf(entry.price));
         product.setMaterial(entry.material);
         product.setFitType(fitType);
-        product.setPurchaseUrl("https://shopee.vn/" + brandKey + "/" + slugify(entry.name));
-        product.setPurchaseChannel(PurchaseChannel.SHOPEE);
+        product.setPurchaseUrl(purchaseUrl(brand, brandKey, entry));
+        product.setPurchaseChannel(PurchaseChannel.BRAND_WEBSITE);
         product.setStockStatus(StockStatus.IN_STOCK);
         product.setStatus(ProductStatus.ACTIVE);
         product.setSponsored(entry.sponsored);
@@ -174,10 +177,7 @@ public class FashionCatalogSeeder {
         return size + "|" + color;
     }
 
-    /**
-     * Variants are referenced by carts and orders, so they are matched by size + colour and kept
-     * (with their stock); variants dropped from the catalog are only marked out of stock.
-     */
+    /** Variants are matched by size + colour so they keep their id; variants dropped from the catalog are deleted. */
     private void syncVariants(UUID productId, String brandKey, FashionCatalogLoader.ProductEntry entry, int seq) {
         Map<String, ProductVariant> existing = new HashMap<>();
         for (ProductVariant variant : variantRepository.findByProductId(productId)) {
@@ -200,11 +200,8 @@ public class FashionCatalogSeeder {
         }
 
         for (ProductVariant variant : variantRepository.findByProductId(productId)) {
-            if (!wanted.contains(variantKey(variant.getSizeLabel(), variant.getColorName()))
-                    && variant.getStockStatus() != StockStatus.OUT_OF_STOCK) {
-                variant.setStockStatus(StockStatus.OUT_OF_STOCK);
-                variant.setStockQuantity(0);
-                variantRepository.save(variant);
+            if (!wanted.contains(variantKey(variant.getSizeLabel(), variant.getColorName()))) {
+                variantRepository.delete(variant);
             }
         }
     }
@@ -239,8 +236,8 @@ public class FashionCatalogSeeder {
                 .price(BigDecimal.valueOf(entry.price))
                 .material(entry.material)
                 .fitType(fitType)
-                .purchaseUrl("https://shopee.vn/" + brandKey + "/" + slugify(entry.name))
-                .purchaseChannel(PurchaseChannel.SHOPEE)
+                .purchaseUrl(purchaseUrl(brand, brandKey, entry))
+                .purchaseChannel(PurchaseChannel.BRAND_WEBSITE)
                 .stockStatus(StockStatus.IN_STOCK)
                 .status(ProductStatus.ACTIVE)
                 .isSponsored(entry.sponsored)
@@ -345,9 +342,19 @@ public class FashionCatalogSeeder {
         return !"Phụ kiện".equals(category);
     }
 
+    /** Product page on the brand's own store: its website when configured, else https://{brandKey}.vn. */
+    static String purchaseUrl(Brand brand, String brandKey, FashionCatalogLoader.ProductEntry entry) {
+        String website = brand.getWebsiteUrl();
+        String base = UrlValidator.isValidHttpUrl(website)
+                ? website.trim().replaceAll("/+$", "")
+                : "https://" + brandKey.replace("-", "") + ".vn";
+        return base + "/products/" + slugify(entry.name);
+    }
+
     private static String slugify(String name) {
-        return name.toLowerCase()
-                .replaceAll("[^a-z0-9\\s-]", "")
+        String ascii = Normalizer.normalize(name.toLowerCase().replace('đ', 'd'), Normalizer.Form.NFD)
+                .replaceAll("\\p{M}", "");
+        return ascii.replaceAll("[^a-z0-9\\s-]", "")
                 .trim()
                 .replaceAll("\\s+", "-");
     }

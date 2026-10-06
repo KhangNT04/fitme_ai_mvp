@@ -17,8 +17,6 @@ public class BillingDtoMapper {
                 .planType(plan.getPlanType())
                 .priceVnd(plan.getPriceVnd())
                 .fitkenAmount(plan.getQuotaAmount())
-                .freeshipVouchers(plan.getFreeshipVouchers())
-                .freeshipMaxDiscountVnd(plan.getFreeshipMaxDiscountVnd())
                 .billingPeriodDays(plan.getBillingPeriodDays())
                 .active(plan.isActive())
                 .sortOrder(plan.getSortOrder())

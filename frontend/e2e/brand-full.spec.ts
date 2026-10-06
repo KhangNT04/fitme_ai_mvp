@@ -55,7 +55,16 @@ test.describe("Brand portal — full coverage", () => {
     await page.goto("/brand/dashboard");
     await expect(page.getByRole("heading", { name: "Tổng quan" })).toBeVisible();
     await expect(page.getByText("Chưa có gói tháng")).not.toBeVisible();
-    await expect(page.getByText("Bán hàng (30 ngày)")).toBeVisible();
+    await expect(page.getByText("Lượt click mua")).toBeVisible();
+    await expect(page.getByText("Bán hàng (30 ngày)")).toHaveCount(0);
+  });
+
+  test("product form requires a valid purchase link", async ({ page }) => {
+    await page.goto("/brand/products/new");
+    await fillBrandProductForm(page, `E2E No Link ${Date.now()}`, "not-a-valid-url");
+    await page.getByRole("button", { name: "Tạo sản phẩm" }).click();
+    await expect(page.getByText("Link mua hàng không hợp lệ")).toBeVisible();
+    await expect(page).toHaveURL(/\/brand\/products\/new$/);
   });
 
   test("product analytics page loads for existing product", async ({ page }) => {

@@ -6,9 +6,14 @@ describe("purchase spend helpers", () => {
     expect(
       matchesPurchaseSearch({ productName: "Áo thun basic", brandName: "Seoul Basic" }, "seoul"),
     ).toBe(true);
-    expect(matchesPurchaseSearch({ productName: "Quần jean", brandName: "K-Style" }, "áo")).toBe(
+    expect(matchesPurchaseSearch({ productName: "Quần jean", brandName: "K-Style" }, "áo")    ).toBe(
       false,
     );
+  });
+
+  it("matches the Vietnamese store label of the purchase channel", () => {
+    expect(matchesPurchaseSearch({ productName: "Áo", channel: "BRAND_WEBSITE" }, "chính hãng")).toBe(true);
+    expect(matchesPurchaseSearch({ productName: "Áo", channel: "SHOPEE" }, "chính hãng")).toBe(false);
   });
 
   it("detects same calendar month for monthly total", () => {

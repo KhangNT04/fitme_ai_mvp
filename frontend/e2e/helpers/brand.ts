@@ -8,7 +8,7 @@ const SAMPLE_IMAGES = [
 export async function fillBrandProductForm(
   page: Page,
   productName: string,
-  purchaseUrl = "https://shopee.vn/e2e-test",
+  purchaseUrl = "https://brand.example.vn/products/e2e-test",
 ) {
   await page.getByText("Tên sản phẩm").locator("..").locator("input").fill(productName);
   await page.locator("select").first().selectOption({ label: "Áo" });
@@ -20,5 +20,5 @@ export async function fillBrandProductForm(
   if (await imageField.isVisible().catch(() => false)) {
     await imageField.fill(SAMPLE_IMAGES);
   }
-  await page.getByText("Link mua hàng").locator("..").locator("input").fill(purchaseUrl);
+  await page.getByLabel("Link mua hàng").fill(purchaseUrl);
 }

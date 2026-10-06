@@ -38,8 +38,8 @@ const features = [
   },
   {
     icon: Shirt,
-    title: "Phối đồ & mua ngay",
-    desc: "Phối set trên bảng miễn phí, đặt hàng từ brand đối tác với COD hoặc PayOS.",
+    title: "Phối đồ & mua tại cửa hàng gốc",
+    desc: "Phối set trên bảng miễn phí, rồi mua tại cửa hàng chính hãng của brand.",
     accent: "from-fuchsia-500/15 to-pink-500/10",
   },
 ];

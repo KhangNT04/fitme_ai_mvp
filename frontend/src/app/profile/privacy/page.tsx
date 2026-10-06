@@ -47,7 +47,7 @@ const REQUEST_OPTIONS: {
     value: "ALL",
     label: "Toàn bộ tài khoản",
     description:
-      "Xóa hồ sơ, ảnh, tủ đồ, lịch sử tư vấn, đánh giá, địa chỉ và vô hiệu hoá tài khoản. Đơn hàng đã đặt được giữ ở dạng ẩn danh cho mục đích đối soát.",
+      "Xóa hồ sơ, ảnh, tủ đồ, lịch sử tư vấn, đánh giá và vô hiệu hoá tài khoản. Lịch sử thanh toán gói được giữ ở dạng ẩn danh cho mục đích kế toán.",
   },
 ];
 

@@ -4,7 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Check, Gift, Share2, Star, Coins, Calendar, Ticket } from "lucide-react";
+import { Check, Gift, Share2, Star, Coins, Calendar } from "lucide-react";
 import { PageShell } from "@/components/layout/PageShell";
 import { CollapsingPageHeader } from "@/components/layout/CollapsingPageHeader";
 import { PageSuspense } from "@/components/common/PageSuspense";
@@ -14,29 +14,15 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { fitkenApi } from "@/services/fitken-api";
 import { rewardsApi } from "@/services/rewards-api";
-import { voucherApi } from "@/services/voucher-api";
 import { useAuthStore } from "@/stores/auth-store";
 import { toast } from "@/stores/toast-store";
 import { getUserErrorMessage } from "@/lib/user-error-message";
 import { consumerPageShellClass } from "@/lib/design-tokens";
 import { cn } from "@/lib/utils";
-import { formatPrice } from "@/utils/format-price";
 import { DEFAULT_SHARE_REWARD_FITKEN } from "@/utils/constants";
 import { shareClaimSuccessMessage } from "@/lib/share-reward";
 
-const VOUCHER_STATUS_LABEL: Record<string, string> = {
-  AVAILABLE: "Có thể dùng",
-  RESERVED: "Đang giữ",
-  USED: "Đã dùng",
-  EXPIRED: "Hết hạn",
-};
-
-const REWARD_TABS = ["tasks", "vouchers", "history"];
-
-const formatDate = (dateStr: string) => {
-  const d = new Date(dateStr);
-  return `${d.getDate().toString().padStart(2, '0')}/${(d.getMonth() + 1).toString().padStart(2, '0')}/${d.getFullYear()}`;
-};
+const REWARD_TABS = ["tasks", "history"];
 
 const formatDateTime = (dateStr: string) => {
   const d = new Date(dateStr);
@@ -75,12 +61,6 @@ function RewardsContent() {
   const { data: ledger } = useQuery({
     queryKey: ["fitken-ledger"],
     queryFn: () => fitkenApi.getLedger(),
-    enabled: isAuthenticated,
-  });
-
-  const { data: vouchers } = useQuery({
-    queryKey: ["my-vouchers"],
-    queryFn: () => voucherApi.getMyVouchers(),
     enabled: isAuthenticated,
   });
 
@@ -154,9 +134,8 @@ function RewardsContent() {
       </div>
 
       <Tabs defaultValue={initialTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-3 mb-4">
+        <TabsList className="grid w-full grid-cols-2 mb-4">
           <TabsTrigger value="tasks">Nhiệm vụ</TabsTrigger>
-          <TabsTrigger value="vouchers">Voucher</TabsTrigger>
           <TabsTrigger value="history">Lịch sử</TabsTrigger>
         </TabsList>
 
@@ -272,40 +251,9 @@ function RewardsContent() {
               Viết đánh giá chi tiết (tối thiểu {summary?.review.minContentLength ?? 20} ký tự) kèm hình ảnh cho các sản phẩm bạn đã mua. Mỗi ngày nhận thưởng cho 1 đánh giá.
             </p>
             <Button asChild variant="outline" className="w-full rounded-full">
-              <Link href="/orders">Đến Đơn hàng của tôi</Link>
+              <Link href="/profile/purchases">Đến Tủ chi tiêu</Link>
             </Button>
           </div>
-        </TabsContent>
-
-        <TabsContent value="vouchers">
-          {vouchers && vouchers.length > 0 ? (
-            <div className="space-y-3">
-              {vouchers.map((v) => (
-                <div key={v.id} className="flex items-center gap-4 rounded-2xl border border-border/60 bg-card p-4">
-                  <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
-                    <Ticket className="h-6 w-6" />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <h4 className="font-semibold truncate">Voucher Freeship</h4>
-                    <p className="text-sm text-muted-foreground line-clamp-2">
-                      Giảm phí vận chuyển tối đa {formatPrice(v.maxDiscountVnd)}
-                    </p>
-                    {v.expiresAt && (
-                      <p className="text-xs text-muted-foreground mt-1">HSD: {formatDate(v.expiresAt)}</p>
-                    )}
-                  </div>
-                  <Badge variant={v.status === "AVAILABLE" ? "success" : "secondary"}>
-                    {VOUCHER_STATUS_LABEL[v.status] ?? v.status}
-                  </Badge>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <div className="text-center py-10 border rounded-2xl bg-muted/20">
-              <Ticket className="h-10 w-10 text-muted-foreground mx-auto mb-2 opacity-20" />
-              <p className="text-muted-foreground">Bạn chưa có voucher nào.</p>
-            </div>
-          )}
         </TabsContent>
 
         <TabsContent value="history">

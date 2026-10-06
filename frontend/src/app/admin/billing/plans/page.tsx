@@ -51,7 +51,7 @@ export default function AdminBillingPlansPage() {
   return (
     <PortalAdminPage
       title="Gói người dùng (Pro & top-up)"
-      description="Quản lý gói FitMe Pro (Fitken, voucher freeship, chu kỳ) và gói mua thêm Fitken một lần."
+      description="Quản lý gói FitMe Pro (Fitken, chu kỳ) và gói mua thêm Fitken một lần."
       headerActions={
         <Button size="sm" asChild>
           <Link href="/admin/billing/plans/new">Thêm gói</Link>
@@ -79,7 +79,7 @@ export default function AdminBillingPlansPage() {
                       {formatPrice(plan.priceVnd)} · {plan.fitkenAmount} Fitken ·{" "}
                       {isTopup(plan)
                         ? "Top-up một lần"
-                        : `${plan.freeshipVouchers} freeship · ${plan.billingPeriodDays ?? 30} ngày`}
+                        : `${plan.billingPeriodDays ?? 30} ngày`}
                     </p>
                     <Badge variant="outline" className="mt-2">
                       {plan.active ? "Đang bán" : "Tắt"}
@@ -112,7 +112,6 @@ export default function AdminBillingPlansPage() {
                 <th className={portalTableThClass}>Mã</th>
                 <th className={portalTableThClass}>Giá</th>
                 <th className={portalTableThClass}>Fitken</th>
-                <th className={portalTableThClass}>Freeship</th>
                 <th className={portalTableThClass}>Chu kỳ</th>
                 <th className={portalTableThClass}>Trạng thái</th>
                 <th className={portalTableThClass}>Thao tác</th>
@@ -125,9 +124,6 @@ export default function AdminBillingPlansPage() {
                   <td className={portalTableTdClass}>{plan.code}</td>
                   <td className={portalTableTdClass}>{formatPrice(plan.priceVnd)}</td>
                   <td className={portalTableTdClass}>{plan.fitkenAmount}</td>
-                  <td className={portalTableTdClass}>
-                    {isTopup(plan) ? "—" : `${plan.freeshipVouchers} × ${formatPrice(plan.freeshipMaxDiscountVnd)}`}
-                  </td>
                   <td className={portalTableTdClass}>
                     {isTopup(plan) ? "Top-up" : `${plan.billingPeriodDays ?? 30} ngày`}
                   </td>

@@ -16,6 +16,7 @@ import { useEnsureSession } from "@/hooks/use-ensure-session";
 import { consumerPageShellClass } from "@/lib/design-tokens";
 import { formatPrice } from "@/utils/format-price";
 import { getUserErrorMessage } from "@/lib/user-error-message";
+import { redirectChannelLabel } from "@/lib/redirect-channel";
 import { toast } from "@/stores/toast-store";
 import { isSameMonth, matchesPurchaseSearch } from "./purchase-helpers";
 
@@ -161,7 +162,7 @@ export default function PurchasesPage() {
                       <p className="mt-1 truncate text-sm font-semibold">{item.productName}</p>
                       <p className="text-xs text-muted-foreground">
                         {item.price != null ? formatPrice(item.price) : "Giá chưa có"} ·{" "}
-                        {item.channel || "Shop"}
+                        {redirectChannelLabel(item.channel)}
                         {item.clickedAt
                           ? ` · ${new Date(item.clickedAt).toLocaleDateString("vi-VN")}`
                           : ""}

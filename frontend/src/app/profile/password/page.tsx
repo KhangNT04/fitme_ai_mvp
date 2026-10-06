@@ -4,7 +4,7 @@ import { PageShell } from "@/components/layout/PageShell";
 import { CollapsingPageHeader } from "@/components/layout/CollapsingPageHeader";
 import { LoadingSkeleton } from "@/components/common/LoadingSkeleton";
 import { PageSuspense } from "@/components/common/PageSuspense";
-import { LoginRequiredNotice } from "@/components/commerce/LoginRequiredNotice";
+import { LoginRequiredNotice } from "@/components/common/LoginRequiredNotice";
 import { ChangePasswordForm } from "@/components/account/ChangePasswordForm";
 import { useRequireLogin } from "@/hooks/use-require-login";
 import { consumerPageShellClass } from "@/lib/design-tokens";

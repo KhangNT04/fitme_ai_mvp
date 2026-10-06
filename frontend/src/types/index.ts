@@ -11,4 +11,3 @@ export * from "./fitken";
 export * from "./rewards";
 export * from "./review";
 export * from "./gallery";
-export * from "./commerce";

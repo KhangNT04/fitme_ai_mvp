@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { BrandProductImagesUpload } from "@/components/brand/BrandImageUpload";
 import { brandApi } from "@/services/brand-api";
 import { PRODUCT_CATEGORIES, FIT_PREFERENCES, TARGET_GENDERS } from "@/utils/constants";
+import { purchaseUrlSchema } from "@/utils/validators";
 import type { CreateProductRequest } from "@/types/brand";
 import type { SizeChartRow, TargetGender } from "@/types/product";
 
@@ -140,6 +141,7 @@ export function BrandProductForm({
   extraActions,
 }: BrandProductFormProps) {
   const [imageError, setImageError] = useState("");
+  const [purchaseUrlError, setPurchaseUrlError] = useState("");
 
   const parsedSizes = useMemo(
     () => form.sizes.split(",").map((s) => s.trim()).filter(Boolean),
@@ -185,12 +187,13 @@ export function BrandProductForm({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const images = form.imageUrls.split("\n").map((u) => u.trim()).filter(Boolean);
-    if (images.length === 0) {
-      setImageError("Cần ít nhất 1 ảnh sản phẩm");
-      return;
-    }
-    setImageError("");
-    await onSubmit(formValuesToRequest(form));
+    const imageMessage = images.length === 0 ? "Cần ít nhất 1 ảnh sản phẩm" : "";
+    const purchaseUrl = purchaseUrlSchema.safeParse(form.purchaseUrl);
+    const purchaseUrlMessage = purchaseUrl.success ? "" : (purchaseUrl.error.issues[0]?.message ?? "");
+    setImageError(imageMessage);
+    setPurchaseUrlError(purchaseUrlMessage);
+    if (imageMessage || !purchaseUrl.success) return;
+    await onSubmit(formValuesToRequest({ ...form, purchaseUrl: purchaseUrl.data }));
   };
 
   return (
@@ -302,8 +305,22 @@ export function BrandProductForm({
         <Input value={form.occasionTags} onChange={(e) => setForm({ ...form, occasionTags: e.target.value })} className="mt-1" placeholder="Cafe, Office" />
       </div>
       <div>
-        <Label>Link mua hàng</Label>
-        <Input value={form.purchaseUrl} onChange={(e) => setForm({ ...form, purchaseUrl: e.target.value })} className="mt-1" required />
+        <Label htmlFor="purchaseUrl">Link mua hàng</Label>
+        <Input
+          id="purchaseUrl"
+          inputMode="url"
+          value={form.purchaseUrl}
+          onChange={(e) => setForm({ ...form, purchaseUrl: e.target.value })}
+          className="mt-1"
+          placeholder="https://cuahang.vn/products/ten-san-pham"
+          aria-invalid={purchaseUrlError ? true : undefined}
+          aria-describedby="purchaseUrl-help"
+          required
+        />
+        <p id="purchaseUrl-help" className="mt-1 text-xs text-muted-foreground">
+          Trang sản phẩm trên website, Shopee, TikTok Shop… của bạn. Khách bấm &quot;Mua tại cửa hàng gốc&quot; sẽ tới link này.
+        </p>
+        {purchaseUrlError && <p className="mt-1 text-xs text-red-600">{purchaseUrlError}</p>}
       </div>
 
       {parsedSizes.length > 0 && (

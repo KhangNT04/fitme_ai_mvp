@@ -56,14 +56,9 @@ export interface AdminMetrics {
     payingUsersInRange: number;
     paidTransactionsInRange: number;
     proRevenueVnd: number;
-    orderRevenueVnd: number;
     activeProSubscribers: number;
   };
   checkout: {
-    orderCheckoutsStarted: number;
-    orderCheckoutsPaid: number;
-    orderCheckoutsAbandoned: number;
-    orderAbandonmentRate: number;
     proCheckoutsStarted: number;
     proCheckoutsPaid: number;
     proConversionRate: number;
@@ -121,7 +116,7 @@ export interface TrafficStats {
   };
 }
 
-export type PayingTransactionKind = "PRO_SUBSCRIPTION" | "ORDER_PAYOS" | "ORDER_COD";
+export type PayingTransactionKind = "PRO_SUBSCRIPTION";
 
 export interface PayingCustomersReport {
   payingCustomers: number;
@@ -140,8 +135,7 @@ export interface PayingCustomersReport {
     userId: string;
     customerName: string | null;
     email: string | null;
-    phone: string | null;
-    mock: boolean | null;
+    mock: boolean;
   }>;
 }
 

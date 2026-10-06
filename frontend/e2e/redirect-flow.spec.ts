@@ -20,9 +20,8 @@ test.describe("Redirect flow", () => {
     expect(href).toMatch(/^\/products\//);
 
     await page.goto(href!);
-    // In-app purchasable products demote the external shop link to "Mua tại cửa hàng gốc".
     await page
-      .getByRole("link", { name: /^(Mua ngay|Mua tại cửa hàng gốc)$/ })
+      .getByRole("link", { name: "Mua tại cửa hàng gốc" })
       .filter({ visible: true })
       .first()
       .click();

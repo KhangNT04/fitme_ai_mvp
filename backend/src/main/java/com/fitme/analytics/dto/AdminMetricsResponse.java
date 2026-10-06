@@ -32,16 +32,11 @@ public record AdminMetricsResponse(
             long payingUsersInRange,
             long paidTransactionsInRange,
             long proRevenueVnd,
-            long orderRevenueVnd,
             long activeProSubscribers
     ) {
     }
 
     public record Checkout(
-            long orderCheckoutsStarted,
-            long orderCheckoutsPaid,
-            long orderCheckoutsAbandoned,
-            double orderAbandonmentRate,
             long proCheckoutsStarted,
             long proCheckoutsPaid,
             double proConversionRate

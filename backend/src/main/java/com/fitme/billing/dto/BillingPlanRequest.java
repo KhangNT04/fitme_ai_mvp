@@ -16,10 +16,6 @@ public class BillingPlanRequest {
     private long priceVnd;
     @Min(1)
     private int fitkenAmount;
-    @Min(0)
-    private int freeshipVouchers;
-    @Min(0)
-    private long freeshipMaxDiscountVnd = 30000;
     private Integer billingPeriodDays;
     private boolean active = true;
     private int sortOrder;

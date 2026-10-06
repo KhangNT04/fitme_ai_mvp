@@ -15,7 +15,7 @@ import {
 } from "@/components/portal/PortalDataTable";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { formatCommerceDate } from "@/lib/commerce-utils";
+import { formatApiDate } from "@/lib/date-format";
 import { portalCardClass, portalCardListClass, portalCardRowClass } from "@/lib/design-tokens";
 import { getUserErrorMessage } from "@/lib/user-error-message";
 import { toast } from "@/stores/toast-store";
@@ -24,8 +24,6 @@ import type { PayingCustomersReport, PayingTransactionKind } from "@/types/analy
 
 const KIND_LABELS: Record<PayingTransactionKind, string> = {
   PRO_SUBSCRIPTION: "Gói FitMe Pro",
-  ORDER_PAYOS: "Đơn hàng · PayOS",
-  ORDER_COD: "Đơn hàng · COD",
 };
 
 type Row = PayingCustomersReport["rows"][number];
@@ -64,13 +62,13 @@ export default function AdminPayingCustomersPage() {
   return (
     <PortalAdminPage
       title="Khách hàng trả tiền"
-      description="Danh sách giao dịch đã thanh toán (gói Pro và đơn hàng) kèm thông tin liên hệ — dùng làm báo cáo doanh thu."
+      description="Danh sách giao dịch gói Pro đã thanh toán kèm email khách hàng — dùng làm báo cáo doanh thu."
       isLoading={isLoading}
       error={error}
       onRetry={() => refetch()}
       empty={data != null && data.rows.length === 0}
       emptyTitle="Chưa có giao dịch đã thanh toán"
-      emptyDescription="Khi khách mua gói Pro hoặc thanh toán đơn hàng, giao dịch sẽ xuất hiện tại đây."
+      emptyDescription="Khi khách mua gói Pro, giao dịch sẽ xuất hiện tại đây."
       skeleton="list"
       headerActions={
         <Button size="sm" onClick={handleExport} disabled={downloading || !data?.rows.length}>
@@ -109,9 +107,8 @@ export default function AdminPayingCustomersPage() {
                   <div className="min-w-0">
                     <p className="truncate text-sm font-semibold">{row.customerName || "—"}</p>
                     <p className="truncate text-xs text-muted-foreground">{row.email || "—"}</p>
-                    {row.phone && <p className="text-xs text-muted-foreground">{row.phone}</p>}
                     <p className="mt-1 text-xs text-muted-foreground">
-                      {KIND_LABELS[row.kind]} · {formatCommerceDate(row.paidAt)}
+                      {KIND_LABELS[row.kind]} · {formatApiDate(row.paidAt)}
                     </p>
                   </div>
                   <div className="flex shrink-0 flex-col items-end gap-1">
@@ -128,7 +125,7 @@ export default function AdminPayingCustomersPage() {
               <tr>
                 <th className={portalTableThClass}>Thời gian</th>
                 <th className={portalTableThClass}>Khách hàng</th>
-                <th className={portalTableThClass}>Liên hệ</th>
+                <th className={portalTableThClass}>Email</th>
                 <th className={portalTableThClass}>Loại</th>
                 <th className={portalTableThClass}>Mã tham chiếu</th>
                 <th className={portalTableThClass}>Số tiền</th>
@@ -137,14 +134,9 @@ export default function AdminPayingCustomersPage() {
             <PortalDataTableBody>
               {data.rows.map((row) => (
                 <tr key={`${row.kind}-${row.transactionId}`}>
-                  <td className={portalTableTdClass}>{formatCommerceDate(row.paidAt)}</td>
+                  <td className={portalTableTdClass}>{formatApiDate(row.paidAt)}</td>
                   <td className={portalTableTdClass}>{row.customerName || "—"}</td>
-                  <td className={portalTableTdClass}>
-                    <div className="flex flex-col">
-                      <span>{row.email || "—"}</span>
-                      {row.phone && <span className="text-xs text-muted-foreground">{row.phone}</span>}
-                    </div>
-                  </td>
+                  <td className={portalTableTdClass}>{row.email || "—"}</td>
                   <td className={portalTableTdClass}>
                     <div className="flex flex-wrap items-center gap-1.5">
                       <span>{KIND_LABELS[row.kind]}</span>

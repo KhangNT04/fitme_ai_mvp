@@ -103,8 +103,6 @@ function ProductDetailContent({
       productId={product.id}
       aiTryOnEligible={product.aiTryOnEligible}
       onConsult={handleConsult}
-      purchasable={product.purchasable}
-      variants={product.variants}
       purchaseUrl={product.purchaseUrl}
       recommendationId={recommendation?.id}
       onTryOn={fromTryOn && product.aiTryOnEligible ? handleTryOn : undefined}

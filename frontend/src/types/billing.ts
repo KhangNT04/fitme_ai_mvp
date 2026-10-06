@@ -7,8 +7,6 @@ export interface BillingPlan {
   planType?: BillingPlanType;
   priceVnd: number;
   fitkenAmount: number;
-  freeshipVouchers: number;
-  freeshipMaxDiscountVnd: number;
   billingPeriodDays?: number | null;
   active: boolean;
   sortOrder: number;

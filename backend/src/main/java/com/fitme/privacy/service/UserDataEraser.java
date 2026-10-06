@@ -20,7 +20,7 @@ import java.util.List;
 import java.util.UUID;
 
 /**
- * Erases personal data for a user and/or anonymous session. Orders, settlements and wallet ledgers are
+ * Erases personal data for a user and/or anonymous session. Billing orders and wallet ledgers are
  * kept for accounting; "ALL" anonymises the account instead of deleting the row they reference.
  */
 @Service
@@ -120,8 +120,6 @@ public class UserDataEraser {
         List<String> reviewFiles = jdbc.queryForList("SELECT i.image_url FROM product_review_images i "
                 + "JOIN product_reviews r ON r.id = i.review_id WHERE r.user_id = :u", p, String.class);
         jdbc.update("DELETE FROM product_reviews WHERE user_id = :u", p);
-        jdbc.update("DELETE FROM shipping_addresses WHERE user_id = :u", p);
-        jdbc.update("DELETE FROM carts WHERE user_id = :u", p);
         for (String table : List.of("analytics_events", "buy_click_events", "site_visits")) {
             jdbc.update("UPDATE " + table + " SET user_id = NULL WHERE user_id = :u", p);
         }

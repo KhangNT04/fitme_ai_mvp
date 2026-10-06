@@ -125,9 +125,8 @@ public class ProductService {
     }
 
     /**
-     * Carts and orders reference variants, so existing ones are matched by id, else by colour + size,
-     * and keep their id and stock unless a new quantity is given. Variants dropped from the request
-     * are deleted when nothing references them, otherwise only marked out of stock.
+     * Existing variants are matched by id, else by colour + size, so they keep their id;
+     * variants dropped from the request are deleted.
      */
     private void syncVariants(UUID productId, List<ProductVariantDto> requested) {
         List<ProductVariant> existing = variantRepository.findByProductId(productId);
@@ -156,30 +155,15 @@ public class ProductService {
             if (dto.getSku() != null) {
                 variant.setSku(dto.getSku());
             }
-            if (dto.getStockQuantity() != null) {
-                variant.setStockQuantity(Math.max(0, dto.getStockQuantity()));
-            }
             if (dto.getStockStatus() != null) {
                 variant.setStockStatus(dto.getStockStatus());
-            } else if (variant.getStockStatus() == com.fitme.common.enums.StockStatus.OUT_OF_STOCK
-                    && variant.getStockQuantity() > 0) {
-                variant.setStockStatus(com.fitme.common.enums.StockStatus.IN_STOCK);
             }
             kept.add(variantRepository.save(variant).getId());
         }
 
-        for (ProductVariant variant : existing) {
-            if (kept.contains(variant.getId())) {
-                continue;
-            }
-            if (variantRepository.isReferenced(variant.getId())) {
-                variant.setStockStatus(com.fitme.common.enums.StockStatus.OUT_OF_STOCK);
-                variant.setStockQuantity(0);
-                variantRepository.save(variant);
-            } else {
-                variantRepository.delete(variant);
-            }
-        }
+        existing.stream()
+                .filter(variant -> !kept.contains(variant.getId()))
+                .forEach(variantRepository::delete);
     }
 
     private static String variantKey(String color, String size) {
@@ -194,7 +178,6 @@ public class ProductService {
                 .sizeLabel(v.getSizeLabel())
                 .sku(v.getSku())
                 .stockStatus(v.getStockStatus() != null ? v.getStockStatus() : com.fitme.common.enums.StockStatus.IN_STOCK)
-                .stockQuantity(v.getStockQuantity() != null ? Math.max(0, v.getStockQuantity()) : 100)
                 .build();
     }
 
@@ -248,8 +231,8 @@ public class ProductService {
     public ProductResponse approveProduct(UUID productId) {
         Product product = productRepository.findById(productId)
                 .orElseThrow(() -> new NotFoundException("Sản phẩm không tồn tại"));
-        java.util.List<String> issues = eligibilityService.getModerationIssues(productId);
-        if (issues.stream().anyMatch(i -> i.contains("Thiếu ảnh"))) {
+        java.util.List<String> issues = eligibilityService.getModerationIssues(product);
+        if (issues.stream().anyMatch(ProductEligibilityService::isBlockingModerationIssue)) {
             throw new BusinessException("Không thể duyệt: " + String.join(", ", issues));
         }
         product.setStatus(ProductStatus.ACTIVE);
@@ -270,9 +253,10 @@ public class ProductService {
     }
 
     private static void requireValidPurchaseUrl(String purchaseUrl) {
-        if (purchaseUrl != null && !purchaseUrl.isBlank() && !UrlValidator.isValidHttpUrl(purchaseUrl)) {
+        if (!UrlValidator.isValidHttpUrl(purchaseUrl)) {
             throw new BusinessException(
-                    "Link mua hàng không hợp lệ, cần dạng https://shopee.vn/...", "INVALID_PURCHASE_URL");
+                    "Link mua hàng không hợp lệ, cần dạng https://... tới trang sản phẩm của cửa hàng",
+                    "INVALID_PURCHASE_URL");
         }
     }
 
@@ -433,17 +417,13 @@ public class ProductService {
                 .sponsored(product.isSponsored())
                 .aiTryOnEligible(product.isAiTryOnEligible())
                 .canShowBuyButton(eligibilityService.canShowBuyButton(product))
-                .purchasable(product.getStatus() == ProductStatus.ACTIVE
-                        && product.getPrice() != null
-                        && product.getPrice().signum() >= 0
-                        && variantRepository.findByProductId(productId).stream().anyMatch(v -> v.getStockQuantity() > 0))
                 .images(imageRepository.findByProductIdOrderBySortOrderAsc(productId).stream()
                         .map(i -> ProductImageDto.builder().imageUrl(i.getImageUrl()).imageType(i.getImageType()).sortOrder(i.getSortOrder()).build())
                         .toList())
                 .variants(variantRepository.findByProductId(productId).stream()
                         .map(v -> ProductVariantDto.builder().id(v.getId()).colorName(v.getColorName()).colorHex(v.getColorHex())
                                 .sizeLabel(v.getSizeLabel()).sku(v.getSku()).stockStatus(v.getStockStatus())
-                                .stockQuantity(v.getStockQuantity()).build())
+                                .build())
                         .toList())
                 .tags(tagRepository.findByProductId(productId).stream()
                         .map(t -> ProductTagDto.builder().tagType(t.getTagType()).tagValue(t.getTagValue()).build())

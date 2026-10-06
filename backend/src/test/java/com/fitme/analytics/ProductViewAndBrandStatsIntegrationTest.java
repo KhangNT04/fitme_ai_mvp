@@ -1,15 +1,17 @@
 package com.fitme.analytics;
 
-import com.fasterxml.jackson.databind.JsonNode;
+import com.fitme.AbstractIntegrationTest;
 import com.fitme.analytics.dto.BrandAnalyticsResponse;
 import com.fitme.analytics.dto.BrandDashboardResponse;
 import com.fitme.analytics.service.AnalyticsService;
 import com.fitme.common.enums.ProductStatus;
 import com.fitme.common.security.FitMeUserPrincipal;
-import com.fitme.order.CommerceIntegrationSupport;
 import com.fitme.product.entity.Product;
+import com.fitme.product.repository.ProductRepository;
+import com.fitme.support.TestDataHelper;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.JdbcTemplate;
 
 import java.util.UUID;
 
@@ -20,14 +22,29 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-class ProductViewAndBrandStatsIntegrationTest extends CommerceIntegrationSupport {
+class ProductViewAndBrandStatsIntegrationTest extends AbstractIntegrationTest {
 
     @Autowired
     private AnalyticsService analyticsService;
+    @Autowired
+    private TestDataHelper testData;
+    @Autowired
+    private ProductRepository products;
+    @Autowired
+    private JdbcTemplate jdbc;
+
+    private record Fixture(TestDataHelper.BrandOwnerContext owner, Product product) {}
+
+    private Fixture productFixture() {
+        TestDataHelper.BrandOwnerContext owner = testData.createBrandOwner();
+        Product product = testData.createDraftProductForBrand(owner.brand(), "Sản phẩm " + UUID.randomUUID());
+        product.setStatus(ProductStatus.ACTIVE);
+        return new Fixture(owner, products.save(product));
+    }
 
     @Test
     void productViews_areDedupedPerViewer_andFeedBrandCtr() throws Exception {
-        ProductFixture fixture = productFixture(3);
+        Fixture fixture = productFixture();
         UUID productId = fixture.product().getId();
         UUID brandId = fixture.owner().brand().getId();
         String session = createAnonymousSessionToken();
@@ -72,7 +89,7 @@ class ProductViewAndBrandStatsIntegrationTest extends CommerceIntegrationSupport
 
     @Test
     void brandTryOnStats_countDistinctRequestsContainingBrandProducts() {
-        ProductFixture first = productFixture(1);
+        Fixture first = productFixture();
         UUID brandId = first.owner().brand().getId();
         Product second = testData.createDraftProductForBrand(first.owner().brand(), "Quần " + UUID.randomUUID());
 
@@ -90,7 +107,7 @@ class ProductViewAndBrandStatsIntegrationTest extends CommerceIntegrationSupport
 
     @Test
     void productAnalytics_breaksDownOccasionSizeAndColorFromTryOns() {
-        ProductFixture fixture = productFixture(1);
+        Fixture fixture = productFixture();
         UUID productId = fixture.product().getId();
         UUID brandId = fixture.owner().brand().getId();
         for (String[] row : new String[][] {{"Đi làm", "M", "Đen"}, {"Đi làm", "M", "Trắng"}, {"Hẹn hò", "L", "Đen"}}) {
@@ -111,7 +128,7 @@ class ProductViewAndBrandStatsIntegrationTest extends CommerceIntegrationSupport
 
     @Test
     void productAnalytics_ofAnotherBrandsProduct_isNotFound() throws Exception {
-        ProductFixture fixture = productFixture(1);
+        Fixture fixture = productFixture();
         UUID completed = tryOnRequest("COMPLETED");
         tryOnItem(completed, fixture.product().getId(), "TOP");
         FitMeUserPrincipal otherBrand = new FitMeUserPrincipal(testData.createBrandOwner().user());
@@ -122,37 +139,6 @@ class ProductViewAndBrandStatsIntegrationTest extends CommerceIntegrationSupport
         mockMvc.perform(get("/api/v1/brand/products/{id}/analytics", fixture.product().getId()).with(user(owner)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.tryOns").value(1));
-    }
-
-    @Test
-    void adminOrderList_showsBuyer_butConsumerListDoesNot() throws Exception {
-        String token = registerUserAccessToken();
-        ProductFixture fixture = productFixture(2);
-        UUID addressId = createAddress(token);
-        addToCart(token, fixture, 1);
-        String orderId = placeOrder(token, addressId, "COD", null).at("/order/id").asText();
-        String email = jdbc.queryForObject("SELECT email FROM user_accounts WHERE id=?", String.class, userId(token));
-        FitMeUserPrincipal admin = new FitMeUserPrincipal(testData.createAdmin().user());
-
-        String json = mockMvc.perform(get("/api/v1/admin/orders").with(user(admin)))
-                .andExpect(status().isOk())
-                .andReturn().getResponse().getContentAsString();
-        JsonNode row = null;
-        for (JsonNode candidate : objectMapper.readTree(json).get("data")) {
-            if (orderId.equals(candidate.get("id").asText())) {
-                row = candidate;
-            }
-        }
-        assertThat(row).isNotNull();
-        assertThat(row.get("buyerEmail").asText()).isEqualTo(email);
-        assertThat(row.get("buyerName").asText()).isEqualTo("Test Consumer");
-        assertThat(row.get("buyerPhone").asText()).isEqualTo("0901234567");
-
-        mockMvc.perform(get("/api/v1/orders").header("Authorization", "Bearer " + token))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.data[0].id").value(orderId))
-                .andExpect(jsonPath("$.data[0].buyerEmail").doesNotExist())
-                .andExpect(jsonPath("$.data[0].buyerName").doesNotExist());
     }
 
     private long viewEvents(UUID productId) {

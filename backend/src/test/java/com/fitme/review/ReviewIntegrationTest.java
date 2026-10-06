@@ -36,6 +36,32 @@ class ReviewIntegrationTest extends AbstractIntegrationTest {
     @Autowired
     private FitkenService fitkenService;
 
+    @Autowired
+    private org.springframework.jdbc.core.JdbcTemplate jdbc;
+
+    @Test
+    void verifiedPurchaseBadgeFollowsSelfConfirmedBuyClicks() throws Exception {
+        Product product = testDataHelper.createEligibleProduct("Verified top", "Áo thun");
+        FitMeUserPrincipal confirmed = new FitMeUserPrincipal(testDataHelper.createUser().user());
+        FitMeUserPrincipal clickedOnly = new FitMeUserPrincipal(testDataHelper.createUser().user());
+        String insertClick = "INSERT INTO buy_click_events (user_id, product_id, purchase_url, purchased_confirmed) "
+                + "VALUES (?, ?, ?, ?)";
+        jdbc.update(insertClick, confirmed.getUserId(), product.getId(), product.getPurchaseUrl(), true);
+        jdbc.update(insertClick, clickedOnly.getUserId(), product.getId(), product.getPurchaseUrl(), false);
+
+        createReview(confirmed, product.getId(), 5, LONG_CONTENT, List.of())
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.review.verifiedPurchase").value(true));
+        createReview(clickedOnly, product.getId(), 4, LONG_CONTENT, List.of())
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.review.verifiedPurchase").value(false));
+
+        mockMvc.perform(get("/api/v1/products/{id}/reviews", product.getId()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.items[?(@.rating == 5)].verifiedPurchase").value(true))
+                .andExpect(jsonPath("$.data.items[?(@.rating == 4)].verifiedPurchase").value(false));
+    }
+
     @Test
     void reviewRewardRequiresImageAndEnoughContent() throws Exception {
         Product product = testDataHelper.createEligibleProduct("Review top", "Áo thun");

@@ -2,10 +2,9 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { Sparkles, Search, Bookmark, Home, LogOut, Coins, ShoppingCart, Gift } from "lucide-react";
+import { Sparkles, Search, Bookmark, Home, LogOut, Coins } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { fitkenApi } from "@/services/fitken-api";
-import { useCartQuery } from "@/hooks/use-cart";
 import { Button } from "@/components/ui/button";
 import { NavScrollLink } from "@/components/layout/NavScrollLink";
 import { PortalMenuButton } from "@/components/layout/PortalSidebar";
@@ -142,8 +141,6 @@ export function Header() {
     enabled: consumerAuthed,
   });
 
-  const { data: cart } = useCartQuery(consumerAuthed);
-
   if (isPortalAppRoute(pathname)) {
     return <PortalHeader />;
   }
@@ -186,14 +183,6 @@ export function Header() {
                 <Coins className="h-4 w-4" />
                 <span>{wallet?.balance ?? "–"}</span>
               </Link>
-              <Link href="/cart" className="relative flex h-9 w-9 items-center justify-center rounded-full text-muted-foreground hover:bg-muted hover:text-foreground transition-colors">
-                <ShoppingCart className="h-5 w-5" />
-                {cart && cart.itemCount > 0 && (
-                  <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-primary text-[10px] font-bold text-primary-foreground">
-                    {cart.itemCount}
-                  </span>
-                )}
-              </Link>
               <Button variant="outline" size="sm" asChild>
                 <NavScrollLink href="/profile">{user?.fullName || "Hồ sơ"}</NavScrollLink>
               </Button>
@@ -212,33 +201,10 @@ export function Header() {
 
         {compactMobile ? (
           <div className="flex items-center gap-0.5 md:hidden">
-            {isAuthed && (
-              <Link href="/cart" className="relative flex h-9 w-9 items-center justify-center rounded-full text-muted-foreground hover:bg-muted hover:text-foreground transition-colors">
-                <ShoppingCart className="h-[18px] w-[18px]" />
-                {cart && cart.itemCount > 0 && (
-                  <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-primary text-[10px] font-bold text-primary-foreground">
-                    {cart.itemCount}
-                  </span>
-                )}
-              </Link>
-            )}
             <NavQuickSaved />
             <NavQuickSearch />
           </div>
-        ) : (
-          <div className="flex items-center gap-1 md:hidden">
-            {isAuthed && (
-              <Link href="/cart" className="relative flex h-9 w-9 items-center justify-center rounded-full text-muted-foreground hover:bg-muted hover:text-foreground transition-colors">
-                <ShoppingCart className="h-[18px] w-[18px]" />
-                {cart && cart.itemCount > 0 && (
-                  <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-primary text-[10px] font-bold text-primary-foreground">
-                    {cart.itemCount}
-                  </span>
-                )}
-              </Link>
-            )}
-          </div>
-        )}
+        ) : null}
       </div>
     </header>
   );

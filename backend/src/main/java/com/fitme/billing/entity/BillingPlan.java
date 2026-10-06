@@ -39,14 +39,6 @@ public class BillingPlan {
     @Column(name = "quota_amount", nullable = false)
     private int quotaAmount;
 
-    @Column(name = "freeship_vouchers", nullable = false)
-    @Builder.Default
-    private int freeshipVouchers = 0;
-
-    @Column(name = "freeship_max_discount_vnd", nullable = false)
-    @Builder.Default
-    private long freeshipMaxDiscountVnd = 30000;
-
     @Column(name = "billing_period_days")
     private Integer billingPeriodDays;
 

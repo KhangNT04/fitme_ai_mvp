@@ -29,7 +29,7 @@ export default function AdminBillingPlanNewPage() {
   return (
     <PortalAdminPage
       title="Thêm gói người dùng"
-      description="Tạo gói FitMe Pro mới (Fitken, freeship, chu kỳ)."
+      description="Tạo gói FitMe Pro mới (Fitken, chu kỳ)."
       backHref="/admin/billing/plans"
       backLabel="Gói người dùng"
     >

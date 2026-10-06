@@ -169,10 +169,6 @@ export const adminApi = {
     const res = await apiClient.get("/admin/gallery/stats");
     return unwrap(res);
   },
-  getCommerceSummary: async (): Promise<AdminCommerceSummary> => {
-    const res = await apiClient.get("/admin/commerce/summary");
-    return unwrap(res);
-  },
   listShareClaims: async (status?: ShareClaimStatus): Promise<ShareClaim[]> => {
     const res = await apiClient.get("/admin/rewards/shares", {
       params: status ? { status } : undefined,
@@ -255,13 +251,6 @@ export interface GalleryStats {
   totalImages: number;
   imagesLast7Days: number;
   usersWithImages: number;
-}
-
-export interface AdminCommerceSummary {
-  gmvVnd: number;
-  commissionVnd: number;
-  ordersCount: number;
-  pendingSettlementVnd: number;
 }
 
 export type ShareClaimStatus = "APPROVED" | "REJECTED";

@@ -21,7 +21,6 @@ import {
   CalendarCheck,
   CreditCard,
   Repeat,
-  ShoppingCart,
   UserPlus,
   Users,
   Wallet,
@@ -33,7 +32,6 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { CHART_AXIS, CHART_BAR, CHART_COLORS, CHART_GRID, CHART_LINE, formatChartNumber } from "@/lib/chart-theme";
 import { formatPercent, formatPrice } from "@/utils/format-price";
-import { cn } from "@/lib/utils";
 import type { AdminMetrics } from "@/types/analytics";
 
 const RANGES = [7, 30, 90] as const;
@@ -183,7 +181,7 @@ export default function AdminAnalyticsPage() {
             <div className="flex flex-wrap items-end justify-between gap-3">
               <div>
                 <h2 className="font-display text-lg font-semibold text-foreground">Doanh thu & khách trả tiền</h2>
-                <p className="text-sm text-muted-foreground">Gói FitMe Pro và đơn hàng đã thanh toán.</p>
+                <p className="text-sm text-muted-foreground">Gói FitMe Pro và gói Fitken đã thanh toán.</p>
               </div>
               <Button variant="outline" size="sm" asChild>
                 <Link href="/admin/paying-customers">Danh sách khách trả tiền</Link>
@@ -193,7 +191,6 @@ export default function AdminAnalyticsPage() {
               <StatCard label="Khách trả tiền (tổng)" value={formatChartNumber(data.revenue.payingUsersAllTime)} sub={`${formatChartNumber(data.revenue.payingUsersInRange)} trong ${data.rangeDays} ngày`} icon={<Wallet className="h-5 w-5" />} tone="emerald" />
               <StatCard label="Giao dịch đã thanh toán" value={formatChartNumber(data.revenue.paidTransactionsInRange)} sub={`${data.rangeDays} ngày gần nhất`} icon={<CalendarCheck className="h-5 w-5" />} tone="sky" />
               <StatCard label="Doanh thu gói Pro" value={formatPrice(data.revenue.proRevenueVnd)} sub={`${formatChartNumber(data.revenue.activeProSubscribers)} thuê bao đang hoạt động`} icon={<CreditCard className="h-5 w-5" />} tone="violet" />
-              <StatCard label="Doanh thu đơn hàng" value={formatPrice(data.revenue.orderRevenueVnd)} sub="Đã trừ hoàn tiền" icon={<ShoppingCart className="h-5 w-5" />} tone="amber" />
             </StatCardGrid>
             <ChartCard title="Doanh thu theo ngày">
               <RevenueTrendChart daily={data.daily} />
@@ -207,14 +204,11 @@ export default function AdminAnalyticsPage() {
             >
               <FunnelChart funnel={data.funnel} />
             </ChartCard>
-            <ChartCard title="Thanh toán & bỏ giỏ" description={`Phiên thanh toán bắt đầu trong ${data.rangeDays} ngày.`}>
+            <ChartCard title="Thanh toán gói Pro" description={`Phiên thanh toán PayOS bắt đầu trong ${data.rangeDays} ngày.`}>
               <dl className="grid gap-3 sm:grid-cols-2">
-                <Metric label="Thanh toán PayOS bắt đầu" value={formatChartNumber(data.checkout.orderCheckoutsStarted)} />
-                <Metric label="Đã thanh toán" value={formatChartNumber(data.checkout.orderCheckoutsPaid)} />
-                <Metric label="Bỏ dở / hết hạn" value={formatChartNumber(data.checkout.orderCheckoutsAbandoned)} />
-                <Metric label="Tỉ lệ bỏ giỏ" value={formatPercent(data.checkout.orderAbandonmentRate)} tone={data.checkout.orderAbandonmentRate > 0.5 ? "warn" : undefined} />
                 <Metric label="Mở thanh toán gói Pro" value={formatChartNumber(data.checkout.proCheckoutsStarted)} />
-                <Metric label="Chuyển đổi gói Pro" value={`${formatChartNumber(data.checkout.proCheckoutsPaid)} · ${formatPercent(data.checkout.proConversionRate)}`} />
+                <Metric label="Đã thanh toán" value={formatChartNumber(data.checkout.proCheckoutsPaid)} />
+                <Metric label="Tỉ lệ chuyển đổi" value={formatPercent(data.checkout.proConversionRate)} />
               </dl>
             </ChartCard>
           </section>
@@ -253,11 +247,11 @@ export default function AdminAnalyticsPage() {
   );
 }
 
-function Metric({ label, value, tone }: { label: string; value: string; tone?: "warn" }) {
+function Metric({ label, value }: { label: string; value: string }) {
   return (
     <div className="rounded-lg border border-border/50 bg-muted/10 px-3 py-2.5">
       <dt className="text-xs text-muted-foreground">{label}</dt>
-      <dd className={cn("mt-1 font-display text-xl font-semibold tabular-nums", tone === "warn" && "text-rose-600")}>{value}</dd>
+      <dd className="mt-1 font-display text-xl font-semibold tabular-nums">{value}</dd>
     </div>
   );
 }

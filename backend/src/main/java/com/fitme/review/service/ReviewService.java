@@ -58,7 +58,7 @@ public class ReviewService {
         Page<ProductReview> reviews = reviewRepository.findByProductIdAndStatusOrderByCreatedAtDesc(
                 productId, ReviewStatus.VISIBLE, PageRequest.of(Math.max(page, 0), safeSize));
         Double average = reviewRepository.averageRating(productId, ReviewStatus.VISIBLE);
-        Set<UUID> buyers = reviews.isEmpty() ? Set.of() : purchaseVerifier.deliveredBuyers(productId);
+        Set<UUID> buyers = reviews.isEmpty() ? Set.of() : purchaseVerifier.confirmedBuyers(productId);
         return ProductReviewsResponse.builder()
                 .averageRating(average == null ? 0
                         : BigDecimal.valueOf(average).setScale(1, RoundingMode.HALF_UP).doubleValue())
@@ -106,11 +106,9 @@ public class ReviewService {
                        COALESCE(NULLIF(TRIM(u.display_name), ''), 'Khách hàng FitMe') AS author_name,
                        (SELECT i.image_url FROM product_review_images i WHERE i.review_id = r.id
                         ORDER BY i.sort_order LIMIT 1) AS image_url,
-                       EXISTS (SELECT 1 FROM order_items oi
-                               JOIN seller_orders so ON so.id = oi.seller_order_id
-                               JOIN orders o ON o.id = so.order_id
-                               WHERE oi.product_id = r.product_id AND o.user_id = r.user_id
-                                 AND so.status = 'DELIVERED') AS verified
+                       EXISTS (SELECT 1 FROM buy_click_events b
+                               WHERE b.product_id = r.product_id AND b.user_id = r.user_id
+                                 AND b.purchased_confirmed = TRUE) AS verified
                 FROM product_reviews r
                 JOIN products p ON p.id = r.product_id
                 JOIN user_accounts u ON u.id = r.user_id
@@ -186,7 +184,7 @@ public class ReviewService {
                 review = reviewRepository.save(review);
             }
         }
-        Set<UUID> buyers = purchaseVerifier.hasDeliveredPurchase(userId, productId) ? Set.of(userId) : Set.of();
+        Set<UUID> buyers = purchaseVerifier.hasConfirmedPurchase(userId, productId) ? Set.of(userId) : Set.of();
         return CreateReviewResponse.builder()
                 .review(toDtos(List.of(review), buyers).getFirst())
                 .rewardGranted(granted)

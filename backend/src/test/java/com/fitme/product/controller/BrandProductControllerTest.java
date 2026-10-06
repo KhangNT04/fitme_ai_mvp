@@ -18,6 +18,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 class BrandProductControllerTest extends AbstractIntegrationTest {
 
+    private static final String PURCHASE_URL = "https://brand.example.vn/products/ao";
+
     @Autowired
     private TestDataHelper testDataHelper;
 
@@ -43,8 +45,8 @@ class BrandProductControllerTest extends AbstractIntegrationTest {
                                   "name": "Brand new shirt",
                                   "category": "Áo sơ mi",
                                   "price": 299000,
-                                  "purchaseUrl": "https://shopee.vn/brand-shirt",
-                                  "purchaseChannel": "SHOPEE",
+                                  "purchaseUrl": "https://brand.example.vn/products/brand-shirt",
+                                  "purchaseChannel": "BRAND_WEBSITE",
                                   "stockStatus": "IN_STOCK"
                                 }
                                 """))
@@ -77,7 +79,7 @@ class BrandProductControllerTest extends AbstractIntegrationTest {
                                   "name": "Brand mapped shirt",
                                   "category": "Áo sơ mi",
                                   "price": 299000,
-                                  "purchaseUrl": "https://shopee.vn/brand-shirt",
+                                  "purchaseUrl": "https://brand.example.vn/products/brand-shirt",
                                   "variants": [
                                     {"colorName": "Navy", "sizeLabel": "M"},
                                     {"colorName": "Navy", "sizeLabel": "L"}
@@ -104,7 +106,8 @@ class BrandProductControllerTest extends AbstractIntegrationTest {
             mockMvc.perform(post("/api/v1/brand/products")
                             .with(user(principal))
                             .contentType(MediaType.APPLICATION_JSON)
-                            .content("{\"name\":\"Áo\",\"category\":\"Áo\",\"price\":" + price + "}"))
+                            .content("{\"name\":\"Áo\",\"category\":\"Áo\",\"purchaseUrl\":\"" + PURCHASE_URL
+                                    + "\",\"price\":" + price + "}"))
                     .andExpect(status().isBadRequest())
                     .andExpect(jsonPath("$.error").value("Giá sản phẩm tối thiểu 1.000đ"));
         }
@@ -112,30 +115,52 @@ class BrandProductControllerTest extends AbstractIntegrationTest {
         mockMvc.perform(put("/api/v1/brand/products/{id}", productId)
                         .with(user(principal))
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"name\":\"Áo\",\"category\":\"Áo\",\"price\":-5}"))
+                        .content("{\"name\":\"Áo\",\"category\":\"Áo\",\"purchaseUrl\":\"" + PURCHASE_URL
+                                + "\",\"price\":-5}"))
                 .andExpect(status().isBadRequest());
     }
 
     @Test
-    void updateProduct_keepsVariantIdsAndStock() throws Exception {
+    void updateProduct_requiresValidPurchaseUrl() throws Exception {
+        String productId = createProduct("[{\"colorName\":\"Đen\",\"sizeLabel\":\"M\"}]");
+        mockMvc.perform(put("/api/v1/brand/products/{id}", productId)
+                        .with(user(principal))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"name\":\"Áo\",\"category\":\"Áo sơ mi\",\"price\":299000}"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.error").value("Link mua hàng không được để trống"));
+        mockMvc.perform(put("/api/v1/brand/products/{id}", productId)
+                        .with(user(principal))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"name\":\"Áo\",\"category\":\"Áo sơ mi\",\"price\":299000,"
+                                + "\"purchaseUrl\":\"javascript:alert(1)\"}"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.errorCode").value("INVALID_PURCHASE_URL"));
+        org.assertj.core.api.Assertions.assertThat(jdbc.queryForObject(
+                "SELECT purchase_url FROM products WHERE id=?::uuid", String.class, productId)).isEqualTo(PURCHASE_URL);
+    }
+
+    @Test
+    void updateProduct_keepsVariantIds() throws Exception {
         String productId = createProduct(
                 "[{\"colorName\":\"Đen\",\"sizeLabel\":\"M\"},{\"colorName\":\"Đen\",\"sizeLabel\":\"L\"}]");
         java.util.UUID keptId = jdbc.queryForObject(
                 "SELECT id FROM product_variants WHERE product_id=?::uuid AND size_label='M'", java.util.UUID.class, productId);
-        jdbc.update("UPDATE product_variants SET stock_quantity=7 WHERE id=?", keptId);
 
         mockMvc.perform(put("/api/v1/brand/products/{id}", productId)
                         .with(user(principal))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
                                 {"name":"Áo mới","category":"Áo sơ mi","price":350000,
+                                 "purchaseUrl":"https://brand.example.vn/products/ao-moi",
                                  "variants":[{"colorName":"Đen","sizeLabel":"M"},{"colorName":"Trắng","sizeLabel":"M"}]}
                                 """))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.data.variants.length()").value(2));
+                .andExpect(jsonPath("$.data.variants.length()").value(2))
+                .andExpect(jsonPath("$.data.variants[?(@.id=='" + keptId + "')]").exists())
+                .andExpect(jsonPath("$.data.variants[0].stockQuantity").doesNotExist())
+                .andExpect(jsonPath("$.data.purchasable").doesNotExist());
 
-        org.assertj.core.api.Assertions.assertThat(jdbc.queryForObject(
-                "SELECT stock_quantity FROM product_variants WHERE id=?", Integer.class, keptId)).isEqualTo(7);
         org.assertj.core.api.Assertions.assertThat(jdbc.queryForObject(
                 "SELECT count(*) FROM product_variants WHERE product_id=?::uuid AND size_label='L'", Long.class, productId))
                 .isZero();
@@ -145,8 +170,8 @@ class BrandProductControllerTest extends AbstractIntegrationTest {
         String json = mockMvc.perform(post("/api/v1/brand/products")
                         .with(user(principal))
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"name\":\"Áo\",\"category\":\"Áo sơ mi\",\"price\":299000,\"variants\":"
-                                + variantsJson + "}"))
+                        .content("{\"name\":\"Áo\",\"category\":\"Áo sơ mi\",\"price\":299000,\"purchaseUrl\":\""
+                                + PURCHASE_URL + "\",\"variants\":" + variantsJson + "}"))
                 .andExpect(status().isOk())
                 .andReturn().getResponse().getContentAsString();
         return objectMapper.readTree(json).get("data").get("id").asText();

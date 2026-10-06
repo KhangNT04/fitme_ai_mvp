@@ -11,13 +11,6 @@ import com.fitme.billing.repository.ConsumerBillingOrderRepository;
 import com.fitme.billing.repository.ConsumerSubscriptionRepository;
 import com.fitme.common.enums.BillingPlanType;
 import com.fitme.common.time.AppClock;
-import com.fitme.order.dto.OrderAddressDto;
-import com.fitme.order.dto.OrderDetailDto;
-import com.fitme.order.dto.OrderItemDto;
-import com.fitme.order.dto.SellerOrderDto;
-import com.fitme.order.entity.Order;
-import com.fitme.order.repository.OrderRepository;
-import com.fitme.order.service.OrderViewAssembler;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -32,9 +25,8 @@ import java.util.List;
 import java.util.Locale;
 import java.util.UUID;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
-/** Transactional customer emails (order confirmed, plan purchased). Best-effort: never throws. */
+/** Transactional customer emails (plan purchased). Best-effort: never throws. */
 @Service
 @RequiredArgsConstructor
 @Slf4j
@@ -43,8 +35,6 @@ public class CustomerEmailService {
     private static final DateTimeFormatter DATE = DateTimeFormatter.ofPattern("dd/MM/yyyy").withZone(AppClock.BUSINESS_ZONE);
 
     private final AuthEmailService mail;
-    private final OrderRepository orderRepository;
-    private final OrderViewAssembler assembler;
     private final UserAccountRepository userAccountRepository;
     private final ConsumerBillingOrderRepository billingOrderRepository;
     private final BillingPlanRepository planRepository;
@@ -52,28 +42,6 @@ public class CustomerEmailService {
 
     @Value("${fitme.notifications.customer-emails:true}")
     private boolean enabled;
-
-    @Transactional(readOnly = true)
-    public boolean orderConfirmed(UUID orderId, boolean paidOnline) {
-        if (!enabled) {
-            return false;
-        }
-        try {
-            Order order = orderRepository.findById(orderId).orElse(null);
-            UserAccount user = order == null ? null : userAccountRepository.findById(order.getUserId()).orElse(null);
-            if (user == null) {
-                return false;
-            }
-            OrderDetailDto detail = assembler.detail(order);
-            String subject = "FitMe · Đơn hàng " + detail.getOrderCode() + " đã được xác nhận";
-            String link = mail.frontendLink("/orders/" + orderId);
-            return mail.sendNotification(user.getEmail(), subject,
-                    orderText(user, detail, paidOnline, link), orderHtml(user, detail, paidOnline, link), "order confirmed");
-        } catch (RuntimeException ex) {
-            log.warn("[MAIL] order confirmed email for {} skipped: {}", orderId, ex.toString());
-            return false;
-        }
-    }
 
     @Transactional(readOnly = true)
     public boolean planPurchased(UUID billingOrderId) {
@@ -98,9 +66,6 @@ public class CustomerEmailService {
             lines.add("Gói: " + plan.getName());
             lines.add("Số tiền: " + vnd(order.getAmountVnd()));
             lines.add("Fitken được cộng: " + plan.getQuotaAmount());
-            if (!topup && plan.getFreeshipVouchers() > 0) {
-                lines.add("Voucher freeship: " + plan.getFreeshipVouchers());
-            }
             if (expiresAt != null) {
                 lines.add("Hiệu lực Pro đến: " + DATE.format(expiresAt));
             }
@@ -128,81 +93,8 @@ public class CustomerEmailService {
         }
     }
 
-    private String orderText(UserAccount user, OrderDetailDto detail, boolean paidOnline, String link) {
-        StringBuilder sb = new StringBuilder("FitMe AI — Đơn hàng đã được xác nhận\n\n");
-        sb.append("Xin chào ").append(greetingName(user)).append(",\n\n");
-        sb.append("Đơn ").append(detail.getOrderCode()).append(" đã được xác nhận. ");
-        sb.append(paymentLine(paidOnline)).append("\n\n");
-        items(detail).forEach(item -> sb.append("- ").append(itemLabel(item)).append(": ")
-                .append(vnd(item.getLineTotalVnd())).append("\n"));
-        sb.append("\nTạm tính: ").append(vnd(detail.getSubtotalVnd())).append("\n");
-        sb.append("Phí vận chuyển: ").append(vnd(detail.getShippingFeeVnd())).append("\n");
-        if (detail.getDiscountVnd() > 0) {
-            sb.append("Giảm giá: -").append(vnd(detail.getDiscountVnd())).append("\n");
-        }
-        sb.append("Tổng cộng: ").append(vnd(detail.getTotalVnd())).append("\n");
-        sb.append("Giao tới: ").append(address(detail.getAddress())).append("\n\n");
-        if (link != null) {
-            sb.append("Theo dõi đơn hàng: ").append(link).append("\n\n");
-        }
-        sb.append("Trân trọng,\nĐội ngũ FitMe AI\n");
-        return sb.toString();
-    }
-
-    private String orderHtml(UserAccount user, OrderDetailDto detail, boolean paidOnline, String link) {
-        String itemRows = items(detail).stream()
-                .map(item -> row(escape(itemLabel(item)), vnd(item.getLineTotalVnd()), false))
-                .collect(Collectors.joining());
-        String totals = row("Tạm tính", vnd(detail.getSubtotalVnd()), false)
-                + row("Phí vận chuyển", vnd(detail.getShippingFeeVnd()), false)
-                + (detail.getDiscountVnd() > 0 ? row("Giảm giá", "-" + vnd(detail.getDiscountVnd()), false) : "")
-                + row("Tổng cộng", vnd(detail.getTotalVnd()), true);
-        String body = "<p style=\"margin:0 0 12px;\">Xin chào " + escape(greetingName(user)) + ",</p>"
-                + "<p style=\"margin:0 0 16px;\">Đơn <strong>" + escape(detail.getOrderCode())
-                + "</strong> đã được xác nhận. " + escape(paymentLine(paidOnline)) + "</p>"
-                + "<table role=\"presentation\" width=\"100%\" cellspacing=\"0\" cellpadding=\"0\" "
-                + "style=\"border-collapse:collapse;font-size:14px;margin:0 0 16px;\">" + itemRows
-                + "<tr><td colspan=\"2\" style=\"border-top:1px solid #eee;padding-top:6px;\"></td></tr>" + totals + "</table>"
-                + "<p style=\"margin:0;font-size:13px;color:#6b6578;\">Giao tới: " + escape(address(detail.getAddress())) + "</p>";
-        return layout("Đơn hàng đã được xác nhận", body, link, "Theo dõi đơn hàng");
-    }
-
-    private static List<OrderItemDto> items(OrderDetailDto detail) {
-        return detail.getSellerOrders() == null ? List.of()
-                : detail.getSellerOrders().stream().map(SellerOrderDto::getItems)
-                        .filter(list -> list != null)
-                        .flatMap(List::stream)
-                        .toList();
-    }
-
-    private static String itemLabel(OrderItemDto item) {
-        String variant = item.getVariantLabel() == null || item.getVariantLabel().isBlank()
-                ? "" : " (" + item.getVariantLabel() + ")";
-        return item.getName() + variant + " × " + item.getQuantity();
-    }
-
-    private static String paymentLine(boolean paidOnline) {
-        return paidOnline ? "Đã thanh toán qua PayOS." : "Thanh toán khi nhận hàng (COD).";
-    }
-
-    private static String address(OrderAddressDto address) {
-        if (address == null) {
-            return "";
-        }
-        String place = Stream.of(address.getStreet(), address.getWard(), address.getDistrict(), address.getProvince())
-                .filter(part -> part != null && !part.isBlank())
-                .collect(Collectors.joining(", "));
-        return address.getRecipientName() + " · " + address.getPhone() + " · " + place;
-    }
-
     private static String greetingName(UserAccount user) {
         return user.getDisplayName() == null || user.getDisplayName().isBlank() ? "bạn" : user.getDisplayName();
-    }
-
-    private static String row(String label, String value, boolean strong) {
-        String weight = strong ? "font-weight:700;" : "";
-        return "<tr><td style=\"padding:4px 0;" + weight + "\">" + label + "</td>"
-                + "<td style=\"padding:4px 0;text-align:right;white-space:nowrap;" + weight + "\">" + value + "</td></tr>";
     }
 
     private static String layout(String heading, String body, String link, String cta) {

@@ -133,7 +133,7 @@ apiClient.interceptors.response.use(
   }
 );
 
-/** Backend `ApiResponse.errorCode` (e.g. FITKEN_INSUFFICIENT, LOGIN_REQUIRED, OUT_OF_STOCK). */
+/** Backend `ApiResponse.errorCode` (e.g. FITKEN_INSUFFICIENT, LOGIN_REQUIRED, INVALID_PURCHASE_URL). */
 export function getApiErrorCode(error: unknown): string | undefined {
   if (error && typeof error === "object" && "code" in error) {
     const code = (error as { code?: unknown }).code;

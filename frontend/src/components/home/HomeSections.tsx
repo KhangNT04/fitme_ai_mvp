@@ -28,15 +28,15 @@ const STEPS = [
   },
   {
     icon: ShoppingBag,
-    title: "Mua ngay trong app",
-    desc: "Đặt hàng từ các brand đối tác, thanh toán COD hoặc chuyển khoản PayOS.",
+    title: "Mua tại cửa hàng gốc",
+    desc: "Chọn xong là tới thẳng trang sản phẩm trên cửa hàng chính hãng của brand để đặt mua.",
   },
 ];
 
 export const HOME_FAQ = [
   {
     q: "FitMe AI là gì?",
-    a: "FitMe AI là ứng dụng thời trang giúp bạn chọn đúng size, phối đồ và thử mặc bằng AI trước khi mua, sau đó đặt hàng trực tiếp từ các brand đối tác ngay trong app.",
+    a: "FitMe AI là ứng dụng thời trang giúp bạn chọn đúng size, phối đồ và thử mặc bằng AI trước khi mua, sau đó dẫn bạn tới cửa hàng chính hãng của brand để đặt mua.",
   },
   {
     q: "Thử mặc bằng AI hoạt động thế nào?",
@@ -56,7 +56,7 @@ export const HOME_FAQ = [
   },
   {
     q: "Thanh toán và đổi trả thế nào?",
-    a: "Bạn có thể trả tiền khi nhận hàng (COD) hoặc chuyển khoản qua PayOS. Đơn đã thanh toán mà bị hủy sẽ được hoàn tiền. Nếu cần đổi size, hãy liên hệ FitMe để được hỗ trợ cùng brand.",
+    a: "FitMe không bán hàng trực tiếp. Bạn đặt mua và thanh toán trên cửa hàng của brand (website chính hãng, Shopee, TikTok Shop…), nên việc giao hàng, đổi size và hoàn tiền theo chính sách của cửa hàng đó.",
   },
 ];
 

@@ -82,20 +82,15 @@ public class BillingPlanService {
         plan.setPlanType(planType(request));
         plan.setPriceVnd(request.getPriceVnd());
         plan.setQuotaAmount(request.getFitkenAmount());
-        plan.setFreeshipVouchers(request.getFreeshipVouchers());
-        plan.setFreeshipMaxDiscountVnd(request.getFreeshipMaxDiscountVnd());
         plan.setBillingPeriodDays(request.getBillingPeriodDays());
         plan.setActive(request.isActive());
         plan.setSortOrder(request.getSortOrder());
     }
 
     private void validateRequest(BillingPlanRequest request) {
-        if (planType(request) == BillingPlanType.SUBSCRIPTION) {
-            if (request.getBillingPeriodDays() == null || request.getBillingPeriodDays() <= 0) {
-                throw new BusinessException("Gói tháng cần billingPeriodDays > 0");
-            }
-        } else if (request.getFreeshipVouchers() > 0) {
-            throw new BusinessException("Gói top-up Fitken không kèm voucher freeship");
+        if (planType(request) == BillingPlanType.SUBSCRIPTION
+                && (request.getBillingPeriodDays() == null || request.getBillingPeriodDays() <= 0)) {
+            throw new BusinessException("Gói tháng cần billingPeriodDays > 0");
         }
     }
 

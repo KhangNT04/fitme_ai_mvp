@@ -1,3 +1,5 @@
+import { redirectChannelLabel } from "@/lib/redirect-channel";
+
 export function isSameMonth(iso?: string | null, now = new Date()): boolean {
   if (!iso) return false;
   const d = new Date(iso);
@@ -16,7 +18,8 @@ export function matchesPurchaseSearch(
   q: string,
 ): boolean {
   if (!q.trim()) return true;
-  const hay = [item.productName, item.brandName, item.channel, item.selectedColor, item.selectedSize]
+  const channel = item.channel ? redirectChannelLabel(item.channel) : undefined;
+  const hay = [item.productName, item.brandName, channel, item.selectedColor, item.selectedSize]
     .filter(Boolean)
     .join(" ")
     .toLowerCase();

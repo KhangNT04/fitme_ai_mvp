@@ -155,6 +155,24 @@ export const brandOnboardingSchema = z.object({
   description: z.string().optional(),
 });
 
+/** Same rule as the backend UrlValidator: http(s) with a dotted host. */
+function isHttpProductUrl(value: string): boolean {
+  try {
+    const url = new URL(value);
+    return (url.protocol === "http:" || url.protocol === "https:") && url.hostname.includes(".");
+  } catch {
+    return false;
+  }
+}
+
+/** Every product must link to its page on the brand's store — the only way to buy it. */
+export const purchaseUrlSchema = z
+  .string({ error: "Link mua hàng không được để trống" })
+  .trim()
+  .min(1, "Link mua hàng không được để trống")
+  .max(2048, "Link mua hàng tối đa 2048 ký tự")
+  .refine(isHttpProductUrl, "Link mua hàng không hợp lệ, cần dạng https://... tới trang sản phẩm của cửa hàng");
+
 export type SkinToneValue = "FAIR" | "MEDIUM" | "TAN" | "DEEP" | "UNSURE";
 export type RiskLevelValue = "SAFE" | "BALANCED" | "BOLD" | "EXPERIMENTAL";
 export type FitPreferenceValue = "SLIM" | "REGULAR" | "RELAXED" | "OVERSIZE" | "UNSURE";

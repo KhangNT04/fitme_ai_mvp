@@ -51,6 +51,22 @@ class AdminProductControllerTest extends AbstractIntegrationTest {
     }
 
     @Test
+    void approveProduct_withoutValidPurchaseUrl_isBlocked() throws Exception {
+        for (String purchaseUrl : new String[]{null, "", "not-a-valid-url"}) {
+            pendingProduct.setPurchaseUrl(purchaseUrl);
+            pendingProduct = productRepository.save(pendingProduct);
+
+            mockMvc.perform(post("/api/v1/admin/products/{id}/approve", pendingProduct.getId())
+                            .with(user(adminPrincipal)))
+                    .andExpect(status().isBadRequest())
+                    .andExpect(jsonPath("$.error").value(
+                            org.hamcrest.Matchers.containsString("Thiếu link mua hàng hợp lệ")));
+        }
+        org.assertj.core.api.Assertions.assertThat(productRepository.findById(pendingProduct.getId())
+                .orElseThrow().getStatus()).isEqualTo(ProductStatus.PENDING_REVIEW);
+    }
+
+    @Test
     void approveProduct_withoutAuth_returnsForbidden() throws Exception {
         mockMvc.perform(post("/api/v1/admin/products/{id}/approve", pendingProduct.getId()))
                 .andExpect(status().isForbidden());

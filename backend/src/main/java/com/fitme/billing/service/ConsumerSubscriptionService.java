@@ -25,7 +25,6 @@ import com.fitme.common.exception.NotFoundException;
 import com.fitme.common.time.AppClock;
 import com.fitme.fitken.service.FitkenService;
 import com.fitme.notification.PlanPurchasedEvent;
-import com.fitme.voucher.service.VoucherService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
@@ -54,7 +53,6 @@ public class ConsumerSubscriptionService {
     private final ConsumerSubscriptionRepository subscriptionRepository;
     private final UserAccountRepository userAccountRepository;
     private final FitkenService fitkenService;
-    private final VoucherService voucherService;
     private final PayOsClient payOsClient;
     private final FitMeProperties properties;
     private final BillingDtoMapper dtoMapper;
@@ -209,16 +207,12 @@ public class ConsumerSubscriptionService {
 
         fitkenService.grant(userId, FitkenEntryType.SUBSCRIPTION_GRANT, plan.getQuotaAmount(),
                 FitkenService.Bucket.SUBSCRIPTION, grantReferenceType, grantReferenceId, note);
-        if (plan.getFreeshipVouchers() > 0) {
-            voucherService.grantFreeship(userId, plan.getFreeshipVouchers(), plan.getFreeshipMaxDiscountVnd(),
-                    subscription.getExpiresAt(), VoucherService.SOURCE_PRO_SUBSCRIPTION, grantReferenceId);
-        }
         syncUserPlan(userId, ConsumerPlan.PRO, null);
         return subscription;
     }
 
     /**
-     * Admin manual grant: a paid-equivalent Pro period (Fitken + vouchers) without PayOS.
+     * Admin manual grant: a paid-equivalent Pro period (Fitken) without PayOS.
      * Users who already have an active Pro period only get their coherence preference updated.
      */
     @Transactional

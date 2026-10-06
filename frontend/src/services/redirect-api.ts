@@ -1,5 +1,5 @@
 import apiClient, { unwrap } from "./api-client";
-import type { BuyClickRequest, BuyClickResponse, RedirectEvent } from "@/types/redirect";
+import type { BuyClickRequest, BuyClickResponse, RedirectChannel, RedirectEvent } from "@/types/redirect";
 
 export interface PurchaseHistoryItem {
   eventId: string;
@@ -9,7 +9,7 @@ export interface PurchaseHistoryItem {
   price?: number | null;
   currency?: string;
   purchaseUrl: string;
-  channel?: string;
+  channel?: RedirectChannel;
   selectedSize?: string;
   selectedColor?: string;
   purchasedConfirmed: boolean;

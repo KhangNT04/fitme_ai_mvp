@@ -18,7 +18,6 @@ public class FitMeProperties {
     private Consumer consumer = new Consumer();
     private Auth auth = new Auth();
     private Fitken fitken = new Fitken();
-    private Commerce commerce = new Commerce();
 
     @Data
     public static class Auth {
@@ -91,8 +90,6 @@ public class FitMeProperties {
         private String checksumKey;
         private String subscriptionReturnUrl = "http://localhost:3000/billing/return?status=success";
         private String subscriptionCancelUrl = "http://localhost:3000/billing/return?status=cancel";
-        private String orderReturnUrl = "http://localhost:3000/orders/return?status=success";
-        private String orderCancelUrl = "http://localhost:3000/orders/return?status=cancel";
     }
 
     @Data
@@ -110,17 +107,6 @@ public class FitMeProperties {
         private int reviewDailyLimit = 1;
         /** Fitken spent per AI try-on generation. */
         private int tryOnCost = 1;
-    }
-
-    @Data
-    public static class Commerce {
-        /** Platform commission taken from each seller sub-order subtotal (0.10 = 10%). */
-        private double commissionRate = 0.10;
-        private long defaultShippingFeeVnd = 30000;
-        /** Days after delivery before a seller sub-order becomes eligible for payout. */
-        private int settlementHoldDays = 7;
-        /** Minutes a PENDING_PAYMENT online order keeps its stock reservation. */
-        private int paymentTimeoutMinutes = 30;
     }
 
     @Data

@@ -16,8 +16,6 @@ export function emptyBillingPlanForm(): BillingPlanFormValues {
     planType: "SUBSCRIPTION",
     priceVnd: 49000,
     fitkenAmount: 15,
-    freeshipVouchers: 0,
-    freeshipMaxDiscountVnd: 30000,
     billingPeriodDays: 30,
     active: true,
     sortOrder: 0,
@@ -31,8 +29,6 @@ export function planToFormValues(plan: BillingPlan): BillingPlanFormValues {
     planType: plan.planType ?? "SUBSCRIPTION",
     priceVnd: plan.priceVnd,
     fitkenAmount: plan.fitkenAmount,
-    freeshipVouchers: plan.freeshipVouchers,
-    freeshipMaxDiscountVnd: plan.freeshipMaxDiscountVnd,
     billingPeriodDays: plan.planType === "TOPUP" ? null : (plan.billingPeriodDays ?? 30),
     active: plan.active,
     sortOrder: plan.sortOrder,
@@ -76,7 +72,7 @@ export function BillingPlanForm({
               const planType = e.target.value as BillingPlanType;
               setForm(
                 planType === "TOPUP"
-                  ? { ...form, planType, freeshipVouchers: 0, billingPeriodDays: null }
+                  ? { ...form, planType, billingPeriodDays: null }
                   : { ...form, planType, billingPeriodDays: form.billingPeriodDays ?? 30 },
               );
             }}
@@ -135,42 +131,18 @@ export function BillingPlanForm({
           />
         </div>
         {!isTopup && (
-          <>
-            <div className="space-y-2">
-              <Label htmlFor="plan-freeship-count">Voucher freeship / chu kỳ</Label>
-              <Input
-                id="plan-freeship-count"
-                type="number"
-                min={0}
-                value={form.freeshipVouchers}
-                onChange={(e) => setForm({ ...form, freeshipVouchers: Number(e.target.value) })}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="plan-freeship-max">Giảm tối đa freeship (VNĐ)</Label>
-              <Input
-                id="plan-freeship-max"
-                type="number"
-                min={0}
-                value={form.freeshipMaxDiscountVnd}
-                onChange={(e) =>
-                  setForm({ ...form, freeshipMaxDiscountVnd: Number(e.target.value) })
-                }
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="plan-period">Chu kỳ (ngày)</Label>
-              <Input
-                id="plan-period"
-                type="number"
-                min={1}
-                value={form.billingPeriodDays ?? 30}
-                onChange={(e) =>
-                  setForm({ ...form, billingPeriodDays: Number(e.target.value) })
-                }
-              />
-            </div>
-          </>
+          <div className="space-y-2">
+            <Label htmlFor="plan-period">Chu kỳ (ngày)</Label>
+            <Input
+              id="plan-period"
+              type="number"
+              min={1}
+              value={form.billingPeriodDays ?? 30}
+              onChange={(e) =>
+                setForm({ ...form, billingPeriodDays: Number(e.target.value) })
+              }
+            />
+          </div>
         )}
       </div>
 

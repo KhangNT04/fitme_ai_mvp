@@ -34,7 +34,7 @@ services:
         value: fitme123
       - key: UPLOAD_DIR
         value: /tmp/uploads
-      # PayOS (FitMe Pro subscription & đơn hàng) — mock=true: test cloud không cần PayOS key.
+      # PayOS (FitMe Pro subscription) — mock=true: test cloud không cần PayOS key.
       # PayOS thật: đổi PAYOS_MOCK=false trong Render dashboard + set 3 key bên dưới, rồi redeploy.
       - key: PAYOS_MOCK
         value: "true"
@@ -42,10 +42,6 @@ services:
         value: https://fitme-ai-mvp.vercel.app/billing/return?status=success
       - key: PAYOS_SUBSCRIPTION_CANCEL_URL
         value: https://fitme-ai-mvp.vercel.app/billing/return?status=cancel
-      - key: PAYOS_ORDER_RETURN_URL
-        value: https://fitme-ai-mvp.vercel.app/orders/return?status=success
-      - key: PAYOS_ORDER_CANCEL_URL
-        value: https://fitme-ai-mvp.vercel.app/orders/return?status=cancel
       # Khi bật PayOS thật: PAYOS_MOCK=false + set 3 key dưới trong Render dashboard (sync: false)
       - key: PAYOS_CLIENT_ID
         sync: false

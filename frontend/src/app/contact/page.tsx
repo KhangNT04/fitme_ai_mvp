@@ -6,7 +6,7 @@ import { FANPAGE_URL, SUPPORT_EMAIL, SUPPORT_PHONE } from "@/lib/site-config";
 
 export const metadata: Metadata = {
   title: "Liên hệ — FitMe AI",
-  description: "Liên hệ đội ngũ FitMe AI để được hỗ trợ đơn hàng, tài khoản và hợp tác brand.",
+  description: "Liên hệ đội ngũ FitMe AI để được hỗ trợ tài khoản, gói Pro và hợp tác brand.",
 };
 
 const channelClass =
@@ -44,7 +44,7 @@ export default function ContactPage() {
 
       <LegalSection title="Tự xử lý nhanh">
         <ul>
-          <li>Theo dõi đơn hàng: <Link href="/profile/purchases" className="text-primary underline-offset-2 hover:underline">Hồ sơ → Đơn mua</Link>.</li>
+          <li>Sản phẩm bạn đã bấm mua: <Link href="/profile/purchases" className="text-primary underline-offset-2 hover:underline">Hồ sơ → Tủ chi tiêu</Link>. Giao hàng, đổi trả do cửa hàng bạn đã mua hỗ trợ.</li>
           <li>Quên mật khẩu: <Link href="/auth/forgot-password" className="text-primary underline-offset-2 hover:underline">Đặt lại mật khẩu</Link>.</li>
           <li>Xóa dữ liệu / rút lại đồng ý: <Link href="/profile/privacy" className="text-primary underline-offset-2 hover:underline">Hồ sơ → Quyền riêng tư</Link>.</li>
           <li>Câu hỏi về Fitken, gói Pro, thử mặc AI: <Link href="/#faq" className="text-primary underline-offset-2 hover:underline">Câu hỏi thường gặp</Link>.</li>

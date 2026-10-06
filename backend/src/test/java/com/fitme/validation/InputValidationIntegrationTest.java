@@ -1,9 +1,9 @@
 package com.fitme.validation;
 
+import com.fitme.AbstractIntegrationTest;
 import com.fitme.common.enums.ItemRole;
 import com.fitme.common.enums.ProductStatus;
 import com.fitme.common.security.FitMeUserPrincipal;
-import com.fitme.order.CommerceIntegrationSupport;
 import com.fitme.product.entity.Product;
 import com.fitme.product.repository.ProductRepository;
 import com.fitme.support.TestDataHelper;
@@ -18,7 +18,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-class InputValidationIntegrationTest extends CommerceIntegrationSupport {
+class InputValidationIntegrationTest extends AbstractIntegrationTest {
 
     @Autowired
     private TestDataHelper testDataHelper;
@@ -28,37 +28,13 @@ class InputValidationIntegrationTest extends CommerceIntegrationSupport {
 
     @Test
     void missingIdentityReturnsUnauthorizedInsteadOfServerError() throws Exception {
-        mockMvc.perform(post("/api/v1/me/addresses")
+        mockMvc.perform(post("/api/v1/sessions/link-to-user")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
-                                {"recipientName":"A","phone":"0901234567","province":"HCM",
-                                 "district":"Q1","ward":"BN","street":"1 Lê Lợi"}
-                                """))
+                                {"sessionToken":"%s"}
+                                """.formatted(createAnonymousSessionToken())))
                 .andExpect(status().isUnauthorized())
                 .andExpect(jsonPath("$.success").value(false));
-    }
-
-    @Test
-    void addressRejectsMalformedPhoneAndStoresNormalizedOne() throws Exception {
-        String token = registerUserAccessToken();
-        String body = """
-                {"recipientName":"Nguyễn Văn An","phone":"%s","province":"TP Hồ Chí Minh",
-                 "district":"Quận 1","ward":"Bến Nghé","street":"1 Lê Lợi","isDefault":true}
-                """;
-
-        mockMvc.perform(post("/api/v1/me/addresses")
-                        .header("Authorization", "Bearer " + token)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(body.formatted("abc123")))
-                .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.errorCode").value("INVALID_PHONE"));
-
-        mockMvc.perform(post("/api/v1/me/addresses")
-                        .header("Authorization", "Bearer " + token)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(body.formatted("090 123.4567")))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.data.phone").value("0901234567"));
     }
 
     @Test
@@ -95,6 +71,23 @@ class InputValidationIntegrationTest extends CommerceIntegrationSupport {
                                 """))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.errorCode").value("INVALID_PURCHASE_URL"));
+    }
+
+    @Test
+    void brandCannotSaveProductWithoutPurchaseUrl() throws Exception {
+        TestDataHelper.BrandOwnerContext owner = testDataHelper.createBrandOwner();
+        for (String purchaseUrl : new String[]{null, "", "   "}) {
+            java.util.Map<String, Object> body = new java.util.HashMap<>(java.util.Map.of(
+                    "name", "No link shirt", "category", "Áo sơ mi", "price", 299000));
+            body.put("purchaseUrl", purchaseUrl);
+            mockMvc.perform(post("/api/v1/brand/products")
+                            .with(user(new FitMeUserPrincipal(owner.user())))
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(objectMapper.writeValueAsString(body)))
+                    .andExpect(status().isBadRequest())
+                    .andExpect(jsonPath("$.error").value("Link mua hàng không được để trống"));
+        }
+        org.assertj.core.api.Assertions.assertThat(productRepository.findByBrandId(owner.brand().getId())).isEmpty();
     }
 
     @Test

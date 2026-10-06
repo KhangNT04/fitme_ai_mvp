@@ -51,6 +51,10 @@ class AdminGrowthMetricsIntegrationTest extends AbstractIntegrationTest {
         assertThat(data.get("users").get("dailyActive").asLong()).isGreaterThanOrEqualTo(1);
         assertThat(data.get("users").get("newUsers").asLong()).isGreaterThanOrEqualTo(1);
         assertThat(data.get("funnel").get(1).get("users").asLong()).isGreaterThanOrEqualTo(1);
+        assertThat(data.get("funnel").findValuesAsText("key"))
+                .containsExactly("signed_up", "verified", "used_ai", "checkout", "paid");
+        assertThat(data.get("revenue").has("orderRevenueVnd")).isFalse();
+        assertThat(data.get("checkout").has("orderCheckoutsStarted")).isFalse();
         boolean sourceListed = false;
         for (JsonNode row : data.get("signupSources")) {
             if (source.equals(row.get("source").asText())) {

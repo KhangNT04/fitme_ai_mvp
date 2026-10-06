@@ -17,7 +17,7 @@ public record PayingCustomersReport(
 ) {
 
     public enum Kind {
-        PRO_SUBSCRIPTION, ORDER_PAYOS, ORDER_COD
+        PRO_SUBSCRIPTION
     }
 
     public record Row(
@@ -30,9 +30,7 @@ public record PayingCustomersReport(
             UUID userId,
             String customerName,
             String email,
-            String phone,
-            /** null when unknown (commerce orders do not record the PayOS mode). */
-            Boolean mock
+            boolean mock
     ) {
     }
 }

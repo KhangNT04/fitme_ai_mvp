@@ -86,7 +86,7 @@ function RedirectLoadingContent() {
       <PageShell width="full" className={cn(consumerPageShellClass, "flex flex-col items-center py-16 text-center sm:py-24")}>
         <PageHeader
           title="Liên kết không hợp lệ"
-          subtitle="Không tìm thấy nơi bán cho liên kết này. Hãy bấm Mua ngay từ trang sản phẩm."
+          subtitle="Không tìm thấy nơi bán cho liên kết này. Hãy bấm “Mua tại cửa hàng gốc” từ trang sản phẩm."
           sticky={false}
           className="mt-6 text-center [&_h1]:text-xl [&_h1]:font-semibold"
         />

@@ -17,7 +17,7 @@ export function isUserLoggedIn(): boolean {
 }
 
 /**
- * Auth guard for consumer commerce pages. Waits for persisted stores, then redirects
+ * Auth guard for consumer account pages. Waits for persisted stores, then redirects
  * guests to `/auth/login?redirect=<current url>`. A valid refresh token counts as logged in
  * (the axios client refreshes the access token on the first 401).
  */

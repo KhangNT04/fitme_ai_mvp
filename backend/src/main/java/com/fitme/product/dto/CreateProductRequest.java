@@ -28,6 +28,8 @@ public class CreateProductRequest {
     private BigDecimal price;
     private String material;
     private FitPreference fitType;
+    @NotBlank(message = "Link mua hàng không được để trống")
+    @Size(max = 2048, message = "Link mua hàng tối đa 2048 ký tự")
     private String purchaseUrl;
     private PurchaseChannel purchaseChannel;
     private StockStatus stockStatus;

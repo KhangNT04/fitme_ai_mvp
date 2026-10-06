@@ -41,9 +41,9 @@ export default function TermsPage() {
 
       <LegalSection title="4. Mua hàng">
         <ul>
-          <li>Sản phẩm do brand đối tác cung cấp; FitMe hỗ trợ kết nối, xử lý đơn và thanh toán.</li>
-          <li>Phương thức thanh toán: COD hoặc chuyển khoản qua PayOS. Đơn đã thanh toán nhưng bị hủy sẽ được hoàn tiền.</li>
-          <li>Yêu cầu đổi trả, khiếu nại về sản phẩm vui lòng gửi qua trang <Link href="/contact" className="text-primary underline-offset-2 hover:underline">Liên hệ</Link>.</li>
+          <li>FitMe không bán hàng. Sản phẩm do brand đối tác cung cấp; khi bấm mua, bạn được chuyển tới cửa hàng của brand (website chính hãng hoặc sàn thương mại điện tử) để đặt hàng và thanh toán.</li>
+          <li>Giá, tồn kho, giao hàng, đổi trả và hoàn tiền theo chính sách của cửa hàng nơi bạn mua.</li>
+          <li>Nếu link mua hàng sai hoặc dẫn tới trang không đúng sản phẩm, vui lòng báo qua trang <Link href="/contact" className="text-primary underline-offset-2 hover:underline">Liên hệ</Link>.</li>
         </ul>
       </LegalSection>
 

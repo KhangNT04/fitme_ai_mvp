@@ -8,6 +8,7 @@ import { PortalAdminPage } from "@/components/portal/PortalAdminPage";
 import { PortalFormCard, PortalWarningCard } from "@/components/portal/PortalFormCard";
 import { AdminProductDetail } from "@/components/portal/AdminProductDetail";
 import { FlagProductDialog } from "@/components/portal/FlagProductDialog";
+import { RejectProductDialog } from "@/components/portal/RejectProductDialog";
 import {
   PortalActionButton,
   PortalActionGroup,
@@ -23,6 +24,7 @@ export default function AdminProductModerationDetailPage({
   const router = useRouter();
   const queryClient = useQueryClient();
   const [flagOpen, setFlagOpen] = useState(false);
+  const [rejectOpen, setRejectOpen] = useState(false);
 
   const { data: product, isLoading, error, refetch } = useQuery({
     queryKey: ["admin-product", id],
@@ -41,8 +43,9 @@ export default function AdminProductModerationDetailPage({
   });
 
   const reject = useMutation({
-    mutationFn: () => adminApi.rejectProduct(id),
+    mutationFn: (reason: string) => adminApi.rejectProduct(id, reason),
     onSuccess: () => {
+      setRejectOpen(false);
       queryClient.invalidateQueries({ queryKey: ["admin-pending-products"] });
       queryClient.invalidateQueries({ queryKey: ["admin-flagged-products"] });
       actionFeedback({ successMessage: "Đã từ chối sản phẩm" }).onSuccess();
@@ -105,7 +108,7 @@ export default function AdminProductModerationDetailPage({
                   Duyệt
                 </PortalActionButton>
               )}
-              <PortalActionButton variant="reject" loading={reject.isPending} onClick={() => reject.mutate()}>
+              <PortalActionButton variant="reject" loading={reject.isPending} onClick={() => setRejectOpen(true)}>
                 Từ chối
               </PortalActionButton>
               {product.status === "PENDING_REVIEW" && (
@@ -124,6 +127,13 @@ export default function AdminProductModerationDetailPage({
         productName={product?.name}
         loading={flag.isPending}
         onConfirm={(reason) => flag.mutate(reason)}
+      />
+      <RejectProductDialog
+        open={rejectOpen}
+        onOpenChange={setRejectOpen}
+        productName={product?.name}
+        loading={reject.isPending}
+        onConfirm={(reason) => reject.mutate(reason)}
       />
     </PortalAdminPage>
   );

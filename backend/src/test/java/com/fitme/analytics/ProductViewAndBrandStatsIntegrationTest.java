@@ -89,6 +89,27 @@ class ProductViewAndBrandStatsIntegrationTest extends CommerceIntegrationSupport
     }
 
     @Test
+    void productAnalytics_breaksDownOccasionSizeAndColorFromTryOns() {
+        ProductFixture fixture = productFixture(1);
+        UUID productId = fixture.product().getId();
+        UUID brandId = fixture.owner().brand().getId();
+        for (String[] row : new String[][] {{"Đi làm", "M", "Đen"}, {"Đi làm", "M", "Trắng"}, {"Hẹn hò", "L", "Đen"}}) {
+            UUID requestId = tryOnRequest("COMPLETED");
+            jdbc.update("UPDATE try_on_requests SET occasion=? WHERE id=?", row[0], requestId);
+            jdbc.update("INSERT INTO try_on_items (try_on_request_id, product_id, role, selected_size, selected_color) "
+                    + "VALUES (?, ?, 'TOP', ?, ?)", requestId, productId, row[1], row[2]);
+        }
+
+        var analytics = analyticsService.productAnalytics(brandId, productId);
+        assertThat(analytics.getTopOccasions()).first()
+                .satisfies(p -> assertThat(p.getName()).isEqualTo("Đi làm"))
+                .satisfies(p -> assertThat(p.getValue()).isEqualTo(2));
+        assertThat(analytics.getTopSizes()).extracting("name").containsExactly("M", "L");
+        assertThat(analytics.getTopColors()).first()
+                .satisfies(p -> assertThat(p.getName()).isEqualTo("Đen"));
+    }
+
+    @Test
     void productAnalytics_ofAnotherBrandsProduct_isNotFound() throws Exception {
         ProductFixture fixture = productFixture(1);
         UUID completed = tryOnRequest("COMPLETED");

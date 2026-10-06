@@ -270,6 +270,15 @@ export default function TryOnInputPage() {
       toast.info(FEATURE_LOCKED_MESSAGE);
       return;
     }
+    // Backend only enforces login and Fitken balance at /generate, which runs on the processing page.
+    if (!isAuthed) {
+      setShowLoginDialog(true);
+      return;
+    }
+    if (wallet && wallet.balance < wallet.tryOnCost) {
+      setShowFitkenDialog(true);
+      return;
+    }
     setInput({
       inputMode: data.inputMode,
       ...(data.usualSize ? { usualSize: data.usualSize } : {}),
@@ -577,9 +586,6 @@ export default function TryOnInputPage() {
               className="flex-1"
               variant="ai"
               disabled={isSubmitting || !storesReady}
-              onClick={(e) => {
-                // Remove locked check for now since AVATAR is allowed per prompt
-              }}
             >
               {isSubmitting ? "Đang tạo..." : "Tạo preview thử mặc"}
               {inputMode !== "OUTFIT_BOARD_ONLY" && wallet && (
@@ -618,12 +624,6 @@ export default function TryOnInputPage() {
             </DialogDescription>
           </DialogHeader>
           <div className="flex flex-col sm:flex-row gap-2 mt-4 justify-end">
-            <Button variant="outline" onClick={() => {
-              setShowFitkenDialog(false);
-              handleModeChange("OUTFIT_BOARD_ONLY");
-            }}>
-              Tiếp tục với Outfit Board (miễn phí)
-            </Button>
             <Button variant="outline" asChild>
               <Link href="/rewards">Nhận Fitken miễn phí</Link>
             </Button>

@@ -23,6 +23,9 @@ class ConsumerSubscriptionIntegrationTest extends AbstractIntegrationTest {
     @Autowired
     private org.springframework.jdbc.core.JdbcTemplate jdbc;
 
+    @Autowired
+    private com.fitme.billing.service.BillingOrderExpiryJob billingOrderExpiryJob;
+
     @Test
     void plansArePublic() throws Exception {
         mockMvc.perform(get("/api/v1/plans"))
@@ -119,6 +122,23 @@ class ConsumerSubscriptionIntegrationTest extends AbstractIntegrationTest {
                 .andExpect(status().isOk());
         mockMvc.perform(get("/api/v1/me/entitlement").with(user(principal)))
                 .andExpect(jsonPath("$.data.plan").value("PRO"));
+    }
+
+    @Test
+    void stalePendingCheckoutsExpireButFreshOnesStayPending() throws Exception {
+        FitMeUserPrincipal principal = new FitMeUserPrincipal(testDataHelper.createUser().user());
+        long staleCode = System.nanoTime() % 1_000_000_000L + 8_000_000_000L;
+        long freshCode = staleCode + 1;
+        jdbc.update("INSERT INTO consumer_billing_orders (user_id, plan_id, amount_vnd, status, payos_order_code, created_at) "
+                + "VALUES (?, ?::uuid, 49000, 'PENDING', ?, NOW() - INTERVAL '2 days')", principal.getUserId(), proPlanId(), staleCode);
+        jdbc.update("INSERT INTO consumer_billing_orders (user_id, plan_id, amount_vnd, status, payos_order_code) "
+                + "VALUES (?, ?::uuid, 49000, 'PENDING', ?)", principal.getUserId(), proPlanId(), freshCode);
+
+        billingOrderExpiryJob.expireStalePendingOrders();
+
+        String sql = "SELECT status FROM consumer_billing_orders WHERE payos_order_code = ?";
+        assertThat(jdbc.queryForObject(sql, String.class, staleCode)).isEqualTo("EXPIRED");
+        assertThat(jdbc.queryForObject(sql, String.class, freshCode)).isEqualTo("PENDING");
     }
 
     @Test

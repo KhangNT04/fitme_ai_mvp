@@ -41,6 +41,9 @@ public class UserPhotoUpload {
     @Builder.Default
     private PhotoQualityStatus qualityStatus = PhotoQualityStatus.PENDING;
 
+    @Column(name = "quality_message")
+    private String qualityMessage;
+
     @Column(nullable = false)
     @Builder.Default
     private String status = "UPLOADED";

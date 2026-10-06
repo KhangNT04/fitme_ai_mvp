@@ -72,6 +72,9 @@ export default function BrandSettingsPage() {
         contactPhone: data.contactPhone ?? "",
         websiteUrl: data.websiteUrl ?? "",
         shopeeUrl: data.shopeeUrl ?? "",
+        tiktokShopUrl: data.tiktokShopUrl ?? "",
+        instagramUrl: data.instagramUrl ?? "",
+        facebookUrl: data.facebookUrl ?? "",
         description: data.description ?? "",
       });
       setEditing(true);
@@ -132,6 +135,18 @@ export default function BrandSettingsPage() {
                   <Input {...register("shopeeUrl")} className="mt-1" />
                 </div>
                 <div>
+                  <Label>TikTok Shop URL</Label>
+                  <Input {...register("tiktokShopUrl")} className="mt-1" />
+                </div>
+                <div>
+                  <Label>Instagram URL</Label>
+                  <Input {...register("instagramUrl")} className="mt-1" />
+                </div>
+                <div>
+                  <Label>Facebook URL</Label>
+                  <Input {...register("facebookUrl")} className="mt-1" />
+                </div>
+                <div>
                   <Label>Mô tả</Label>
                   <Input {...register("description")} className="mt-1" />
                 </div>
@@ -162,6 +177,9 @@ export default function BrandSettingsPage() {
                   </InfoRow>
                   {data.websiteUrl && <InfoRow label="Website">{data.websiteUrl}</InfoRow>}
                   {data.shopeeUrl && <InfoRow label="Shopee">{data.shopeeUrl}</InfoRow>}
+                  {data.tiktokShopUrl && <InfoRow label="TikTok Shop">{data.tiktokShopUrl}</InfoRow>}
+                  {data.instagramUrl && <InfoRow label="Instagram">{data.instagramUrl}</InfoRow>}
+                  {data.facebookUrl && <InfoRow label="Facebook">{data.facebookUrl}</InfoRow>}
                   {data.description && <InfoRow label="Mô tả">{data.description}</InfoRow>}
                 </div>
               </div>

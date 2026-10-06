@@ -37,6 +37,7 @@ public class PhotoUploadService {
     private final PrivacyService privacyService;
     private final AnalyticsService analyticsService;
     private final AiVtonClient aiVtonClient;
+    private final PhotoQualityInspector photoQualityInspector;
 
     public PhotoUploadResponse recordConsent() {
         var consent = privacyService.recordConsent(ConsentType.PHOTO_UPLOAD);
@@ -51,6 +52,7 @@ public class PhotoUploadService {
         if (!privacyService.hasConsent(ConsentType.PHOTO_UPLOAD)) {
             throw new BusinessException("Cần đồng ý upload ảnh trước");
         }
+        PhotoQualityInspector.Result quality = photoQualityInspector.inspect(file.getBytes());
         String path = storageService.store("user-photos", UUID.randomUUID() + "-" + file.getOriginalFilename(), file);
         UserPhotoUpload upload = UserPhotoUpload.builder()
                 .userId(RequestContext.getCurrentUserId().orElse(null))
@@ -58,7 +60,8 @@ public class PhotoUploadService {
                 .fileUrl(path)
                 .fileType(file.getContentType())
                 .consentId(consentId)
-                .qualityStatus(PhotoQualityStatus.PENDING)
+                .qualityStatus(quality.status())
+                .qualityMessage(quality.message())
                 .status("UPLOADED")
                 .build();
         upload = uploadRepository.save(upload);
@@ -111,6 +114,7 @@ public class PhotoUploadService {
                 .id(upload.getId())
                 .fileUrl(StoredMediaPaths.normalizeToUploadPath(upload.getFileUrl()))
                 .qualityStatus(upload.getQualityStatus().name())
+                .qualityMessage(upload.getQualityMessage())
                 .status(upload.getStatus())
                 .build();
     }

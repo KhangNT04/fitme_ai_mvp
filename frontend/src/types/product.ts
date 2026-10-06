@@ -58,6 +58,7 @@ export interface Product {
   aiTryOnEligible: boolean;
   description?: string;
   flagReason?: string;
+  rejectReason?: string;
 }
 
 export interface ProductFilters {

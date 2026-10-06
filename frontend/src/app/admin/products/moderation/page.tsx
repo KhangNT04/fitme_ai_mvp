@@ -7,6 +7,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { adminApi, getProductModerationWarnings } from "@/services/admin-api";
 import { PortalAdminPage } from "@/components/portal/PortalAdminPage";
 import { FlagProductDialog } from "@/components/portal/FlagProductDialog";
+import { RejectProductDialog } from "@/components/portal/RejectProductDialog";
 import {
   PortalActionButton,
   PortalActionGroup,
@@ -60,11 +61,13 @@ function ModerationActions({
     onError: actionFeedback({ errorMessage: "Không thể duyệt sản phẩm" }).onError,
   });
 
+  const [rejectOpen, setRejectOpen] = useState(false);
   const reject = useMutation({
-    mutationFn: (id: string) => adminApi.rejectProduct(id),
+    mutationFn: (reason: string) => adminApi.rejectProduct(product.id, reason),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["admin-pending-products"] });
       queryClient.invalidateQueries({ queryKey: ["admin-flagged-products"] });
+      setRejectOpen(false);
       actionFeedback({ successMessage: "Đã từ chối sản phẩm" }).onSuccess();
     },
     onError: actionFeedback({ errorMessage: "Không thể từ chối sản phẩm" }).onError,
@@ -85,7 +88,7 @@ function ModerationActions({
           Duyệt
         </PortalActionButton>
       )}
-      <PortalActionButton variant="reject" loading={reject.isPending} onClick={() => reject.mutate(product.id)}>
+      <PortalActionButton variant="reject" loading={reject.isPending} onClick={() => setRejectOpen(true)}>
         Từ chối
       </PortalActionButton>
       {showFlag && (
@@ -93,6 +96,13 @@ function ModerationActions({
           Gắn cờ
         </PortalActionButton>
       )}
+      <RejectProductDialog
+        open={rejectOpen}
+        onOpenChange={setRejectOpen}
+        productName={product.name}
+        loading={reject.isPending}
+        onConfirm={(reason) => reject.mutate(reason)}
+      />
     </PortalActionGroup>
   );
 }

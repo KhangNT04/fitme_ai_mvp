@@ -12,12 +12,14 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.UUID;
+import java.util.regex.Pattern;
 
 @Service
 @RequiredArgsConstructor
 public class AddressService {
 
     private static final String NOT_FOUND = "Địa chỉ không tồn tại";
+    private static final Pattern VN_PHONE = Pattern.compile("^(\\+84|0)\\d{9,10}$");
 
     private final ShippingAddressRepository addressRepository;
 
@@ -62,7 +64,7 @@ public class AddressService {
 
     private static void apply(ShippingAddress address, AddressRequest request, boolean makeDefault) {
         address.setRecipientName(request.getRecipientName().trim());
-        address.setPhone(request.getPhone().trim());
+        address.setPhone(normalizePhone(request.getPhone()));
         address.setProvince(request.getProvince());
         address.setDistrict(request.getDistrict());
         address.setWard(request.getWard());
@@ -76,6 +78,13 @@ public class AddressService {
                 || request.getWard() == null || request.getStreet() == null) {
             throw new BusinessException("Thông tin địa chỉ chưa đầy đủ");
         }
+        if (!VN_PHONE.matcher(normalizePhone(request.getPhone())).matches()) {
+            throw new BusinessException("Số điện thoại không hợp lệ (VD: 0912345678 hoặc +84912345678)", "INVALID_PHONE");
+        }
+    }
+
+    private static String normalizePhone(String phone) {
+        return phone.replaceAll("[\\s.\\-()]", "");
     }
 
     private static boolean isBlank(String value) {

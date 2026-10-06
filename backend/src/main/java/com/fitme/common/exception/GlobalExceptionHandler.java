@@ -90,8 +90,8 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ApiResponse.fail("Không tìm thấy tài nguyên"));
     }
 
-    @ExceptionHandler(IllegalStateException.class)
-    public ResponseEntity<ApiResponse<Void>> handleIllegalState(IllegalStateException ex) {
+    @ExceptionHandler(UnauthenticatedException.class)
+    public ResponseEntity<ApiResponse<Void>> handleUnauthenticated(UnauthenticatedException ex) {
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(ApiResponse.fail(ex.getMessage()));
     }
 

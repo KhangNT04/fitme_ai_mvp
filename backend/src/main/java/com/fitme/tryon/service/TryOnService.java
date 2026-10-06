@@ -7,6 +7,7 @@ import com.fitme.common.enums.PhotoQualityStatus;
 import com.fitme.common.enums.PreviewType;
 import com.fitme.common.enums.TryOnPreviewMode;
 import com.fitme.common.enums.TryOnStatus;
+import com.fitme.common.enums.ProductStatus;
 import com.fitme.common.exception.BusinessException;
 import com.fitme.common.exception.NotFoundException;
 import com.fitme.common.security.RequestContext;
@@ -111,6 +112,11 @@ public class TryOnService {
         List<TryOnItem> existing = tryOnItemRepository.findByTryOnRequestId(id);
         if (existing.stream().anyMatch(item -> item.getProductId().equals(request.getProductId()))) {
             return toResponse(tryOn);
+        }
+        Product product = productRepository.findById(request.getProductId())
+                .orElseThrow(() -> new NotFoundException("Sản phẩm không tồn tại"));
+        if (product.getStatus() != ProductStatus.ACTIVE || !product.isAiTryOnEligible()) {
+            throw new BusinessException("Sản phẩm này chưa hỗ trợ thử đồ AI", "TRY_ON_NOT_ELIGIBLE");
         }
 
         ItemRole role = request.getRole();

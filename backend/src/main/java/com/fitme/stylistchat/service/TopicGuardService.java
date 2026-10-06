@@ -46,7 +46,8 @@ public class TopicGuardService {
                 && text.length() <= 120) {
             return true;
         }
-        return geminiStylistClient.classifyFashionTopic(text).orElse(false);
+        // Without a classifier verdict (Gemini off or failing) only the explicit off-topic list above blocks.
+        return geminiStylistClient.classifyFashionTopic(text).orElse(true);
     }
 
     public String normalizeForIntent(String message) {

@@ -4,6 +4,7 @@ import com.fitme.common.dto.ApiResponse;
 import com.fitme.product.dto.FlagProductRequest;
 import com.fitme.product.dto.ProductResponse;
 import com.fitme.product.service.ProductService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -40,13 +41,14 @@ public class AdminProductController {
     }
 
     @PostMapping("/{id}/reject")
-    public ApiResponse<ProductResponse> reject(@PathVariable UUID id) {
-        return ApiResponse.ok(productService.rejectProduct(id));
+    public ApiResponse<ProductResponse> reject(@PathVariable UUID id,
+                                               @Valid @RequestBody(required = false) FlagProductRequest request) {
+        return ApiResponse.ok(productService.rejectProduct(id, request != null ? request.getReason() : null));
     }
 
     @PostMapping("/{id}/flag")
     public ApiResponse<ProductResponse> flag(@PathVariable UUID id,
-                                             @RequestBody(required = false) FlagProductRequest request) {
+                                             @Valid @RequestBody(required = false) FlagProductRequest request) {
         String reason = request != null ? request.getReason() : null;
         return ApiResponse.ok(productService.flagProduct(id, reason));
     }

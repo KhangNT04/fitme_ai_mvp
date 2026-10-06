@@ -43,6 +43,17 @@ type ConfirmState =
   | { type: "delete"; product: Product }
   | null;
 
+function ModerationReason({ product }: { product: Product }) {
+  const reason =
+    product.status === "REJECTED" ? product.rejectReason : product.status === "FLAGGED" ? product.flagReason : undefined;
+  if (!reason) return null;
+  return (
+    <p className="mt-1 text-xs text-red-700">
+      {product.status === "REJECTED" ? "Lý do từ chối" : "Lý do gắn cờ"}: {reason}
+    </p>
+  );
+}
+
 function ProductVisibilityAction({
   product,
   onHide,
@@ -152,6 +163,7 @@ export default function BrandProductsPage() {
                   <div className="min-w-0">
                     <p className="font-medium text-foreground">{p.name}</p>
                     <p className="mt-1 text-sm text-muted-foreground">{formatPrice(p.price)}</p>
+                    <ModerationReason product={p} />
                   </div>
                   <Badge variant="outline">{productStatusLabel(p.status)}</Badge>
                 </div>
@@ -182,6 +194,7 @@ export default function BrandProductsPage() {
                   <td className={portalTableTdClass}>{formatPrice(p.price)}</td>
                   <td className={portalTableTdClass}>
                     <Badge variant="outline">{productStatusLabel(p.status)}</Badge>
+                    <ModerationReason product={p} />
                   </td>
                   <td className={portalTableTdClass}>
                     <PortalActionGroup className={portalTableActionsClass}>

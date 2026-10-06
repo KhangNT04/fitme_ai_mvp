@@ -18,7 +18,8 @@ public final class UrlValidator {
         try {
             URI uri = URI.create(url.trim());
             return uri.getScheme() != null
-                    && (uri.getScheme().equals("http") || uri.getScheme().equals("https"));
+                    && (uri.getScheme().equals("http") || uri.getScheme().equals("https"))
+                    && uri.getHost() != null && uri.getHost().contains(".");
         } catch (Exception e) {
             return false;
         }

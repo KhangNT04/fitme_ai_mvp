@@ -2,13 +2,13 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useInfiniteQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Download, Share2, Trash2, Image as ImageIcon, ExternalLink, AlertCircle } from "lucide-react";
 import { PageShell } from "@/components/layout/PageShell";
 import { CollapsingPageHeader } from "@/components/layout/CollapsingPageHeader";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
-import { galleryApi } from "@/services/gallery-api";
+import { galleryApi, nextGalleryPage } from "@/services/gallery-api";
 import { useAuthStore } from "@/stores/auth-store";
 import { toast } from "@/stores/toast-store";
 import { consumerPageShellClass } from "@/lib/design-tokens";
@@ -42,11 +42,15 @@ export default function GalleryPage() {
   const [selectedImage, setSelectedImage] = useState<GalleryImageDto | null>(null);
   const [isLightboxOpen, setIsLightboxOpen] = useState(false);
 
-  const { data, isLoading } = useQuery({
+  const { data, isLoading, hasNextPage, fetchNextPage, isFetchingNextPage } = useInfiniteQuery({
     queryKey: ["gallery-images"],
-    queryFn: () => galleryApi.getImages(),
+    queryFn: ({ pageParam }) => galleryApi.getImages(pageParam),
+    initialPageParam: 0,
+    getNextPageParam: nextGalleryPage,
     enabled: isAuthenticated,
   });
+  const images = data?.pages.flatMap((p) => p.items) ?? [];
+  const total = data?.pages[data.pages.length - 1]?.total ?? 0;
 
   const deleteMutation = useMutation({
     mutationFn: (id: string) => galleryApi.deleteImage(id),
@@ -111,7 +115,7 @@ export default function GalleryPage() {
             <div key={i} className="aspect-[3/4] rounded-xl bg-muted animate-pulse" />
           ))}
         </div>
-      ) : !data?.items.length ? (
+      ) : !images.length ? (
         <div className="flex flex-col items-center justify-center py-20 text-center">
           <ImageIcon className="h-16 w-16 text-muted-foreground mb-4 opacity-20" />
           <p className="text-muted-foreground">Thư viện của bạn đang trống.</p>
@@ -120,28 +124,45 @@ export default function GalleryPage() {
           </Button>
         </div>
       ) : (
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2 sm:gap-4 mt-4">
-          {data.items.map((img) => (
-            <div
-              key={img.id}
-              className="group relative aspect-[3/4] overflow-hidden rounded-xl bg-muted cursor-pointer"
-              onClick={() => {
-                setSelectedImage(img);
-                setIsLightboxOpen(true);
-              }}
-            >
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={img.imageUrl}
-                alt="Try-on"
-                className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
-              />
-              <div className="absolute inset-0 bg-black/40 opacity-0 transition-opacity group-hover:opacity-100 flex items-center justify-center">
-                <span className="text-white text-sm font-medium">Xem chi tiết</span>
+        <>
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2 sm:gap-4 mt-4">
+            {images.map((img) => (
+              <div
+                key={img.id}
+                className="group relative aspect-[3/4] overflow-hidden rounded-xl bg-muted cursor-pointer"
+                onClick={() => {
+                  setSelectedImage(img);
+                  setIsLightboxOpen(true);
+                }}
+              >
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={img.imageUrl}
+                  alt="Try-on"
+                  className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+                />
+                <div className="absolute inset-0 bg-black/40 opacity-0 transition-opacity group-hover:opacity-100 flex items-center justify-center">
+                  <span className="text-white text-sm font-medium">Xem chi tiết</span>
+                </div>
               </div>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+          <div className="mt-6 flex flex-col items-center gap-2">
+            <p className="text-xs text-muted-foreground">
+              Đang hiển thị {images.length}/{Math.max(total, images.length)} ảnh
+            </p>
+            {hasNextPage && (
+              <Button
+                variant="outline"
+                className="rounded-full"
+                disabled={isFetchingNextPage}
+                onClick={() => void fetchNextPage()}
+              >
+                {isFetchingNextPage ? "Đang tải..." : "Xem thêm"}
+              </Button>
+            )}
+          </div>
+        </>
       )}
 
       {/* Lightbox Dialog */}

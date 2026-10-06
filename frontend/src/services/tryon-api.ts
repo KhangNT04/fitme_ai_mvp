@@ -160,12 +160,12 @@ export const tryonApi = {
       })),
     };
   },
-  variantColor: async (id: string, color: string): Promise<TryOnResult> => {
-    const res = await apiClient.post(`/try-on/requests/${id}/variants/color`, { color });
+  variantColor: async (id: string, value: string, productId: string): Promise<TryOnResult> => {
+    const res = await apiClient.post(`/try-on/requests/${id}/variants/color`, { value, productId });
     return mapTryOnResult(unwrap(res) as RawTryOnResult);
   },
-  variantSize: async (id: string, size: string): Promise<TryOnResult> => {
-    const res = await apiClient.post(`/try-on/requests/${id}/variants/size`, { size });
+  variantSize: async (id: string, value: string, productId: string): Promise<TryOnResult> => {
+    const res = await apiClient.post(`/try-on/requests/${id}/variants/size`, { value, productId });
     return mapTryOnResult(unwrap(res) as RawTryOnResult);
   },
   save: async (id: string): Promise<void> => {

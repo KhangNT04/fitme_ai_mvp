@@ -1,5 +1,6 @@
 package com.fitme.common.security;
 
+import com.fitme.common.exception.UnauthenticatedException;
 import com.fitme.session.entity.AnonymousSession;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.security.core.Authentication;
@@ -27,7 +28,7 @@ public final class RequestContext {
     }
 
     public static UUID requireUserId() {
-        return getCurrentUserId().orElseThrow(() -> new IllegalStateException("Yêu cầu đăng nhập"));
+        return getCurrentUserId().orElseThrow(() -> new UnauthenticatedException("Yêu cầu đăng nhập"));
     }
 
     public static Optional<AnonymousSession> getAnonymousSession() {
@@ -53,7 +54,7 @@ public final class RequestContext {
     public static UUID requireUserOrSession() {
         return getCurrentUserId()
                 .or(() -> getSessionId())
-                .orElseThrow(() -> new IllegalStateException("Yêu cầu đăng nhập hoặc session ẩn danh"));
+                .orElseThrow(() -> new UnauthenticatedException("Yêu cầu đăng nhập hoặc session ẩn danh"));
     }
 
     private static HttpServletRequest currentRequest() {

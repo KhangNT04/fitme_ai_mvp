@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { AppImage } from "@/components/common/AppImage";
 import { validateImageFile } from "@/lib/upload-file";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Plus, Upload } from "lucide-react";
+import { Pencil, Plus, Trash2, Upload } from "lucide-react";
 import { wardrobeApi } from "@/services/wardrobe-api";
 import { useEnsureSession } from "@/hooks/use-ensure-session";
 import { Button } from "@/components/ui/button";
@@ -17,11 +17,14 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { LoadingSkeleton } from "@/components/common/LoadingSkeleton";
 import { EmptyState } from "@/components/common/EmptyState";
 import { ErrorState } from "@/components/common/ErrorState";
+import { ConfirmDialog } from "@/components/common/ConfirmDialog";
 import { PageShell } from "@/components/layout/PageShell";
 import { CollapsingPageHeader } from "@/components/layout/CollapsingPageHeader";
 import { PRODUCT_CATEGORIES } from "@/utils/constants";
 import { catalogProductGridClass, consumerPageShellClass } from "@/lib/design-tokens";
 import { getUserErrorMessage } from "@/lib/user-error-message";
+import { toast } from "@/stores/toast-store";
+import type { WardrobeItem } from "@/types/user";
 
 const EMPTY_FORM = {
   itemType: "",
@@ -37,6 +40,8 @@ export default function WardrobePage() {
   const { ensureSession } = useEnsureSession();
   const [sessionReady, setSessionReady] = useState(false);
   const [showAdd, setShowAdd] = useState(false);
+  const [editingItem, setEditingItem] = useState<WardrobeItem | null>(null);
+  const [pendingDelete, setPendingDelete] = useState<WardrobeItem | null>(null);
   const [consented, setConsented] = useState(false);
   const [pendingFile, setPendingFile] = useState<File | null>(null);
   const [formError, setFormError] = useState<string | null>(null);
@@ -50,10 +55,24 @@ export default function WardrobePage() {
 
   const resetForm = () => {
     setForm(EMPTY_FORM);
+    setEditingItem(null);
     setPendingFile(null);
     setConsented(false);
     setFormError(null);
     if (fileRef.current) fileRef.current.value = "";
+  };
+
+  const openEdit = (item: WardrobeItem) => {
+    resetForm();
+    setEditingItem(item);
+    setForm({
+      itemType: item.itemType,
+      category: item.category,
+      color: item.color,
+      fit: item.fit ?? "",
+      styleTags: item.styleTags.join(", "),
+    });
+    setShowAdd(true);
   };
 
   const { data, isLoading, error, refetch } = useQuery({
@@ -62,18 +81,21 @@ export default function WardrobePage() {
     enabled: sessionReady,
   });
 
-  const createMutation = useMutation({
+  const saveMutation = useMutation({
     mutationFn: async () => {
       const session = await ensureSession();
       if (!session) throw new Error("Không thể khởi tạo phiên. Vui lòng thử lại.");
 
-      const item = await wardrobeApi.create({
+      const payload = {
         itemType: form.itemType.trim(),
         category: form.category,
         color: form.color.trim(),
         fit: form.fit.trim() || undefined,
         styleTags: form.styleTags.split(",").map((t) => t.trim()).filter(Boolean),
-      });
+      };
+      const item = editingItem
+        ? await wardrobeApi.update(editingItem.id, { ...payload, material: editingItem.material })
+        : await wardrobeApi.create(payload);
 
       if (pendingFile) {
         if (!consented) {
@@ -87,6 +109,7 @@ export default function WardrobePage() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["wardrobe"] });
+      if (editingItem) toast.success("Đã cập nhật item");
       setShowAdd(false);
       resetForm();
     },
@@ -95,11 +118,28 @@ export default function WardrobePage() {
     },
   });
 
+  const deleteMutation = useMutation({
+    mutationFn: (id: string) => wardrobeApi.delete(id),
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ["wardrobe"] });
+      toast.success("Đã xóa item khỏi tủ đồ");
+      setPendingDelete(null);
+    },
+    onError: (err: unknown) => {
+      toast.error(getUserErrorMessage(err, "Không xóa được item. Vui lòng thử lại."));
+    },
+  });
+
   const canSave =
     form.itemType.trim().length > 0 &&
     form.category.length > 0 &&
-    !createMutation.isPending &&
+    !saveMutation.isPending &&
     (!pendingFile || consented);
+
+  const categoryOptions: string[] = [...PRODUCT_CATEGORIES];
+  if (form.category && !categoryOptions.includes(form.category)) {
+    categoryOptions.unshift(form.category);
+  }
 
   return (
     <PageShell width="full" className={consumerPageShellClass}>
@@ -160,6 +200,30 @@ export default function WardrobePage() {
                       <Badge key={t} variant="outline" className="text-xs">{t}</Badge>
                     ))}
                   </div>
+                  <div className="mt-3 flex gap-2">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      className="flex-1"
+                      onClick={() => openEdit(item)}
+                      aria-label={`Sửa ${item.itemType}`}
+                    >
+                      <Pencil className="mr-1 h-4 w-4" />
+                      Sửa
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      className="flex-1 text-red-600 hover:text-red-700"
+                      onClick={() => setPendingDelete(item)}
+                      aria-label={`Xóa ${item.itemType}`}
+                    >
+                      <Trash2 className="mr-1 h-4 w-4" />
+                      Xóa
+                    </Button>
+                  </div>
                 </CardContent>
               </Card>
             ))}
@@ -176,7 +240,7 @@ export default function WardrobePage() {
       >
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Thêm item vào tủ đồ</DialogTitle>
+            <DialogTitle>{editingItem ? "Sửa item trong tủ đồ" : "Thêm item vào tủ đồ"}</DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
             <div>
@@ -198,7 +262,7 @@ export default function WardrobePage() {
                 className="mt-1 w-full rounded-lg border border-border px-3 py-2 text-sm"
               >
                 <option value="">Chọn</option>
-                {PRODUCT_CATEGORIES.map((c) => (
+                {categoryOptions.map((c) => (
                   <option key={c} value={c}>{c}</option>
                 ))}
               </select>
@@ -214,7 +278,9 @@ export default function WardrobePage() {
               />
             </div>
             <div>
-              <Label htmlFor="wardrobe-item-image">Ảnh item (tùy chọn)</Label>
+              <Label htmlFor="wardrobe-item-image">
+                {editingItem?.imageUrl ? "Thay ảnh item (tùy chọn)" : "Ảnh item (tùy chọn)"}
+              </Label>
               <input
                 ref={fileRef}
                 id="wardrobe-item-image"
@@ -246,13 +312,33 @@ export default function WardrobePage() {
               </label>
             )}
             {formError && <p className="text-sm text-red-600">{formError}</p>}
-            <Button className="w-full" disabled={!canSave} onClick={() => createMutation.mutate()}>
+            <Button className="w-full" disabled={!canSave} onClick={() => saveMutation.mutate()}>
               <Upload className="mr-2 h-4 w-4" />
-              {createMutation.isPending ? "Đang lưu..." : "Lưu item"}
+              {saveMutation.isPending ? "Đang lưu..." : editingItem ? "Lưu thay đổi" : "Lưu item"}
             </Button>
           </div>
         </DialogContent>
       </Dialog>
+
+      <ConfirmDialog
+        open={pendingDelete != null}
+        onOpenChange={(open) => {
+          if (!open && !deleteMutation.isPending) setPendingDelete(null);
+        }}
+        title="Xóa item khỏi tủ đồ?"
+        description={
+          pendingDelete
+            ? `"${pendingDelete.itemType}" và ảnh đi kèm sẽ bị xóa vĩnh viễn khỏi tủ đồ của bạn.`
+            : ""
+        }
+        confirmLabel="Xóa"
+        cancelLabel="Giữ lại"
+        variant="destructive"
+        loading={deleteMutation.isPending}
+        onConfirm={() => {
+          if (pendingDelete) deleteMutation.mutate(pendingDelete.id);
+        }}
+      />
     </PageShell>
   );
 }

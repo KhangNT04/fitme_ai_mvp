@@ -219,7 +219,14 @@ public class AnalyticsService {
                 .buyClicks(count(events, "BUY_CLICKED"))
                 .tryOns(tryOnItemRepository.countProductTryOns(productId, false))
                 .redirectClicks(chartByEventType(events, "BUY_CLICKED"))
+                .topOccasions(toChart(tryOnItemRepository.topOccasionsForProduct(productId)))
+                .topSizes(toChart(tryOnItemRepository.topSizesForProduct(productId)))
+                .topColors(toChart(tryOnItemRepository.topColorsForProduct(productId)))
                 .build();
+    }
+
+    private List<ChartDataPoint> toChart(List<TryOnItemRepository.LabelCount> rows) {
+        return rows.stream().map(r -> point(r.getLabel(), r.getTotal())).toList();
     }
 
     public AdminDashboardResponse adminDashboard() {

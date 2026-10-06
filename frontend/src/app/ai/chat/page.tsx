@@ -186,6 +186,7 @@ export default function AiChatPage() {
           conversationId: authenticated ? conversationId : undefined,
           history: authenticated ? undefined : history,
           selectedProductId,
+          wardrobeMode: useConsultationStore.getState().draft.wardrobeMode,
         });
 
         if (result.conversationId) {

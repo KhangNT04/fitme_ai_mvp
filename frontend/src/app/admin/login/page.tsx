@@ -19,11 +19,12 @@ export default function AdminLoginPage() {
   const { setAuth } = useAuthStore();
   usePortalSessionRedirect("admin");
   const [error, setError] = useState("");
-  const { register, handleSubmit, formState: { isSubmitting } } = useForm<LoginForm>({
+  const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm<LoginForm>({
     resolver: zodResolver(loginSchema),
   });
 
   const onSubmit = async (data: LoginForm) => {
+    setError("");
     try {
       const res = await authApi.login(data, { persist: false });
       if (res.user.role !== "ADMIN") {
@@ -41,14 +42,16 @@ export default function AdminLoginPage() {
 
   return (
     <PortalLoginShell title="Admin — Đăng nhập">
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-4" noValidate>
         <div>
-          <Label>Email</Label>
-          <Input type="email" {...register("email")} className="mt-1" />
+          <Label htmlFor="email">Email</Label>
+          <Input id="email" type="email" {...register("email")} className="mt-1" aria-invalid={!!errors.email} />
+          {errors.email && <p className="mt-1 text-xs text-red-600">{errors.email.message}</p>}
         </div>
         <div>
-          <Label>Mật khẩu</Label>
-          <Input type="password" {...register("password")} className="mt-1" />
+          <Label htmlFor="password">Mật khẩu</Label>
+          <Input id="password" type="password" {...register("password")} className="mt-1" aria-invalid={!!errors.password} />
+          {errors.password && <p className="mt-1 text-xs text-red-600">{errors.password.message}</p>}
         </div>
         {error && <p className="text-sm text-red-600">{error}</p>}
         <Button type="submit" className="w-full" disabled={isSubmitting}>Đăng nhập</Button>

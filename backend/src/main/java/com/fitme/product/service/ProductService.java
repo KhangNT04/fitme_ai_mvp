@@ -5,6 +5,7 @@ import com.fitme.brand.repository.BrandRepository;
 import com.fitme.common.enums.BrandStatus;
 import com.fitme.common.enums.ProductStatus;
 import com.fitme.common.exception.BusinessException;
+import com.fitme.common.util.UrlValidator;
 import com.fitme.common.exception.NotFoundException;
 import com.fitme.product.dto.*;
 import com.fitme.product.entity.Product;
@@ -76,6 +77,7 @@ public class ProductService {
 
     @Transactional
     public ProductResponse createProduct(UUID brandId, CreateProductRequest request) {
+        requireValidPurchaseUrl(request.getPurchaseUrl());
         Product product = Product.builder()
                 .brandId(brandId)
                 .name(request.getName())
@@ -98,6 +100,7 @@ public class ProductService {
     @Transactional
     public ProductResponse updateProduct(UUID brandId, UUID productId, CreateProductRequest request) {
         Product product = getOwnedProduct(brandId, productId);
+        requireValidPurchaseUrl(request.getPurchaseUrl());
         product.setName(request.getName());
         product.setDescription(request.getDescription());
         product.setCategory(request.getCategory());
@@ -251,15 +254,39 @@ public class ProductService {
         }
         product.setStatus(ProductStatus.ACTIVE);
         updateAiEligibility(product);
-        return toResponse(productRepository.save(product));
+        Product saved = productRepository.save(product);
+        replaceReasonTag(productId, "REJECT_REASON", null);
+        return toResponse(saved);
     }
 
     @Transactional
-    public ProductResponse rejectProduct(UUID productId) {
+    public ProductResponse rejectProduct(UUID productId, String reason) {
         Product product = productRepository.findById(productId)
                 .orElseThrow(() -> new NotFoundException("Sản phẩm không tồn tại"));
         product.setStatus(ProductStatus.REJECTED);
-        return toResponse(productRepository.save(product));
+        productRepository.save(product);
+        replaceReasonTag(productId, "REJECT_REASON", reason);
+        return toResponse(product);
+    }
+
+    private static void requireValidPurchaseUrl(String purchaseUrl) {
+        if (purchaseUrl != null && !purchaseUrl.isBlank() && !UrlValidator.isValidHttpUrl(purchaseUrl)) {
+            throw new BusinessException(
+                    "Link mua hàng không hợp lệ, cần dạng https://shopee.vn/...", "INVALID_PURCHASE_URL");
+        }
+    }
+
+    private void replaceReasonTag(UUID productId, String tagType, String reason) {
+        tagRepository.findByProductId(productId).stream()
+                .filter(t -> tagType.equals(t.getTagType()))
+                .forEach(tagRepository::delete);
+        if (reason != null && !reason.isBlank()) {
+            tagRepository.save(ProductTag.builder()
+                    .productId(productId)
+                    .tagType(tagType)
+                    .tagValue(reason.trim())
+                    .build());
+        }
     }
 
     @Transactional
@@ -268,16 +295,7 @@ public class ProductService {
                 .orElseThrow(() -> new NotFoundException("Sản phẩm không tồn tại"));
         product.setStatus(ProductStatus.FLAGGED);
         productRepository.save(product);
-        tagRepository.findByProductId(productId).stream()
-                .filter(t -> "FLAG_REASON".equals(t.getTagType()))
-                .forEach(tagRepository::delete);
-        if (reason != null && !reason.isBlank()) {
-            tagRepository.save(ProductTag.builder()
-                    .productId(productId)
-                    .tagType("FLAG_REASON")
-                    .tagValue(reason.trim())
-                    .build());
-        }
+        replaceReasonTag(productId, "FLAG_REASON", reason);
         return toResponse(product);
     }
 

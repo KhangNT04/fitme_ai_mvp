@@ -116,19 +116,27 @@ public class BrandService {
     @Transactional
     public BrandResponse updateMyBrand(UUID ownerUserId, BrandOnboardingRequest request) {
         Brand brand = getBrandForOwner(ownerUserId);
-        brand.setName(request.getName());
-        brand.setDescription(request.getDescription());
+        if (request.getName() != null && !request.getName().isBlank()) {
+            brand.setName(request.getName().trim());
+        }
         if (request.getLogoUrl() != null) {
             brand.setLogoUrl(request.getLogoUrl());
         }
-        brand.setWebsiteUrl(request.getWebsiteUrl());
-        brand.setShopeeUrl(request.getShopeeUrl());
-        brand.setTiktokShopUrl(request.getTiktokShopUrl());
-        brand.setInstagramUrl(request.getInstagramUrl());
-        brand.setFacebookUrl(request.getFacebookUrl());
-        brand.setContactEmail(request.getContactEmail());
-        brand.setContactPhone(request.getContactPhone());
+        patch(request.getDescription(), brand::setDescription);
+        patch(request.getWebsiteUrl(), brand::setWebsiteUrl);
+        patch(request.getShopeeUrl(), brand::setShopeeUrl);
+        patch(request.getTiktokShopUrl(), brand::setTiktokShopUrl);
+        patch(request.getInstagramUrl(), brand::setInstagramUrl);
+        patch(request.getFacebookUrl(), brand::setFacebookUrl);
+        patch(request.getContactEmail(), brand::setContactEmail);
+        patch(request.getContactPhone(), brand::setContactPhone);
         return toResponse(brandRepository.save(brand));
+    }
+
+    /** Omitted (null) fields keep their value; an empty string clears the field. */
+    private static void patch(String value, java.util.function.Consumer<String> setter) {
+        if (value == null) return;
+        setter.accept(value.isBlank() ? null : value.trim());
     }
 
     public Brand getBrandForOwner(UUID ownerUserId) {

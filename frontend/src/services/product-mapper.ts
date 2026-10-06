@@ -165,6 +165,7 @@ export function mapProduct(raw: BackendProduct): Product {
     styleTags: tags.filter((t) => t.tagType === "STYLE").map((t) => t.tagValue || ""),
     occasionTags: tags.filter((t) => t.tagType === "OCCASION").map((t) => t.tagValue || ""),
     flagReason: tags.find((t) => t.tagType === "FLAG_REASON")?.tagValue,
+    rejectReason: tags.find((t) => t.tagType === "REJECT_REASON")?.tagValue,
     targetGender: (tags.find((t) => t.tagType === "TARGET_GENDER")?.tagValue as Product["targetGender"]) || "UNISEX",
     purchaseUrl: raw.purchaseUrl,
     purchasable: raw.purchasable === true,

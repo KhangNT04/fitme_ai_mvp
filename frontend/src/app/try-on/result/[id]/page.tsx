@@ -132,6 +132,18 @@ export default function TryOnResultPage({
             {data.recommendedColor && <Badge variant="outline">Màu: {data.recommendedColor}</Badge>}
           </div>
 
+          {data.items.some((item) => item.selectedSize || item.selectedColor) && (
+            <ul className="space-y-1 text-sm">
+              {data.items.map((item) => (
+                <li key={item.productId} className="flex flex-wrap items-center gap-2">
+                  <span className="font-medium">{item.name || item.category}</span>
+                  {item.selectedSize && <Badge variant="outline">Size {item.selectedSize}</Badge>}
+                  {item.selectedColor && <Badge variant="outline">Màu {item.selectedColor}</Badge>}
+                </li>
+              ))}
+            </ul>
+          )}
+
           {(data.improvementSuggestions?.length || data.suggestedItems?.length) ? (
             <Card>
               <CardHeader className="pb-3">

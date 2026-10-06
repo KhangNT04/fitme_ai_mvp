@@ -59,4 +59,10 @@ class TopicGuardServiceTest {
                 .thenReturn(Optional.of(false));
         assertFalse(topicGuardService.isOnTopic("hello world", List.of()));
     }
+
+    @Test
+    void allowsAmbiguousWhenClassifierUnavailable() {
+        when(geminiStylistClient.classifyFashionTopic(anyString())).thenReturn(Optional.empty());
+        assertTrue(topicGuardService.isOnTopic("mình cao 1m60 nặng 50kg thì sao", List.of()));
+    }
 }

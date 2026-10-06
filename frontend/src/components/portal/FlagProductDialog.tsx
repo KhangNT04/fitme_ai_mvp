@@ -11,6 +11,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
+import { PRODUCT_REASON_MAX_LENGTH } from "@/components/portal/RejectProductDialog";
 
 type FlagProductDialogProps = {
   open: boolean;
@@ -51,6 +52,7 @@ export function FlagProductDialog({
             id="flag-reason"
             value={reason}
             onChange={(e) => setReason(e.target.value)}
+            maxLength={PRODUCT_REASON_MAX_LENGTH}
             placeholder="Ví dụ: Ảnh không đúng sản phẩm, giá sai, vi phạm chính sách..."
             rows={4}
             className={cn(

@@ -25,6 +25,7 @@ interface ReasonDialogProps {
   required?: boolean;
   loading?: boolean;
   destructive?: boolean;
+  maxLength?: number;
   onConfirm: (reason: string) => void;
 }
 
@@ -36,6 +37,7 @@ function ReasonForm({
   required,
   loading,
   destructive,
+  maxLength = 200,
   onConfirm,
   onClose,
 }: Omit<ReasonDialogProps, "open" | "onOpenChange" | "title" | "description"> & { onClose: () => void }) {
@@ -61,7 +63,7 @@ function ReasonForm({
           id="reason-input"
           className="mt-1"
           value={reason}
-          maxLength={200}
+          maxLength={maxLength}
           placeholder={placeholder}
           onChange={(e) => setReason(e.target.value)}
           autoFocus

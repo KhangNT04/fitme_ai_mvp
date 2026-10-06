@@ -7,18 +7,23 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { AuthCardShell } from "@/components/layout/AuthCardShell";
+import { getUserErrorMessage } from "@/lib/user-error-message";
 
 export default function ForgotPasswordPage() {
   const [email, setEmail] = useState("");
   const [sent, setSent] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
+    setError("");
     try {
       await authApi.forgotPassword({ email });
       setSent(true);
+    } catch (err: unknown) {
+      setError(getUserErrorMessage(err, "Không gửi được yêu cầu đặt lại mật khẩu. Vui lòng thử lại."));
     } finally {
       setLoading(false);
     }
@@ -53,6 +58,7 @@ export default function ForgotPasswordPage() {
             <Label>Email</Label>
             <Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} className="mt-1" required />
           </div>
+          {error && <p role="alert" className="text-sm text-red-600">{error}</p>}
           <Button type="submit" className="w-full" disabled={loading}>
             {loading ? "Đang gửi..." : "Gửi link đặt lại"}
           </Button>

@@ -11,5 +11,6 @@ public class PhotoUploadResponse {
     private UUID id;
     private String fileUrl;
     private String qualityStatus;
+    private String qualityMessage;
     private String status;
 }

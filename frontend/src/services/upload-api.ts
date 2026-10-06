@@ -22,6 +22,7 @@ interface BackendPhotoUploadResponse {
   id: string;
   fileUrl?: string;
   qualityStatus?: string;
+  qualityMessage?: string | null;
   status?: string;
 }
 
@@ -50,11 +51,12 @@ function normalizePhotoUpload(data: BackendPhotoUploadResponse): PhotoQualityRes
     photoUploadId: data.id,
     quality,
     message:
-      quality === "GOOD"
+      data.qualityMessage ||
+      (quality === "GOOD"
         ? "Ảnh đạt chất lượng tốt"
         : quality === "ACCEPTABLE"
           ? "Ảnh chấp nhận được"
-          : "Ảnh chưa đạt yêu cầu",
+          : "Ảnh chưa đạt yêu cầu"),
     canProceed: quality === "GOOD" || quality === "ACCEPTABLE",
     fileUrl: resolveOptionalImageSrc(data.fileUrl),
   };

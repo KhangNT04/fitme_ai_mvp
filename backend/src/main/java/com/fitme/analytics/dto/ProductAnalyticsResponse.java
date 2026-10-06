@@ -12,4 +12,7 @@ public class ProductAnalyticsResponse {
     private long buyClicks;
     private long tryOns;
     private List<ChartDataPoint> redirectClicks;
+    private List<ChartDataPoint> topOccasions;
+    private List<ChartDataPoint> topSizes;
+    private List<ChartDataPoint> topColors;
 }

@@ -17,15 +17,15 @@ app/                    Route pages (App Router)
   ├── page.tsx          Marketing home (custom full-bleed layout)
   ├── ai/               AI consultation wizard
   ├── try-on/           Virtual try-on flow (tiêu thụ Fitken khi generate AI)
-  ├── pricing/          Bảng giá consumer: Free vs FitMe Pro 49k/tháng
-  ├── billing/return/   Xác nhận thanh toán PayOS gói Pro
+  ├── pricing/          Bảng giá consumer: FitMe Free vs FitMe Premium
+  ├── billing/return/   Xác nhận thanh toán PayOS gói Premium
   ├── rewards/          Trang Nhận thưởng (điểm danh, chia sẻ, đánh giá)
-  ├── cart/ checkout/   Giỏ hàng & thanh toán COD / PayOS
-  ├── orders/           Lịch sử đơn hàng, chi tiết & tracking vận đơn
-  ├── profile/          Hồ sơ, địa chỉ giao hàng (`addresses`), thư viện ảnh (`gallery`)
+  ├── redirect/         Xác nhận mua tại cửa hàng gốc (consent chia sẻ thông tin) → loading → URL brand
+  ├── profile/          Hồ sơ, thư viện ảnh (`gallery`), tủ chi tiêu (`purchases`), brand yêu thích (`style-preferences`)
+  ├── wardrobe/         Tủ đồ cá nhân (Premium)
   ├── auth/             Login / register / password reset
-  ├── brand/            Seller portal: catalog, đơn hàng (`orders`), đối soát (`settlements`)
-  ├── admin/            Admin portal: duyệt brand/SP, đơn hàng, đối soát, rewards, reviews, plans
+  ├── brand/            Brand portal: catalog, khách quan tâm (`leads`), Gói Plus (`plan`), analytics
+  ├── admin/            Admin portal: tài khoản, brand/SP, gói dịch vụ, voucher brand, cài đặt, retention, rewards, reviews
   └── ...
 
 components/
@@ -63,46 +63,69 @@ lib/design-tokens.ts    Presentational class constants
 
 ```
 com.fitme/
-  ├── fitken/           Ví Fitken (TRIAL, CHECKIN, SHARE, REVIEW, TRY_ON_SPEND), ledger
-  ├── billing/          Consumer subscription (FitMe Pro 49k/tháng), BillingPlan, PayOS webhook
+  ├── fitken/           Ví Fitken (TRIAL, CHECKIN, SHARE, REVIEW, TRY_ON_SPEND), ledger, trần Fitken miễn phí
+  ├── billing/          BillingPlan (audience CONSUMER/BRAND), gói Premium, đơn PayOS, PayOS webhook, job hết hạn đơn chờ
+  ├── entitlement/      Phân tầng FitMe Free vs FitMe Premium (coherence modes PREFER/STRICT, requirePremium)
+  ├── preference/       Brand yêu thích của người dùng Premium (DIVERSE / FAVORITES_ONLY)
+  ├── brandplus/        Gói Brand Plus: báo giá, checkout PayOS, kích hoạt / gia hạn, hết hạn
+  ├── brandvoucher/     Chiến dịch voucher, phát / thu hồi voucher brand, giữ voucher cho đơn Plus
+  ├── brandlead/        Khách quan tâm (lead có consent) từ buy-click, đánh dấu đã bán
+  ├── settings/         Cài đặt hệ thống (trần Fitken, lượt thử Plus miễn phí, điểm ưu tiên Plus), cache 60s
   ├── rewards/          Điểm danh chuỗi 3 ngày, nộp link chia sẻ mạng xã hội
-  ├── review/           Đánh giá sản phẩm có ảnh, verified purchase verification
+  ├── review/           Đánh giá sản phẩm có ảnh, nhãn "Đã mua hàng" (tự xác nhận mua hoặc lead đã bán)
   ├── gallery/          Thư viện ảnh outfit cá nhân (`outfit_gallery_images`)
-  ├── cart/             Giỏ hàng gom nhóm theo thương hiệu
-  ├── address/          Sổ địa chỉ nhận hàng người dùng
-  ├── order/            Đơn khách (COD/PayOS), tách đơn seller, tạo shipment, tracking
-  ├── settlement/       Đối soát doanh thu seller, hoa hồng sàn 10%, quyết toán chuyển khoản
-  ├── logistics/        Webhook cập nhật trạng thái vận đơn từ carrier (GHN/GHTK/ViettelPost)
-  ├── voucher/          Cấp và áp dụng voucher freeship (admin cấp; gói Pro hiện không kèm voucher)
-  ├── entitlement/      Phân tầng Free vs Pro (coherence modes PREFER/STRICT)
-  ├── product/          Catalog sản phẩm, biến thể tồn kho, kiểm duyệt admin
-  ├── brand/            Brand profile, seller portal orders/shipments/payout
-  ├── recommendation/   Gợi ý phối đồ AI (hybrid rule + Gemini Flash)
-  ├── tryon/            Lifecycle thử đồ ảo (tiêu 1 Fitken/lượt AI)
+  ├── product/          Catalog sản phẩm (purchaseUrl bắt buộc), kiểm duyệt admin
+  ├── brand/            Brand profile, đăng ký brand, dashboard brand
+  ├── redirect/         Buy-click, chuyển khách sang cửa hàng gốc, lịch sử mua, tạo lead
+  ├── wardrobe/         Tủ đồ cá nhân (Premium)
+  ├── recommendation/   Gợi ý phối đồ AI (hybrid rule + Gemini Flash), ưu tiên brand Plus
+  ├── stylistchat/      Chat stylist AI
+  ├── tryon/            Lifecycle thử đồ ảo (1 Fitken/lượt AI hoặc lượt Plus miễn phí)
   ├── preview/          Upload ảnh người dùng, gọi microservice VTON (FASHN/HF)
+  ├── analytics/        Dashboard brand/admin, tăng trưởng, retention, khách trả tiền, truy cập
   ├── auth/ session/    JWT, xác thực email, liên kết phiên ẩn danh
-  ├── privacy/          Consent, yêu cầu xóa dữ liệu (GDPR/PDPA)
+  ├── privacy/          Consent (kể cả BRAND_LEAD_SHARING), yêu cầu xóa dữ liệu (GDPR/PDPA)
+  ├── admin/            Rules, flagged links, quản lý tài khoản, avatar thử đồ, monitoring
   ├── storage/          Lưu trữ file local / Cloudflare R2
   └── common/           Security, config (FitMeProperties), ApiResponse envelope, exception
 ```
 
-### B2C Core & Commerce Subsystems
+Các package thương mại `cart`, `address`, `order`, `settlement`, `logistics`, `voucher` (voucher freeship người dùng) đã bị gỡ ở V27.
+
+### B2C Core & Brand Plus Subsystems
 
 1. **Fitken Tokenomics & Try-on**:
    - 1 Fitken = 1 lượt thử đồ AI (`USER_PHOTO` / `AVATAR`). `OUTFIT_BOARD_ONLY` miễn phí.
-   - Ví gồm 2 ngăn: `subscription_remaining` (từ gói Pro, reset về 0 khi hết hạn) và `bonus_remaining` (tặng 5 Fitken dùng thử lần đầu, điểm danh, chia sẻ, đánh giá, admin cấp — không hết hạn). Tiêu ngăn subscription trước.
+   - Ví gồm 2 ngăn: `subscription_remaining` (từ gói Premium, reset về 0 khi hết hạn) và `bonus_remaining` (tặng 5 Fitken dùng thử lần đầu, điểm danh, chia sẻ, đánh giá, top-up, admin cấp — không hết hạn). Tiêu ngăn subscription trước.
+   - **Trần Fitken miễn phí** (`fitken.max_balance`, mặc định 50): trial / điểm danh / chia sẻ / đánh giá chỉ cộng tới trần. Premium, top-up, admin điều chỉnh không bị áp trần.
    - Trừ Fitken lúc bắt đầu generate; hoàn lại nếu kết quả thất bại hoặc dùng ảnh fallback minh họa.
-2. **Gói FitMe Pro**:
-   - 49.000đ/tháng qua PayOS checkout: +15 Fitken vào ngăn subscription, +2 voucher FREESHIP (giảm tối đa 30.000đ/voucher).
-   - Tự động đồng bộ quyền lợi Pro (`plus_coherence_mode = PREFER/STRICT`).
-3. **Thương mại điện tử & Seller Portal**:
-   - Đơn hàng người dùng (`orders`) hỗ trợ thanh toán COD hoặc PayOS. Khi đặt hàng, đơn được tự động tách thành các **đơn seller** (`seller_orders`) theo từng brand.
-   - Quản lý vận đơn (`shipments`) với carrier (GHN, GHTK, VIETTEL_POST, SELF), cập nhật qua seller portal hoặc logistics webhook (`POST /api/v1/webhooks/logistics`).
-   - Đối soát seller (`seller_settlements`): đơn hoàn thành sau 7 ngày đổi trả (`settlement-hold-days`) đủ điều kiện đối soát. Hoa hồng sàn 10% trên subtotal.
-4. **Nhận thưởng & Đánh giá**:
+   - **Lượt thử Plus miễn phí**: khi mọi sản phẩm thuộc brand đang Plus, user đăng nhập được thử miễn phí `tryon.plus_free_daily` lượt/ngày (mặc định 3, bảng `plus_free_tryon_usage`); lỗi nhà cung cấp hoàn lượt.
+2. **Gói FitMe Premium** (`PREMIUM_MONTHLY`, mặc định 49.000đ / 30 ngày):
+   - PayOS checkout: +15 Fitken vào ngăn subscription.
+   - Mở tủ đồ cá nhân, brand yêu thích (`PREMIUM_REQUIRED` cho user Free), coherence `PREFER`/`STRICT`.
+   - Giá trị cũ `PRO` / `PLUS` của `consumer_plan` được đọc thành `PREMIUM`.
+3. **Mua tại cửa hàng gốc & khách quan tâm**:
+   - FitMe không bán hàng. `purchaseUrl` của sản phẩm bắt buộc (`INVALID_PURCHASE_URL` nếu sai). Buy-click chuyển khách sang URL brand.
+   - User đăng nhập đang đồng ý `BRAND_LEAD_SHARING` → tạo `brand_leads` (1 / user / sản phẩm / ngày). Rút đồng ý → brand thấy `WITHDRAWN`; xoá tài khoản → `user_id = NULL` (`ANONYMIZED`).
+4. **Brand Plus** (`BRAND_PLUS`, mặc định 999.000đ / 30 ngày):
+   - Quyền lợi: huy hiệu Plus, lượt thử miễn phí cho khách, ưu tiên gợi ý (`recommendation.plus_boost`), xem chi tiết lead và đánh dấu đã bán (`PLUS_REQUIRED` nếu không Plus).
+   - Giá: chỉ áp **một** mức giảm — cao hơn giữa giảm theo thời gian của gói (`WINDOW`) và voucher (`VOUCHER`). Voucher được áp chuyển `RESERVED`; đơn PAID → `USED`, FAILED / CANCELLED / EXPIRED → trả về `ISSUED`.
+   - Gia hạn cộng nối vào `endsAt` hiện tại. Webhook PayOS dùng chung với đơn Premium, idempotent.
+5. **Nhận thưởng & Đánh giá**:
    - Điểm danh chuỗi 3 ngày liên tiếp: +1 Fitken (`CHECKIN_REWARD`).
    - Chia sẻ bài đăng mạng xã hội: +3 Fitken (`SHARE_REWARD`), tối đa 1 lần/ngày, admin có thể duyệt/từ chối.
    - Đánh giá sản phẩm có ảnh (≥20 ký tự, ≥1 ảnh): +2 Fitken (`REVIEW_REWARD`), tối đa 1 đánh giá được thưởng/ngày.
+   - Tất cả thưởng bị giới hạn bởi trần Fitken miễn phí.
+
+### Scheduled jobs
+
+| Job | Lịch | Việc làm |
+|-----|------|----------|
+| `ConsumerSubscriptionService` | 00:05 hằng ngày (`Asia/Ho_Chi_Minh`) | Hết hạn Premium, reset ngăn subscription |
+| `BrandPlusService` | 00:10 hằng ngày | Hết hạn Brand Plus |
+| `BrandVoucherService` | 00:15 hằng ngày | Chuyển voucher quá hạn sang `EXPIRED` |
+| `BillingOrderExpiryJob` | Mỗi 15 phút (chạy lần đầu sau 1 phút) | Đơn gói `PENDING` quá `fitme.billing.pending-expiry-hours` (24h) → `EXPIRED` |
+| `TryOnJobPoller` | Mỗi `fitme.ai.poll-interval-ms` (3s) | Poll job VTON |
 
 ### Recommendation pipeline
 
@@ -115,20 +138,24 @@ RecommendationController
       → SizeResolutionService
 ```
 
-*Lưu ý:* `ProductEligibilityService` lọc sản phẩm ACTIVE, còn hàng (IN_STOCK) và có ảnh; không còn ràng buộc quota theo brand.
+*Lưu ý:* `ProductEligibilityService` lọc sản phẩm ACTIVE, không `OUT_OF_STOCK` (trạng thái cấp sản phẩm; tồn kho biến thể đã bỏ ở V27) và có ảnh; không còn ràng buộc quota theo brand. `OutfitScoreContext` cộng điểm `recommendation.plus_boost` cho sản phẩm brand Plus; brand yêu thích của user Premium (`preference/`) lọc hoặc ưu tiên brand khi phối.
 
 ### Admin surface
 
 ```
 AdminController → AdminRuleService, BrandService, RedirectService, PrivacyService
                 → AdminFlaggedLinkService, AdminPreviewMonitoringService
-AdminOrderController → Giám sát đơn hàng toàn sàn
-AdminSettlementController → Tổng quan GMV/hoa hồng, tạo & quyết toán kỳ đối soát seller
+                → Metrics, retention, khách trả tiền, dashboard
+AdminUserController → Quản lý tài khoản, khoá / mở, gán Premium (consumer-plan)
 AdminFitkenController → Quản lý số dư & điều chỉnh Fitken người dùng
 AdminRewardController → Duyệt / từ chối link chia sẻ nhận thưởng
 AdminReviewController → Kiểm duyệt & ẩn đánh giá sản phẩm
-AdminBillingController → Quản lý danh mục gói Pro (fitkenAmount, freeshipVouchers...)
-AdminProductController → Kiểm duyệt sản phẩm của brand
+AdminBillingController → Gói dịch vụ (người dùng + brand, giảm giá theo thời gian cho gói brand)
+AdminBrandPlusController → Danh sách brand đã mua Plus
+AdminVoucherCampaignController → Chiến dịch voucher, phát / thu hồi voucher brand
+AdminSystemSettingsController → Cài đặt hệ thống (system_settings)
+AdminProductController → Kiểm duyệt sản phẩm của brand (chặn duyệt khi thiếu purchaseUrl hợp lệ)
+AdminTryOnAvatarController → Avatar mẫu thử đồ
 ```
 
 All responses use `ApiResponse<T>`: `{ success, data, error?, message? }`.
@@ -157,11 +184,16 @@ sequenceDiagram
 
 ## Database
 
-- Flyway migrations: `backend/src/main/resources/db/migration/` (V1 → V19)
+- Flyway migrations: `backend/src/main/resources/db/migration/` (V1 → V32, 31 file; không có V5)
 - `V1__init_schema.sql` — schema khởi tạo ban đầu
-- `V17__user_vouchers.sql` — bảng voucher người dùng (`user_vouchers`)
 - `V18__b2c_fitken.sql` — drop bảng billing brand cũ, chuyển đổi `billing_plans` sang gói consumer, ví & ledger Fitken, consumer subscription & order, điểm danh, chia sẻ, đánh giá, thư viện ảnh
-- `V19__commerce.sql` — tồn kho biến thể, địa chỉ người dùng, giỏ hàng, đơn hàng khách, đơn seller, vận đơn, đối soát seller
+- `V19__commerce.sql`, `V20__order_refund_due.sql`, `V17__user_vouchers.sql` — thương mại cũ (giỏ, đơn, vận đơn, đối soát, voucher người dùng); đã gỡ ở V27
+- `V27__remove_commerce.sql` — drop carts, orders, addresses, settlements, shipments, user_vouchers, tồn kho biến thể
+- `V28__settings_premium_brand_prefs.sql` — `system_settings`, đổi `PRO_MONTHLY` → `PREMIUM_MONTHLY`, brand yêu thích
+- `V29__brand_plus.sql` — `billing_plans.audience`, giảm giá theo thời gian, gói `BRAND_PLUS`, subscription & đơn Brand Plus
+- `V30__plus_free_tryon_usage.sql` — đếm lượt thử Plus miễn phí theo ngày
+- `V31__brand_vouchers.sql` — chiến dịch voucher, voucher brand
+- `V32__brand_leads.sql` — `brand_leads`, index consent mới nhất theo user / loại, gắn brand / sản phẩm cho lịch sử try-on (dashboard brand)
 - Hibernate `ddl-auto: validate` (schema owned by Flyway)
 
 ## Testing pyramid
@@ -179,6 +211,6 @@ sequenceDiagram
 1. **backend-test** — `mvn test` (Testcontainers PostgreSQL)
 2. **frontend-unit** — `npm test`
 3. **frontend-build** — `npm run build`
-4. **e2e** — Postgres service + Spring Boot + Playwright (`smoke-routes` + `role-flows`)
+4. **e2e** — "E2E (full suite)": Postgres service + Spring Boot + Playwright, chạy mọi spec trên chromium và `mobile-nav` trên mobile-chrome
 
 See also: [`API_CONTRACT.md`](API_CONTRACT.md), [`QA_REPORT.md`](QA_REPORT.md), [`USER_GUIDE.md`](USER_GUIDE.md), [`DEVELOPER_GUIDE.md`](DEVELOPER_GUIDE.md).

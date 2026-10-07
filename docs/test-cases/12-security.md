@@ -2,13 +2,16 @@
 
 [← Mục lục](../TEST_CASES.md)
 
-Các case bảo mật gắn với từng tính năng đã nằm trong module tương ứng (ví dụ AUTH-LOG-10 brute-force, PAY-07 webhook giả). File này gom các case xuyên suốt hệ thống.
+Các case bảo mật gắn với từng tính năng đã nằm trong module tương ứng (ví dụ AUTH-LOG-10 brute-force, SUB-15 / BP-BUY-05 webhook giả). File này gom các case xuyên suốt hệ thống.
+
+SEC-CFG-12 (token webhook vận chuyển) đã xoá vì thương mại in-app và webhook vận chuyển bị gỡ ở V27 (`7ae8d1d`).
 
 ## Hiện trạng (đọc từ code)
 
 | Hạng mục | Hiện trạng |
 |---|---|
 | Phân quyền | `/api/v1/admin/**` cần ADMIN, `/api/v1/brand/**` cần BRAND_OWNER; vai trò đọc **từ DB** mỗi request (sửa claim `role` trong token không có tác dụng ở backend) |
+| Quyền lợi theo gói | Kiểm tra ở backend, không chỉ ẩn UI: tủ đồ và lưu brand yêu thích trả 403 `PREMIUM_REQUIRED` cho Free / khách; chi tiết khách quan tâm và "Đã bán" trả 403 `PLUS_REQUIRED` (danh sách chỉ trả số liệu tổng) cho brand không Plus. Giá thanh toán gói do server tính, body chỉ nhận `voucherId` |
 | Chưa đăng nhập | Không có entry point riêng → API cần đăng nhập trả **403 rỗng** thay vì 401; FE chỉ tự refresh khi gặp 401 |
 | JWT | HMAC (HS512 với secret mặc định 64 byte); secret mặc định dev nằm trong code — prod phải ghi đè |
 | Rate limit | **Không có** rate limit chung. Chỉ có: chat 20 / giờ, cooldown email 60 giây, captcha, honeypot |
@@ -25,22 +28,29 @@ Các case bảo mật gắn với từng tính năng đã nằm trong module tư
 | ID | Loại | Ưu tiên | Tiền điều kiện | Các bước | Dữ liệu test | Kết quả mong đợi | BE | FE | E2E | PROD | Ghi chú |
 |---|---|---|---|---|---|---|---|---|---|---|---|
 | SEC-AUZ-01 | W | P0 | 4 vai trò: khách, user, brand, admin | Gọi một API đại diện của từng nhóm (public, user, brand, admin) bằng từng vai trò | Ma trận 4 × 4 | Chỉ vai trò đúng mới truy cập được; còn lại 401/403 | ✅ | — | ✅ | ✅ | `SecurityConfigTest`; rbac.spec; prod 4 kiểm tra RBAC |
-| SEC-AUZ-02 | W | P0 | User A, B | Lần lượt thử truy cập tài nguyên của B bằng ID: địa chỉ, đơn hàng, dòng giỏ, ảnh upload, kết quả thử mặc, ảnh thư viện, hội thoại chat, món tủ đồ, sự kiện redirect | — | Tất cả 403/404 | ✅ | — | — | ❌ | Đã test: địa chỉ, đơn, seller order, tủ đồ, redirect. Chưa test: giỏ, ảnh upload, thử mặc, thư viện, chat |
-| SEC-AUZ-03 | W | P0 | Brand A, B | Thao tác sản phẩm / đơn / phân tích của B | — | 403 | ✅ | — | — | ❌ | Xem BR-PRD-20, BR-PRD-21, BR-ORD-10 |
+| SEC-AUZ-02 | W | P0 | User A, B | Lần lượt thử truy cập tài nguyên của B bằng ID: đơn thanh toán gói Premium, ảnh upload, kết quả thử mặc, ảnh thư viện, hội thoại chat, món tủ đồ, sự kiện redirect | — | Tất cả 403/404 | ✅ | — | — | ❌ | Đã test: đơn gói (`returnForSomeoneElsesOrderIsRejected`), tủ đồ (`listItems_isolatedPerPremiumUser`), redirect. Chưa test: ảnh upload, thử mặc, thư viện, chat. Test địa chỉ / đơn hàng / giỏ đã xoá cùng V27 |
+| SEC-AUZ-03 | W | P0 | Brand A, B | Thao tác sản phẩm / phân tích / đơn Brand Plus / voucher / khách quan tâm của B | — | 403/404, dữ liệu của B không đổi | ✅ | — | — | ❌ | Xem BR-PRD-20, BR-PRD-21, BP-BUY-08, BV-USE-10, BV-USE-11, LEAD-10 |
 | SEC-AUZ-04 | W | P1 | — | Gọi API cần đăng nhập không có token | `GET /me/fitken` | Trả 401 rõ ràng (để FE xử lý thống nhất) | ❌ | — | — | ✅ | Hiện trả 403 rỗng |
 | SEC-AUZ-05 | W | P0 | User thường | Sửa claim `role` thành ADMIN trong token (giữ chữ ký cũ) | — | Bị từ chối (chữ ký sai) | ✅ | — | — | ❌ | BE `P0SecurityIntegrationTest#tamperedRoleClaimWithOriginalSignature_isRejected` |
 | SEC-AUZ-06 | W | P0 | — | Tạo token với `alg: none` | — | Bị từ chối | ✅ | — | — | ❌ | BE `P0SecurityIntegrationTest#unsignedAlgNoneToken_isRejected` |
 | SEC-AUZ-07 | W | P0 | — | Ký token bằng secret mặc định dev (`fitme-dev-secret-change-in-production…`) gửi lên prod | — | Bị từ chối (prod dùng secret khác) | ❌ | — | — | ❌ | Kiểm tra cấu hình prod |
 | SEC-AUZ-08 | W | P1 | — | Gọi `/api/v1/test/password-reset-token?email=` trên prod | — | 404 (endpoint không tồn tại ở prod) | ❌ | — | — | ❌ | |
-| SEC-AUZ-09 | W | P1 | User thường | Gọi `PUT /me/entitlement/users/{id}` để tự cấp Pro | — | 403 | ❌ | — | — | ❌ | Endpoint admin nằm dưới `/me/**` |
+| SEC-AUZ-09 | W | P1 | User thường | Gọi `PUT /me/entitlement/users/{id}` để tự cấp Premium | — | 403 | ❌ | — | — | ❌ | Endpoint admin nằm dưới `/me/**`, chặn bằng `@PreAuthorize("hasRole('ADMIN')")`; chưa có test |
 | SEC-AUZ-10 | W | P1 | User thường | Gọi API admin rules cũ `/admin/rules/*` | — | 403 | ✅ | — | — | ❌ | |
+| SEC-AUZ-11 | W | P0 | User, admin, khách | Gọi API brand mới: `/brand/plan/**`, `/brand/vouchers`, `/brand/leads/**` | — | 403 | ✅ | — | — | ❌ | `onlyBrandOwnersReachTheBrandPlanApi`, `onlyAdminsReachTheVoucherAdminApi_andOnlyBrandOwnersTheBrandApi`; `/brand/leads` dựa vào luật chung `/api/v1/brand/**` |
+| SEC-AUZ-12 | W | P0 | User, brand, khách | Gọi API admin mới: `/admin/settings`, `/admin/retention`, `/admin/voucher-campaigns/**`, `/admin/brand-vouchers/**`, `/admin/brand-subscriptions`, `/admin/billing/plans` | — | 403 | ✅ | — | — | ❌ | `nonAdminsCannotReadOrUpdateSettings`, `retentionIsAdminOnly`, `onlyAdminsReachTheVoucherAdminApi…`; `brand-subscriptions`, `billing/plans` dựa vào luật chung `/api/v1/admin/**`, chưa có test riêng |
+| SEC-AUZ-13 | W | P0 | Người dùng Free, khách | Gọi trực tiếp API Premium: `/wardrobe/**`, `PUT /me/brand-preferences` | — | 403 `PREMIUM_REQUIRED`; ẩn nút trên UI không phải lớp chặn duy nhất | ✅ | — | ✅ | ❌ | Xem WAR-02, PREF-02, PREM-07 |
+| SEC-AUZ-14 | W | P0 | Brand không có Plus (hoặc Plus đã hết hạn) | Gọi `GET /brand/leads`, `PATCH /brand/leads/{id}/sold` | — | GET chỉ có số liệu tổng (`plusRequired=true`), không có tên / email khách; PATCH 403 `PLUS_REQUIRED` | ✅ | — | — | ❌ | `plusBrandSeesCustomerDetails_nonPlusBrandOnlyCounts`, `markingSoldNeedsPlusAndTheBrandsOwnLead` |
+| SEC-AUZ-15 | W | P0 | User thường | Mua gói brand qua luồng người dùng: `POST /me/subscription/checkout` với `planId` BRAND_PLUS | — | Bị từ chối; không có Brand Plus cho tài khoản người dùng | ✅ | — | — | ❌ | `consumerFlowsNeverOfferOrAcceptBrandPlus`; xem BP-BUY-11 |
+| SEC-AUZ-16 | W | P0 | Brand | Gửi thêm `amount` / `finalPrice` / `endsAt` trong body `POST /brand/plan/checkout` | `{"voucherId":null,"amount":1000}` | Trường lạ bị bỏ qua; số tiền do server tính từ giá gói, giảm giá, voucher | ❌ | — | — | ❌ | DTO chỉ có `voucherId` |
+| SEC-AUZ-17 | W | P1 | Brand bị tạm ngưng / chưa duyệt | Gọi `/brand/plan/checkout`, `/brand/vouchers`, `/brand/leads` | — | 400 `BRAND_SUSPENDED` / `BRAND_NOT_APPROVED`; không mua được Plus, không xem được khách | ❌ | — | — | ❌ | Dùng chung `getBrandForOwner`; xem BP-BUY-15 |
 
 ## 12.2 Tấn công đầu vào (SEC-INJ)
 
 | ID | Loại | Ưu tiên | Tiền điều kiện | Các bước | Dữ liệu test | Kết quả mong đợi | BE | FE | E2E | PROD | Ghi chú |
 |---|---|---|---|---|---|---|---|---|---|---|---|
 | SEC-INJ-01 | W | P0 | — | Chèn SQL vào tìm kiếm, bộ lọc, admin tìm tài khoản | `' OR '1'='1`, `'; DROP TABLE users;--` | Không lỗi 500, không lộ dữ liệu | ✅ | — | — | ❌ | JPA dùng tham số hoá nhưng chưa có test; BE `P0SecurityIntegrationTest#adminUserSearch_isParameterizedEscapedAndPageBounded` |
-| SEC-INJ-02 | W | P0 | — | Chèn XSS vào: họ tên, tên brand, mô tả brand, tên sản phẩm, mô tả sản phẩm, đánh giá, tin nhắn chat, tên món tủ đồ, ghi chú đơn, lý do huỷ | `<img src=x onerror=alert(document.cookie)>` | Hiển thị như văn bản ở mọi nơi (cửa hàng, portal brand, portal admin, email) | ❌ | ❌ | ❌ | ❌ | React tự escape; cần kiểm tra chỗ dùng `dangerouslySetInnerHTML` và email HTML |
+| SEC-INJ-02 | W | P0 | — | Chèn XSS vào: họ tên, tên brand, mô tả brand, tên sản phẩm, mô tả sản phẩm, đánh giá, tin nhắn chat, tên món tủ đồ, tên chiến dịch voucher, lý do từ chối sản phẩm | `<img src=x onerror=alert(document.cookie)>` | Hiển thị như văn bản ở mọi nơi (cửa hàng, portal brand, portal admin, email) | ❌ | ❌ | ❌ | ❌ | React tự escape; cần kiểm tra chỗ dùng `dangerouslySetInnerHTML` và email HTML |
 | SEC-INJ-03 | W | P1 | — | Chèn HTML vào tên hiển thị rồi kích hoạt email | — | Email HTML không chạy / không hiển thị HTML lạ | ❌ | — | — | ❌ | |
 | SEC-INJ-04 | W | P1 | — | Link mua `javascript:alert(1)` / `data:text/html…` | — | Không bao giờ hiện thành link bấm được | ✅ | — | — | ❌ | `UrlValidatorTest`, `canShowBuyButton_whenDataUrl…` |
 | SEC-INJ-05 | W | P1 | — | Chèn công thức vào dữ liệu xuất CSV | `=1+1`, `@SUM(A1)` | Ô được thêm `'` | ❌ | — | — | ❌ | Xem ADM-GRW-04 |
@@ -85,7 +95,6 @@ Các case bảo mật gắn với từng tính năng đã nằm trong module tư
 | SEC-CFG-08 | W | P1 | — | Mở `/actuator/env`, `/actuator/beans` | — | 404 | ❌ | — | — | ❌ | |
 | SEC-CFG-09 | W | P1 | — | Cookie portal | — | `HttpOnly`, `Secure`, `SameSite=Lax` | — | ❌ | — | ❌ | |
 | SEC-CFG-10 | W | P1 | — | Token lưu localStorage | — | Ghi nhận rủi ro: nếu có XSS thì token bị đánh cắp | — | — | — | — | |
-| SEC-CFG-11 | W | P1 | — | Prod chạy PayOS ở chế độ live và có `checksum-key` | — | Đúng cấu hình (mock không kiểm tra chữ ký webhook) | ❌ | — | — | ❌ | Xem PAY-07 |
-| SEC-CFG-12 | W | P1 | — | Prod không dùng `dev-logistics-token` | — | Token webhook vận chuyển là giá trị bí mật riêng | ❌ | — | — | ❌ | |
-| SEC-CFG-13 | W | P1 | — | `robots.txt` | — | Chặn `/admin`, `/brand`, `/api`, `/auth`, `/profile`, `/checkout`, `/cart` | — | — | — | ❌ | |
+| SEC-CFG-11 | W | P1 | — | Prod chạy PayOS ở chế độ live và có `checksum-key` | — | Đúng cấu hình (mock không kiểm tra chữ ký webhook; mock còn tự đánh dấu đơn đã trả khi mở trang return) | ❌ | — | — | ❌ | Xem SUB-15, BP-BUY-05 |
+| SEC-CFG-13 | W | P1 | — | `robots.txt` | — | Chặn `/admin`, `/brand`, `/api`, `/auth`, `/profile` | — | — | — | ❌ | `/checkout`, `/cart` đã gỡ cùng V27 |
 | SEC-CFG-14 | W | P2 | — | `/api/auth/session` không gửi token / token sai | — | 400 "Missing token" / 401 "Invalid token" | — | ❌ | — | ❌ | |

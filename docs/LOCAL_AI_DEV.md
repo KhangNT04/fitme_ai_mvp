@@ -60,7 +60,7 @@ chmod +x scripts/dev-local.sh
 | http://localhost:8080/actuator/health | Backend health |
 | http://localhost:8001/docs | ai-vton OpenAPI |
 
-**Tài khoản demo:** `user@fitme.ai` / `fitme123` (nếu seed bật)
+**Tài khoản demo:** `user@fitme.ai` / `<giá trị trong biến FITME_PASSWORD>` (nếu seed bật)
 
 ---
 

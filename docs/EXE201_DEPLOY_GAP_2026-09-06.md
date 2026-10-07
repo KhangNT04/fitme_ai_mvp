@@ -31,7 +31,7 @@
 | Check | Kết quả |
 |-------|---------|
 | Home `/` | OK — hero, CTA tư vấn / discover |
-| Login `user@fitme.ai` / `fitme123` | OK → `/profile` (Demo User) |
+| Login `user@fitme.ai` / `<giá trị trong biến FITME_PASSWORD>` | OK → `/profile` (Demo User) |
 | Login `admin@fitme.ai` | OK — role ADMIN |
 | Login `brand@fitme.ai` | OK — role BRAND_OWNER |
 | `/api/v1/products` (không truyền `size=`) | **36** SP ACTIVE public |

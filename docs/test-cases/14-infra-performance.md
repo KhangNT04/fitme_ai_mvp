@@ -7,11 +7,11 @@
 | Hạng mục | Hiện trạng |
 |---|---|
 | Triển khai | Frontend Next.js trên Vercel (tự deploy khi push); backend Spring Boot trên Render Free (deploy tay, khởi động lạnh ~3 phút) |
-| CSDL | PostgreSQL, Flyway 24 file, mới nhất V25 (thiếu V5) |
+| CSDL | PostgreSQL, Flyway 31 file, mới nhất V32 (thiếu V5). V27 gỡ thương mại in-app (giỏ, đơn hàng, địa chỉ, đối soát, vận chuyển, voucher người dùng, tồn kho biến thể); V28–V32 thêm cài đặt hệ thống, Premium, brand yêu thích, Brand Plus, lượt thử miễn phí, voucher brand, khách quan tâm |
 | Storage | `local` hoặc `r2`; ảnh catalog / avatar mẫu phục vụ từ Vercel, ảnh upload từ R2 |
-| Tác vụ nền | Hết hạn Pro 00:05 (giờ VN); hết hạn voucher 01:15 (giờ server); huỷ đơn quá hạn thanh toán mỗi 60 giây; poll job thử mặc mỗi 3 giây |
+| Tác vụ nền | Hết hạn Premium 00:05, hết hạn Brand Plus 00:10, hết hạn voucher brand 00:15 (đều giờ VN); đơn thanh toán gói (Premium, top-up, Brand Plus) PENDING quá 24 giờ (`fitme.billing.pending-expiry-hours`) chuyển EXPIRED, quét mỗi 15 phút; poll job thử mặc mỗi 3 giây |
 | Dịch vụ ngoài | Gemini, FASHN (qua máy chủ VTON), PayOS, Gmail relay, R2 |
-| CI | `backend-test`, `frontend-unit`, `frontend-build`, `e2e` (chỉ smoke-routes, role-flows, rbac, mobile-nav) |
+| CI | `backend-test`, `frontend-unit`, `frontend-build`, `e2e` "E2E (full suite)": toàn bộ spec trên chromium + `mobile-nav.spec.ts` trên mobile-chrome |
 
 ---
 
@@ -29,9 +29,9 @@
 | INF-08 | W | P0 | Mất kết nối DB | Gọi API | — | 5xx "Đã xảy ra lỗi hệ thống"; tự phục hồi khi DB trở lại | ❌ | — | — | ❌ | |
 | INF-09 | W | P1 | Máy chủ VTON / FASHN ngừng | Thử mặc | — | Báo lỗi, hoàn Fitken | ✅ | — | — | ❌ | Xem TRY-GEN-08..12 |
 | INF-10 | W | P1 | Gemini ngừng | Chat | — | Engine luật vẫn trả outfit | ✅ | — | — | ❌ | Xem AI-GEM-03 |
-| INF-11 | W | P1 | PayOS ngừng | Đặt hàng PayOS / mua Pro | — | Báo lỗi; vẫn đặt được COD | ❌ | — | — | ❌ | |
+| INF-11 | W | P1 | PayOS ngừng | Mua Premium / top-up / Brand Plus | — | Báo lỗi rõ ràng; không tạo gói, không giữ voucher brand vĩnh viễn (đơn hết hạn sau 24 giờ trả voucher) | ❌ | — | — | ❌ | Không còn đặt hàng COD từ V27 |
 | INF-12 | W | P1 | Gmail relay ngừng | Đăng ký / quên mật khẩu | — | Thông báo thân thiện; không tạo tài khoản treo | ✅ | — | — | ❌ | |
-| INF-13 | H | P1 | — | Biến môi trường prod bắt buộc | `JWT_SECRET`, `CORS_ORIGINS`, `FITME_FRONTEND_BASE_URL`, `MAIL_RELAY_*`, PayOS keys, R2, Gemini | Đủ và khác giá trị mặc định dev | — | — | — | ❌ | Rà danh sách trong `docs/DEPLOY_TEST.md` |
+| INF-13 | H | P1 | — | Biến môi trường prod bắt buộc | `JWT_SECRET`, `CORS_ORIGINS`, `FITME_FRONTEND_BASE_URL`, `MAIL_RELAY_*`, PayOS keys, `PAYOS_BRAND_PLUS_RETURN_URL` / `PAYOS_BRAND_PLUS_CANCEL_URL`, R2, Gemini | Đủ và khác giá trị mặc định dev | — | — | — | ❌ | Rà danh sách trong `docs/DEPLOY_TEST.md` |
 | INF-14 | W | P2 | Restart backend | Kiểm tra trạng thái bộ nhớ | — | Ghi nhận mất: captcha đang mở, bộ đếm sai mã, cooldown email, giới hạn chat | ❌ | — | — | ❌ | Lưu trong bộ nhớ, không chia sẻ nếu chạy nhiều instance |
 | INF-15 | H | P2 | — | Sao lưu / khôi phục DB | — | Có bản sao lưu định kỳ, khôi phục được | — | — | — | ❌ | |
 
@@ -39,12 +39,13 @@
 
 | ID | Loại | Ưu tiên | Tiền điều kiện | Các bước | Dữ liệu test | Kết quả mong đợi | BE | FE | E2E | PROD | Ghi chú |
 |---|---|---|---|---|---|---|---|---|---|---|---|
-| JOB-01 | H | P0 | Đơn PayOS tạo 31 phút trước, chưa trả | Chờ ≤ 60 giây | — | Đơn huỷ "Quá hạn thanh toán", hoàn kho, trả voucher | ✅ | — | — | ❌ | `paymentTimeout_cancelsOrder…` |
-| JOB-02 | H | P1 | Pro hết hạn hôm qua | Chờ 00:05 giờ VN | — | Gói EXPIRED, quỹ gói về 0, về Free | ❌ | — | — | ❌ | |
-| JOB-03 | H | P2 | Voucher hết hạn | Chờ 01:15 | — | Voucher "Hết hạn" | ❌ | — | — | ❌ | Dùng múi giờ server (Render là UTC → 08:15 giờ VN) |
+| JOB-01 | H | P0 | Đơn thanh toán gói PENDING tạo 25 giờ trước; đơn khác tạo 1 giờ trước | Chờ ≤ 15 phút | — | Đơn cũ EXPIRED, voucher brand đang giữ được trả lại; đơn mới vẫn PENDING | ✅ | — | — | ❌ | `stalePendingCheckoutsExpireButFreshOnesStayPending`, `cancelledFailedOrExpiredOrdersGiveTheVoucherBack`. Trước V27 là job huỷ đơn hàng 30 phút |
+| JOB-02 | H | P1 | Premium hết hạn hôm qua | Chờ 00:05 giờ VN | — | Gói EXPIRED, quỹ gói về 0, về Free; tủ đồ và brand yêu thích bị khoá nhưng giữ dữ liệu | ❌ | — | — | ❌ | |
+| JOB-03 | H | P2 | Voucher brand quá hạn | Chờ 00:15 giờ VN | — | Voucher EXPIRED | ❌ | — | — | ❌ | Xem BV-ISS-12. Trước V27 là voucher người dùng chạy 01:15 giờ server |
 | JOB-04 | H | P1 | Job thử mặc đang PROCESSING | Chờ | — | Poll mỗi 3 giây đến khi xong / quá 120 giây | ✅ | — | — | ❌ | `TryOnAsyncVtonIntegrationTest` |
 | JOB-05 | W | P1 | Render ngủ lúc 00:05 | Sáng hôm sau kiểm tra | — | Gói hết hạn vẫn được xử lý (job bắt kịp khi thức dậy) | ❌ | — | — | ❌ | Render Free ngủ → cron có thể bị lỡ |
-| JOB-06 | W | P1 | Render ngủ khi có đơn PayOS chờ | Thức dậy sau 2 giờ | — | Đơn quá hạn được huỷ ngay lần chạy đầu tiên | ❌ | — | — | ❌ | |
+| JOB-06 | W | P1 | Render ngủ khi có đơn thanh toán gói đang chờ | Thức dậy sau hơn 24 giờ | — | Đơn quá hạn chuyển EXPIRED ở lần quét đầu tiên (sau ~1 phút khởi động) | ❌ | — | — | ❌ | |
+| JOB-07 | H | P1 | Brand Plus có `endsAt` đã qua | Chờ 00:10 giờ VN | — | Gói EXPIRED; mất badge, mất ưu tiên gợi ý, mất lượt thử miễn phí và chi tiết khách quan tâm | ✅ | — | — | ❌ | `expireDueMarksEndedSubscriptionsExpired`; trước khi job chạy, hệ thống đã coi gói hết hiệu lực vì so `endsAt` (xem BP-REN) |
 
 ## 14.3 Hiệu năng (PERF)
 
@@ -52,7 +53,7 @@
 |---|---|---|---|---|---|---|---|---|---|---|---|
 | PERF-01 | W | P1 | Backend đã thức | 50 người dùng đồng thời duyệt khám phá + chi tiết sản phẩm trong 5 phút | k6 / JMeter | p95 < 1 giây, lỗi < 1% | ❌ | — | — | ❌ | Chưa có load test |
 | PERF-02 | W | P1 | — | 20 người đồng thời chat AI | — | p95 < 20 giây; không lỗi 5xx | ❌ | — | — | ❌ | Phụ thuộc Gemini |
-| PERF-03 | W | P1 | — | 10 người đồng thời đặt hàng cùng sản phẩm còn 5 cái | — | Đúng 5 đơn thành công, tồn kho = 0, không âm | ❌ | — | — | ❌ | Xem PAY-15 |
+| PERF-03 | W | P1 | — | 10 request đồng thời: thanh toán Brand Plus cùng 1 voucher; thử đồ toàn Plus khi còn 1 lượt miễn phí | — | Voucher chỉ được giữ cho 1 đơn; chỉ 1 lượt miễn phí được dùng, còn lại trừ Fitken; không lỗi 5xx | ✅ | — | — | ❌ | Kiểm tra mức 2 request: `parallelCheckoutsWithTheSameVoucherReserveItOnlyOnce`, `tryConsumeIsIdempotentPerRefAndSerializedPerUser`; chưa có load test. Trước V27 là đặt hàng tranh tồn kho |
 | PERF-04 | W | P2 | 1.000 sản phẩm | `GET /products` | — | < 1 giây, payload hợp lý | ❌ | — | — | ❌ | Không có phân trang |
 | PERF-05 | H | P2 | — | Thời gian tải trang chủ (LCP) trên 4G | — | LCP < 2,5 giây | — | — | ❌ | ❌ | |
 | PERF-06 | W | P2 | — | 10.000 dòng traffic / ngày trong 90 ngày | Mở `/admin/traffic?days=90` | < 2 giây | ❌ | — | — | ❌ | |
@@ -61,8 +62,8 @@
 
 | ID | Loại | Ưu tiên | Tiền điều kiện | Các bước | Dữ liệu test | Kết quả mong đợi | BE | FE | E2E | PROD | Ghi chú |
 |---|---|---|---|---|---|---|---|---|---|---|---|
-| CI-01 | H | P0 | Push lên `main` | Xem GitHub Actions | — | 4 job xanh: backend-test, frontend-unit, frontend-build, e2e | ✅ | ✅ | ✅ | — | Xanh ở `ee9d956` |
+| CI-01 | H | P0 | Push lên `main` | Xem GitHub Actions | — | 4 job xanh: backend-test, frontend-unit, frontend-build, e2e | ✅ | ✅ | ✅ | — | Xanh ở `ee9d956`; gần nhất `bc323e2` (07/10/2026) |
 | CI-02 | E | P1 | — | Sửa `try-on.spec.ts` theo giao diện mới (avatar đã mở) | — | Spec pass | — | — | ✅ | — | Đang lỗi thời |
-| CI-03 | E | P1 | — | Đưa 19 spec E2E chưa chạy vào CI | — | Tất cả pass trên CI | — | — | ✅ | — | Ưu tiên: commerce, auth-flow, reset-password, brand-full, admin-full |
+| CI-03 | E | P1 | — | Đưa 19 spec E2E chưa chạy vào CI | — | Tất cả pass trên CI | — | — | ✅ | — | Ưu tiên: redirect-flow, auth-flow, reset-password, brand-full, admin-full (commerce.spec đã xoá cùng V27) |
 | CI-04 | E | P2 | — | Chạy E2E với `FITME_AUTH_MIN_FORM_MS` mặc định | — | Có ít nhất 1 test kiểm tra chống spam theo thời gian | — | — | ❌ | — | CI đặt 0 |
 | CI-05 | E | P2 | — | Backend test dùng Testcontainers | — | Chạy được trên máy dev (hoặc có hướng dẫn DB local) | ✅ | — | — | — | Máy dev hiện rơi về DB local |

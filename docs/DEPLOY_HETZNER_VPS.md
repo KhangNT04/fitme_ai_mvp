@@ -278,8 +278,8 @@ Giống hệt bộ biến dùng cho Render (để có thể **failover qua lại
 | `FITME_AI_MODE` | `api` (khuyến nghị, FASHN) hoặc `hf` | Gọi service `ai-vton`. `api` = FASHN hosted API (`FASHN_API_KEY` đặt **trên `ai-vton`**, KHÔNG đặt ở backend). Xem [mục 7](#7-fashn-try-on-trên-hetzner-ai-vton) |
 | `AI_VTON_URL` | `http://ai-vton:8001` (tự host cùng VPS) hoặc `https://fitme-ai-vton.onrender.com` (giữ trên Render) | Xem [mục 7.1](#71-lựa-chọn-1--giữ-ai-vton-trên-render-đơn-giản-nhất) |
 | `PAYOS_MOCK` | `true`/`false` | Giống cấu hình Render đang dùng |
-| `PAYOS_SUBSCRIPTION_RETURN_URL` / `PAYOS_SUBSCRIPTION_CANCEL_URL` | trỏ về Vercel (`/billing/return`) | Cho thanh toán gói FitMe Pro 49k/tháng |
-| `PAYOS_ORDER_RETURN_URL` / `PAYOS_ORDER_CANCEL_URL` | trỏ về Vercel (`/orders/return`) | Cho thanh toán đơn hàng in-app |
+| `PAYOS_SUBSCRIPTION_RETURN_URL` / `PAYOS_SUBSCRIPTION_CANCEL_URL` | trỏ về Vercel (`/billing/return`) | Cho thanh toán gói FitMe Premium |
+| `PAYOS_BRAND_PLUS_RETURN_URL` / `PAYOS_BRAND_PLUS_CANCEL_URL` | tuỳ chọn, mặc định trỏ về Vercel `/brand/plan/return` | Cho thanh toán gói Brand Plus |
 | `PAYOS_CLIENT_ID` / `PAYOS_API_KEY` / `PAYOS_CHECKSUM_KEY` | chỉ khi `PAYOS_MOCK=false` | Lấy từ my.payos.vn |
 
 Template đầy đủ có sẵn: [`deploy/hetzner/.env.hetzner.example`](../deploy/hetzner/.env.hetzner.example) (mọi biến trong bảng trên, kèm chú thích `[Render]`/`[VPS-only]`). Template chung cho các platform cloud khác: [`.env.cloud.example`](../.env.cloud.example).

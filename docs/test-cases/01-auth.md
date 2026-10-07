@@ -79,7 +79,7 @@ Phạm vi: đăng ký, xác minh email, đăng nhập, token & phiên, quên / �
 
 | ID | Loại | Ưu tiên | Tiền điều kiện | Các bước | Dữ liệu test | Kết quả mong đợi | BE | FE | E2E | PROD | Ghi chú |
 |---|---|---|---|---|---|---|---|---|---|---|---|
-| AUTH-LOG-01 | H | P0 | Tài khoản đã xác minh | Mở `/auth/login`, nhập đúng, bấm "Đăng nhập" | Tài khoản test user | Nhận token; chuyển tới `redirect` hoặc `/profile`; header hiện tên, số Fitken, giỏ hàng | ✅ | ✅ | ✅ | ✅ | `login_validCredentials_returnsTokens`, `auth-api.test` |
+| AUTH-LOG-01 | H | P0 | Tài khoản đã xác minh | Mở `/auth/login`, nhập đúng, bấm "Đăng nhập" | Tài khoản test user | Nhận token; chuyển tới `redirect` hoặc `/profile`; header hiện tên, số Fitken | ✅ | ✅ | ✅ | ✅ | `login_validCredentials_returnsTokens`, `auth-api.test` |
 | AUTH-LOG-02 | E | P0 | — | Nhập đúng email, sai mật khẩu | `wrongpass` | 401 "Email hoặc mật khẩu không đúng" | ✅ | ✅ | ✅ | ✅ | `user-error-message.test`; auth-flow "invalid login"; BE `P0AuthIntegrationTest#login_wrongPasswordForExistingEmail_returns401WithGenericMessage` |
 | AUTH-LOG-03 | E | P1 | — | Nhập email chưa đăng ký | `noone@fitme.ai` | Cùng thông báo như sai mật khẩu | ❌ | — | ❌ | ❌ | Chống dò email |
 | AUTH-LOG-04 | E | P2 | — | Nhập email sai định dạng | `abc@` | "Email không hợp lệ"; không gọi API | — | ❌ | ❌ | ❌ | |

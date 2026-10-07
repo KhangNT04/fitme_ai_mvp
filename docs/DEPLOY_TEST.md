@@ -67,7 +67,7 @@ cp .env.test.example .env.test
 | `JWT_SECRET` | ≥32 ký tự random | Đổi khỏi default |
 | `APP_PORT` | `3000` | Port host |
 | `FITME_SEED_ENABLED` | `true` | Demo data lần đầu |
-| `FITME_SEED_PASSWORD` | `fitme123` | Mật khẩu tài khoản seed |
+| `FITME_SEED_PASSWORD` | `<giá trị trong biến FITME_PASSWORD>` | Mật khẩu tài khoản seed |
 
 3. Deploy:
 
@@ -89,7 +89,7 @@ Chỉ tạo khi DB trống và `FITME_SEED_ENABLED=true`:
 | brand@fitme.ai | Brand |
 | user@fitme.ai | User |
 
-Mật khẩu: giá trị `FITME_SEED_PASSWORD` (mặc định `fitme123`).
+Mật khẩu: giá trị `FITME_SEED_PASSWORD` (mặc định `<giá trị trong biến FITME_PASSWORD>`).
 
 ## Lệnh vận hành
 

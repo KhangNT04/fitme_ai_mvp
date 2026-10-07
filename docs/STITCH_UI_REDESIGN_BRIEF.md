@@ -402,7 +402,7 @@ Dùng đúng hoặc tương đương các chuỗi sau trong mockup:
 | Components | shadcn/ui (Radix) — Button, Card, Dialog, Select, Input... |
 | Images | `next/image`, aspect ratio 3:4 / 4:5 cho fashion |
 | Không thay đổi | URL routes, API contracts, role guards |
-| Demo accounts | user@fitme.ai / brand@fitme.ai / admin@fitme.ai — fitme123 |
+| Demo accounts | user@fitme.ai / brand@fitme.ai / admin@fitme.ai — <giá trị trong biến FITME_PASSWORD> |
 
 ---
 

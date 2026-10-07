@@ -163,7 +163,7 @@ Phân loại: **Confirmed** = có trong code/config. Không kèm PoC.
 - Upload tin `Content-Type`, không magic bytes.
 - Consumer Plus tự bật trên `/pricing` (cố ý demo).
 - Swagger `permitAll` khi không phải profile prod.
-- Seed password `fitme123` trong README / env example.
+- Seed password `<giá trị trong biến FITME_PASSWORD>` trong README / env example.
 
 ### 6.3 Đã làm tốt
 

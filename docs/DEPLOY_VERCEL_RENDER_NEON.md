@@ -88,8 +88,8 @@ Giữ `DB_USERNAME` và `DB_PASSWORD` riêng (không nhét vào URL).
 | `PAYOS_MOCK` | `true` *(test billing trên cloud không cần key; đổi `false` khi có PayOS)* |
 | `PAYOS_SUBSCRIPTION_RETURN_URL` | `https://fitme-ai-mvp.vercel.app/billing/return?status=success` |
 | `PAYOS_SUBSCRIPTION_CANCEL_URL` | `https://fitme-ai-mvp.vercel.app/billing/return?status=cancel` |
-| `PAYOS_ORDER_RETURN_URL` | `https://fitme-ai-mvp.vercel.app/orders/return?status=success` |
-| `PAYOS_ORDER_CANCEL_URL` | `https://fitme-ai-mvp.vercel.app/orders/return?status=cancel` |
+| `PAYOS_BRAND_PLUS_RETURN_URL` | *(tuỳ chọn)* mặc định `<origin>/brand/plan/return?status=success`, lấy origin từ `PAYOS_SUBSCRIPTION_RETURN_URL` |
+| `PAYOS_BRAND_PLUS_CANCEL_URL` | *(tuỳ chọn)* mặc định `<origin>/brand/plan/return?status=cancel` |
 | `PAYOS_CLIENT_ID` | *(chỉ khi `PAYOS_MOCK=false`)* |
 | `PAYOS_API_KEY` | *(chỉ khi `PAYOS_MOCK=false`)* |
 | `PAYOS_CHECKSUM_KEY` | *(chỉ khi `PAYOS_MOCK=false`)* |

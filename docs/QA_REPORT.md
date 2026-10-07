@@ -105,13 +105,13 @@ Helpers: `frontend/e2e/helpers/auth.ts`, `frontend/e2e/helpers/consultation.ts`
 ```bash
 # Database (if port 5432 busy, use 5434 as in this session)
 docker run -d --name fitme-dev-pg \
-  -e POSTGRES_DB=fitme -e POSTGRES_USER=fitme -e POSTGRES_PASSWORD=fitme123 \
+  -e POSTGRES_DB=fitme -e POSTGRES_USER=fitme -e POSTGRES_PASSWORD=<giá trị trong biến FITME_PASSWORD> \
   -p 5434:5432 postgres:16-alpine
 
 # Backend
 cd backend
 $env:DB_URL="jdbc:postgresql://localhost:5434/fitme"
-$env:DB_USERNAME="fitme"; $env:DB_PASSWORD="fitme123"
+$env:DB_USERNAME="fitme"; $env:DB_PASSWORD="<giá trị trong biến FITME_PASSWORD>"
 mvn spring-boot:run
 
 # Frontend (terminal 2)
@@ -358,7 +358,7 @@ E2E smoke đã cover load trang cho onboarding; **chưa** có E2E submit onboard
 # 1. Backend tests
 cd backend
 $env:DB_URL="jdbc:postgresql://localhost:5433/fitme_test"
-$env:DB_USERNAME="fitme"; $env:DB_PASSWORD="fitme123"
+$env:DB_USERNAME="fitme"; $env:DB_PASSWORD="<giá trị trong biến FITME_PASSWORD>"
 mvn test
 
 # 2. Frontend unit tests + build (tránh OneDrive)

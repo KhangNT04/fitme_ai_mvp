@@ -1,8 +1,8 @@
 # FitMe AI — Hướng dẫn sử dụng theo vai trò
 
-Tài liệu này dành cho **người dùng cuối, QA, demo và vận hành** — mô tả cách truy cập app (kể cả bản deploy) và sử dụng theo 3 vai trò trong mô hình B2C (FitMe Pro, Fitken, Nhận thưởng, Thư viện ảnh, Mua sắm in-app và Đối soát seller).
+Tài liệu này dành cho **người dùng cuối, QA, demo và vận hành** — mô tả cách truy cập app (kể cả bản deploy) và sử dụng theo 3 vai trò: người dùng (FitMe Free / FitMe Premium, Fitken, Nhận thưởng, Thư viện ảnh), brand (Gói Plus, voucher, Khách quan tâm) và admin.
 
-> **Lưu ý:** FitMe AI hỗ trợ giỏ hàng và thanh toán trực tiếp trong ứng dụng (COD hoặc PayOS), quản lý vận đơn và đối soát cho seller. Preview AI mang tính minh họa tham khảo.
+> **Lưu ý:** FitMe AI **không bán hàng**. FitMe tư vấn size, phối đồ và thử đồ bằng AI; khách mua tại website / cửa hàng gốc của brand qua nút **Mua tại cửa hàng gốc**. Từ bản V27, giỏ hàng, đặt hàng, sổ địa chỉ, vận đơn và đối soát seller đã bị gỡ bỏ. Preview AI mang tính minh họa tham khảo.
 
 ---
 
@@ -39,9 +39,9 @@ Thay `{BASE_URL}` bằng URL thực tế của bạn.
 | Chi tiết sản phẩm | `{BASE_URL}/products/{id}` |
 | Bắt đầu tư vấn AI | `{BASE_URL}/ai/start` |
 | Thử mặc AI (outfit board) | `{BASE_URL}/try-on` |
-| Bảng giá & gói FitMe Pro | `{BASE_URL}/pricing` |
-| Tủ đồ (cần session/login để lưu) | `{BASE_URL}/wardrobe` |
+| Bảng giá FitMe Premium | `{BASE_URL}/pricing` |
 | Outfit đã lưu | `{BASE_URL}/saved-outfits` |
+| Xác nhận trước khi sang cửa hàng gốc | `{BASE_URL}/redirect/confirm/{productId}` |
 
 #### Người dùng (USER) — cần đăng nhập
 
@@ -51,32 +51,31 @@ Thay `{BASE_URL}` bằng URL thực tế của bạn.
 | Đăng nhập | `{BASE_URL}/auth/login` |
 | Trang Nhận thưởng (Fitken) | `{BASE_URL}/rewards` |
 | Thư viện ảnh outfit cá nhân | `{BASE_URL}/profile/gallery` |
-| Giỏ hàng | `{BASE_URL}/cart` |
-| Đặt hàng & thanh toán (COD/PayOS) | `{BASE_URL}/checkout` |
-| Lịch sử đơn hàng | `{BASE_URL}/orders` |
-| Chi tiết & tracking vận đơn | `{BASE_URL}/orders/{id}` |
-| Kết quả thanh toán PayOS gói Pro | `{BASE_URL}/billing/return` |
-| Sổ địa chỉ giao hàng | `{BASE_URL}/profile/addresses` |
+| Tủ chi tiêu (lịch sử bấm mua, đánh dấu đã mua) | `{BASE_URL}/profile/purchases` |
+| Brand yêu thích (Premium) | `{BASE_URL}/profile/style-preferences` |
+| Tủ đồ cá nhân (Premium) | `{BASE_URL}/wardrobe` |
+| Kết quả thanh toán PayOS gói Premium | `{BASE_URL}/billing/return` |
 | Hồ sơ cá nhân | `{BASE_URL}/profile` |
 | Quyền riêng tư | `{BASE_URL}/profile/privacy` |
 | Quên mật khẩu | `{BASE_URL}/auth/forgot-password` |
 | Đặt lại mật khẩu | `{BASE_URL}/auth/reset-password?token=...` |
 | Đăng ký đối tác Brand | `{BASE_URL}/brand/onboarding` |
-| Theo dõi đơn Brand | `{BASE_URL}/brand/pending` |
+| Theo dõi đơn đăng ký Brand | `{BASE_URL}/brand/pending` |
 
-#### Brand Owner (Seller) — Dashboard hoàn toàn miễn phí
+#### Brand Owner
 
 | Chức năng | Đường dẫn đầy đủ |
 |-----------|------------------|
 | **Đăng nhập Brand Portal** | `{BASE_URL}/brand/login` |
-| Tổng quan (KPI bán hàng, analytics) | `{BASE_URL}/brand/dashboard` |
-| Quản lý đơn hàng seller | `{BASE_URL}/brand/orders` |
-| Chi tiết đơn seller & vận đơn | `{BASE_URL}/brand/orders/{id}` |
-| Đối soát doanh thu & số dư | `{BASE_URL}/brand/settlements` |
+| Tổng quan (khách thử đồ, phễu 30 ngày) | `{BASE_URL}/brand/dashboard` |
 | Quản lý sản phẩm | `{BASE_URL}/brand/products` |
 | Thêm sản phẩm | `{BASE_URL}/brand/products/new` |
+| Khách quan tâm | `{BASE_URL}/brand/leads` |
+| Nhu cầu Gen Z | `{BASE_URL}/brand/insights/demand` |
 | Phân tích hành vi | `{BASE_URL}/brand/analytics` |
-| Cài đặt thương hiệu & payout | `{BASE_URL}/brand/settings` |
+| Gói Plus & voucher | `{BASE_URL}/brand/plan` |
+| Kết quả thanh toán Gói Plus | `{BASE_URL}/brand/plan/return` |
+| Cài đặt thương hiệu | `{BASE_URL}/brand/settings` |
 
 #### Admin
 
@@ -84,18 +83,25 @@ Thay `{BASE_URL}` bằng URL thực tế của bạn.
 |-----------|------------------|
 | **Đăng nhập Admin** | `{BASE_URL}/admin/login` |
 | Tổng quan hệ thống | `{BASE_URL}/admin/dashboard` |
-| Giám sát đơn hàng toàn sàn | `{BASE_URL}/admin/orders` |
-| Chi tiết đơn hàng sàn | `{BASE_URL}/admin/orders/{id}` |
-| Quản lý đối soát seller | `{BASE_URL}/admin/settlements` |
+| Quản lý tài khoản | `{BASE_URL}/admin/users` |
+| Thống kê truy cập | `{BASE_URL}/admin/traffic` |
+| Duyệt thương hiệu | `{BASE_URL}/admin/brands` |
+| Partnerships (cặp brand cho Partner look) | `{BASE_URL}/admin/partnerships` |
+| Gói dịch vụ (gói người dùng + gói brand) | `{BASE_URL}/admin/billing/plans` |
+| Voucher brand | `{BASE_URL}/admin/vouchers` |
 | Duyệt bài chia sẻ nhận thưởng | `{BASE_URL}/admin/rewards` |
 | Kiểm duyệt đánh giá sản phẩm | `{BASE_URL}/admin/reviews` |
-| Quản lý gói cước Pro | `{BASE_URL}/admin/billing/plans` |
-| Duyệt thương hiệu | `{BASE_URL}/admin/brands` |
 | Duyệt sản phẩm | `{BASE_URL}/admin/products/moderation` |
-| Link bị báo lỗi | `{BASE_URL}/admin/flagged-links` |
-| Rule AI | `{BASE_URL}/admin/rules/styles` · `{BASE_URL}/admin/rules/occasions` |
+| Link bị gắn cờ | `{BASE_URL}/admin/flagged-links` |
+| Phân tích tăng trưởng | `{BASE_URL}/admin/analytics` |
+| Khách quay lại | `{BASE_URL}/admin/retention` |
+| Khách trả tiền | `{BASE_URL}/admin/paying-customers` |
 | Quyền riêng tư | `{BASE_URL}/admin/privacy` |
-| Giám sát try-on lỗi | `{BASE_URL}/admin/try-on-monitoring` |
+| Giám sát thử mặc | `{BASE_URL}/admin/try-on-monitoring` |
+| Avatar mẫu thử đồ | `{BASE_URL}/admin/tryon-avatars` |
+| Cài đặt hệ thống | `{BASE_URL}/admin/settings` |
+| Rule AI | `{BASE_URL}/admin/rules/styles` · `{BASE_URL}/admin/rules/occasions` |
+| Đổi mật khẩu | `{BASE_URL}/admin/account` |
 
 ### 1.3 Ví dụ cụ thể — bản deploy cloud
 
@@ -135,13 +141,14 @@ Biến `PUBLIC_APP_URL` trong `.env.test` **phải khớp** URL trên (scheme + 
 
 Dùng trên mọi môi trường có bật seed (`FITME_SEED_ENABLED=true`, DB trống lần đầu):
 
-| Email | Mật khẩu | Vai trò | Đăng nhập tại |
-|-------|----------|---------|---------------|
-| `user@fitme.ai` | `fitme123` | USER | `{BASE_URL}/auth/login` |
-| `brand@fitme.ai` | `fitme123` | BRAND_OWNER | `{BASE_URL}/brand/login` |
-| `admin@fitme.ai` | `fitme123` | ADMIN | `{BASE_URL}/admin/login` |
+| Email | Vai trò | Đăng nhập tại |
+|-------|---------|---------------|
+| `user@fitme.ai` | USER (FitMe Free) | `{BASE_URL}/auth/login` |
+| `premium@fitme.ai` | USER (FitMe Premium) | `{BASE_URL}/auth/login` |
+| `brand@fitme.ai` | BRAND_OWNER | `{BASE_URL}/brand/login` |
+| `admin@fitme.ai` | ADMIN | `{BASE_URL}/admin/login` |
 
-Mật khẩu có thể khác nếu admin đổi `FITME_SEED_PASSWORD` khi deploy.
+Mật khẩu **không ghi trong tài liệu**: là giá trị biến môi trường `FITME_SEED_PASSWORD` khi seed. Script smoke trên prod đọc tài khoản từ `FITME_EMAIL` / `FITME_PASSWORD`. Hỏi admin môi trường nếu cần.
 
 ### 1.7 Sử dụng trên điện thoại (mobile)
 
@@ -157,7 +164,7 @@ Trên màn hình **nhỏ hơn tablet** (< 768px), app người dùng có giao di
 | Thử mặc | `{BASE_URL}/try-on` |
 | Hồ sơ | `{BASE_URL}/profile` (chưa login → trang đăng nhập) |
 
-**Header gọn:** logo FitMe AI + icon tìm kiếm nhanh (không còn menu hamburger).
+**Header gọn:** logo FitMe AI + icon tìm kiếm nhanh (không còn menu hamburger, không có giỏ hàng).
 
 **Tủ đồ / Outfit đã lưu / Quyền riêng tư:** vào tab **Hồ sơ** → chọn card tương ứng.
 
@@ -208,60 +215,63 @@ cd frontend && npm install && npm run dev
 
 ### 3.1 Mục đích
 
-Khám phá thời trang Gen Z, nhận tư vấn AI, thử đồ ảo bằng Fitken, nâng cấp gói FitMe Pro (49k/tháng), tích lũy Fitken miễn phí tại trang Nhận thưởng, lưu trữ outfit cá nhân trong thư viện ảnh, và mua sắm trực tiếp qua giỏ hàng in-app (COD hoặc PayOS) kèm theo dõi vận đơn.
+Khám phá thời trang Gen Z, nhận tư vấn size & phối đồ bằng AI, thử đồ ảo bằng Fitken (hoặc miễn phí với brand Plus), tích lũy Fitken tại trang Nhận thưởng, lưu outfit trong thư viện ảnh, rồi mua tại cửa hàng gốc của brand. Nâng cấp **FitMe Premium** để dùng tủ đồ cá nhân, phối đồ theo brand yêu thích và nhận Fitken hằng tháng.
 
-### 3.2 Cơ chế Fitken & Gói FitMe Pro
+### 3.2 Fitken, trần Fitken miễn phí & FitMe Premium
 
-- **Fitken**: Đơn vị tính lượt dùng AI trên FitMe — `1 Fitken = 1 lượt thử đồ AI` (chế độ ảnh người thật `USER_PHOTO` hoặc `AVATAR`). Tạo bảng phối minh họa (`OUTFIT_BOARD_ONLY`) và chat stylist AI hoàn toàn miễn phí.
-- **Tặng dùng thử**: Mỗi tài khoản người dùng mới khi khởi tạo ví nhận ngay **5 Fitken** miễn phí một lần duy nhất.
-- **Cấu trúc ví 2 ngăn**:
-  - `subscription_remaining`: Fitken được cấp từ gói Pro, tự động reset về 0 khi gói hết hạn.
-  - `bonus_remaining`: Fitken từ quà tặng dùng thử, nhận thưởng, admin tặng — vĩnh viễn không hết hạn.
-  - Hệ thống luôn ưu tiên tiêu Fitken ngăn subscription trước, sau đó mới trừ bonus.
-  - Trừ Fitken khi bấm generate và tự động hoàn trả (+1) nếu tạo ảnh thất bại.
-- **Gói FitMe Pro (49.000đ/tháng)**:
-  - Mua tại `/pricing`, thanh toán quét mã PayOS tự động.
-  - Nhận ngay **15 Fitken/tháng**.
-  - Tặng **2 voucher FREESHIP** (giảm tối đa 30.000đ/đơn).
-  - Mở khóa cá nhân hóa sâu (chế độ coherence `PREFER`/`STRICT`).
-  - Hết hạn 30 ngày: hệ thống tự động reset ngăn subscription và chuyển về Free.
+- **Fitken**: đơn vị tính lượt dùng AI — `1 Fitken = 1 lượt thử đồ AI` (chế độ ảnh người thật `USER_PHOTO` hoặc `AVATAR`). Tạo bảng phối minh họa (`OUTFIT_BOARD_ONLY`) và chat stylist AI miễn phí.
+- **Tặng dùng thử**: tài khoản mới nhận **5 Fitken** một lần duy nhất.
+- **Ví 2 ngăn**:
+  - `subscription_remaining`: Fitken từ gói Premium, reset về 0 khi gói hết hạn.
+  - `bonus_remaining`: Fitken từ quà dùng thử, nhận thưởng, top-up, admin tặng — không hết hạn.
+  - Luôn tiêu ngăn subscription trước, rồi mới trừ bonus.
+  - Trừ Fitken khi bấm tạo ảnh, tự hoàn (+1) nếu tạo ảnh thất bại.
+- **Trần Fitken miễn phí** (mặc định **50**, admin chỉnh tại *Cài đặt hệ thống*): quà dùng thử, điểm danh, chia sẻ và đánh giá chỉ cộng tới khi ví chạm trần; vượt trần thì phần thưởng là 0. Fitken từ gói Premium, top-up và admin điều chỉnh **không** bị áp trần. Ví hiển thị mức trần hiện tại.
+- **FitMe Premium** (giá mặc định 49.000đ / 30 ngày, admin có thể đổi):
+  - Mua tại `/pricing`, thanh toán PayOS; kết quả hiện ở `/billing/return`.
+  - **15 Fitken mỗi tháng** để thử đồ AI.
+  - **Tủ đồ cá nhân** (`/wardrobe`) và phối kèm đồ có sẵn. Tài khoản Free mở tủ đồ thấy lời mời nâng cấp.
+  - **Brand yêu thích** (`/profile/style-preferences`): chọn tối đa 10 brand và chế độ *Đa dạng* hoặc *Chỉ brand yêu thích* để stylist AI phối theo. Free xem được nhưng không lưu được.
+  - Hết 30 ngày: tự về Free, ngăn subscription reset về 0.
+- **FitMe Free**: 5 Fitken dùng thử, phối đồ từ sản phẩm của các brand, lưu outfit yêu thích, nhận thêm Fitken qua nhiệm vụ.
 
-### 3.3 Trang Nhận thưởng (`/rewards`)
+### 3.3 Thử đồ miễn phí với brand Plus
 
-Người dùng có thể kiếm thêm Fitken miễn phí mỗi ngày (tính theo múi giờ `Asia/Ho_Chi_Minh`):
-1. **Điểm danh nhận quà**: Mỗi ngày điểm danh 1 lần. Đạt chuỗi 3 ngày liên tiếp (`streak % 3 == 0`) nhận ngay **+1 Fitken**. Bỏ lỡ 1 ngày chuỗi sẽ bắt đầu lại từ 1.
-2. **Chia sẻ bài đăng**: Đăng bài khoe outfit lên mạng xã hội cá nhân (Facebook, TikTok, Instagram, Threads, X/Twitter) rồi dán link công khai tại `/rewards`. Hệ thống kiểm tra hợp lệ và cộng ngay **+3 Fitken** (tối đa 1 lần thưởng/ngày).
-3. **Đánh giá sản phẩm có ảnh**: Viết review sản phẩm tại trang chi tiết `/products/{id}` có đính kèm ≥1 ảnh thực tế và nội dung ≥ 20 ký tự được thưởng **+2 Fitken** (tối đa 1 đánh giá được thưởng/ngày).
+- Sản phẩm của brand đang dùng **Gói Plus** có huy hiệu Plus.
+- Khi mọi sản phẩm trong lượt thử đều thuộc brand Plus, người dùng **đã đăng nhập** được thử **miễn phí** tối đa **3 lượt mỗi ngày** (admin chỉnh tại *Cài đặt hệ thống*). Màn hình thử đồ báo trước lượt thử là miễn phí hay tốn Fitken.
+- Hết lượt miễn phí, hoặc có sản phẩm không thuộc brand Plus: tính Fitken như bình thường. Khách chưa đăng nhập không có lượt miễn phí.
+- Tạo ảnh lỗi thì lượt miễn phí được hoàn lại.
 
-### 3.4 Thư viện ảnh phối đồ (`/profile/gallery`)
+### 3.4 Trang Nhận thưởng (`/rewards`)
 
-- Mỗi khi người dùng đã đăng nhập tạo thành công một ảnh thử đồ AI, hệ thống tự động lưu vào thư viện cá nhân.
-- Khách vãng lai sau khi đăng nhập sẽ được tự động liên kết các ảnh đã thử trong phiên.
+Kiếm thêm Fitken miễn phí mỗi ngày (theo múi giờ `Asia/Ho_Chi_Minh`), trong giới hạn trần Fitken miễn phí:
+
+1. **Điểm danh**: mỗi ngày 1 lần. Chuỗi 3 ngày liên tiếp (`streak % 3 == 0`) nhận **+1 Fitken**. Bỏ lỡ 1 ngày thì chuỗi bắt đầu lại từ 1.
+2. **Chia sẻ bài đăng**: đăng ảnh thử đồ lên mạng xã hội (Facebook, TikTok, Instagram, Threads, X/Twitter) ở chế độ công khai rồi dán link tại `/rewards` — **+3 Fitken** (tối đa 1 lần/ngày).
+3. **Đánh giá sản phẩm có ảnh**: review tại `/products/{id}` có ≥ 1 ảnh và nội dung ≥ 20 ký tự — **+2 Fitken** (tối đa 1 đánh giá được thưởng/ngày).
+
+### 3.5 Thư viện ảnh phối đồ (`/profile/gallery`)
+
+- Ảnh thử đồ AI tạo thành công khi đã đăng nhập được tự lưu vào thư viện.
+- Khách vãng lai sau khi đăng nhập được tự liên kết các ảnh đã thử trong phiên.
 - Tại `/profile/gallery`, người dùng có thể:
   - Xem lưới ảnh và phóng to chi tiết.
-  - Tải ảnh về máy hoặc chia sẻ lên mạng xã hội.
-  - Xem danh sách sản phẩm cấu thành outfit và bấm thêm nhanh vào giỏ hàng để mua sắm.
-  - Xóa mềm ảnh khỏi thư viện cá nhân.
+  - Tải ảnh về máy hoặc chia sẻ lên mạng xã hội để nhận thưởng.
+  - Xem danh sách sản phẩm trong outfit và mở trang sản phẩm để mua tại cửa hàng gốc.
+  - Xóa mềm ảnh khỏi thư viện.
 
-### 3.5 Giỏ hàng, Đặt hàng in-app & Vận đơn
+### 3.6 Mua tại cửa hàng gốc & chia sẻ thông tin với brand
 
-1. **Giỏ hàng (`/cart`)**:
-   - Thêm sản phẩm cùng biến thể màu sắc/kích cỡ vào giỏ.
-   - Giỏ hàng tự động gom nhóm theo từng thương hiệu (seller).
-2. **Sổ địa chỉ (`/profile/addresses`)**:
-   - Quản lý danh sách địa chỉ nhận hàng, chọn địa chỉ mặc định.
-3. **Đặt hàng (`/checkout`)**:
-   - Tự động tính phí vận chuyển theo số lượng seller (mặc định 30.000đ/seller).
-   - Áp dụng voucher FREESHIP từ gói Pro để giảm trừ phí ship.
-   - Chọn phương thức thanh toán: **COD** (thanh toán tiền mặt khi nhận hàng) hoặc **PayOS** (chuyển khoản qua cổng VietQR).
-4. **Theo dõi đơn hàng (`/orders`, `/orders/{id}`)**:
-   - Đơn khách tự động tách thành các đơn seller tương ứng.
-   - Xem timeline tracking chi tiết theo từng kiện hàng (mã vận đơn, hãng vận chuyển GHN/GHTK/Viettel Post, trạng thái xuất kho, đang giao, đã giao).
-   - Hủy đơn khi các seller chưa xuất kho giao vận.
-5. **Kênh chuyển hướng ngoài (phương án bổ trợ)**:
-   - Tại trang chi tiết sản phẩm hoặc outfit, người dùng vẫn có thể chọn nút chuyển hướng để mua trên Shopee / TikTok Shop của thương hiệu nếu muốn.
+FitMe không có giỏ hàng hay thanh toán đơn hàng. Trang chi tiết sản phẩm chỉ có 3 nút: **Mua tại cửa hàng gốc**, **Tư vấn size & phối đồ bằng AI** và **Thử mặc bằng AI**. Màu và size hiển thị dạng nhãn để tham khảo.
 
-### 3.6 Luồng tư vấn AI & Thử đồ
+1. Bấm **Mua tại cửa hàng gốc** → trang xác nhận `/redirect/confirm/{productId}`.
+2. Người dùng đã đăng nhập thấy ô **"Chia sẻ tên và email với brand khi bạn bấm mua, để brand liên hệ tư vấn và xác nhận đơn"**. Ô này mặc định theo lựa chọn gần nhất, bật/tắt bất kỳ lúc nào (cũng chỉnh được tại `/profile/privacy`).
+3. Bấm tiếp tục → `/redirect/loading` → mở website / sàn của brand (đúng link mua brand đã khai báo).
+4. Nếu đang đồng ý chia sẻ, brand nhận **1 khách quan tâm** cho sản phẩm đó trong ngày (tên, email, size/màu đã chọn). Khách vãng lai hoặc không đồng ý: brand không nhận thông tin cá nhân.
+5. Rút lại đồng ý: các lượt cũ ở phía brand hiện "khách đã rút đồng ý", không còn tên/email. Xóa toàn bộ tài khoản: lượt cũ được ẩn danh hoá.
+6. **Tủ chi tiêu** (`/profile/purchases`): xem lịch sử bấm mua và bấm **đánh dấu đã mua** khi đã mua thật. Đánh giá của người đã đánh dấu đã mua (hoặc được brand Plus xác nhận đã bán) có nhãn **Đã mua hàng**.
+
+### 3.7 Luồng tư vấn AI, thử đồ & mua
 
 ```mermaid
 flowchart LR
@@ -272,31 +282,30 @@ flowchart LR
   E --> F[Kết quả /ai/result]
   A --> G[Khám phá /discover]
   G --> H[Chi tiết SP /products/id]
-  H --> I[Thêm giỏ hàng /cart]
-  I --> J[Thanh toán /checkout]
+  H --> I[Xác nhận /redirect/confirm/id]
+  I --> J[Website brand]
   A --> K[Thử mặc /try-on]
-  K --> L[Kết quả preview ảnh cá nhân -1 Fitken]
+  K --> L[Preview ảnh cá nhân: -1 Fitken hoặc lượt Plus miễn phí]
   L --> M[Lưu thư viện /profile/gallery]
 ```
 
-### 3.7 Bảng tính năng cần đăng nhập
+### 3.8 Bảng tính năng cần đăng nhập
 
 | Hành động | Đường dẫn | Quyền lợi & Ghi chú |
 |-----------|-----------|---------------------|
 | Đăng ký | `/auth/register` | Nhận ngay **5 Fitken** dùng thử |
 | Đăng nhập | `/auth/login` | Đồng bộ dữ liệu tư vấn & ảnh thử đồ từ phiên ẩn danh |
-| Nâng cấp gói Pro | `/pricing` | Mua gói Pro 49k/tháng qua PayOS |
-| Nhận thưởng | `/rewards` | Điểm danh, nộp link chia sẻ, tích lũy Fitken |
+| Nâng cấp Premium | `/pricing` | FitMe Premium qua PayOS |
+| Nhận thưởng | `/rewards` | Điểm danh, nộp link chia sẻ, tích lũy Fitken (có trần) |
 | Thư viện ảnh | `/profile/gallery` | Bộ sưu tập ảnh outfit cá nhân |
-| Giỏ hàng & Mua hàng | `/cart` → `/checkout` | Đặt hàng in-app COD / PayOS |
-| Quản lý đơn | `/orders` | Lịch sử đơn và tracking vận chuyển |
-| Sổ địa chỉ | `/profile/addresses` | Địa chỉ nhận hàng |
+| Tủ chi tiêu | `/profile/purchases` | Lịch sử bấm mua, đánh dấu đã mua |
+| Brand yêu thích | `/profile/style-preferences` | Premium: lưu brand yêu thích & chế độ phối |
+| Tủ đồ | `/wardrobe` | Premium: thêm item cá nhân vào tủ ảo |
 | Hồ sơ | `/profile` | Body/style profile |
-| Quyền riêng tư | `/profile/privacy` | Yêu cầu xóa dữ liệu / consent |
-| Tủ đồ | `/wardrobe` | Thêm item cá nhân vào tủ ảo |
+| Quyền riêng tư | `/profile/privacy` | Consent (kể cả chia sẻ thông tin với brand), yêu cầu xóa dữ liệu |
 | Outfit đã lưu | `/saved-outfits` | Quản lý gợi ý phối đồ đã lưu |
 
-### 3.4 Đăng ký làm đối tác Brand (từ USER)
+### 3.9 Đăng ký làm đối tác Brand (từ USER)
 
 1. Đăng ký USER tại `/auth/register`
 2. Vào `/brand/onboarding` — điền tên brand, email, website, mô tả
@@ -304,18 +313,19 @@ flowchart LR
 4. Admin duyệt → **đăng xuất và đăng nhập lại** tại `/brand/login`
 5. Vào portal brand `/brand/dashboard`
 
-### 3.5 Checklist test USER
+### 3.10 Checklist test USER
 
 | # | Kịch bản | Cách chạy tự động |
 |---|----------|-------------------|
 | 1 | Tư vấn ẩn danh → có kết quả AI | `npx playwright test e2e/role-flows.spec.ts -g "tư vấn outfit ẩn danh"` |
 | 2 | Try-on → preview kết quả | `-g "thử mặc AI"` |
-| 3 | Discover → mua → redirect | `-g "khám phá"` |
+| 3 | Khám phá → chi tiết SP → chuyển hướng mua | `-g "khám phá"` |
 | 4 | Login → profile → wardrobe → saved | `-g "đăng nhập → hồ sơ"` |
 | 5 | Forgot password MVP | `-g "quên mật khẩu"` |
 | 6 | Privacy → gửi yêu cầu xóa | `-g "quyền riêng tư"` |
 | 7 | Tư vấn từ SP → lưu → saved list | `-g "tư vấn từ sản phẩm"` |
-| 8 | Wardrobe → tư vấn ưu tiên tủ đồ | `-g "tủ đồ → thêm item"` |
+| 8 | Tủ đồ (Premium) → tư vấn ưu tiên tủ đồ | `-g "tủ đồ → thêm item"` |
+| 9 | Xác nhận mua, bật/tắt chia sẻ thông tin, không open redirect | `npx playwright test e2e/redirect-flow.spec.ts` |
 
 **Chạy toàn bộ luồng USER + public:**
 
@@ -324,17 +334,17 @@ cd frontend
 npx playwright test e2e/role-flows.spec.ts --grep "Luồng công khai|Luồng USER" --workers=1
 ```
 
-**Test thủ công nhanh:** đăng nhập `user@fitme.ai` / `fitme123` → `/discover` → chọn sản phẩm → **Tư vấn size & phối đồ bằng AI** → hoàn thành wizard → **Lưu gợi ý** → kiểm tra `/saved-outfits`.
+**Test thủ công nhanh:** đăng nhập `user@fitme.ai` (mật khẩu seed, xem mục 1.6) → `/discover` → chọn sản phẩm → **Tư vấn size & phối đồ bằng AI** → hoàn thành wizard → **Lưu gợi ý** → kiểm tra `/saved-outfits` → quay lại sản phẩm → **Mua tại cửa hàng gốc** → kiểm tra trang xác nhận và ô chia sẻ thông tin.
 
 ---
 
-## 4. Vai trò BRAND_OWNER (Đối tác thương hiệu / Seller)
+## 4. Vai trò BRAND_OWNER (Đối tác thương hiệu)
 
 ### 4.1 Mục đích
 
-Quản lý catalog sản phẩm, xử lý đơn hàng seller in-app, tạo vận đơn giao hàng, theo dõi đối soát doanh thu, thiết lập tài khoản nhận tiền và xem báo cáo analytics tổng hợp.
+Quản lý catalog sản phẩm (kèm link mua tại cửa hàng gốc), theo dõi khách thử đồ và bấm mua, nhận thông tin khách quan tâm, và mua **Gói Plus** để tăng hiển thị và chăm sóc khách.
 
-> **Chính sách:** Dashboard brand được mở **hoàn toàn miễn phí** cho mọi thương hiệu đã được duyệt (`APPROVED`). FitMe không còn thu phí gói brand định kỳ hay giới hạn lượt try-on của shop.
+> **Chính sách:** Dashboard brand **miễn phí** cho mọi thương hiệu đã được duyệt (`APPROVED`). **Gói Plus** là tuỳ chọn trả phí theo kỳ 30 ngày (giá mặc định 999.000đ, admin có thể đổi và đặt giảm giá).
 
 ### 4.2 Truy cập portal
 
@@ -344,38 +354,65 @@ Quản lý catalog sản phẩm, xử lý đơn hàng seller in-app, tạo vận
 
 ### 4.3 Các màn hình portal
 
+Menu: **Tổng quan · Sản phẩm · Khách quan tâm · Nhu cầu Gen Z · Phân tích · Gói Plus · Cài đặt**.
+
 | Đường dẫn | Chức năng |
 |-----------|-----------|
-| `/brand/dashboard` | Tổng quan KPI kinh doanh & analytics |
-| `/brand/orders` | Danh sách đơn hàng seller của shop (lọc theo trạng thái) |
-| `/brand/orders/{id}` | Chi tiết đơn, địa chỉ nhận hàng, trạng thái đóng gói & vận đơn |
-| `/brand/settlements` | Báo cáo đối soát doanh thu, số dư chờ chuyển khoản & lịch sử thanh toán |
+| `/brand/dashboard` | Số khách thử đồ 7 / 30 ngày, top sản phẩm được thử, phễu 30 ngày (thử đồ → bấm mua → đã bán). Không chứa thông tin cá nhân, không cần Plus |
 | `/brand/products` | Danh sách sản phẩm của shop |
-| `/brand/products/new` | Tạo sản phẩm mới |
+| `/brand/products/new` | Tạo sản phẩm mới — **Link mua hàng bắt buộc** (URL hợp lệ, tối đa 2048 ký tự) |
 | `/brand/products/{id}/edit` | Sửa, **Gửi duyệt** |
 | `/brand/products/{id}/analytics` | Analytics chi tiết theo từng sản phẩm |
+| `/brand/leads` | **Khách quan tâm** (xem mục 4.6) |
+| `/brand/insights/demand` | Nhu cầu Gen Z: like, click mua, xác nhận mua (ẩn danh) |
 | `/brand/analytics` | Phân tích tổng thể phễu khách hàng |
-| `/brand/analytics/redirect` | Click chuyển hướng sang Shopee/TikTok |
+| `/brand/analytics/redirect` | Click chuyển hướng mua theo kênh |
 | `/brand/analytics/dropoff` | Điểm rời bỏ funnel |
 | `/brand/analytics/hesitation` | Hành vi do dự của khách |
 | `/brand/analytics/try-on` | Thống kê lượt thử đồ AI |
-| `/brand/settings` | Cài đặt thông tin thương hiệu & tài khoản ngân hàng nhận tiền (Payout Account) |
+| `/brand/plan` | **Gói Plus**: trạng thái, giá, voucher, mua / gia hạn |
+| `/brand/settings` | Cài đặt thông tin thương hiệu |
 
-### 4.4 Quy trình xử lý đơn hàng & Vận đơn (Fulfillment)
+### 4.4 Gói Plus (`/brand/plan`)
 
-Khi khách đặt hàng in-app, hệ thống tự động tách thành đơn seller cho từng brand:
-1. **Xác nhận đơn (`Confirm`)**: Shop kiểm tra đơn tại `/brand/orders/{id}` và bấm **Xác nhận**.
-2. **Đóng gói (`Pack`)**: Shop chuẩn bị hàng và bấm **Đã đóng gói**.
-3. **Giao vận (`Ship`)**: Chọn đơn vị vận chuyển (`GHN`, `GHTK`, `VIETTEL_POST` hoặc `SELF`), nhập mã vận đơn (hệ thống tự sinh nếu để trống). Đơn hàng chuyển sang trạng thái `SHIPPING`.
-4. **Cập nhật hành trình**: Shop có thể cập nhật sự kiện vận đơn thủ công hoặc thông qua webhook tích hợp từ hãng vận chuyển (`POST /api/v1/webhooks/logistics`).
-5. **Giao thành công (`Delivered`)**: Đơn chuyển sang hoàn tất và bắt đầu tính thời gian chờ đối soát.
+**Quyền lợi khi Plus đang hiệu lực:**
 
-### 4.5 Cơ chế đối soát doanh thu (Settlement)
+- Huy hiệu Plus trên sản phẩm của brand.
+- Khách đã đăng nhập được **thử đồ miễn phí** sản phẩm của brand (mặc định 3 lượt/ngày/khách).
+- Sản phẩm được **ưu tiên trong gợi ý** của stylist AI (điểm ưu tiên do admin cài đặt).
+- Xem **đầy đủ danh sách Khách quan tâm** (tên, email, size/màu) và đánh dấu **Đã bán**.
 
-- **Hoa hồng nền tảng**: 10% tính trên tiền hàng subtotal của đơn seller.
-- **Tiền chuyển khoản cho seller**: `Payout = Subtotal − Hoa hồng (10%)`. (Phí ship do nền tảng thu và thanh toán cho hãng vận chuyển).
-- **Thời gian giữ tiền (Hold)**: Mặc định **7 ngày** kể từ khi đơn giao thành công (`DELIVERED`) để xử lý các yêu cầu đổi trả/khiếu nại nếu có.
-- **Thanh toán**: Sau thời gian hold, đơn tự động đủ điều kiện đối soát. Admin sẽ tạo kỳ đối soát và thực hiện chuyển khoản vào tài khoản ngân hàng shop đã đăng ký tại `/brand/settings`.
+**Mua / gia hạn:**
+
+1. Vào `/brand/plan` — xem giá gốc, giá sau giảm (nếu chương trình giảm giá đang chạy) và thời hạn hiện tại.
+2. (Tuỳ chọn) chọn một **voucher** đang dùng được. Hệ thống chỉ áp dụng **một** mức giảm: mức cao hơn giữa chương trình giảm giá của gói và voucher. Nếu chương trình bằng hoặc cao hơn voucher, voucher được **giữ lại** cho lần sau và màn hình giải thích lý do.
+3. Bấm thanh toán → PayOS → quay về `/brand/plan/return`.
+4. Thanh toán thành công: Plus có hiệu lực 30 ngày; gia hạn khi đang Plus thì **cộng nối** vào ngày hết hạn hiện tại.
+5. Đơn chờ thanh toán có thể **huỷ**; voucher đang giữ cho đơn được trả lại. Đơn chờ quá 24 giờ tự hết hạn.
+
+Hết hạn: Plus tự tắt (job hằng ngày), danh sách khách quan tâm bị khoá chi tiết, huy hiệu và lượt thử miễn phí ngừng áp dụng.
+
+### 4.5 Voucher brand
+
+- Admin phát voucher theo **chiến dịch** (giảm X% Gói Plus). Voucher hiện ở `/brand/plan` cùng trạng thái:
+
+| Trạng thái | Ý nghĩa |
+|------------|---------|
+| Còn dùng được (`ISSUED`) | Chọn được khi thanh toán |
+| Đang giữ (`RESERVED`) | Đang gắn với một đơn chưa hoàn tất; huỷ đơn hoặc chờ đơn hết hạn để dùng lại |
+| Đã dùng (`USED`) | Đã áp dụng cho đơn thanh toán thành công |
+| Đã thu hồi (`REVOKED`) | Admin thu hồi |
+| Hết hạn (`EXPIRED`) | Quá hạn chiến dịch |
+
+- Mỗi voucher chỉ dùng một lần, chỉ cho chính brand được phát.
+
+### 4.6 Khách quan tâm (`/brand/leads`)
+
+- Mỗi khi khách đã đăng nhập **đồng ý chia sẻ thông tin** và bấm **Mua tại cửa hàng gốc** trên sản phẩm của brand, brand nhận 1 khách quan tâm (tối đa 1 lượt / khách / sản phẩm / ngày).
+- **Không Plus:** chỉ thấy số tổng (tổng khách, đã bán, 30 ngày gần nhất) kèm lời mời nâng cấp.
+- **Có Plus:** thấy danh sách tên, email, sản phẩm, size, màu, thời điểm; lọc theo khoảng ngày, sản phẩm, trạng thái đã bán; đánh dấu / bỏ đánh dấu **Đã bán** (đánh giá của khách đó có nhãn *Đã mua hàng*).
+- Khách rút đồng ý → dòng hiện "khách đã rút đồng ý", không còn tên/email. Khách xoá tài khoản → dòng được ẩn danh.
+- Chỉ dùng thông tin để tư vấn / xác nhận đơn cho chính khách đó; không chia sẻ cho bên thứ ba.
 
 ---
 
@@ -383,7 +420,7 @@ Khi khách đặt hàng in-app, hệ thống tự động tách thành đơn sel
 
 ### 5.1 Mục đích
 
-Vận hành và quản trị toàn bộ nền tảng: giám sát đơn hàng, tạo và quyết toán kỳ đối soát seller, quản lý xét duyệt bài đăng nhận thưởng, kiểm duyệt đánh giá sản phẩm, quản lý gói cước consumer Pro, duyệt thương hiệu/sản phẩm, cấu hình rules AI và giám sát kỹ thuật.
+Vận hành và quản trị nền tảng: quản lý tài khoản (kể cả gán Premium), duyệt thương hiệu / sản phẩm, cấu hình gói dịch vụ cho người dùng và brand, phát voucher brand, chỉnh cài đặt hệ thống, duyệt chia sẻ nhận thưởng, kiểm duyệt đánh giá, theo dõi tăng trưởng / khách quay lại / khách trả tiền, cấu hình rules AI và giám sát kỹ thuật.
 
 ### 5.2 Truy cập portal
 
@@ -396,20 +433,25 @@ Vận hành và quản trị toàn bộ nền tảng: giám sát đơn hàng, t�
 | Đường dẫn | Chức năng |
 |-----------|-----------|
 | `/admin/dashboard` | Tổng quan hệ thống |
-| `/admin/orders` | Giám sát toàn bộ đơn hàng thương mại trên hệ thống |
-| `/admin/orders/{id}` | Xem chi tiết đơn khách, đơn seller con và vận đơn |
-| `/admin/settlements` | Quản lý các kỳ đối soát doanh thu seller, tạo kỳ đối soát mới và đánh dấu đã thanh toán |
-| `/admin/rewards` | Quản lý & duyệt danh sách link chia sẻ nhận thưởng Fitken |
-| `/admin/reviews` | Quản lý & kiểm duyệt đánh giá sản phẩm của người dùng |
-| `/admin/billing/plans` | Quản lý danh mục gói cước consumer FitMe Pro |
-| `/admin/brands` | Duyệt / quản lý brand (PENDING → APPROVED) |
-| `/admin/products/moderation` | Duyệt sản phẩm PENDING_REVIEW |
-| `/admin/flagged-links` | Link mua bị báo lỗi |
-| `/admin/rules/styles` | Rule phong cách (StyleRule) |
-| `/admin/rules/occasions` | Rule hoàn cảnh (OccasionRule) |
-| `/admin/analytics` | Analytics toàn hệ thống |
+| `/admin/users` | Quản lý tài khoản: khoá / mở, **Lên Premium / Về Free**, xem & điều chỉnh ví Fitken |
+| `/admin/traffic` | Thống kê truy cập |
+| `/admin/brands` | Duyệt / quản lý brand (PENDING → APPROVED), xem brand nào đang Plus và ngày hết hạn |
+| `/admin/partnerships` | Cặp brand cho Partner look |
+| `/admin/billing/plans` | **Gói dịch vụ** (2 tab, xem mục 5.5) |
+| `/admin/vouchers` | **Voucher brand**: chiến dịch, phát, thu hồi (mục 5.6) |
+| `/admin/rewards` | Duyệt link chia sẻ nhận thưởng Fitken |
+| `/admin/reviews` | Kiểm duyệt đánh giá sản phẩm |
+| `/admin/products/moderation` | Duyệt sản phẩm PENDING_REVIEW (không duyệt được nếu thiếu link mua hợp lệ) |
+| `/admin/flagged-links` | Link mua bị gắn cờ |
+| `/admin/analytics` | Phân tích tăng trưởng |
+| `/admin/retention` | **Khách quay lại** (mục 5.8) |
+| `/admin/paying-customers` | Khách trả tiền (giao dịch gói Premium; tách giao dịch PayOS mock), xuất file |
 | `/admin/privacy` | Consent & yêu cầu xóa dữ liệu |
 | `/admin/try-on-monitoring` | Giám sát try-on / preview thất bại |
+| `/admin/tryon-avatars` | Avatar mẫu thử đồ |
+| `/admin/settings` | **Cài đặt hệ thống** (mục 5.7) |
+| `/admin/rules/styles` · `/admin/rules/occasions` | Rule phong cách / hoàn cảnh |
+| `/admin/account` | Đổi mật khẩu |
 
 ### 5.4 Quy trình duyệt brand mới
 
@@ -418,7 +460,40 @@ Vận hành và quản trị toàn bộ nền tảng: giám sát đơn hàng, t�
 3. Hệ thống nâng role user thành `BRAND_OWNER`
 4. User **phải đăng xuất và đăng nhập lại** mới vào được `/brand/dashboard`
 
-### 5.5 Checklist test ADMIN
+### 5.5 Gói dịch vụ (`/admin/billing/plans`)
+
+Hai tab:
+
+- **Gói người dùng**: FitMe Premium (gói tháng, có số Fitken mỗi kỳ) và các gói top-up Fitken. Gói người dùng không có giảm giá theo thời gian.
+- **Gói brand**: Brand Plus (gói theo chu kỳ). Đặt **% giảm giá** kèm thời điểm bắt đầu / kết thúc; trong khoảng đó brand thấy giá sau giảm. Tab này cũng có danh sách brand đã mua Plus.
+
+Quy tắc: không đổi được mã gói hoặc đối tượng (người dùng / brand) sau khi tạo; gói đã có người mua thì tắt (`active=false`) thay vì xóa.
+
+### 5.6 Voucher brand (`/admin/vouchers`)
+
+1. Tạo **chiến dịch**: tên, % giảm (1–99), số voucher mỗi brand (1–100), số brand tối đa, thời gian hiệu lực, bật/tắt.
+2. Mở chiến dịch → chọn brand đã duyệt → **Phát voucher**. Brand đã nhận ở chiến dịch này được bỏ qua; vượt số brand tối đa thì bị chặn kèm số suất còn lại.
+3. Xem danh sách voucher đã phát theo trạng thái; **Thu hồi** voucher còn dùng được. Không thu hồi được voucher đang giữ cho đơn, đã dùng hoặc đã hết hạn.
+4. Đổi % của chiến dịch không ảnh hưởng voucher đã phát.
+
+### 5.7 Cài đặt hệ thống (`/admin/settings`)
+
+| Cài đặt | Mặc định | Ý nghĩa |
+|---------|----------|---------|
+| Trần Fitken miễn phí | 50 | Mức tối đa Fitken từ quà dùng thử / nhận thưởng trong ví |
+| Lượt thử đồ miễn phí mỗi ngày (brand Plus) | 3 | Số lượt thử miễn phí / khách / ngày cho sản phẩm brand Plus (0 = tắt) |
+| Điểm ưu tiên gợi ý (brand Plus) | 15 | Mức ưu tiên sản phẩm brand Plus trong gợi ý AI (0 = tắt) |
+
+Giá trị phải là số nguyên trong khoảng cho phép; thay đổi có hiệu lực trong khoảng 1 phút.
+
+### 5.8 Khách quay lại (`/admin/retention`)
+
+- **Nhóm đăng ký theo tuần**: tỉ lệ người dùng còn hoạt động ở các tuần sau khi đăng ký.
+- **Tần suất hoạt động**: số ngày có hoạt động trong 30 ngày qua.
+- **Khách đã rời đi**: từng hoạt động nhưng không quay lại trong 30 ngày.
+- **Khách hoạt động nhiều nhất**: top 20 theo số ngày hoạt động, kèm số lượt tư vấn, thử đồ, bấm mua.
+
+### 5.9 Checklist test ADMIN
 
 | # | Kịch bản | Lệnh Playwright |
 |---|----------|-----------------|
@@ -427,7 +502,7 @@ Vận hành và quản trị toàn bộ nền tảng: giám sát đơn hàng, t�
 | 3 | Duyệt brand + luồng liên role | `-g "Brand application"` |
 | 4 | Admin flows đầy đủ | `npx playwright test e2e/admin-full.spec.ts` |
 
-**Test thủ công:** login admin → `/admin/products/moderation` → **Duyệt** sản phẩm pending → kiểm tra SP hiện trên `/discover`.
+**Test thủ công:** login admin → `/admin/products/moderation` → **Duyệt** sản phẩm pending → kiểm tra SP hiện trên `/discover`. Gói Plus, voucher và cài đặt hệ thống hiện chưa có E2E — xem [test-cases/06-brand-plus-voucher-lead.md](test-cases/06-brand-plus-voucher-lead.md) và [test-cases/11-admin-portal.md](test-cases/11-admin-portal.md).
 
 ---
 
@@ -451,6 +526,8 @@ cd frontend
 npx playwright test e2e/role-flows.spec.ts -g "Brand application" --workers=1
 ```
 
+Kịch bản Brand Plus (thủ công): admin phát voucher cho brand → brand mua Gói Plus có voucher → user đồng ý chia sẻ thông tin và bấm mua sản phẩm của brand → brand thấy khách quan tâm và đánh dấu Đã bán → đánh giá của user có nhãn *Đã mua hàng*.
+
 ---
 
 ## 7. Chạy test toàn hệ thống
@@ -473,7 +550,7 @@ npx playwright test e2e/role-flows.spec.ts -g "Brand application" --workers=1
 bash scripts/ci-e2e.sh
 ```
 
-### 7.2 Bảng map spec E2E ↔ luồng
+### 7.2 Bảng map spec E2E ↔ luồng (22 spec)
 
 | Spec file | Phạm vi |
 |-----------|---------|
@@ -490,11 +567,11 @@ bash scripts/ci-e2e.sh
 | `ai-extras.spec.ts` | Trang AI phụ |
 | `try-on.spec.ts` | Try-on chính |
 | `try-on-extras.spec.ts` | Try-on phụ (size/form/color…) |
-| `wardrobe.spec.ts` | Thêm item tủ đồ |
+| `wardrobe.spec.ts` | Premium thêm item tủ đồ; Free thấy lời mời nâng cấp |
 | `saved-outfits.spec.ts` | Danh sách đã lưu |
-| `redirect-flow.spec.ts` | Luồng mua/redirect |
+| `redirect-flow.spec.ts` | Mua tại cửa hàng gốc: chống open redirect, xác nhận → loading, ô chia sẻ thông tin |
 | `brand-portal.spec.ts` | Brand smoke |
-| `brand-full.spec.ts` | Brand CRUD |
+| `brand-full.spec.ts` | Brand CRUD, dashboard mở không cần gói, link mua bắt buộc |
 | `admin-portal.spec.ts` | Admin smoke |
 | `admin-full.spec.ts` | Admin duyệt/flag |
 | `role-flows.spec.ts` | **3 role serial** — file quan trọng nhất |
@@ -502,17 +579,19 @@ bash scripts/ci-e2e.sh
 
 ### 7.3 Kết quả regression gần nhất
 
+Ở commit `bc323e2` (CI xanh):
+
 | Lớp | Kết quả |
 |-----|---------|
-| Backend `mvn test` | 63 pass |
-| Frontend Vitest | 43 pass |
-| E2E Playwright | 102 pass, 1 skip |
+| Backend `mvn test` | 389 phương thức test / 94 class, pass hết (3 test `@Disabled` là lỗ hổng đã biết) |
+| Frontend Vitest | 273 test / 64 file, pass hết |
+| E2E Playwright | 22 spec: 127 test chromium + 5 test mobile-chrome, pass hết |
 
-**Skip:** `reset-password.spec.ts` — cần backend `FITME_TEST_EXPOSE_RESET_TOKENS=true`.
+Số test BE / FE đếm trong code. Chi tiết theo module: [TEST_CASES.md](TEST_CASES.md).
 
 ### 7.4 CI GitHub Actions
 
-Mỗi push/PR chạy: backend test → frontend unit → build → E2E (`smoke-routes` + `role-flows`).
+Mỗi push/PR chạy: backend test → frontend unit → frontend build → **E2E (full suite)** (mọi spec trên chromium, `mobile-nav` trên mobile-chrome).
 
 Badge: https://github.com/KhangNT04/fitme_ai_mvp/actions
 
@@ -535,6 +614,18 @@ A: Kiểm tra admin đã duyệt brand chưa; sau khi duyệt phải **logout + 
 **Q: Discover không có sản phẩm?**  
 A: Cần sản phẩm trạng thái `ACTIVE` (admin duyệt). Seed tạo sẵn nếu DB trống.
 
+**Q: Giỏ hàng / đơn hàng đâu rồi?**  
+A: Đã gỡ từ V27. FitMe chỉ chuyển khách sang cửa hàng gốc của brand; đơn hàng do brand xử lý.
+
+**Q: Brand không thấy tên / email khách quan tâm?**  
+A: Cần Gói Plus đang hiệu lực, và khách phải đang đồng ý chia sẻ thông tin. Khách đã rút đồng ý hoặc xoá tài khoản sẽ không hiện thông tin cá nhân.
+
+**Q: Voucher báo "đang được giữ"?**  
+A: Voucher đang gắn với một đơn Gói Plus chưa thanh toán. Huỷ đơn đó tại `/brand/plan` hoặc chờ đơn hết hạn (24 giờ).
+
+**Q: Người dùng không nhận thêm Fitken khi điểm danh / chia sẻ?**  
+A: Ví đã chạm trần Fitken miễn phí. Admin xem / chỉnh tại `/admin/settings`.
+
 **Q: API lỗi CORS trên bản deploy?**  
 A: Admin phải cấu hình `CORS_ORIGINS` trên backend **khớp chính xác** `{BASE_URL}` (https/http, domain, port). User thường không cần sửa — gọi API qua `{BASE_URL}/api/v1` (proxy cùng domain).
 
@@ -553,9 +644,8 @@ A: FE middleware chỉ guard route; BE vẫn validate JWT role (`BRAND_OWNER` / 
 
 - [DEPLOY_VERCEL_RENDER_NEON.md](DEPLOY_VERCEL_RENDER_NEON.md) — deploy cloud (link public)
 - [DEPLOY_TEST.md](DEPLOY_TEST.md) — deploy staging VPS/Docker
-
 - [DEVELOPER_GUIDE.md](DEVELOPER_GUIDE.md) — chi tiết kỹ thuật cho dev
 - [ARCHITECTURE.md](ARCHITECTURE.md) — sơ đồ kiến trúc
 - [API_CONTRACT.md](API_CONTRACT.md) — mapping FE ↔ BE
+- [TEST_CASES.md](TEST_CASES.md) — bộ test case theo module
 - [QA_REPORT.md](QA_REPORT.md) — báo cáo QA chi tiết
-- [DEPLOY_TEST.md](DEPLOY_TEST.md) — deploy staging

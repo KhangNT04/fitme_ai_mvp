@@ -2,13 +2,15 @@
 
 [← Mục lục](../TEST_CASES.md)
 
+NAV-14 (badge giỏ hàng) đã xoá vì giỏ hàng bị gỡ ở V27 (`7ae8d1d`).
+
 ## Hiện trạng (đọc từ code)
 
 | Hạng mục | Hiện trạng |
 |---|---|
-| Header desktop | Khám phá, Thử mặc AI, Tủ đồ, Đã lưu, Nhận thưởng, icon "Tìm kiếm nhanh"; đã đăng nhập: số Fitken, giỏ hàng, tên / "Hồ sơ"; khách: "Đăng nhập", "Tư vấn AI" |
+| Header desktop | Khám phá, Thử mặc AI, Tủ đồ, Đã lưu, Nhận thưởng, icon "Tìm kiếm nhanh"; đã đăng nhập: số Fitken, tên / "Hồ sơ"; khách: "Đăng nhập", "Tư vấn AI" |
 | Thanh điều hướng mobile | Trang chủ, Khám phá, Tư vấn AI (nút nổi), Thử mặc, Hồ sơ; ẩn ở `/brand*`, `/admin*`, `/auth*`, `/redirect*` và các bước wizard AI / thử mặc |
-| Footer | Khám phá (Sản phẩm, Tư vấn AI, Thử mặc AI, Bảng giá FitMe Pro), Hỗ trợ (Câu hỏi thường gặp, Liên hệ, Chính sách bảo mật, Điều khoản), Đối tác (Brand Portal, Admin — chỉ desktop). Mobile chỉ hiện footer ở `/`, `/pricing`, `/contact`, `/privacy-policy`, `/terms` |
+| Footer | Khám phá (Sản phẩm, Tư vấn AI, Thử mặc AI, Bảng giá FitMe Premium), Hỗ trợ (Câu hỏi thường gặp, Liên hệ, Chính sách bảo mật, Điều khoản), Đối tác (Brand Portal, Admin — chỉ desktop). Mobile chỉ hiện footer ở `/`, `/pricing`, `/contact`, `/privacy-policy`, `/terms` |
 | Trang lỗi | **Không có** `not-found.tsx`, `error.tsx`, `loading.tsx` riêng → dùng trang mặc định của Next.js |
 | SEO | Tiêu đề "FitMe AI — Tư vấn size & phối đồ bằng AI", OpenGraph vi_VN; sitemap 8 URL; robots chặn khu vực riêng tư |
 | Analytics | GA4 / Clarity chỉ tải khi có ID; ghi nguồn (UTM / referrer) lần chạm đầu, lưu 30 ngày |
@@ -30,10 +32,8 @@
 | NAV-09 | H | P2 | Desktop | Bấm các link footer | — | Mở đúng trang; "Câu hỏi thường gặp" cuộn tới `/#faq` | — | — | ✅ | ✅ | navigation.spec "footer portal links load" |
 | NAV-10 | E | P2 | Mobile | Mở `/discover` | — | Không hiện footer; mở `/pricing` thì hiện | — | ✅ | ❌ | ❌ | |
 | NAV-11 | H | P2 | Mobile | Header thu gọn | — | Có tìm kiếm nhanh, không có menu hamburger | — | — | ✅ | ❌ | mobile-nav.spec |
-| NAV-12 | H | P2 | Portal | Sidebar admin / brand | — | Đủ mục, đúng thứ tự, icon đúng (gồm "Avatar mẫu thử đồ") | — | ❌ | ✅ | ✅ | |
+| NAV-12 | H | P2 | Portal | Sidebar admin / brand | — | Đủ mục, đúng thứ tự, icon đúng. Brand: Tổng quan, Sản phẩm, Khách quan tâm, Nhu cầu Gen Z, Phân tích, Gói Plus, Cài đặt. Admin: xem quy tắc "Menu" ở module 11 (gồm Gói dịch vụ, Voucher brand, Khách quay lại, Cài đặt hệ thống); không còn Đơn hàng / Đối soát | — | ❌ | ✅ | ❌ | PROD kiểm tra menu trước khi đổi sang Brand Plus |
 | NAV-13 | E | P2 | Portal | Header portal | — | "FitMe AI — Quản trị" / "— Thương hiệu", nút "Trang chủ", "Đăng xuất" | — | ❌ | ❌ | ✅ | |
-| NAV-14 | H | P2 | — | Badge giỏ hàng | — | Bằng tổng số lượng trong giỏ, cập nhật ngay khi thêm / xoá | — | ❌ | ❌ | ✅ | |
-
 ## 13.2 Các trang & trạng thái chung (UI)
 
 | ID | Loại | Ưu tiên | Tiền điều kiện | Các bước | Dữ liệu test | Kết quả mong đợi | BE | FE | E2E | PROD | Ghi chú |
@@ -44,7 +44,7 @@
 | UI-04 | H | P2 | — | `/privacy-policy`, `/terms` | — | Nội dung đầy đủ, đọc được trên mobile | — | — | ✅ | ✅ | |
 | UI-05 | E | P1 | — | Mở URL không tồn tại | `/abcxyz`, `/login` | Trang 404 tiếng Việt có nút về trang chủ | — | — | ❌ | ✅ | Hiện là trang 404 mặc định của Next.js (tiếng Anh) |
 | UI-06 | W | P1 | — | Gây lỗi render một trang | — | Trang lỗi thân thiện, có nút thử lại | — | — | ❌ | ❌ | Chưa có `error.tsx` |
-| UI-07 | H | P1 | — | Định dạng tiền và ngày | — | `329.000 ₫`; ngày `dd/MM/yyyy`; giờ Việt Nam | — | ✅ | — | ✅ | `format-price.test`, `commerce-utils.test` |
+| UI-07 | H | P1 | — | Định dạng tiền và ngày | — | `329.000 ₫`; ngày `dd/MM/yyyy`; giờ Việt Nam | — | ✅ | — | ✅ | `format-price.test` (`commerce-utils.test` đã xoá cùng V27) |
 | UI-08 | H | P1 | — | Thông báo lỗi khi API lỗi 400 / 401 / 403 / 404 / 409 / 413 / 429 / 500 / 502 / 503 / 504 | — | Thông báo tiếng Việt thân thiện tương ứng, không lộ lỗi kỹ thuật | — | ✅ | — | ✅ | `user-error-message.test` |
 | UI-09 | H | P2 | — | Trạng thái đang tải | — | Skeleton / spinner ở các danh sách | — | ❌ | ❌ | ❌ | |
 | UI-10 | H | P2 | — | Toast thông báo | — | Hiện góc màn hình, tự ẩn, không che nút quan trọng trên mobile | — | ❌ | ❌ | ❌ | |
@@ -69,7 +69,7 @@
 
 | ID | Loại | Ưu tiên | Tiền điều kiện | Các bước | Dữ liệu test | Kết quả mong đợi | BE | FE | E2E | PROD | Ghi chú |
 |---|---|---|---|---|---|---|---|---|---|---|---|
-| A11Y-01 | W | P2 | — | Chỉ dùng bàn phím (Tab / Enter / Esc) đi luồng đăng nhập, tư vấn, thêm giỏ | — | Làm được hết; focus nhìn thấy rõ; Esc đóng dialog | — | ❌ | ❌ | ❌ | |
+| A11Y-01 | W | P2 | — | Chỉ dùng bàn phím (Tab / Enter / Esc) đi luồng đăng nhập, tư vấn, bấm mua tại cửa hàng gốc | — | Làm được hết; focus nhìn thấy rõ; Esc đóng dialog | — | ❌ | ❌ | ❌ | |
 | A11Y-02 | W | P2 | — | Chạy Lighthouse Accessibility trang chủ, khám phá, chi tiết sản phẩm | — | Điểm ≥ 90 | — | — | ❌ | ❌ | |
 | A11Y-03 | W | P2 | — | Trình đọc màn hình (VoiceOver / NVDA) | — | Ảnh có alt, nút icon có nhãn ("Tìm kiếm nhanh"…), form có label | — | ❌ | ❌ | ❌ | |
 | A11Y-04 | W | P2 | — | Độ tương phản chữ / nền | — | Đạt WCAG AA | — | — | ❌ | ❌ | |
@@ -79,7 +79,7 @@
 
 | ID | Loại | Ưu tiên | Tiền điều kiện | Các bước | Dữ liệu test | Kết quả mong đợi | BE | FE | E2E | PROD | Ghi chú |
 |---|---|---|---|---|---|---|---|---|---|---|---|
-| SEO-01 | H | P2 | — | Mở `/robots.txt` | — | Allow `/`; Disallow `/admin`, `/brand`, `/api`, `/auth`, `/profile`, `/checkout`, `/cart`; có link sitemap | — | — | ❌ | ❌ | |
+| SEO-01 | H | P2 | — | Mở `/robots.txt` | — | Allow `/`; Disallow `/admin`, `/brand`, `/api`, `/auth`, `/profile`; có link sitemap | — | — | ❌ | ❌ | |
 | SEO-02 | H | P2 | — | Mở `/sitemap.xml` | — | 8 URL: `/`, `/discover`, `/try-on`, `/ai/start`, `/pricing`, `/contact`, `/privacy-policy`, `/terms` với domain prod | — | — | ❌ | ❌ | |
 | SEO-03 | H | P2 | — | Chia sẻ trang chủ lên Facebook / Zalo | — | Xem trước có tiêu đề, mô tả, ảnh `/home-hero-bg.jpg` | — | — | — | ❌ | |
 | SEO-04 | E | P2 | — | Trang sản phẩm có tiêu đề riêng | — | Tiêu đề chứa tên sản phẩm | — | — | ❌ | ❌ | |

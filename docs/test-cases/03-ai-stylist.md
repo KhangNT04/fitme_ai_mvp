@@ -98,9 +98,9 @@ Phạm vi: chat stylist, outfit gợi ý sẵn, bộ lọc chủ đề, Gemini v
 | AI-REC-09 | E | P2 | Sản phẩm chỉ có size Free | Xem size | — | Gợi ý size có thật của sản phẩm, không gợi ý size không tồn tại | ❌ | — | — | ❌ | |
 | AI-REC-10 | H | P1 | — | Hỏi "đi làm văn phòng" | — | Nhận diện dịp "Đi làm", phong cách Office Chic | ✅ | — | — | ❌ | `ChatIntentParserTest.detectsOffice` |
 | AI-REC-11 | H | P2 | — | Hỏi "thanh lịch" | — | Dịp, vibe, phong cách nhất quán | ✅ | — | — | ❌ | `thanhLichAlone…` |
-| AI-REC-12 | H | P1 | Người dùng Pro | Tư vấn | — | Ưu tiên phối cùng brand / brand đối tác hơn người dùng Free | ✅ | — | — | ❌ | `ConsumerEntitlementServiceTest`, `OutfitScoringServiceTest` |
+| AI-REC-12 | H | P1 | Người dùng Premium | Tư vấn | — | Ưu tiên phối cùng brand / brand đối tác hơn người dùng Free | ✅ | — | — | ❌ | `ConsumerEntitlementServiceTest`, `OutfitScoringServiceTest` |
 | AI-REC-13 | E | P1 | Có sản phẩm hết hàng | Tư vấn | — | Ưu tiên sản phẩm còn hàng (điểm cao hơn) | ✅ | — | — | ❌ | |
-| AI-REC-14 | H | P1 | Có đồ trong tủ đồ | Tư vấn, chọn ưu tiên tủ đồ | — | Outfit có món từ tủ đồ (không có nút mua) | ✅ | ✅ | ✅ | ❌ | Đã sửa #18 (`d88f285`). Trước đây: Chat luôn gửi `NO_WARDROBE_DATA` nên tủ đồ không được dùng trong UI chat |
+| AI-REC-14 | H | P1 | Người dùng Premium, có đồ trong tủ đồ | Tư vấn, chọn ưu tiên tủ đồ | — | Outfit có món từ tủ đồ (không có nút mua) | ✅ | ✅ | ✅ | ❌ | Đã sửa #18 (`d88f285`). Trước đây: Chat luôn gửi `NO_WARDROBE_DATA` nên tủ đồ không được dùng trong UI chat. Người dùng Free chọn chế độ tủ đồ thì tự về `NO_WARDROBE_DATA` (xem PREM-04) |
 | AI-REC-15 | H | P2 | — | Kiểm tra giải thích outfit | — | Đoạn văn tiếng Việt 2 đoạn, giọng tư vấn bán hàng | ✅ | ✅ | — | ✅ | `OutfitExplanationComposerTest`, `outfit-explanation.test` |
 | AI-REC-16 | E | P2 | Danh mục chỉ có áo (không có quần) phù hợp | Tư vấn | — | "Mình chưa ghép được set sản phẩm phù hợp ngay lúc này…" | ❌ | — | — | ❌ | |
 | AI-REC-17 | H | P2 | Đã lưu nhiều outfit Streetwear | Tư vấn lại | — | Gợi ý nghiêng về Streetwear / brand đã thích (học sở thích) | ❌ | — | — | ❌ | |

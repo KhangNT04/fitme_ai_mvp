@@ -14,13 +14,13 @@ FitMe AI là web app thời trang cá nhân hóa bằng AI dành cho Gen Z theo 
 
 - Tư vấn và gợi ý outfit, size, form, màu sắc theo profile người dùng
 - Thử đồ AI ảo bằng Fitken (1 Fitken = 1 lượt thử đồ AI; tặng 5 Fitken dùng thử cho tài khoản mới)
-- Gói FitMe Pro 49.000đ/tháng (15 Fitken + cá nhân hóa sâu) thanh toán qua PayOS
-- Nhận thưởng Fitken miễn phí: điểm danh chuỗi 3 ngày (+1), chia sẻ bài đăng (+2), đánh giá có ảnh (+3)
+- Gói **FitMe Premium** (mặc định 49.000đ / 30 ngày, thanh toán PayOS): 15 Fitken/tháng, tủ đồ cá nhân, brand yêu thích, cá nhân hóa sâu
+- Trần Fitken miễn phí (cài đặt `fitken.max_balance`, mặc định 50) cho Fitken từ trial và nhận thưởng
+- Nhận thưởng Fitken miễn phí: điểm danh chuỗi 3 ngày (+1), chia sẻ bài đăng (+3), đánh giá có ảnh (+2)
 - Thư viện ảnh outfit cá nhân (`/profile/gallery`)
-- Mua hàng trực tiếp in-app: Giỏ hàng gom nhóm theo brand, thanh toán PayOS hoặc COD, tách đơn seller, quản lý vận đơn và đối soát doanh thu seller (hoa hồng 10%)
-- Kênh chuyển hướng mua hàng qua Shopee / TikTok Shop / website brand vẫn được duy trì làm phương án phụ
-- Portal brand mở **miễn phí** cho thương hiệu đối tác: quản lý catalog, xử lý đơn hàng seller, xuất kho & đối soát
-- Portal admin quản lý đơn hàng toàn sàn, đối soát seller, duyệt thưởng, kiểm duyệt review, quản lý gói Pro
+- **FitMe không bán hàng**: nút "Mua tại cửa hàng gốc" chuyển khách sang `purchaseUrl` của brand (bắt buộc). User đồng ý `BRAND_LEAD_SHARING` thì brand nhận khách quan tâm (tên, email). Giỏ hàng / đơn / vận đơn / đối soát đã gỡ ở V27
+- Portal brand miễn phí (catalog, dashboard, analytics); **Brand Plus** trả phí (mặc định 999.000đ / 30 ngày): huy hiệu Plus, lượt thử đồ miễn phí cho khách, ưu tiên gợi ý, chi tiết khách quan tâm; mua có thể kèm voucher brand
+- Portal admin: tài khoản & Premium, duyệt brand / sản phẩm, gói dịch vụ (người dùng + brand), voucher brand, cài đặt hệ thống, retention, duyệt thưởng, kiểm duyệt review
 
 ### 1.2 Stack
 
@@ -85,35 +85,36 @@ Package gốc: `com.fitme`
 
 | Package | Trách nhiệm |
 |---------|-------------|
-| `fitken` | Quản lý ví Fitken, lịch sử biến động ledger, cấp trial credit |
-| `billing` | Consumer subscription (FitMe Pro 49k/tháng), BillingPlan, PayOS webhook |
+| `fitken` | Quản lý ví Fitken, ledger, cấp trial credit, trần Fitken miễn phí |
+| `billing` | BillingPlan (`audience` CONSUMER / BRAND, giảm giá theo thời gian), gói Premium, đơn PayOS, PayOS webhook, `BillingOrderExpiryJob` |
+| `entitlement` | Phân tầng FitMe Free vs FitMe Premium (coherence modes, `requirePremium` → `PREMIUM_REQUIRED`) |
+| `preference` | Brand yêu thích của user Premium (`DIVERSE` / `FAVORITES_ONLY`, tối đa 10 brand) |
+| `brandplus` | Gói Brand Plus: trạng thái, báo giá, checkout, kích hoạt / gia hạn, job hết hạn |
+| `brandvoucher` | Chiến dịch voucher, phát / thu hồi, giữ / trả voucher theo đơn Plus, job hết hạn |
+| `brandlead` | Khách quan tâm từ buy-click có consent, đánh dấu đã bán (`PLUS_REQUIRED`) |
+| `settings` | Cài đặt hệ thống (`system_settings`), cache 60 giây |
 | `rewards` | Điểm danh nhận thưởng chuỗi 3 ngày, gửi duyệt bài đăng chia sẻ |
-| `review` | Đánh giá sản phẩm có ảnh, kiểm tra verified purchase qua đơn hàng |
+| `review` | Đánh giá sản phẩm có ảnh, nhãn "Đã mua hàng" (tự xác nhận mua hoặc lead brand Plus đã bán) |
 | `gallery` | Thư viện ảnh outfit cá nhân (`outfit_gallery_images`) |
-| `cart` | Giỏ hàng gom nhóm theo thương hiệu |
-| `address` | Sổ địa chỉ giao hàng của người dùng |
-| `order` | Đơn khách (COD/PayOS), tách đơn seller, tạo shipment, tracking hành trình |
-| `settlement` | Đối soát doanh thu seller, giữ 7 ngày, tính hoa hồng sàn 10%, quyết toán chuyển khoản |
-| `logistics` | Webhook tích hợp đối tác vận chuyển (GHN, GHTK, Viettel Post) |
-| `voucher` | Quản lý & cấp phát voucher freeship (gói Pro hiện không kèm voucher) |
-| `entitlement` | Phân tầng quyền lợi Free vs Pro (coherence modes) |
 | `session` | Anonymous session, link-to-user |
 | `auth` | Register, login, refresh, reset password, email verification |
 | `userprofile` | Body/style profile (`/me`) |
-| `wardrobe` | Tủ đồ cá nhân |
-| `product` | Catalog public + brand CRUD + biến thể tồn kho + admin moderation |
-| `brand` | Brand entity, application, dashboard analytics miễn phí |
-| `recommendation` | Pipeline gợi ý outfit AI (rule + Gemini hybrid) |
+| `wardrobe` | Tủ đồ cá nhân (Premium) |
+| `product` | Catalog public + brand CRUD (`purchaseUrl` bắt buộc) + admin moderation |
+| `brand` | Brand entity, application, dashboard brand miễn phí |
+| `recommendation` | Pipeline gợi ý outfit AI (rule + Gemini hybrid), ưu tiên brand Plus |
 | `stylistchat` | Tư vấn stylist qua chat AI |
-| `tryon` | Try-on request lifecycle (tiêu thụ 1 Fitken/lượt AI) |
+| `tryon` | Try-on request lifecycle (1 Fitken/lượt AI hoặc lượt Plus miễn phí) |
 | `preview` | Photo upload + preview generation (FASHN / IDM-VTON) |
-| `redirect` | Buy click tracking + redirect URL (phương án phụ) |
+| `redirect` | Buy-click, chuyển sang cửa hàng gốc, lịch sử mua, tự xác nhận đã mua, tạo lead |
 | `feedback` | User feedback on recommendations |
-| `privacy` | Consent, deletion requests |
-| `analytics` | Aggregated metrics (brand/admin) |
-| `admin` | Rules, flagged links, privacy admin, monitoring, commerce |
+| `privacy` | Consent (kể cả `BRAND_LEAD_SHARING`), deletion requests |
+| `analytics` | Dashboard brand / admin, tăng trưởng, retention, khách trả tiền, truy cập |
+| `admin` | Rules, flagged links, privacy admin, monitoring, quản lý tài khoản, avatar thử đồ |
 | `storage` | Local file storage (`./uploads`) / Cloudflare R2 |
 | `common` | Security, config (FitMeProperties), enums, exceptions, seed |
+
+Đã gỡ ở V27: `cart`, `address`, `order`, `settlement`, `logistics`, `voucher` (voucher freeship người dùng).
 
 ### 2.3 Controllers map
 
@@ -125,24 +126,26 @@ Package gốc: `com.fitme`
 | `RewardController` | `/api/v1/rewards` | User auth |
 | `ReviewController` | `/api/v1/products/{id}/reviews`, `/api/v1/reviews` | Public / User auth |
 | `GalleryController` | `/api/v1/me/gallery` | User auth |
-| `VoucherController` | `/api/v1/me/vouchers` | User auth |
-| `CartController` | `/api/v1/cart` | User auth |
-| `AddressController` | `/api/v1/me/addresses` | User auth |
-| `OrderController` | `/api/v1/orders` | User auth |
-| `BrandOrderController`, `BrandShipmentController`, `BrandSettlementController` | `/api/v1/brand/orders`, `/api/v1/brand/shipments`, `/api/v1/brand/{settlements,payout-account,sales}` | `BRAND_OWNER` |
-| `AdminOrderController`, `AdminSettlementController` | `/api/v1/admin/orders`, `/api/v1/admin/{settlements,commerce}` | `ADMIN` |
+| `BrandPreferenceController` | `/api/v1/me/brand-preferences` | User auth (PUT cần Premium) |
+| `BrandPlusController` | `/api/v1/brand/plan` | `BRAND_OWNER` |
+| `BrandVoucherController` | `/api/v1/brand/vouchers` | `BRAND_OWNER` |
+| `BrandLeadController` | `/api/v1/brand/leads` | `BRAND_OWNER` (chi tiết / đánh dấu đã bán cần Plus) |
+| `AdminUserController` | `/api/v1/admin/users` | `ADMIN` |
 | `AdminFitkenController` | `/api/v1/admin/consumers/{userId}/fitken` | `ADMIN` |
 | `AdminRewardController` | `/api/v1/admin/rewards` | `ADMIN` |
 | `AdminReviewController` | `/api/v1/admin/reviews` | `ADMIN` |
 | `AdminGalleryController` | `/api/v1/admin/gallery` | `ADMIN` |
 | `AdminBillingController` | `/api/v1/admin/billing` | `ADMIN` |
-| `LogisticsWebhookController` | `/api/v1/webhooks/logistics` | Webhook token (`X-Logistics-Token`) |
-| `PayOsWebhookController` | `/api/v1/webhooks/payos` | Public / PayOS |
+| `AdminBrandPlusController` | `/api/v1/admin/brand-subscriptions` | `ADMIN` |
+| `AdminVoucherCampaignController` | `/api/v1/admin/voucher-campaigns`, `/api/v1/admin/brand-vouchers` | `ADMIN` |
+| `AdminSystemSettingsController` | `/api/v1/admin/settings` | `ADMIN` |
+| `AdminTryOnAvatarController` | `/api/v1/admin/tryon-avatars` | `ADMIN` |
+| `PayOsWebhookController` | `/api/v1/webhooks/payos` | Public / PayOS (đơn Premium và Brand Plus) |
 | `ConsumerEntitlementController` | `/api/v1/me/entitlement` | Public / Admin |
 | `SessionController` | `/api/v1/sessions` | Public |
 | `AuthController` | `/api/v1/auth` | Public |
 | `ProfileController` | `/api/v1/me` | Session or auth (filter) |
-| `WardrobeController` | `/api/v1/wardrobe` | Session or auth |
+| `WardrobeController` | `/api/v1/wardrobe` | User Premium (`PREMIUM_REQUIRED`) |
 | `ProductController` | `/api/v1/products` | GET public |
 | `BrandPublicController` | `/api/v1/brands` | GET public |
 | `RecommendationController` | `/api/v1/recommendations` | Mostly public/session |
@@ -173,16 +176,16 @@ frontend/src/
 │   ├── page.tsx            # Marketing home (layout riêng)
 │   ├── ai/                 # Wizard tư vấn AI
 │   ├── try-on/             # Virtual try-on (tiêu Fitken)
-│   ├── pricing/            # Bảng giá Free vs FitMe Pro 49k/tháng
-│   ├── billing/return/     # Trả về sau PayOS gói Pro
+│   ├── pricing/            # Bảng giá FitMe Free vs FitMe Premium
+│   ├── billing/return/     # Trả về sau PayOS gói Premium
 │   ├── rewards/            # Trang Nhận thưởng (điểm danh, chia sẻ, đánh giá)
-│   ├── cart/ checkout/     # Giỏ hàng & thanh toán COD/PayOS
-│   ├── orders/             # Danh sách đơn, chi tiết & tracking vận đơn
+│   ├── redirect/           # Xác nhận mua tại cửa hàng gốc (consent chia sẻ thông tin) → loading
+│   ├── wardrobe/           # Tủ đồ cá nhân (Premium)
 │   ├── discover/           # Catalog + search
 │   ├── auth/               # Login/register/reset
-│   ├── brand/              # Seller portal (đơn hàng, đối soát, catalog)
-│   ├── admin/              # Admin portal (đơn hàng, đối soát, rewards, reviews, plans)
-│   ├── profile/            # User profile, addresses, gallery
+│   ├── brand/              # Brand portal (catalog, leads, plan/Gói Plus, analytics)
+│   ├── admin/              # Admin portal (users, billing/plans, vouchers, settings, retention, rewards, reviews)
+│   ├── profile/            # User profile, gallery, purchases, style-preferences
 │   └── api/auth/session/   # Route handler set cookie role
 ├── components/
 │   ├── ui/                 # Radix + shadcn-style primitives
@@ -340,11 +343,14 @@ Admin DTOs tách riêng (`StyleRuleDto`, `ConsentRecordDto`, …) — không exp
 - Flyway: `backend/src/main/resources/db/migration/`
 - `V1__init_schema.sql` — ~24 bảng (users, sessions, profiles, brands, products, recommendations, try_on, redirects, rules…)
 - `V2__auth_tokens.sql` — refresh token revocations
+- `V27__remove_commerce.sql` — gỡ giỏ hàng, đơn, địa chỉ, vận đơn, đối soát, voucher người dùng, tồn kho biến thể
+- `V28` → `V32` — cài đặt hệ thống & Premium & brand yêu thích, Brand Plus, lượt thử Plus miễn phí, voucher brand, khách quan tâm (chi tiết: [ARCHITECTURE.md](ARCHITECTURE.md#database))
+- Hiện có 31 file, mới nhất `V32`, không có `V5`
 - Hibernate `ddl-auto: validate` — **không** auto DDL
 
 **Quy tắc migration:**
 
-- Không sửa file migration đã chạy trên production — tạo `V3__...sql` mới
+- Không sửa file migration đã chạy trên production — tạo file mới tiếp theo (`V33__...sql`)
 - Local dev DB cũ: drop DB hoặc `flyway repair` nếu checksum lệch
 
 ### 4.6 Seed data
@@ -385,11 +391,13 @@ sequenceDiagram
   FE->>FE: Set cookie fitme-role
 ```
 
-### 5.2 Buy redirect
+### 5.2 Mua tại cửa hàng gốc & khách quan tâm
 
-1. FE `POST /redirects/buy-click` — track click + metadata
-2. BE trả redirect URL (Shopee/TikTok/website)
-3. FE navigate `/redirect/confirm/{id}` → user confirm → `/redirect/loading` → external URL
+1. PDP "Mua tại cửa hàng gốc" → `/redirect/confirm/{productId}`; user đăng nhập bật / tắt ô chia sẻ thông tin (`POST /privacy/consent` với `BRAND_LEAD_SHARING`)
+2. FE `POST /redirects/buy-click` — track click + metadata, BE trả `eventId` + `redirectUrl` (= `purchaseUrl` của sản phẩm)
+3. Nếu user đang đồng ý `BRAND_LEAD_SHARING`: tạo `brand_leads` (tối đa 1 / user / sản phẩm / ngày)
+4. `/redirect/loading` lấy URL từ sự kiện (`GET /redirects/{eventId}`, bỏ qua `?url=` để chống open redirect) → mở URL brand
+5. User có thể tự xác nhận đã mua ở `/profile/purchases`; brand Plus đánh dấu lead đã bán → nhãn "Đã mua hàng" trên review
 
 ### 5.3 Brand product lifecycle
 
@@ -400,7 +408,7 @@ AdminProductController.approve()    → ACTIVE (visible on /discover)
 AdminProductController.flag()       → FLAGGED
 ```
 
-`ProductEligibilityService` — filter catalog public (ACTIVE, có variant, link mua hợp lệ…).
+`ProductEligibilityService` — filter catalog public (ACTIVE, không `OUT_OF_STOCK`, có ảnh…). Brand không tạo / sửa được sản phẩm thiếu `purchaseUrl` hợp lệ (`INVALID_PURCHASE_URL`), admin không duyệt được sản phẩm thiếu link.
 
 ### 5.4 Brand application
 
@@ -419,12 +427,26 @@ User re-login                → JWT mới có role BRAND_OWNER
 | Biến | Mặc định | Mô tả |
 |------|----------|-------|
 | `DB_URL` | `jdbc:postgresql://localhost:5432/fitme` | Postgres JDBC |
-| `DB_USERNAME` / `DB_PASSWORD` | fitme / fitme123 | |
+| `DB_USERNAME` / `DB_PASSWORD` | xem `.env.example` | Không ghi giá trị vào tài liệu |
 | `JWT_SECRET` | dev placeholder | **Bắt buộc đổi production** |
 | `CORS_ORIGINS` | `http://localhost:3000` | Comma-separated |
 | `FITME_SEED_ENABLED` | true | Tắt trên prod thật |
+| `FITME_SEED_PASSWORD` | dev default trong `application.yml` | Mật khẩu tài khoản seed (`user@`, `premium@`, `brand@`, `admin@fitme.ai`); **đặt giá trị riêng** trên môi trường chia sẻ |
 | `FITME_TEST_EXPOSE_RESET_TOKENS` | false | Bật cho E2E reset-password |
 | `UPLOAD_DIR` | `./uploads` | Local photo storage |
+| `PAYOS_MOCK` | true | `true` = link thanh toán giả lập (mở là PAID). **Prod thật phải `false`** |
+| `PAYOS_CLIENT_ID` / `PAYOS_API_KEY` / `PAYOS_CHECKSUM_KEY` | trống | Khoá PayOS (chỉ đặt qua env / secret store) |
+| `PAYOS_SUBSCRIPTION_RETURN_URL` / `PAYOS_SUBSCRIPTION_CANCEL_URL` | `http://localhost:3000/billing/return?status=…` | Trang trả về gói Premium |
+| `PAYOS_BRAND_PLUS_RETURN_URL` / `PAYOS_BRAND_PLUS_CANCEL_URL` | trống | Trang trả về Gói Plus; trống = `/brand/plan/return?status=…` trên origin của `PAYOS_SUBSCRIPTION_RETURN_URL` |
+| `FITME_CONSUMER_ENTITLEMENT_ENABLED` | true | Bật phân tầng Free / Premium |
+| `FITME_FREE_COHERENCE_MODE` / `FITME_PREMIUM_COHERENCE_MODE` | OFF / PREFER | Coherence mode theo gói (`FITME_PLUS_COHERENCE_MODE` cũ vẫn được đọc làm fallback) |
+| `FITME_FREE_PREFERENCE_SCALE` / `FITME_PREMIUM_PREFERENCE_SCALE` | 1.0 / 1.75 | Trọng số sở thích theo gói (`FITME_PLUS_PREFERENCE_SCALE` cũ là fallback) |
+| `FITME_FITKEN_*` | xem `application.yml` | Trial (5), thưởng điểm danh / chia sẻ / đánh giá, giá 1 lượt thử |
+| `fitme.billing.pending-expiry-hours` | 24 | Property (không có trong `application.yml`): đơn gói `PENDING` quá số giờ này bị `EXPIRED` |
+
+Đã bỏ cùng thương mại (V27): `PAYOS_ORDER_*`, `FITME_COMMERCE_*`, `FITME_LOGISTICS_WEBHOOK_TOKEN`.
+
+Cài đặt runtime (trần Fitken, lượt thử Plus miễn phí, điểm ưu tiên Plus) **không** dùng env — admin chỉnh tại `/admin/settings` (bảng `system_settings`).
 
 ### 6.2 Frontend
 
@@ -442,10 +464,12 @@ File mẫu: `.env.example`, `.env.test.example`, `.env.cloud.example`
 ### 7.1 Kim tự tháp test
 
 ```
-        E2E Playwright (102+ desktop + mobile-nav)
+     E2E Playwright (22 spec: 127 chromium + 5 mobile-chrome)
        /                    \
-  FE Vitest (43)        BE JUnit (63)
+  FE Vitest (273 / 64 file)   BE JUnit (389 / 94 class)
 ```
+
+Số liệu ở commit `bc323e2` (BE / FE đếm trong code). Test case theo module: [TEST_CASES.md](TEST_CASES.md).
 
 ### 7.2 Backend
 
@@ -494,7 +518,7 @@ Helpers: `frontend/e2e/helpers/` — `auth.ts`, `consultation.ts`, `brand.ts`, `
 
 1. `mvn test`
 2. `npm test` + `npm run build`
-3. E2E: Postgres service + spring-boot:run + Playwright subset
+3. E2E "E2E (full suite)": Postgres service + spring-boot:run + Playwright, mọi spec trên chromium (1 worker, retry 2) và `mobile-nav` trên mobile-chrome
 
 Local mirror: `bash scripts/ci-e2e.sh`
 
@@ -523,7 +547,7 @@ Local mirror: `bash scripts/ci-e2e.sh`
 
 1. Tạo `app/brand/.../page.tsx` hoặc `app/admin/.../page.tsx`
 2. Wrap `PortalLayout`
-3. Thêm sidebar link trong `PortalLayout.tsx`
+3. Thêm sidebar link trong `lib/portal-nav.ts` (`brandNav` / `adminNav`)
 4. Thêm vào `BRAND_PAGES` / `ADMIN_PAGES` trong `e2e/helpers/portal.ts`
 
 ### 8.4 Sửa UI an toàn
@@ -590,4 +614,4 @@ Backend Docker: `backend/Dockerfile` — multi-stage Maven build
 
 ---
 
-*Cập nhật: 2026-06-28 — đồng bộ với commit MVP hardening (CI, PageShell, discover search, auth tokens).*
+*Cập nhật: 2026-10-07 — đồng bộ với gỡ thương mại (V27) và Brand Plus / Premium / voucher brand / khách quan tâm (V28–V32, commit `bc323e2`).*

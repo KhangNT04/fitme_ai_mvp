@@ -4,6 +4,7 @@ import type {
   AdminDashboardStats,
   AdminMetrics,
   PayingCustomersReport,
+  RetentionMetrics,
   FlaggedLink,
   StyleRule,
   OccasionRule,
@@ -31,6 +32,10 @@ export const adminApi = {
   },
   getMetrics: async (days: number): Promise<AdminMetrics> => {
     const res = await apiClient.get("/admin/metrics", { params: { days } });
+    return unwrap(res);
+  },
+  getRetention: async (): Promise<RetentionMetrics> => {
+    const res = await apiClient.get("/admin/retention");
     return unwrap(res);
   },
   getTraffic: async (days: number): Promise<TrafficStats> => {

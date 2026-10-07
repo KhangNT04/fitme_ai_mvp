@@ -16,8 +16,10 @@ import com.fitme.admin.service.AdminRuleService;
 import com.fitme.analytics.dto.AdminDashboardResponse;
 import com.fitme.analytics.dto.AdminMetricsResponse;
 import com.fitme.analytics.dto.PayingCustomersReport;
+import com.fitme.analytics.dto.RetentionMetricsResponse;
 import com.fitme.analytics.service.AdminMetricsService;
 import com.fitme.analytics.service.AnalyticsService;
+import com.fitme.analytics.service.RetentionMetricsService;
 import com.fitme.common.time.AppClock;
 import com.fitme.brand.dto.BrandResponse;
 import com.fitme.brand.entity.BrandPartnership;
@@ -63,6 +65,7 @@ public class AdminController {
     private final BrandPartnershipService brandPartnershipService;
     private final ConsumerEntitlementService consumerEntitlementService;
     private final AdminMetricsService adminMetricsService;
+    private final RetentionMetricsService retentionMetricsService;
 
     @GetMapping("/dashboard")
     public ApiResponse<AdminDashboardResponse> dashboard() {
@@ -72,6 +75,11 @@ public class AdminController {
     @GetMapping("/metrics")
     public ApiResponse<AdminMetricsResponse> metrics(@RequestParam(defaultValue = "30") int days) {
         return ApiResponse.ok(adminMetricsService.metrics(days));
+    }
+
+    @GetMapping("/retention")
+    public ApiResponse<RetentionMetricsResponse> retention() {
+        return ApiResponse.ok(retentionMetricsService.retention());
     }
 
     @GetMapping("/reports/paying-customers")

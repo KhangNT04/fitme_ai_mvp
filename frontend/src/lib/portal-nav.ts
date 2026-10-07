@@ -26,6 +26,7 @@ export const adminNav: PortalNavItem[] = [
   { href: "/admin/products/moderation", label: "Duyệt sản phẩm" },
   { href: "/admin/flagged-links", label: "Link bị gắn cờ" },
   { href: "/admin/analytics", label: "Phân tích tăng trưởng" },
+  { href: "/admin/retention", label: "Khách quay lại" },
   { href: "/admin/paying-customers", label: "Khách trả tiền" },
   { href: "/admin/privacy", label: "Quyền riêng tư" },
   { href: "/admin/try-on-monitoring", label: "Giám sát thử mặc" },

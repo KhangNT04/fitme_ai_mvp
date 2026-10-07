@@ -63,6 +63,7 @@ const NAV_LEVEL_2_ROUTES = new Set([
   "/admin/products/moderation",
   "/admin/flagged-links",
   "/admin/analytics",
+  "/admin/retention",
   "/admin/paying-customers",
   "/admin/privacy",
   "/admin/try-on-monitoring",

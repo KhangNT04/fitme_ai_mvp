@@ -91,6 +91,43 @@ export interface AdminMetrics {
   signupSources: Array<{ source: string; users: number; payingUsers: number }>;
 }
 
+/** Ratios are 0..1; null when the denominator is zero (or, for cohort cells, the week has not started yet). */
+export interface RetentionMetrics {
+  today: string;
+  dau: number;
+  wau: number;
+  mau: number;
+  stickiness: number | null;
+  retention: Array<{
+    day: number;
+    cohortFrom: string;
+    cohortTo: string;
+    retained: number;
+    cohortSize: number;
+    rate: number | null;
+  }>;
+  cohorts: Array<{
+    weekStart: string;
+    size: number;
+    /** Index i = calendar week i after the signup week (0 = signup week). */
+    activeUsers: Array<number | null>;
+    rates: Array<number | null>;
+  }>;
+  frequency: Array<{ key: string; label: string; minDays: number; maxDays: number | null; users: number }>;
+  inactive30d: number;
+  totalConsumers: number;
+  topUsers: Array<{
+    userId: string;
+    displayName: string | null;
+    email: string;
+    lastActiveDate: string;
+    activeDays30d: number;
+    recommendations30d: number;
+    tryOns30d: number;
+    buyClicks30d: number;
+  }>;
+}
+
 export type TrafficTrend = "NO_DATA" | "STRONG_UP" | "UP" | "STABLE" | "DOWN" | "STRONG_DOWN";
 export type TrafficLevel = "NO_DATA" | "LOW" | "NORMAL" | "HIGH";
 export type TrafficScale = "VERY_LOW" | "LOW" | "MEDIUM" | "GOOD" | "HIGH";

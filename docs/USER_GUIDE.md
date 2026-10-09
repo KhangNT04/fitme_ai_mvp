@@ -145,10 +145,13 @@ Dùng trên mọi môi trường có bật seed (`FITME_SEED_ENABLED=true`, DB t
 |-------|---------|---------------|
 | `user@fitme.ai` | USER (FitMe Free) | `{BASE_URL}/auth/login` |
 | `premium@fitme.ai` | USER (FitMe Premium) | `{BASE_URL}/auth/login` |
-| `brand@fitme.ai` | BRAND_OWNER | `{BASE_URL}/brand/login` |
+| `teelab@fitme.ai`, `dirtycoins@fitme.ai`, `regods@fitme.ai`, `ulzzang@fitme.ai`, `lenclothing@fitme.ai`, `hagoo@fitme.ai`, `gumac@fitme.ai` | BRAND_OWNER — mỗi tài khoản quản lý đúng một brand (Teelab, DirtyCoins, Regods, ULZZANG, Len Clothing, HAGOO, GUMAC) | `{BASE_URL}/brand/login` |
+| `brand@fitme.ai` | BRAND_OWNER chưa có brand — dùng thử luồng đăng ký brand mới | `{BASE_URL}/brand/login` |
 | `admin@fitme.ai` | ADMIN | `{BASE_URL}/admin/login` |
 
 Mật khẩu **không ghi trong tài liệu**: là giá trị biến môi trường `FITME_SEED_PASSWORD` khi seed. Script smoke trên prod đọc tài khoản từ `FITME_EMAIL` / `FITME_PASSWORD`. Hỏi admin môi trường nếu cần.
+
+Tài khoản brand được tạo (đã xác thực email) khi backend khởi động, kể cả trên prod (`FITME_SEED_ENABLED=false`); brand nào còn thuộc `brand@fitme.ai` hoặc chưa có chủ sẽ được chuyển sang tài khoản riêng. Ảnh sản phẩm và logo của catalog được sao chép về kho media FitMe (Cloudflare R2 trên prod) ngay sau khi khởi động, không dẫn link trực tiếp tới CDN Shopee.
 
 ### 1.7 Sử dụng trên điện thoại (mobile)
 

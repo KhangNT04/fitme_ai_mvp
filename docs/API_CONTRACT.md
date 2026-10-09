@@ -68,7 +68,8 @@ Các `errorCode` thường gặp:
 | `VOUCHER_USED`, `VOUCHER_REVOKED`, `VOUCHER_EXPIRED` | 400 khi dùng, 409 khi thu hồi | Voucher không còn dùng / thu hồi được |
 | `VOUCHER_CAMPAIGN_INACTIVE`, `VOUCHER_CAMPAIGN_ENDED`, `VOUCHER_CAMPAIGN_NOT_STARTED`, `VOUCHER_CAMPAIGN_FULL` | 400 | Không phát được voucher |
 | `ALREADY_CHECKED_IN`, `SHARE_INVALID_URL`, `SHARE_DUPLICATE`, `SHARE_DAILY_LIMIT`, `REVIEW_EXISTS` | 400 | Nhận thưởng, đánh giá |
-| `TRY_ON_NOT_ELIGIBLE` | 400 | Sản phẩm không đủ điều kiện thử AI |
+| `TRY_ON_NOT_ELIGIBLE` | 400 | Thêm món vào phiên thử: sản phẩm bị ẩn, không đủ điều kiện thử AI hoặc chưa có ảnh thử đồ (`TRY_ON`) |
+| `TRY_ON_ITEM_UNAVAILABLE` | 400 | `POST /try-on/requests/{id}/generate`: một món trong phiên đã bị ẩn / mất điều kiện / mất ảnh `TRY_ON` sau khi thêm. Không gọi AI, không trừ Fitken; thông báo nêu tên món cần bỏ |
 
 ## Service mapping
 

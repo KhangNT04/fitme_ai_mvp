@@ -86,7 +86,8 @@ Chỉ tạo khi DB trống và `FITME_SEED_ENABLED=true`:
 | Email | Vai trò |
 |-------|---------|
 | admin@fitme.ai | Admin |
-| brand@fitme.ai | Brand |
+| teelab@, dirtycoins@, regods@, ulzzang@, lenclothing@, hagoo@, gumac@fitme.ai | Brand (mỗi tài khoản một brand) |
+| brand@fitme.ai | Brand chưa có brand |
 | user@fitme.ai | User |
 
 Mật khẩu: giá trị `FITME_SEED_PASSWORD` (mặc định `<giá trị trong biến FITME_PASSWORD>`).

@@ -228,7 +228,8 @@ Chỉ tạo khi `FITME_SEED_ENABLED=true` **và** DB Neon **trống** lần đ�
 | Email | Vai trò |
 |-------|---------|
 | admin@fitme.ai | Admin |
-| brand@fitme.ai | Brand |
+| teelab@, dirtycoins@, regods@, ulzzang@, lenclothing@, hagoo@, gumac@fitme.ai | Brand (mỗi tài khoản một brand) |
+| brand@fitme.ai | Brand chưa có brand |
 | user@fitme.ai | User |
 
 Mật khẩu: `FITME_SEED_PASSWORD` (nếu bật seed).

@@ -410,6 +410,12 @@ AdminProductController.flag()       → FLAGGED
 
 `ProductEligibilityService` — filter catalog public (ACTIVE, không `OUT_OF_STOCK`, có ảnh…). Brand không tạo / sửa được sản phẩm thiếu `purchaseUrl` hợp lệ (`INVALID_PURCHASE_URL`), admin không duyệt được sản phẩm thiếu link.
 
+AI try-on chỉ dùng ảnh `TRY_ON` brand chọn trong gallery (không fallback về ảnh chính). `TryOnService.generate` từ chối phiên còn món bị ẩn / mất điều kiện / mất ảnh `TRY_ON` (`TRY_ON_ITEM_UNAVAILABLE`) trước khi trừ Fitken.
+
+### 5.3b Catalog thật & ảnh
+
+`seed/fashion-catalog.json` (7 brand Shopee, 70 SP) được đồng bộ khi khởi động bởi `SeedDataLoader` + `FashionCatalogSeeder`: mỗi brand có tài khoản chủ riêng (`ownerEmail`), brand trong `retiredBrands` bị tạm ngưng. `CatalogMediaMirrorRunner` chạy nền sau `ApplicationReadyEvent`: `CatalogMediaService` tải từng ảnh nguồn chưa có trong bảng `catalog_media_mirror` (timeout 10s/30s, 4 luồng), lưu qua `StorageService` vào `catalog-media/<mã ảnh Shopee>.jpg` (R2 trên prod, ổ đĩa local khi dev) rồi đổi `product_images.image_url` / `brands.logo_url` sang bản sao. URL lưu là URL public R2 nếu kiểm tra truy cập được, nếu không là `/uploads/catalog-media/...` (backend phục vụ). Ảnh tải lỗi giữ URL nguồn và được thử lại ở lần khởi động sau. Tắt bằng `FITME_CATALOG_MIRROR_ENABLED=false` (CI E2E).
+
 ### 5.4 Brand application
 
 ```

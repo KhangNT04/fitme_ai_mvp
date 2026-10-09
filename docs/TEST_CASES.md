@@ -122,7 +122,8 @@ Không thanh toán PayOS thật, hạn chế tạo preview FASHN (tốn phí), d
 | User | `khangntse180776@fpt.edu.vn`, `user@fitme.ai` |
 | User Premium (seed) | `premium@fitme.ai` (dùng cho tủ đồ, brand yêu thích; E2E `loginPremiumUser`) |
 | Admin | `admin@fitme.ai` |
-| Brand | `brand@fitme.ai` |
+| Brand (mỗi tài khoản một brand thật) | `teelab@fitme.ai` (Teelab, E2E `loginBrand`), `dirtycoins@fitme.ai`, `regods@fitme.ai`, `ulzzang@fitme.ai`, `lenclothing@fitme.ai`, `hagoo@fitme.ai`, `gumac@fitme.ai` |
+| Brand chưa có brand | `brand@fitme.ai` (luồng đăng ký brand mới) |
 
 Mật khẩu không ghi trong tài liệu. Seed local lấy từ biến môi trường `FITME_SEED_PASSWORD`; script kiểm thử prod đọc `FITME_EMAIL` / `FITME_PASSWORD`. Hỏi người quản lý môi trường để lấy giá trị.
 

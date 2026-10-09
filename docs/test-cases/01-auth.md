@@ -153,7 +153,7 @@ Phạm vi: đăng ký, xác minh email, đăng nhập, token & phiên, quên / �
 | ID | Loại | Ưu tiên | Tiền điều kiện | Các bước | Dữ liệu test | Kết quả mong đợi | BE | FE | E2E | PROD | Ghi chú |
 |---|---|---|---|---|---|---|---|---|---|---|---|
 | AUTH-POR-01 | H | P0 | — | Mở `/admin/login`, đăng nhập admin | `admin@fitme.ai` | Đặt cookie `fitme-access`, `fitme-role`; vào `/admin/dashboard` | — | — | ✅ | ✅ | role-flows portal |
-| AUTH-POR-02 | H | P0 | — | Mở `/brand/login`, đăng nhập brand | `brand@fitme.ai` | Vào `/brand/dashboard` | — | — | ✅ | ✅ | |
+| AUTH-POR-02 | H | P0 | — | Mở `/brand/login`, đăng nhập brand | `teelab@fitme.ai` | Vào `/brand/dashboard` của Teelab, chỉ thấy brand của mình | — | — | ✅ | ✅ | |
 | AUTH-POR-03 | E | P1 | — | Đăng nhập `/admin/login` bằng tài khoản user | Tài khoản test user | "Tài khoản này không có quyền Admin."; không vào được dashboard | — | ❌ | ❌ | ❌ | Đã sửa #10 (`934b924`). Trước đây: Token user vẫn bị lưu vào localStorage dù bị từ chối |
 | AUTH-POR-04 | E | P1 | — | Đăng nhập `/brand/login` bằng admin | `admin@fitme.ai` | "Tài khoản này không có quyền Brand. Vui lòng dùng tài khoản brand." | ❌ | — | ✅ | ❌ | rbac "brand login rejects admin credentials" |
 | AUTH-POR-05 | E | P2 | — | Bấm đăng nhập portal khi để trống / email sai | — | Hiện lỗi dưới từng ô | — | ✅ | ❌ | ❌ | Đã sửa #27 (`d88f285`). Trước đây: Form portal không hiển thị lỗi trường, bấm không có phản hồi |

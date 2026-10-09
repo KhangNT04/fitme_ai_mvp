@@ -47,7 +47,7 @@ Chi tiết: [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) · API: [`docs/API_CO
 5. Điều chỉnh ví Fitken người dùng và cấu hình gói dịch vụ consumer (`/admin/billing/plans`)
 6. Quản lý rules, flagged links, privacy requests, try-on monitoring
 
-**Tài khoản demo (seed):** `admin@fitme.ai`, `brand@fitme.ai`, `user@fitme.ai` / `fitme123`
+**Tài khoản demo (seed):** `admin@fitme.ai`, `user@fitme.ai`, mỗi brand thật một tài khoản (`teelab@fitme.ai`, …) — mật khẩu từ `FITME_SEED_PASSWORD`, xem bảng bên dưới.
 
 ## Chạy nhanh với Docker
 
@@ -152,11 +152,14 @@ Frontend: http://localhost:3000
 
 ## Tài khoản demo (seed tự động)
 
-| Email | Mật khẩu | Vai trò |
-|-------|----------|---------|
-| admin@fitme.ai | fitme123 | Admin |
-| brand@fitme.ai | fitme123 | Brand Owner |
-| user@fitme.ai | fitme123 | User |
+| Email | Vai trò |
+|-------|---------|
+| admin@fitme.ai | Admin |
+| teelab@, dirtycoins@, regods@, ulzzang@, lenclothing@, hagoo@, gumac@fitme.ai | Brand Owner — mỗi tài khoản một brand thật |
+| brand@fitme.ai | Brand Owner chưa có brand (luồng đăng ký brand) |
+| user@fitme.ai | User |
+
+Mật khẩu là giá trị `FITME_SEED_PASSWORD` lúc seed (không ghi trong tài liệu).
 
 ## Luồng demo chính
 
@@ -300,8 +303,11 @@ Trong `application.yml` hoặc env:
 fitme.seed.admin-email: admin@fitme.ai
 fitme.seed.brand-email: brand@fitme.ai
 fitme.seed.user-email: user@fitme.ai
-fitme.seed.password: fitme123
+fitme.seed.password: ${FITME_SEED_PASSWORD}
+fitme.catalog-media.mirror-enabled: true   # sao chép ảnh catalog về kho media FitMe sau khi khởi động
 ```
+
+Chủ brand của catalog lấy từ `ownerEmail` trong `seed/fashion-catalog.json`; brand trong `retiredBrands` bị tạm ngưng (ẩn sản phẩm, gỡ chủ).
 
 ## Tài liệu
 

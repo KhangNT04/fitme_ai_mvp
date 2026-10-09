@@ -8,6 +8,8 @@ import { Check, Gift, Share2, Star, Coins, Calendar } from "lucide-react";
 import { PageShell } from "@/components/layout/PageShell";
 import { CollapsingPageHeader } from "@/components/layout/CollapsingPageHeader";
 import { PageSuspense } from "@/components/common/PageSuspense";
+import { LoadingSkeleton } from "@/components/common/LoadingSkeleton";
+import { useConsumerStoresReady } from "@/hooks/use-consumer-stores-ready";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -39,7 +41,9 @@ export default function RewardsPage() {
 }
 
 function RewardsContent() {
-  const isAuthenticated = useAuthStore((s) => s.isAuthenticated());
+  const storesReady = useConsumerStoresReady();
+  const isLoggedIn = useAuthStore((s) => s.isAuthenticated());
+  const isAuthenticated = storesReady && isLoggedIn;
   const queryClient = useQueryClient();
   const searchParams = useSearchParams();
   const galleryImageId = searchParams.get("galleryImageId") ?? undefined;
@@ -94,6 +98,10 @@ function RewardsContent() {
     },
     onError: (e) => toast.error(getUserErrorMessage(e, "Gửi link thất bại.")),
   });
+
+  if (!storesReady) {
+    return <LoadingSkeleton count={1} />;
+  }
 
   if (!isAuthenticated) {
     return (

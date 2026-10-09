@@ -2,6 +2,7 @@ import { describe, expect, it, beforeEach } from "vitest";
 import {
   getConsumerNavContext,
   isTryOnNavContext,
+  isTryOnNavContextFromUrl,
   productDetailHref,
   resolveProductPageBack,
   resolveSavedResultBack,
@@ -35,6 +36,15 @@ describe("nav-context", () => {
     expect(isTryOnNavContext("/products/x")).toBe(true);
     sessionStorage.removeItem(NAV_CONTEXT_STORAGE_KEY);
     expect(isTryOnNavContext("/products/x")).toBe(false);
+  });
+
+  it("isTryOnNavContextFromUrl ignores session storage (SSR-safe)", () => {
+    setConsumerNavContext("tryon");
+    recordNavVisit("/try-on");
+    recordNavVisit("/products/x");
+    expect(isTryOnNavContextFromUrl("/products/x")).toBe(false);
+    expect(isTryOnNavContextFromUrl("/products/x", new URLSearchParams("from=try-on"))).toBe(true);
+    expect(isTryOnNavContextFromUrl("/try-on")).toBe(true);
   });
 
   it("detects try-on context from navigation history", () => {

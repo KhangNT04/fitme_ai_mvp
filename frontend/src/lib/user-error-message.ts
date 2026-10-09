@@ -71,8 +71,9 @@ function isSessionAuthError(text: string): boolean {
   return SESSION_AUTH_ERROR_PATTERNS.some((pattern) => pattern.test(text));
 }
 
+/** Mis-decoded diacritics show up as "?" inside words ("c?u", "?n"); a real question mark is never followed by a letter. */
 function isCorruptedVietnamese(text: string): boolean {
-  return /\?/.test(text) && /[a-zA-Zàáảãạăắằẳẵặâấầẩẫậèéẻẽẹêếềểễệìíỉĩịòóỏõọôốồổỗộơớờởỡợùúủũụưứừửữựỳýỷỹỵđ]/i.test(text);
+  return /\?\p{L}/u.test(text);
 }
 
 const VIETNAMESE_DIACRITICS = /[àáảãạăắằẳẵặâấầẩẫậèéẻẽẹêếềểễệìíỉĩịòóỏõọôốồổỗộơớờởỡợùúủũụưứừửữựỳýỷỹỵđ]/i;

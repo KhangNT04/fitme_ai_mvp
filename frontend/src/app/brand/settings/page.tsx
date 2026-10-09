@@ -19,6 +19,15 @@ import type { BrandOnboardingRequest } from "@/types/brand";
 
 import { brandStatusLabel } from "@/lib/status-labels";
 import { actionFeedback } from "@/lib/action-feedback";
+import { brandLinkError, normalizeBrandLinks, type BrandLinkField } from "@/lib/brand-links";
+
+const BRAND_LINK_INPUTS: [BrandLinkField, string, string][] = [
+  ["websiteUrl", "Website", "website"],
+  ["shopeeUrl", "Shopee URL", "Shopee"],
+  ["tiktokShopUrl", "TikTok Shop URL", "TikTok Shop"],
+  ["instagramUrl", "Instagram URL", "Instagram"],
+  ["facebookUrl", "Facebook URL", "Facebook"],
+];
 
 function InfoRow({ label, children }: { label: string; children: React.ReactNode }) {
   return (
@@ -37,12 +46,12 @@ export default function BrandSettingsPage() {
   });
   const [editing, setEditing] = useState(false);
   const [logoUrl, setLogoUrl] = useState<string>("");
-  const { register, handleSubmit, reset } = useForm<BrandOnboardingRequest>();
+  const { register, handleSubmit, reset, formState: { errors } } = useForm<BrandOnboardingRequest>();
 
   const update = useMutation({
     mutationFn: (payload: BrandOnboardingRequest) =>
       brandApi.updateMe({
-        ...payload,
+        ...normalizeBrandLinks(payload),
         logoUrl: logoUrl || data?.logoUrl,
       }),
     onSuccess: () => {
@@ -126,26 +135,19 @@ export default function BrandSettingsPage() {
                   <Label>Điện thoại</Label>
                   <Input {...register("contactPhone")} className="mt-1" />
                 </div>
-                <div>
-                  <Label>Website</Label>
-                  <Input {...register("websiteUrl")} className="mt-1" />
-                </div>
-                <div>
-                  <Label>Shopee URL</Label>
-                  <Input {...register("shopeeUrl")} className="mt-1" />
-                </div>
-                <div>
-                  <Label>TikTok Shop URL</Label>
-                  <Input {...register("tiktokShopUrl")} className="mt-1" />
-                </div>
-                <div>
-                  <Label>Instagram URL</Label>
-                  <Input {...register("instagramUrl")} className="mt-1" />
-                </div>
-                <div>
-                  <Label>Facebook URL</Label>
-                  <Input {...register("facebookUrl")} className="mt-1" />
-                </div>
+                {BRAND_LINK_INPUTS.map(([field, label, linkLabel]) => (
+                  <div key={field}>
+                    <Label htmlFor={field}>{label}</Label>
+                    <Input
+                      id={field}
+                      inputMode="url"
+                      {...register(field, { validate: (value) => brandLinkError(value, linkLabel) ?? true })}
+                      className="mt-1"
+                      aria-invalid={errors[field] ? true : undefined}
+                    />
+                    {errors[field] && <p className="mt-1 text-xs text-red-600">{errors[field]?.message}</p>}
+                  </div>
+                ))}
                 <div>
                   <Label>Mô tả</Label>
                   <Input {...register("description")} className="mt-1" />

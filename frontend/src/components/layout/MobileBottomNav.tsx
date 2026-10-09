@@ -1,12 +1,18 @@
 "use client";
 
+import { useCallback, useSyncExternalStore } from "react";
 import { usePathname, useSearchParams } from "next/navigation";
 import { Home, Compass, Sparkles, Shirt, User } from "lucide-react";
 import { NavScrollLink } from "@/components/layout/NavScrollLink";
 import { cn } from "@/lib/utils";
 import { getActiveMobileNavTab, shouldShowBottomNav } from "@/lib/mobile-chrome";
-import { isTryOnNavContext } from "@/lib/nav-context";
+import { isTryOnNavContext, isTryOnNavContextFromUrl } from "@/lib/nav-context";
 import { useAuthStore } from "@/stores/auth-store";
+
+function subscribeNavHistory(callback: () => void): () => void {
+  window.addEventListener("fitme-nav-history", callback);
+  return () => window.removeEventListener("fitme-nav-history", callback);
+}
 
 const tabs = [
   { id: "home" as const, href: "/", label: "Trang chủ", icon: Home },
@@ -21,10 +27,15 @@ export function MobileBottomNav() {
   const searchParams = useSearchParams();
   const accessToken = useAuthStore((s) => s.accessToken);
   const isAuthed = !!accessToken;
+  // Server + hydration render use the URL only; sessionStorage-based context is applied after mount.
+  const preferTryOn = useSyncExternalStore(
+    subscribeNavHistory,
+    useCallback(() => isTryOnNavContext(pathname, searchParams), [pathname, searchParams]),
+    useCallback(() => isTryOnNavContextFromUrl(pathname, searchParams), [pathname, searchParams]),
+  );
 
   if (!shouldShowBottomNav(pathname)) return null;
 
-  const preferTryOn = isTryOnNavContext(pathname, searchParams);
   const activeTab = getActiveMobileNavTab(pathname, { preferTryOn });
 
   return (

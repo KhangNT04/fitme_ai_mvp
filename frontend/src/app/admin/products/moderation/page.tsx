@@ -35,6 +35,7 @@ import {
   portalTableActionsClass,
 } from "@/lib/design-tokens";
 import { actionFeedback } from "@/lib/action-feedback";
+import { invalidateProductModeration } from "@/lib/admin-moderation-cache";
 
 function ModerationActions({
   product,
@@ -53,9 +54,8 @@ function ModerationActions({
 
   const approve = useMutation({
     mutationFn: (id: string) => adminApi.approveProduct(id),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["admin-pending-products"] });
-      queryClient.invalidateQueries({ queryKey: ["admin-flagged-products"] });
+    onSuccess: (_data, id) => {
+      void invalidateProductModeration(queryClient, id);
       actionFeedback({ successMessage: "Đã duyệt sản phẩm" }).onSuccess();
     },
     onError: actionFeedback({ errorMessage: "Không thể duyệt sản phẩm" }).onError,
@@ -65,8 +65,7 @@ function ModerationActions({
   const reject = useMutation({
     mutationFn: (reason: string) => adminApi.rejectProduct(product.id, reason),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["admin-pending-products"] });
-      queryClient.invalidateQueries({ queryKey: ["admin-flagged-products"] });
+      void invalidateProductModeration(queryClient, product.id);
       setRejectOpen(false);
       actionFeedback({ successMessage: "Đã từ chối sản phẩm" }).onSuccess();
     },
@@ -260,9 +259,8 @@ function AdminProductModerationContent() {
 
   const flag = useMutation({
     mutationFn: ({ id, reason }: { id: string; reason: string }) => adminApi.flagProduct(id, reason),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["admin-pending-products"] });
-      queryClient.invalidateQueries({ queryKey: ["admin-flagged-products"] });
+    onSuccess: (_data, { id }) => {
+      void invalidateProductModeration(queryClient, id);
       setFlagTarget(null);
       actionFeedback({ successMessage: "Đã gắn cờ sản phẩm" }).onSuccess();
     },

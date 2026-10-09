@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { brandLinkError } from "@/lib/brand-links";
 
 const UNSET_SELECT = "__none__";
 
@@ -143,15 +144,26 @@ export const tryOnInputSchema = z.object({
   }
 });
 
+/** Blank allowed; scheme-less links pass because the form prepends https:// on submit. */
+function optionalBrandLinkField(label: string) {
+  return z
+    .string()
+    .optional()
+    .superRefine((value, ctx) => {
+      const message = brandLinkError(value, label);
+      if (message) ctx.addIssue({ code: "custom", message });
+    });
+}
+
 export const brandOnboardingSchema = z.object({
   name: z.string().min(2, "Tên thương hiệu tối thiểu 2 ký tự"),
   contactEmail: z.string().email("Email không hợp lệ"),
   contactPhone: z.string().optional(),
-  websiteUrl: z.string().url().optional().or(z.literal("")),
-  shopeeUrl: z.string().optional(),
-  tiktokShopUrl: z.string().optional(),
-  instagramUrl: z.string().optional(),
-  facebookUrl: z.string().optional(),
+  websiteUrl: optionalBrandLinkField("website"),
+  shopeeUrl: optionalBrandLinkField("Shopee"),
+  tiktokShopUrl: optionalBrandLinkField("TikTok Shop"),
+  instagramUrl: optionalBrandLinkField("Instagram"),
+  facebookUrl: optionalBrandLinkField("Facebook"),
   description: z.string().optional(),
 });
 

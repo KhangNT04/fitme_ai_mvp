@@ -12,6 +12,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { AuthCardShell } from "@/components/layout/AuthCardShell";
 import { getUserErrorMessage } from "@/lib/user-error-message";
+import { normalizeBrandLinks } from "@/lib/brand-links";
 import { brandOnboardingSchema, type BrandOnboardingForm } from "@/utils/validators";
 
 export default function BrandOnboardingPage() {
@@ -36,9 +37,10 @@ export default function BrandOnboardingPage() {
     }
     setError("");
     try {
+      const payload = normalizeBrandLinks(data);
       await brandApi.apply({
-        ...data,
-        websiteUrl: data.websiteUrl || undefined,
+        ...payload,
+        websiteUrl: payload.websiteUrl || undefined,
       });
       router.push("/brand/pending");
     } catch (e: unknown) {
@@ -104,11 +106,13 @@ export default function BrandOnboardingPage() {
         </div>
         <div>
           <Label>Website</Label>
-          <Input {...register("websiteUrl")} className="mt-1" placeholder="https://" />
+          <Input {...register("websiteUrl")} className="mt-1" inputMode="url" placeholder="teelab.vn" />
+          {errors.websiteUrl && <p className="mt-1 text-xs text-red-600">{errors.websiteUrl.message}</p>}
         </div>
         <div>
           <Label>Shopee URL</Label>
-          <Input {...register("shopeeUrl")} className="mt-1" />
+          <Input {...register("shopeeUrl")} className="mt-1" inputMode="url" placeholder="shopee.vn/ten-shop" />
+          {errors.shopeeUrl && <p className="mt-1 text-xs text-red-600">{errors.shopeeUrl.message}</p>}
         </div>
         <div>
           <Label>Mô tả thương hiệu</Label>

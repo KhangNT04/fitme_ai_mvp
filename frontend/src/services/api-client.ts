@@ -64,16 +64,25 @@ async function refreshAccessToken(): Promise<string | null> {
       emitAuthTokensRefreshed({ accessToken: data.accessToken, refreshToken: data.refreshToken });
       return data.accessToken;
     }
-  } catch {
+  } catch (error) {
     // Refresh tokens are single-use: another tab may have rotated this one a moment ago.
     const latestRefresh = localStorage.getItem(AUTH_REFRESH_KEY);
     const latestAccess = localStorage.getItem(AUTH_TOKEN_KEY);
     if (latestRefresh && latestRefresh !== refreshToken && latestAccess && !isJwtExpired(latestAccess)) {
       return latestAccess;
     }
-    clearAuthTokens();
+    // Network errors, timeouts and 5xx (e.g. backend cold start) must not log the user out.
+    if (isRefreshTokenRejected(error)) {
+      clearAuthTokens();
+    }
   }
   return null;
+}
+
+function isRefreshTokenRejected(error: unknown): boolean {
+  if (!axios.isAxiosError(error)) return false;
+  const status = error.response?.status;
+  return status === 400 || status === 401;
 }
 
 apiClient.interceptors.request.use((config: InternalAxiosRequestConfig) => {

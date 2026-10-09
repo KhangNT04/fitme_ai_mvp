@@ -154,11 +154,14 @@ export function resolveProductPageBack(
   return DISCOVER_HUB;
 }
 
-/** Whether consumer chrome should treat the session as try-on flow (bottom nav). */
-export function isTryOnNavContext(pathname: string, search?: SearchLike): boolean {
-  if (pathname === "/try-on") return true;
+/** URL-only part of {@link isTryOnNavContext}; safe for SSR and the hydration render. */
+export function isTryOnNavContextFromUrl(pathname: string, search?: SearchLike): boolean {
+  return pathname === "/try-on" || search?.get("from") === TRYON_FROM_PARAM;
+}
 
-  if (search?.get("from") === TRYON_FROM_PARAM) return true;
+/** Whether consumer chrome should treat the session as try-on flow (bottom nav). Reads sessionStorage. */
+export function isTryOnNavContext(pathname: string, search?: SearchLike): boolean {
+  if (isTryOnNavContextFromUrl(pathname, search)) return true;
 
   const previous = getPreviousNavEntry();
   if (pathname.startsWith("/products/") && previous && isTryOnRouteHref(previous.href)) {

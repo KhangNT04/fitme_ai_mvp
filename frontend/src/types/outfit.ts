@@ -58,6 +58,8 @@ export interface StyleRecommendationOption {
 export interface RecommendationOptionsResult {
   requestId: string;
   options: StyleRecommendationOption[];
+  /** Favorites-only brand mode: why the outfit is partial/empty. Only on create, never on re-fetch. */
+  notice?: string;
 }
 
 export interface CreateRecommendationRequest {

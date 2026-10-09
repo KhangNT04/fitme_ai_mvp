@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   billingPlanFormSchema,
   bodyProfileSchema,
+  brandOnboardingSchema,
   occasionSchema,
   purchaseUrlSchema,
   styleProfileSchema,
@@ -51,6 +52,23 @@ describe("billingPlanFormSchema", () => {
     expect(firstError({ ...brandPlus, planType: "TOPUP", billingPeriodDays: null })?.message).toBe(
       "Gói brand phải là gói theo chu kỳ",
     );
+  });
+});
+
+describe("brandOnboardingSchema links", () => {
+  const base = { name: "Teelab", contactEmail: "brand@teelab.vn" };
+
+  it("accepts blank and scheme-less links", () => {
+    expect(brandOnboardingSchema.safeParse({ ...base, websiteUrl: "", shopeeUrl: "shopee.vn/teelab" }).success).toBe(true);
+  });
+
+  it("rejects javascript: links with a Vietnamese message on the field", () => {
+    const result = brandOnboardingSchema.safeParse({ ...base, shopeeUrl: "javascript:alert(1)" });
+    expect(result.success).toBe(false);
+    expect(result.error?.issues[0]).toMatchObject({
+      path: ["shopeeUrl"],
+      message: "Link Shopee không hợp lệ, cần dạng https://...",
+    });
   });
 });
 

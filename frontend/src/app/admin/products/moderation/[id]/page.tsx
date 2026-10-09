@@ -14,6 +14,7 @@ import {
   PortalActionGroup,
 } from "@/components/portal/PortalActionButton";
 import { actionFeedback } from "@/lib/action-feedback";
+import { adminProductQueryKey, invalidateProductModeration } from "@/lib/admin-moderation-cache";
 
 export default function AdminProductModerationDetailPage({
   params,
@@ -27,15 +28,14 @@ export default function AdminProductModerationDetailPage({
   const [rejectOpen, setRejectOpen] = useState(false);
 
   const { data: product, isLoading, error, refetch } = useQuery({
-    queryKey: ["admin-product", id],
+    queryKey: adminProductQueryKey(id),
     queryFn: () => adminApi.getProduct(id),
   });
 
   const approve = useMutation({
     mutationFn: () => adminApi.approveProduct(id),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["admin-pending-products"] });
-      queryClient.invalidateQueries({ queryKey: ["admin-flagged-products"] });
+      void invalidateProductModeration(queryClient, id);
       actionFeedback({ successMessage: "Đã duyệt sản phẩm" }).onSuccess();
       router.push("/admin/products/moderation");
     },
@@ -46,8 +46,7 @@ export default function AdminProductModerationDetailPage({
     mutationFn: (reason: string) => adminApi.rejectProduct(id, reason),
     onSuccess: () => {
       setRejectOpen(false);
-      queryClient.invalidateQueries({ queryKey: ["admin-pending-products"] });
-      queryClient.invalidateQueries({ queryKey: ["admin-flagged-products"] });
+      void invalidateProductModeration(queryClient, id);
       actionFeedback({ successMessage: "Đã từ chối sản phẩm" }).onSuccess();
       router.push("/admin/products/moderation");
     },
@@ -57,9 +56,7 @@ export default function AdminProductModerationDetailPage({
   const flag = useMutation({
     mutationFn: (reason: string) => adminApi.flagProduct(id, reason),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["admin-pending-products"] });
-      queryClient.invalidateQueries({ queryKey: ["admin-flagged-products"] });
-      queryClient.invalidateQueries({ queryKey: ["admin-product", id] });
+      void invalidateProductModeration(queryClient, id);
       setFlagOpen(false);
       actionFeedback({ successMessage: "Đã gắn cờ sản phẩm" }).onSuccess();
       router.push("/admin/products/moderation?tab=flagged");

@@ -49,6 +49,19 @@ describe("recommendationApi mapRecommendation", () => {
     expect(result.outfitItems[0].name).toBe("White tee");
   });
 
+  it("carries the favorites-only notice from create and omits it when null", async () => {
+    const notice = "Brand bạn yêu thích chưa đủ món để ghép trọn bộ.";
+    vi.mocked(apiClient.post).mockResolvedValueOnce({
+      data: { success: true, data: { requestId: "req-1", options: [], notice } },
+    });
+    expect((await recommendationApi.create({ sessionId: "s", wardrobeMode: "NO_WARDROBE_DATA" })).notice).toBe(notice);
+
+    mockedGet.mockResolvedValueOnce({
+      data: { success: true, data: { requestId: "req-1", options: [], notice: null } },
+    });
+    expect(await recommendationApi.getOptionsByRequestId("req-1")).not.toHaveProperty("notice");
+  });
+
   it("returns empty list when saved endpoint rejects missing identity", async () => {
     mockedGet.mockRejectedValue({ message: "Yêu cầu đăng nhập hoặc session ẩn danh", status: 400 });
 

@@ -62,6 +62,7 @@ interface BackendStyleOption {
 interface BackendRecommendationOptions {
   requestId: string;
   options: BackendStyleOption[];
+  notice?: string | null;
 }
 
 function mapOutfitItem(item: BackendOutfitItem, index: number): OutfitItem {
@@ -121,6 +122,7 @@ function mapOptions(data: BackendRecommendationOptions): RecommendationOptionsRe
       itemCount: option.itemCount,
       stylistSource: option.stylistSource,
     })),
+    ...(data.notice?.trim() ? { notice: data.notice.trim() } : {}),
   };
 }
 

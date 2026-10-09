@@ -38,6 +38,17 @@ describe("formatUserErrorMessage", () => {
     );
   });
 
+  it("keeps Vietnamese conflict messages that contain a real question mark", () => {
+    const message = "Sản phẩm đã có đánh giá hoặc lượt thử đồ nên không thể xóa vĩnh viễn. Bạn muốn giữ ở trạng thái Tạm ẩn?";
+    expect(formatUserErrorMessage(message, 409)).toBe(message);
+  });
+
+  it("replaces mojibake Vietnamese with the status message", () => {
+    expect(formatUserErrorMessage("Kh?ng th? x?a s?n ph?m", 409)).toBe(
+      "Dữ liệu đã tồn tại hoặc xung đột với hệ thống.",
+    );
+  });
+
   it("handles network errors without status", () => {
     expect(formatUserErrorMessage("Network Error")).toBe(
       "Không thể kết nối máy chủ. Vui lòng kiểm tra mạng và thử lại."
@@ -49,6 +60,14 @@ describe("getUserErrorMessage", () => {
   it("extracts ApiError shape from api-client", () => {
     expect(getUserErrorMessage({ message: "Request failed with status code 401", status: 401 })).toBe(
       "Phiên làm việc hết hạn. Vui lòng tải lại trang hoặc đăng nhập lại.",
+    );
+  });
+
+  it("shows the backend reason when permanent delete is refused", () => {
+    const reason = "Sản phẩm đã có đánh giá, lead hoặc lịch sử thử đồ nên không thể xóa vĩnh viễn.";
+    expect(getUserErrorMessage({ message: reason, status: 409 }, "Không thể xóa sản phẩm")).toBe(reason);
+    expect(getUserErrorMessage({ message: "Request failed with status code 409", status: 409 }, "Không thể xóa sản phẩm")).toBe(
+      "Dữ liệu đã tồn tại hoặc xung đột với hệ thống.",
     );
   });
 

@@ -111,8 +111,9 @@ export default function BrandProductsPage() {
 
   const hide = useMutation({
     mutationFn: (id: string) => brandApi.hideProduct(id),
-    onSuccess: () => {
+    onSuccess: (_data, id) => {
       queryClient.invalidateQueries({ queryKey: ["brand-products"] });
+      queryClient.invalidateQueries({ queryKey: ["brand-product", id] });
       setConfirm(null);
       actionFeedback({ successMessage: "Đã ẩn sản phẩm" }).onSuccess();
     },
@@ -121,12 +122,17 @@ export default function BrandProductsPage() {
 
   const remove = useMutation({
     mutationFn: (id: string) => brandApi.deleteProduct(id),
-    onSuccess: () => {
+    onSuccess: (_data, id) => {
       queryClient.invalidateQueries({ queryKey: ["brand-products"] });
+      queryClient.removeQueries({ queryKey: ["brand-product", id] });
       setConfirm(null);
       actionFeedback({ successMessage: "Đã xóa sản phẩm vĩnh viễn" }).onSuccess();
     },
-    onError: actionFeedback({ errorMessage: "Không thể xóa sản phẩm" }).onError,
+    // Backend refuses (409/400) with a Vietnamese reason when the product has reviews, leads or try-on history.
+    onError: (err) => {
+      setConfirm(null);
+      actionFeedback({ errorMessage: "Không thể xóa sản phẩm" }).onError(err);
+    },
   });
 
   const products = useMemo(() => (data ? sortBrandProducts(data) : []), [data]);

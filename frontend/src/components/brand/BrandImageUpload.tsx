@@ -5,6 +5,7 @@ import { ImagePlus, Loader2, Sparkles, Upload, X } from "lucide-react";
 import { Label } from "@/components/ui/label";
 import { AppImage } from "@/components/common/AppImage";
 import { validateImageFile } from "@/lib/upload-file";
+import { getUserErrorMessage } from "@/lib/user-error-message";
 import { cn } from "@/lib/utils";
 
 interface BrandImageUploadProps {
@@ -44,7 +45,7 @@ export function BrandImageUpload({
       const url = await onUpload(file);
       onChange?.(url);
     } catch (e: unknown) {
-      setError(e instanceof Error ? e.message : "Upload thất bại. Vui lòng thử lại.");
+      setError(getUserErrorMessage(e, "Upload thất bại. Vui lòng thử lại."));
     } finally {
       setUploading(false);
       if (inputRef.current) inputRef.current.value = "";
@@ -161,7 +162,7 @@ export function BrandProductImagesUpload({
       }
       setImages([...images, ...uploaded]);
     } catch (e: unknown) {
-      setError(e instanceof Error ? e.message : "Upload thất bại. Vui lòng thử lại.");
+      setError(getUserErrorMessage(e, "Upload thất bại. Vui lòng thử lại."));
       if (uploaded.length > 0) {
         setImages([...images, ...uploaded]);
       }

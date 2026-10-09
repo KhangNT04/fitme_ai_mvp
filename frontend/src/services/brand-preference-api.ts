@@ -33,7 +33,7 @@ export const BRAND_MIX_MODE_OPTIONS: { value: BrandMixMode; label: string; descr
   {
     value: "FAVORITES_ONLY",
     label: "Chỉ brand yêu thích",
-    description: "Chỉ phối từ brand bạn chọn khi đủ sản phẩm; nếu thiếu sẽ bổ sung từ brand khác.",
+    description: "Chỉ gợi ý sản phẩm từ brand bạn yêu thích; nếu không đủ món sẽ hiển thị outfit chưa đầy đủ.",
   },
 ];
 

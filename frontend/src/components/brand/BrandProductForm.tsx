@@ -6,12 +6,24 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { BrandProductImagesUpload } from "@/components/brand/BrandImageUpload";
 import { brandApi } from "@/services/brand-api";
+import { PLACEHOLDER_PRODUCT } from "@/lib/media-url";
 import { PRODUCT_CATEGORIES, FIT_PREFERENCES, TARGET_GENDERS } from "@/utils/constants";
 import { purchaseUrlSchema } from "@/utils/validators";
 import type { CreateProductRequest } from "@/types/brand";
-import type { SizeChartRow, TargetGender } from "@/types/product";
+import type { ProductStatus, SizeChartRow, TargetGender } from "@/types/product";
 
 const DEFAULT_SIZES = ["S", "M", "L", "XL"];
+
+export const LIVE_PRODUCT_REVIEW_HINT =
+  "Đổi link mua, ảnh hoặc ảnh thử đồ của sản phẩm đang bán sẽ cần admin duyệt lại.";
+
+export const LIVE_PRODUCT_RE_REVIEW_NOTICE =
+  "Đã lưu. Vì bạn đổi link mua / ảnh / ảnh thử đồ, sản phẩm chuyển sang chờ duyệt lại và tạm ẩn khỏi khách cho tới khi admin duyệt.";
+
+/** Backend sends a live product back to review when its purchase URL, images or try-on image change. */
+export function movedBackToReview(previousStatus: ProductStatus | undefined, nextStatus: ProductStatus): boolean {
+  return previousStatus === "ACTIVE" && nextStatus === "PENDING_REVIEW";
+}
 
 export interface BrandProductFormValues {
   name: string;
@@ -108,7 +120,8 @@ export function productToFormValues(product: {
     occasionTags: product.occasionTags.join(", "),
     purchaseUrl: product.purchaseUrl,
     description: product.description || "",
-    imageUrls: product.images.join("\n"),
+    // mapProduct shows a placeholder for products without photos; it is not a real photo to save back.
+    imageUrls: product.images.filter((url) => url !== PLACEHOLDER_PRODUCT).join("\n"),
     tryOnImage: product.tryOnImage ?? "",
     sizeCharts: product.sizeCharts?.length
       ? product.sizeCharts
@@ -152,6 +165,8 @@ interface BrandProductFormProps {
   loading?: boolean;
   submitLabel?: string;
   extraActions?: React.ReactNode;
+  /** Product is ACTIVE: media / purchase URL edits will send it back to admin review. */
+  live?: boolean;
 }
 
 export function BrandProductForm({
@@ -161,6 +176,7 @@ export function BrandProductForm({
   loading,
   submitLabel = "Lưu sản phẩm",
   extraActions,
+  live,
 }: BrandProductFormProps) {
   const [imageError, setImageError] = useState("");
   const [purchaseUrlError, setPurchaseUrlError] = useState("");
@@ -275,6 +291,7 @@ export function BrandProductForm({
         />
       </div>
       <div>
+        {live && <p className="mb-2 text-xs text-amber-700">{LIVE_PRODUCT_REVIEW_HINT}</p>}
         <BrandProductImagesUpload
           value={form.imageUrls}
           onChange={(imageUrls) => setForm((prev) => ({ ...prev, imageUrls }))}
@@ -342,12 +359,17 @@ export function BrandProductForm({
           className="mt-1"
           placeholder="https://cuahang.vn/products/ten-san-pham"
           aria-invalid={purchaseUrlError ? true : undefined}
-          aria-describedby="purchaseUrl-help"
+          aria-describedby={live ? "purchaseUrl-help purchaseUrl-review-hint" : "purchaseUrl-help"}
           required
         />
         <p id="purchaseUrl-help" className="mt-1 text-xs text-muted-foreground">
           Trang sản phẩm trên website, Shopee, TikTok Shop… của bạn. Khách bấm &quot;Mua tại cửa hàng gốc&quot; sẽ tới link này.
         </p>
+        {live && (
+          <p id="purchaseUrl-review-hint" className="mt-1 text-xs text-amber-700">
+            {LIVE_PRODUCT_REVIEW_HINT}
+          </p>
+        )}
         {purchaseUrlError && <p className="mt-1 text-xs text-red-600">{purchaseUrlError}</p>}
       </div>
 

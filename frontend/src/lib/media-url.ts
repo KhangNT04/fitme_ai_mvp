@@ -24,11 +24,15 @@ export function isEphemeralVtonOutputUrl(url?: string | null): boolean {
   }
 }
 
+/** Catalog photos and logos are public objects: browsers load them straight from the bucket. */
+const PUBLIC_CATALOG_MEDIA_PREFIX = "/catalog-media/";
+
 function normalizeUploadPath(url: string): string {
   if (url.startsWith("/uploads/")) return url;
   if (ABSOLUTE_URL.test(url) && url.includes(".r2.dev/")) {
     try {
       const pathname = new URL(url).pathname;
+      if (pathname.startsWith(PUBLIC_CATALOG_MEDIA_PREFIX)) return url;
       if (pathname.startsWith("/uploads/")) return pathname;
       return `/uploads${pathname.startsWith("/") ? pathname : `/${pathname}`}`;
     } catch {

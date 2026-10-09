@@ -126,7 +126,9 @@ public class ProductService {
         }
         productRepository.save(product);
         imageRepository.findByProductIdOrderBySortOrderAsc(productId).forEach(imageRepository::delete);
-        tagRepository.findByProductId(productId).forEach(tagRepository::delete);
+        tagRepository.findByProductId(productId).stream()
+                .filter(tag -> !isSystemTag(tag.getTagType()))
+                .forEach(tagRepository::delete);
         sizeChartRepository.findByProductId(productId).forEach(sizeChartRepository::delete);
         saveImagesTagsAndSizeCharts(productId, request);
         if (request.getVariants() != null) {
@@ -331,17 +333,28 @@ public class ProductService {
     private void saveImagesTagsAndSizeCharts(UUID productId, CreateProductRequest request) {
         if (request.getImages() != null) {
             int order = 0;
-            for (ProductImageDto img : request.getImages()) {
+            int tryOnIndex = tryOnImageIndex(request);
+            for (int i = 0; i < request.getImages().size(); i++) {
+                ProductImageDto img = request.getImages().get(i);
+                String type = img.getImageType() != null ? img.getImageType() : ProductImage.TYPE_MAIN;
+                if (i == tryOnIndex) {
+                    type = ProductImage.TYPE_TRY_ON;
+                } else if (ProductImage.TYPE_TRY_ON.equalsIgnoreCase(type)) {
+                    type = ProductImage.TYPE_DETAIL;
+                }
                 imageRepository.save(ProductImage.builder()
                         .productId(productId)
                         .imageUrl(img.getImageUrl())
-                        .imageType(img.getImageType() != null ? img.getImageType() : "MAIN")
+                        .imageType(type)
                         .sortOrder(img.getSortOrder() != null ? img.getSortOrder() : order++)
                         .build());
             }
         }
         if (request.getTags() != null) {
             for (ProductTagDto t : request.getTags()) {
+                if (isSystemTag(t.getTagType())) {
+                    continue;
+                }
                 tagRepository.save(ProductTag.builder()
                         .productId(productId)
                         .tagType(t.getTagType())
@@ -368,6 +381,28 @@ public class ProductService {
                         .build());
             }
         }
+    }
+
+    /**
+     * Index of the single TRY_ON image: the brand's pick, else the first photo. Shoes and accessories
+     * are outside VTON scope and get none (-1).
+     */
+    private static int tryOnImageIndex(CreateProductRequest request) {
+        List<ProductImageDto> images = request.getImages();
+        if (images.isEmpty() || ProductEligibilityService.isOutsideVtonScope(request.getCategory())) {
+            return -1;
+        }
+        for (int i = 0; i < images.size(); i++) {
+            if (ProductImage.TYPE_TRY_ON.equalsIgnoreCase(images.get(i).getImageType())) {
+                return i;
+            }
+        }
+        return 0;
+    }
+
+    /** META tags mark catalog-managed products; brands can neither send nor erase them. */
+    private static boolean isSystemTag(String tagType) {
+        return "META".equals(tagType);
     }
 
     private void updateAiEligibility(Product product) {

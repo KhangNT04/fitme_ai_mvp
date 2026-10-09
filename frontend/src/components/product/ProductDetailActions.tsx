@@ -54,6 +54,12 @@ export function ProductDetailActions({
           </Button>
         ) : null}
       </div>
+      {aiTryOnEligible === false && (
+        <p className="text-xs text-muted-foreground" data-testid="try-on-unavailable">
+          Sản phẩm này chưa hỗ trợ thử mặc bằng AI vì chưa có ảnh thử đồ phù hợp (giày, phụ kiện hoặc ảnh sản phẩm
+          chưa đủ rõ).
+        </p>
+      )}
     </div>
   );
 }

@@ -25,7 +25,7 @@ test.describe("RBAC — route guards", () => {
 
   test("brand user blocked from admin portal", async ({ page }) => {
     await page.goto("/brand/login");
-    await page.locator('input[type="email"]').fill("brand@fitme.ai");
+    await page.locator('input[type="email"]').fill("teelab@fitme.ai");
     await page.locator('input[type="password"]').fill("fitme123");
     await page.getByRole("button", { name: "Đăng nhập" }).click();
     await page.waitForURL(/\/brand\/dashboard/);

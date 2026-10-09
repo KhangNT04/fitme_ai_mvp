@@ -16,6 +16,11 @@ import java.util.UUID;
 @Builder
 public class ProductImage {
 
+    public static final String TYPE_MAIN = "MAIN";
+    public static final String TYPE_DETAIL = "DETAIL";
+    /** The single gallery image the brand chose as the garment input for AI try-on. */
+    public static final String TYPE_TRY_ON = "TRY_ON";
+
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;

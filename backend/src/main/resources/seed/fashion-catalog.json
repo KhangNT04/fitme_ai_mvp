@@ -1,791 +1,2503 @@
 {
-  "version": 4,
-  "images": {
-    "ksh-ao-thun-cotton": [
-      "/catalog/products/ksh-ao-thun-cotton.jpg",
-      "/catalog/products/ksh-ao-thun-cotton.jpg",
-      "/catalog/products/ksh-ao-thun-cotton.jpg"
-    ],
-    "ksh-ao-so-mi-keo": [
-      "/catalog/products/ksh-ao-so-mi-keo.jpg",
-      "/catalog/products/ksh-ao-so-mi-keo.jpg",
-      "/catalog/products/ksh-ao-so-mi-keo.jpg"
-    ],
-    "ksh-cardigan-len": [
-      "/catalog/products/ksh-cardigan-len.jpg",
-      "/catalog/products/ksh-cardigan-len.jpg",
-      "/catalog/products/ksh-cardigan-len.jpg"
-    ],
-    "ksh-quan-jeans-suong": [
-      "/catalog/products/ksh-quan-jeans-suong.jpg",
-      "/catalog/products/ksh-quan-jeans-suong.jpg",
-      "/catalog/products/ksh-quan-jeans-suong.jpg"
-    ],
-    "ksh-quan-kaki-rong": [
-      "/catalog/products/ksh-quan-kaki-rong.jpg",
-      "/catalog/products/ksh-quan-kaki-rong.jpg",
-      "/catalog/products/ksh-quan-kaki-rong.jpg"
-    ],
-    "ksh-chan-vay-a-midi": [
-      "/catalog/products/ksh-chan-vay-a-midi.jpg",
-      "/catalog/products/ksh-chan-vay-a-midi.jpg",
-      "/catalog/products/ksh-chan-vay-a-midi.jpg"
-    ],
-    "ksh-ao-bomber": [
-      "/catalog/products/ksh-ao-bomber.jpg",
-      "/catalog/products/ksh-ao-bomber.jpg",
-      "/catalog/products/ksh-ao-bomber.jpg"
-    ],
-    "ksh-sneaker-canvas": [
-      "/catalog/products/ksh-sneaker-canvas.jpg",
-      "/catalog/products/ksh-sneaker-canvas.jpg",
-      "/catalog/products/ksh-sneaker-canvas.jpg"
-    ],
-    "ksh-loafer-chunky": [
-      "/catalog/products/ksh-loafer-chunky.jpg",
-      "/catalog/products/ksh-loafer-chunky.jpg",
-      "/catalog/products/ksh-loafer-chunky.jpg"
-    ],
-    "ksh-tui-tote": [
-      "/catalog/products/ksh-tui-tote.jpg",
-      "/catalog/products/ksh-tui-tote.jpg",
-      "/catalog/products/ksh-tui-tote.jpg"
-    ],
-    "ksh-khan-len": [
-      "/catalog/products/ksh-khan-len.jpg",
-      "/catalog/products/ksh-khan-len.jpg",
-      "/catalog/products/ksh-khan-len.jpg"
-    ],
-    "ksh-ao-len-co-lo": [
-      "/catalog/products/ksh-ao-len-co-lo.jpg",
-      "/catalog/products/ksh-ao-len-co-lo.jpg",
-      "/catalog/products/ksh-ao-len-co-lo.jpg"
-    ],
-    "lm-ao-so-mi-linen": [
-      "/catalog/products/lm-ao-so-mi-linen.jpg",
-      "/catalog/products/lm-ao-so-mi-linen.jpg",
-      "/catalog/products/lm-ao-so-mi-linen.jpg"
-    ],
-    "lm-ao-tank": [
-      "/catalog/products/lm-ao-tank.jpg",
-      "/catalog/products/lm-ao-tank.jpg",
-      "/catalog/products/lm-ao-tank.jpg"
-    ],
-    "lm-quan-linen-suong": [
-      "/catalog/products/lm-quan-linen-suong.jpg",
-      "/catalog/products/lm-quan-linen-suong.jpg",
-      "/catalog/products/lm-quan-linen-suong.jpg"
-    ],
-    "lm-quan-tay-cotton": [
-      "/catalog/products/lm-quan-tay-cotton.jpg",
-      "/catalog/products/lm-quan-tay-cotton.jpg",
-      "/catalog/products/lm-quan-tay-cotton.jpg"
-    ],
-    "lm-vay-wrap-linen": [
-      "/catalog/products/lm-vay-wrap-linen.jpg",
-      "/catalog/products/lm-vay-wrap-linen.jpg",
-      "/catalog/products/lm-vay-wrap-linen.jpg"
-    ],
-    "lm-vay-slip-satin": [
-      "/catalog/products/lm-vay-slip-satin.jpg",
-      "/catalog/products/lm-vay-slip-satin.jpg",
-      "/catalog/products/lm-vay-slip-satin.jpg"
-    ],
-    "lm-blazer-linen": [
-      "/catalog/products/lm-blazer-linen.jpg",
-      "/catalog/products/lm-blazer-linen.jpg",
-      "/catalog/products/lm-blazer-linen.jpg"
-    ],
-    "lm-cardigan-dai": [
-      "/catalog/products/lm-cardigan-dai.jpg",
-      "/catalog/products/lm-cardigan-dai.jpg",
-      "/catalog/products/lm-cardigan-dai.jpg"
-    ],
-    "lm-sandal-quai-cheo": [
-      "/catalog/products/lm-sandal-quai-cheo.jpg",
-      "/catalog/products/lm-sandal-quai-cheo.jpg",
-      "/catalog/products/lm-sandal-quai-cheo.jpg"
-    ],
-    "lm-sneaker-da-trang": [
-      "/catalog/products/lm-sneaker-da-trang.jpg",
-      "/catalog/products/lm-sneaker-da-trang.jpg",
-      "/catalog/products/lm-sneaker-da-trang.jpg"
-    ],
-    "lm-tui-bucket-da": [
-      "/catalog/products/lm-tui-bucket-da.jpg",
-      "/catalog/products/lm-tui-bucket-da.jpg",
-      "/catalog/products/lm-tui-bucket-da.jpg"
-    ],
-    "lm-khan-linen-riviera": [
-      "/catalog/products/lm-khan-linen-riviera.jpg",
-      "/catalog/products/lm-khan-linen-riviera.jpg",
-      "/catalog/products/lm-khan-linen-riviera.jpg"
-    ],
-    "sb-ao-thun-basic": [
-      "/catalog/products/sb-ao-thun-basic.jpg",
-      "/catalog/products/sb-ao-thun-basic.jpg",
-      "/catalog/products/sb-ao-thun-basic.jpg"
-    ],
-    "sb-ao-hoodie-zip": [
-      "/catalog/products/sb-ao-hoodie-zip.jpg",
-      "/catalog/products/sb-ao-hoodie-zip.jpg",
-      "/catalog/products/sb-ao-hoodie-zip.jpg"
-    ],
-    "sb-ao-len-basic": [
-      "/catalog/products/sb-ao-len-basic.jpg",
-      "/catalog/products/sb-ao-len-basic.jpg",
-      "/catalog/products/sb-ao-len-basic.jpg"
-    ],
-    "sb-quan-jogger-fleece": [
-      "/catalog/products/sb-quan-jogger-fleece.jpg",
-      "/catalog/products/sb-quan-jogger-fleece.jpg",
-      "/catalog/products/sb-quan-jogger-fleece.jpg"
-    ],
-    "sb-quan-jeans-den-slim": [
-      "/catalog/products/sb-quan-jeans-den-slim.jpg",
-      "/catalog/products/sb-quan-jeans-den-slim.jpg",
-      "/catalog/products/sb-quan-jeans-den-slim.jpg"
-    ],
-    "sb-chan-vay-tennis-ly": [
-      "/catalog/products/sb-chan-vay-tennis-ly.jpg",
-      "/catalog/products/sb-chan-vay-tennis-ly.jpg",
-      "/catalog/products/sb-chan-vay-tennis-ly.jpg"
-    ],
-    "sb-vay-hoodie-dress": [
-      "/catalog/products/sb-vay-hoodie-dress.jpg",
-      "/catalog/products/sb-vay-hoodie-dress.jpg",
-      "/catalog/products/sb-vay-hoodie-dress.jpg"
-    ],
-    "sb-ao-khoac-gio": [
-      "/catalog/products/sb-ao-khoac-gio.jpg",
-      "/catalog/products/sb-ao-khoac-gio.jpg",
-      "/catalog/products/sb-ao-khoac-gio.jpg"
-    ],
-    "sb-sneaker-chunky": [
-      "/catalog/products/sb-sneaker-chunky.jpg",
-      "/catalog/products/sb-sneaker-chunky.jpg",
-      "/catalog/products/sb-sneaker-chunky.jpg"
-    ],
-    "sb-giay-slipon-canvas": [
-      "/catalog/products/sb-giay-slipon-canvas.jpg",
-      "/catalog/products/sb-giay-slipon-canvas.jpg",
-      "/catalog/products/sb-giay-slipon-canvas.jpg"
-    ],
-    "sb-balo-mini-nylon": [
-      "/catalog/products/sb-balo-mini-nylon.jpg",
-      "/catalog/products/sb-balo-mini-nylon.jpg",
-      "/catalog/products/sb-balo-mini-nylon.jpg"
-    ],
-    "sb-mu-bucket": [
-      "/catalog/products/sb-mu-bucket.jpg",
-      "/catalog/products/sb-mu-bucket.jpg",
-      "/catalog/products/sb-mu-bucket.jpg"
-    ]
-  },
+  "version": 7,
+  "retiredBrands": [
+    "K-Style House",
+    "Linen Muse",
+    "Seoul Basic",
+    "Urban Threads",
+    "Khang Shop"
+  ],
   "brands": [
     {
-      "key": "k-style-house",
-      "name": "K-Style House",
-      "description": "Thương hiệu K-fashion cho giới trẻ đô thị — form thoải mái, màu neutral và layer dễ phối.",
-      "logoUrl": "https://images.unsplash.com/photo-1441986300917-64674bd600d8?auto=format&fit=crop&w=200&h=200&q=80",
-      "contactEmail": "hello@kstyle.vn",
-      "websiteUrl": "https://kstylehouse.vn",
-      "shopeeUrl": "https://shopee.vn/kstylehouse",
+      "key": "teelab",
+      "name": "Teelab",
+      "ownerEmail": "teelab@fitme.ai",
+      "description": "Local brand Việt Nam phong cách basic – streetwear, form oversize, chất cotton dày dặn (dòng Teelab Alter). Sản phẩm đồng bộ từ shop Shopee Mall chính hãng TEELAB VIETNAM.",
+      "logoUrl": "https://down-vn.img.susercontent.com/file/vn-11134216-81ztc-mmu9g4v44qo384",
+      "websiteUrl": null,
+      "shopeeUrl": "https://shopee.vn/teelab.vietnam",
       "products": [
         {
-          "name": "Áo thun cotton form rộng",
-          "description": "Cotton 240gsm mềm, form oversized Hàn Quốc. Phối quần jeans hoặc chân váy tennis đều hợp.",
+          "name": "Áo thun Teelab Alter Essentials Oversized TS379",
+          "description": "Áo thun Teelab Alter Essentials Oversized TS379 của Teelab. Chất liệu cotton. Form oversize. Màu: Đen, Trắng, Navy, Đỏ đô. Size: S, M, L, XL. Hợp phong cách Streetwear, dịp dạo phố.",
           "category": "Áo",
-          "price": 329000,
+          "price": 240000,
           "material": "Cotton",
           "fitType": "OVERSIZE",
-          "imageKey": "ksh-ao-thun-cotton",
+          "images": [
+            "https://down-vn.img.susercontent.com/file/vn-11134207-81ztc-mr8ilxdq00ea95",
+            "https://down-vn.img.susercontent.com/file/vn-11134207-81ztc-mr8iy3b6hlaf31",
+            "https://down-vn.img.susercontent.com/file/sg-11134201-81zvr-mmv8mznerrwh9e",
+            "https://down-vn.img.susercontent.com/file/sg-11134201-81zvr-mmv8mztmb4zoad",
+            "https://down-vn.img.susercontent.com/file/sg-11134201-81zu0-mmv8n0a5gh6o44",
+            "https://down-vn.img.susercontent.com/file/sg-11134201-81zvu-mmv8n0gtytq831",
+            "https://down-vn.img.susercontent.com/file/sg-11134201-81zte-mmv8n0mwiayr89",
+            "https://down-vn.img.susercontent.com/file/sg-11134201-81zwj-mmv8n0szoavc3e",
+            "https://down-vn.img.susercontent.com/file/sg-11134201-81zv9-mmv8n23b7gu984"
+          ],
+          "tryOnImage": "https://down-vn.img.susercontent.com/file/sg-11134201-81zv9-mmv8n23b7gu984",
           "colors": [
+            "Đen",
             "Trắng",
-            "Đen"
-          ],
-          "styleTag": "Korean Casual",
-          "occasionTag": "Dạo phố",
-          "sponsored": false
-        },
-        {
-          "name": "Áo sơ mi kẻ caro Seoul",
-          "description": "Sơ mi kẻ nhỏ tone be & navy, tay dài có thể xắn. Layer trong áo len mỏng mùa thu.",
-          "category": "Áo",
-          "price": 459000,
-          "material": "Cotton pha",
-          "fitType": "REGULAR",
-          "imageKey": "ksh-ao-so-mi-keo",
-          "colors": [
             "Navy",
-            "Beige"
+            "Đỏ đô"
           ],
-          "styleTag": "Korean Casual",
-          "occasionTag": "Đi làm",
-          "sponsored": true
-        },
-        {
-          "name": "Cardigan len mỏng cổ tròn",
-          "description": "Len pha mềm, không bí. Màu pastel dễ phối váy midi hoặc quần ống rộng.",
-          "category": "Áo khoác",
-          "price": 549000,
-          "material": "Len pha",
-          "fitType": "RELAXED",
-          "imageKey": "ksh-cardigan-len",
-          "colors": [
-            "Beige",
-            "Olive"
-          ],
-          "styleTag": "Korean Casual",
-          "occasionTag": "Đi cafe",
-          "sponsored": false
-        },
-        {
-          "name": "Quần jeans ống suông wash nhạt",
-          "description": "Denim co giãn nhẹ, cạp cao tôn dáng. Wash nhạt phong cách Seoul street.",
-          "category": "Quần",
-          "price": 589000,
-          "material": "Denim",
-          "fitType": "REGULAR",
-          "imageKey": "ksh-quan-jeans-suong",
-          "colors": [
-            "Xanh nhạt",
-            "Đen"
+          "sizes": [
+            "S",
+            "M",
+            "L",
+            "XL"
           ],
           "styleTag": "Streetwear",
           "occasionTag": "Dạo phố",
+          "targetGender": "UNISEX",
+          "purchaseUrl": "https://shopee.vn/product/1796925850/48008544622",
+          "purchaseChannel": "SHOPEE",
           "sponsored": false
         },
         {
-          "name": "Quần kaki ống rộng cạp cao",
-          "description": "Kaki cotton dày vừa, ống rộng dáng Hàn. Phối sneaker trắng là chuẩn K-style.",
-          "category": "Quần",
-          "price": 499000,
-          "material": "Cotton",
-          "fitType": "RELAXED",
-          "imageKey": "ksh-quan-kaki-rong",
+          "name": "Sơ mi Oxford dài tay Teelab Alter Oversized SS066",
+          "description": "Sơ mi Oxford dài tay Teelab Alter Oversized SS066 của Teelab. Chất liệu oxford. Form oversize. Màu: Trắng, Đen, Navy, Xanh nhạt. Size: S, M, L, XL. Hợp phong cách Minimal, dịp đi làm.",
+          "category": "Áo",
+          "price": 280000,
+          "material": "Oxford",
+          "fitType": "OVERSIZE",
+          "images": [
+            "https://down-vn.img.susercontent.com/file/sg-11134201-81zu8-mmv88ap29z4879",
+            "https://down-vn.img.susercontent.com/file/sg-11134201-81zwp-mmv88awbi8slaa",
+            "https://down-vn.img.susercontent.com/file/sg-11134201-81zwf-mmv88b2uv6dc61",
+            "https://down-vn.img.susercontent.com/file/sg-11134201-81ztl-mmv88bbqnsw4f8",
+            "https://down-vn.img.susercontent.com/file/sg-11134201-81zu2-mmv88bikbkea54",
+            "https://down-vn.img.susercontent.com/file/sg-11134201-81zuc-mmv88bw3ql1hf5",
+            "https://down-vn.img.susercontent.com/file/sg-11134201-81zwx-mmv88c367sw44b",
+            "https://down-vn.img.susercontent.com/file/sg-11134201-81ztv-mmv88d7bglj89b"
+          ],
+          "tryOnImage": "https://down-vn.img.susercontent.com/file/sg-11134201-81ztv-mmv88d7bglj89b",
           "colors": [
-            "Beige",
-            "Olive"
+            "Trắng",
+            "Đen",
+            "Navy",
+            "Xanh nhạt"
+          ],
+          "sizes": [
+            "S",
+            "M",
+            "L",
+            "XL"
+          ],
+          "styleTag": "Minimal",
+          "occasionTag": "Đi làm",
+          "targetGender": "UNISEX",
+          "purchaseUrl": "https://shopee.vn/product/1796925850/48258539541",
+          "purchaseChannel": "SHOPEE",
+          "sponsored": false
+        },
+        {
+          "name": "Áo polo Teelab Alter Essentials Oversized AP075",
+          "description": "Áo polo Teelab Alter Essentials Oversized AP075 của Teelab. Chất liệu thun 2 da. Form oversize. Màu: Trắng, Đen, Navy, Xám. Size: S, M, L, XL. Hợp phong cách Minimal, dịp đi cafe.",
+          "category": "Áo",
+          "price": 264000,
+          "material": "Thun 2 da",
+          "fitType": "OVERSIZE",
+          "images": [
+            "https://down-vn.img.susercontent.com/file/sg-11134201-81ztq-mmv8mrq7kq2o0b",
+            "https://down-vn.img.susercontent.com/file/sg-11134201-81ztx-mmv8ms521urq79",
+            "https://down-vn.img.susercontent.com/file/sg-11134201-81zwf-mmv8msab67sy99",
+            "https://down-vn.img.susercontent.com/file/sg-11134201-81zud-mmv8mshnwwlk49",
+            "https://down-vn.img.susercontent.com/file/sg-11134201-81zue-mmv8msnz47wiea",
+            "https://down-vn.img.susercontent.com/file/sg-11134201-81ztt-mmv8mt9sobgle4",
+            "https://down-vn.img.susercontent.com/file/sg-11134201-81zvj-mmv8mtg9qf440e",
+            "https://down-vn.img.susercontent.com/file/sg-11134201-81ztd-mmv8mtmtaby80b"
+          ],
+          "tryOnImage": "https://down-vn.img.susercontent.com/file/sg-11134201-81zwf-mmv8msab67sy99",
+          "colors": [
+            "Trắng",
+            "Đen",
+            "Navy",
+            "Xám"
+          ],
+          "sizes": [
+            "S",
+            "M",
+            "L",
+            "XL"
+          ],
+          "styleTag": "Minimal",
+          "occasionTag": "Đi cafe",
+          "targetGender": "UNISEX",
+          "purchaseUrl": "https://shopee.vn/product/1796925850/44908539656",
+          "purchaseChannel": "SHOPEE",
+          "sponsored": false
+        },
+        {
+          "name": "Cardigan len Teelab Alter Simple Love AK125",
+          "description": "Cardigan len Teelab Alter Simple Love AK125 của Teelab. Chất liệu len. Form oversize. Màu: Đen, Cream. Size: S, M, L, XL. Hợp phong cách Korean Casual, dịp hẹn hò.",
+          "category": "Áo khoác",
+          "price": 530000,
+          "material": "Len",
+          "fitType": "OVERSIZE",
+          "images": [
+            "https://down-vn.img.susercontent.com/file/sg-11134201-81zvs-mmv8av8qjsao9a",
+            "https://down-vn.img.susercontent.com/file/sg-11134201-81zvk-mmv8avgvm7sz41",
+            "https://down-vn.img.susercontent.com/file/sg-11134201-81ztm-mmv8avon3toofd",
+            "https://down-vn.img.susercontent.com/file/sg-11134201-81zvj-mmv8avx81ybp75",
+            "https://down-vn.img.susercontent.com/file/sg-11134201-81zud-mmv8aw9yps03cd",
+            "https://down-vn.img.susercontent.com/file/sg-11134201-81zv5-mmv8awljjsw117",
+            "https://down-vn.img.susercontent.com/file/sg-11134201-81ztq-mmv8awvywo3q0f",
+            "https://down-vn.img.susercontent.com/file/sg-11134201-81zvh-mmv8ax5sexac83"
+          ],
+          "tryOnImage": "https://down-vn.img.susercontent.com/file/sg-11134201-81zvj-mmv8avx81ybp75",
+          "colors": [
+            "Đen",
+            "Cream"
+          ],
+          "sizes": [
+            "S",
+            "M",
+            "L",
+            "XL"
           ],
           "styleTag": "Korean Casual",
-          "occasionTag": "Đi làm",
+          "occasionTag": "Hẹn hò",
+          "targetGender": "UNISEX",
+          "purchaseUrl": "https://shopee.vn/product/1796925850/54958524427",
+          "purchaseChannel": "SHOPEE",
           "sponsored": false
         },
         {
-          "name": "Chân váy chữ A midi",
-          "description": "Vải twill giữ form, độ dài qua gối. Phối áo thun tuck-in hoặc blazer mỏng.",
-          "category": "Váy",
-          "price": 419000,
-          "material": "Twill",
-          "fitType": "REGULAR",
-          "imageKey": "ksh-chan-vay-a-midi",
+          "name": "Áo khoác gió Teelab Alter Windbreaker Legacy AK074",
+          "description": "Áo khoác gió Teelab Alter Windbreaker Legacy AK074 của Teelab. Chất liệu gió dù. Form oversize. Màu: Đen, Xám. Size: M, L, XL. Hợp phong cách Streetwear, dịp dạo phố.",
+          "category": "Áo khoác",
+          "price": 440000,
+          "material": "Gió dù",
+          "fitType": "OVERSIZE",
+          "images": [
+            "https://down-vn.img.susercontent.com/file/sg-11134201-81zuf-mmv86bm4lcsic8",
+            "https://down-vn.img.susercontent.com/file/sg-11134201-81zu9-mmv86btshs007b",
+            "https://down-vn.img.susercontent.com/file/sg-11134201-81zw1-mmv86c1ynhtv59",
+            "https://down-vn.img.susercontent.com/file/sg-11134201-81zwb-mmv86c97x4hw6b",
+            "https://down-vn.img.susercontent.com/file/sg-11134201-81zuq-mmv86cf453b654",
+            "https://down-vn.img.susercontent.com/file/sg-11134201-81zuu-mmv86clie22rc2",
+            "https://down-vn.img.susercontent.com/file/sg-11134201-81zu8-mmv86cw1c3yea7"
+          ],
+          "tryOnImage": "https://down-vn.img.susercontent.com/file/sg-11134201-81zu9-mmv86btshs007b",
+          "colors": [
+            "Đen",
+            "Xám"
+          ],
+          "sizes": [
+            "M",
+            "L",
+            "XL"
+          ],
+          "styleTag": "Streetwear",
+          "occasionTag": "Dạo phố",
+          "targetGender": "UNISEX",
+          "purchaseUrl": "https://shopee.vn/product/1796925850/49808550318",
+          "purchaseChannel": "SHOPEE",
+          "sponsored": false
+        },
+        {
+          "name": "Sweater nỉ Teelab Alter Signature HD096",
+          "description": "Sweater nỉ Teelab Alter Signature HD096 của Teelab. Chất liệu nỉ lông. Form oversize. Màu: Đen, Xám, Cream, Đỏ. Size: M, L, XL. Hợp phong cách Korean Casual, dịp đi cafe.",
+          "category": "Áo",
+          "price": 360000,
+          "material": "Nỉ lông",
+          "fitType": "OVERSIZE",
+          "images": [
+            "https://down-vn.img.susercontent.com/file/sg-11134201-81zv1-mmv8a0iy0tmue2",
+            "https://down-vn.img.susercontent.com/file/sg-11134201-81zwe-mmv8a0ov553cb0",
+            "https://down-vn.img.susercontent.com/file/sg-11134201-81zuv-mmv8a0vvlbeuc6",
+            "https://down-vn.img.susercontent.com/file/sg-11134201-81zu2-mmv8a12syhadbc",
+            "https://down-vn.img.susercontent.com/file/sg-11134201-81ztv-mmv8a1b5zgn9f7",
+            "https://down-vn.img.susercontent.com/file/sg-11134201-81zw6-mmv8a1iocf7l36",
+            "https://down-vn.img.susercontent.com/file/sg-11134201-81zvp-mmv8a1qso4ch4c",
+            "https://down-vn.img.susercontent.com/file/sg-11134201-81zud-mmv8a23si32c5b"
+          ],
+          "tryOnImage": "https://down-vn.img.susercontent.com/file/sg-11134201-81zwe-mmv8a0ov553cb0",
+          "colors": [
+            "Đen",
+            "Xám",
+            "Cream",
+            "Đỏ"
+          ],
+          "sizes": [
+            "M",
+            "L",
+            "XL"
+          ],
+          "styleTag": "Korean Casual",
+          "occasionTag": "Đi cafe",
+          "targetGender": "UNISEX",
+          "purchaseUrl": "https://shopee.vn/product/1796925850/51858528840",
+          "purchaseChannel": "SHOPEE",
+          "sponsored": false
+        },
+        {
+          "name": "Quần nỉ Teelab Alter Oversized Classic Pants PS125",
+          "description": "Quần nỉ Teelab Alter Oversized Classic Pants PS125 của Teelab. Chất liệu nỉ. Form oversize. Màu: Đen, Xám. Size: S, M, L, XL. Hợp phong cách Streetwear, dịp dạo phố.",
+          "category": "Quần",
+          "price": 336000,
+          "material": "Nỉ",
+          "fitType": "OVERSIZE",
+          "images": [
+            "https://down-vn.img.susercontent.com/file/sg-11134201-81zvj-mmv89tdncufaf0",
+            "https://down-vn.img.susercontent.com/file/sg-11134201-81zul-mmv89tlnl5355e",
+            "https://down-vn.img.susercontent.com/file/sg-11134201-81zv7-mmv89tu91hj889",
+            "https://down-vn.img.susercontent.com/file/sg-11134201-81zuo-mmv89u3ezdabbf",
+            "https://down-vn.img.susercontent.com/file/sg-11134201-81zuf-mmv89ub9qyvca9",
+            "https://down-vn.img.susercontent.com/file/sg-11134201-81zw2-mmv89uk8iayqbc",
+            "https://down-vn.img.susercontent.com/file/sg-11134201-81zw0-mmv89uq1x6h4f8",
+            "https://down-vn.img.susercontent.com/file/sg-11134201-81zvg-mmv89ux2vklg9e"
+          ],
+          "tryOnImage": "https://down-vn.img.susercontent.com/file/sg-11134201-81zw2-mmv89uk8iayqbc",
+          "colors": [
+            "Đen",
+            "Xám"
+          ],
+          "sizes": [
+            "S",
+            "M",
+            "L",
+            "XL"
+          ],
+          "styleTag": "Streetwear",
+          "occasionTag": "Dạo phố",
+          "targetGender": "UNISEX",
+          "purchaseUrl": "https://shopee.vn/product/1796925850/56508530323",
+          "purchaseChannel": "SHOPEE",
+          "sponsored": false
+        },
+        {
+          "name": "Quần jeans form rộng Teelab Alter PS116",
+          "description": "Quần jeans form rộng Teelab Alter PS116 của Teelab. Chất liệu denim. Form rộng thoải mái. Màu: Đen, Xanh nhạt, Nâu, Xám. Size: S, M, L, XL. Hợp phong cách Streetwear, dịp dạo phố.",
+          "category": "Quần",
+          "price": 336000,
+          "material": "Denim",
+          "fitType": "RELAXED",
+          "images": [
+            "https://down-vn.img.susercontent.com/file/sg-11134201-81zvb-mmv8dmuiyvwl92",
+            "https://down-vn.img.susercontent.com/file/sg-11134201-81zwj-mmv8dn4dq4u802",
+            "https://down-vn.img.susercontent.com/file/sg-11134201-81zwa-mmv8dncx416t08",
+            "https://down-vn.img.susercontent.com/file/sg-11134201-81zvu-mmv8dnkay1vkc3",
+            "https://down-vn.img.susercontent.com/file/sg-11134201-81zu2-mmv8dnsx0wzlfc",
+            "https://down-vn.img.susercontent.com/file/sg-11134201-81ztt-mmv8dnyjsydcb7",
+            "https://down-vn.img.susercontent.com/file/sg-11134201-81zuw-mmv8do8foumce0",
+            "https://down-vn.img.susercontent.com/file/sg-11134201-81zwc-mmv8dog5mbcy0b"
+          ],
+          "tryOnImage": "https://down-vn.img.susercontent.com/file/sg-11134201-81zvu-mmv8dnkay1vkc3",
+          "colors": [
+            "Đen",
+            "Xanh nhạt",
+            "Nâu",
+            "Xám"
+          ],
+          "sizes": [
+            "S",
+            "M",
+            "L",
+            "XL"
+          ],
+          "styleTag": "Streetwear",
+          "occasionTag": "Dạo phố",
+          "targetGender": "UNISEX",
+          "purchaseUrl": "https://shopee.vn/product/1796925850/49658550414",
+          "purchaseChannel": "SHOPEE",
+          "sponsored": false
+        },
+        {
+          "name": "Quần shorts nỉ Teelab Alter World Tour SH002",
+          "description": "Quần shorts nỉ Teelab Alter World Tour SH002 của Teelab. Chất liệu nỉ. Form rộng thoải mái. Màu: Đen, Navy. Size: S, M, L, XL. Hợp phong cách Streetwear, dịp dạo phố.",
+          "category": "Quần",
+          "price": 300000,
+          "material": "Nỉ",
+          "fitType": "RELAXED",
+          "images": [
+            "https://down-vn.img.susercontent.com/file/sg-11134201-81zw9-mmv8mf8qjsat05",
+            "https://down-vn.img.susercontent.com/file/sg-11134201-81zu1-mmv8mfhtu5fo96",
+            "https://down-vn.img.susercontent.com/file/sg-11134201-81zw2-mmv8mfmv9u6e3f",
+            "https://down-vn.img.susercontent.com/file/sg-11134201-81zuq-mmv8mfsut79hcb",
+            "https://down-vn.img.susercontent.com/file/sg-11134201-81zw1-mmv8mfz124g37d",
+            "https://down-vn.img.susercontent.com/file/sg-11134201-81zv8-mmv8mg5gbkeb67",
+            "https://down-vn.img.susercontent.com/file/sg-11134201-81zuz-mmv8mgf1wpvn06"
+          ],
+          "tryOnImage": "https://down-vn.img.susercontent.com/file/sg-11134201-81zuq-mmv8mfsut79hcb",
           "colors": [
             "Đen",
             "Navy"
           ],
-          "styleTag": "Minimal",
-          "occasionTag": "Đi làm",
-          "sponsored": true
-        },
-        {
-          "name": "Áo khoác bomber nhẹ",
-          "description": "Bomber form ngắn, lót mỏng. Phù hợp layer mùa giao mùa, phong cách street Hàn.",
-          "category": "Áo khoác",
-          "price": 699000,
-          "material": "Polyester",
-          "fitType": "REGULAR",
-          "imageKey": "ksh-ao-bomber",
-          "colors": [
-            "Đen",
-            "Beige"
+          "sizes": [
+            "S",
+            "M",
+            "L",
+            "XL"
           ],
           "styleTag": "Streetwear",
           "occasionTag": "Dạo phố",
+          "targetGender": "UNISEX",
+          "purchaseUrl": "https://shopee.vn/product/1796925850/58008530458",
+          "purchaseChannel": "SHOPEE",
           "sponsored": false
         },
         {
-          "name": "Sneaker canvas trắng cổ thấp",
-          "description": "Đế cao su bám tốt, upper canvas thoáng. Item basic không thể thiếu trong tủ đồ K-fashion.",
-          "category": "Giày",
-          "price": 649000,
-          "material": "Canvas",
+          "name": "Balo Teelab Alter Racer Backpack AC077",
+          "description": "Balo Teelab Alter Racer Backpack AC077 của Teelab. Chất liệu da pvc. Form vừa. Màu: Đen. Size: Free size. Hợp phong cách Streetwear, dịp dạo phố.",
+          "category": "Phụ kiện",
+          "price": 420000,
+          "material": "Da PVC",
           "fitType": "REGULAR",
-          "imageKey": "ksh-sneaker-canvas",
+          "images": [
+            "https://down-vn.img.susercontent.com/file/sg-11134201-81zv4-mmv85afm9ds492",
+            "https://down-vn.img.susercontent.com/file/sg-11134201-81ztl-mmv85anq2v40aa",
+            "https://down-vn.img.susercontent.com/file/sg-11134201-81zuz-mmv85avbhdz82e",
+            "https://down-vn.img.susercontent.com/file/sg-11134201-81zw6-mmv85b28rqpw7a",
+            "https://down-vn.img.susercontent.com/file/sg-11134201-81zwf-mmv85bh0piwy7d",
+            "https://down-vn.img.susercontent.com/file/sg-11134201-81zug-mmv85bpg71ms26",
+            "https://down-vn.img.susercontent.com/file/sg-11134201-81zwk-mmv85bwxyuioa2",
+            "https://down-vn.img.susercontent.com/file/sg-11134201-81zu9-mmv85c3n9af5f9"
+          ],
+          "tryOnImage": null,
+          "colors": [
+            "Đen"
+          ],
+          "sizes": [
+            "Free size"
+          ],
+          "styleTag": "Streetwear",
+          "occasionTag": "Dạo phố",
+          "targetGender": "UNISEX",
+          "purchaseUrl": "https://shopee.vn/product/1796925850/40179917686",
+          "purchaseChannel": "SHOPEE",
+          "sponsored": false
+        }
+      ]
+    },
+    {
+      "key": "dirtycoins",
+      "name": "DirtyCoins",
+      "ownerEmail": "dirtycoins@fitme.ai",
+      "description": "Local brand streetwear Sài Gòn với logo Dico, jersey bóng đá và các bản collab như DirtyCoins x Rolling Stones. Sản phẩm đồng bộ từ shop Shopee Mall chính hãng DirtyCoins Store.",
+      "logoUrl": "https://down-vn.img.susercontent.com/file/vn-11134216-81ztc-ms3jkzf2p7gn2c",
+      "websiteUrl": null,
+      "shopeeUrl": "https://shopee.vn/dirtycoins.store",
+      "products": [
+        {
+          "name": "Áo thun DirtyCoins Wavy Logo T-shirt",
+          "description": "Áo thun DirtyCoins Wavy Logo T-shirt của DirtyCoins. Chất liệu cotton. Form rộng thoải mái. Màu: Đen, Trắng, Xanh lá. Size: S, M, L, XL. Hợp phong cách Streetwear, dịp dạo phố.",
+          "category": "Áo",
+          "price": 390000,
+          "material": "Cotton",
+          "fitType": "RELAXED",
+          "images": [
+            "https://down-vn.img.susercontent.com/file/vn-11134207-81ztc-mnkxya9gz85c12",
+            "https://down-vn.img.susercontent.com/file/vn-11134207-81ztc-mlwzyxyj6m0yce",
+            "https://down-vn.img.susercontent.com/file/vn-11134207-81ztc-mmbkm2uljmys88",
+            "https://down-vn.img.susercontent.com/file/vn-11134207-81ztc-mlwzyxykz85hda",
+            "https://down-vn.img.susercontent.com/file/vn-11134207-81ztc-mlwzyxyjrojl23",
+            "https://down-vn.img.susercontent.com/file/vn-11134207-81ztc-mokmwhaa4jyk76",
+            "https://down-vn.img.susercontent.com/file/vn-11134207-81ztc-mlwzyxyihbtbe2",
+            "https://down-vn.img.susercontent.com/file/vn-11134207-81ztc-mlwzz9odzb414f"
+          ],
+          "tryOnImage": "https://down-vn.img.susercontent.com/file/vn-11134207-81ztc-mlwzyxyjrojl23",
+          "colors": [
+            "Đen",
+            "Trắng",
+            "Xanh lá"
+          ],
+          "sizes": [
+            "S",
+            "M",
+            "L",
+            "XL"
+          ],
+          "styleTag": "Streetwear",
+          "occasionTag": "Dạo phố",
+          "targetGender": "UNISEX",
+          "purchaseUrl": "https://shopee.vn/product/1765606255/44479320162",
+          "purchaseChannel": "SHOPEE",
+          "sponsored": false
+        },
+        {
+          "name": "Áo DirtyCoins Soccer Jersey Sparkle",
+          "description": "Áo DirtyCoins Soccer Jersey Sparkle của DirtyCoins. Form rộng thoải mái. Màu: Trắng. Size: S, M, L, XL, XXL. Hợp phong cách Streetwear, dịp dạo phố.",
+          "category": "Áo",
+          "price": 603000,
+          "material": null,
+          "fitType": "RELAXED",
+          "images": [
+            "https://down-vn.img.susercontent.com/file/vn-11134207-81ztc-mpc0yligj3eofd",
+            "https://down-vn.img.susercontent.com/file/vn-11134207-81ztc-mtyrfzm6ploocb",
+            "https://down-vn.img.susercontent.com/file/vn-11134207-81ztc-ms9n528ryhhee0",
+            "https://down-vn.img.susercontent.com/file/vn-11134207-81ztc-mr2r506q0tn096",
+            "https://down-vn.img.susercontent.com/file/vn-11134207-81ztc-mpc0ylijatqm6d",
+            "https://down-vn.img.susercontent.com/file/vn-11134207-81ztc-mpc0ylihxnv3e6",
+            "https://down-vn.img.susercontent.com/file/vn-11134207-81ztc-mpc0z2301ouaf0",
+            "https://down-vn.img.susercontent.com/file/vn-11134207-81ztc-mpc0zxbkhoua70"
+          ],
+          "tryOnImage": "https://down-vn.img.susercontent.com/file/vn-11134207-81ztc-mpc0yligj3eofd",
           "colors": [
             "Trắng"
           ],
-          "styleTag": "Korean Casual",
+          "sizes": [
+            "S",
+            "M",
+            "L",
+            "XL",
+            "XXL"
+          ],
+          "styleTag": "Streetwear",
           "occasionTag": "Dạo phố",
+          "targetGender": "UNISEX",
+          "purchaseUrl": "https://shopee.vn/product/1765606255/52412041717",
+          "purchaseChannel": "SHOPEE",
           "sponsored": false
         },
         {
-          "name": "Loafer da nhân tạo đế chunky",
-          "description": "Form vuông Hàn Quốc, đế chunky 3cm. Phối tất dài và chân váy midi.",
-          "category": "Giày",
-          "price": 729000,
-          "material": "Da PU",
+          "name": "Áo thun tay dài DirtyCoins x Rolling Stones Raglan",
+          "description": "Áo thun tay dài DirtyCoins x Rolling Stones Raglan của DirtyCoins. Chất liệu cotton. Form vừa. Màu: Đen, Trắng. Size: M, L, XL. Hợp phong cách Vintage, dịp dạo phố.",
+          "category": "Áo",
+          "price": 594000,
+          "material": "Cotton",
           "fitType": "REGULAR",
-          "imageKey": "ksh-loafer-chunky",
+          "images": [
+            "https://down-vn.img.susercontent.com/file/vn-11134207-81ztc-mu1ukagxg0lh4c",
+            "https://down-vn.img.susercontent.com/file/vn-11134207-820l4-mi6wf7skk4jr2d",
+            "https://down-vn.img.susercontent.com/file/vn-11134207-820l4-mijxa6kdsa9t6c",
+            "https://down-vn.img.susercontent.com/file/vn-11134207-820l4-mhwuc2fwphc68b",
+            "https://down-vn.img.susercontent.com/file/vn-11134207-820l4-mhwuc2g6qhaec5",
+            "https://down-vn.img.susercontent.com/file/vn-11134207-81ztc-moz13gmbwn4ec2",
+            "https://down-vn.img.susercontent.com/file/vn-11134207-81ztc-moz14whfas5oa5",
+            "https://down-vn.img.susercontent.com/file/vn-11134207-820l4-mhn4b99gcg0566"
+          ],
+          "tryOnImage": "https://down-vn.img.susercontent.com/file/vn-11134207-81ztc-mu1ukagxg0lh4c",
           "colors": [
+            "Đen",
+            "Trắng"
+          ],
+          "sizes": [
+            "M",
+            "L",
+            "XL"
+          ],
+          "styleTag": "Vintage",
+          "occasionTag": "Dạo phố",
+          "targetGender": "UNISEX",
+          "purchaseUrl": "https://shopee.vn/product/1765606255/45556859248",
+          "purchaseChannel": "SHOPEE",
+          "sponsored": false
+        },
+        {
+          "name": "Áo polo DirtyCoins x Rolling Stones Embroidery",
+          "description": "Áo polo DirtyCoins x Rolling Stones Embroidery của DirtyCoins. Chất liệu sợi tổng hợp. Form vừa. Màu: Trắng, Đen. Size: M, L, XL. Hợp phong cách Streetwear, dịp đi cafe.",
+          "category": "Áo",
+          "price": 558000,
+          "material": "Sợi tổng hợp",
+          "fitType": "REGULAR",
+          "images": [
+            "https://down-vn.img.susercontent.com/file/vn-11134207-81ztc-mrtq0h30pb0k75",
+            "https://down-vn.img.susercontent.com/file/vn-11134207-820l4-miqzijwmi9s7f4",
+            "https://down-vn.img.susercontent.com/file/vn-11134207-820l4-mhzpd2owbev561",
+            "https://down-vn.img.susercontent.com/file/vn-11134207-81ztc-mp1y06bcxssh12",
+            "https://down-vn.img.susercontent.com/file/vn-11134207-81ztc-mp1y06b49ypu28",
+            "https://down-vn.img.susercontent.com/file/vn-11134207-820l4-mhnen4cr1vd225",
+            "https://down-vn.img.susercontent.com/file/vn-11134207-820l4-mhnen4cwpjpgfc",
+            "https://down-vn.img.susercontent.com/file/vn-11134207-820l4-mhnenl2imy2r54"
+          ],
+          "tryOnImage": "https://down-vn.img.susercontent.com/file/vn-11134207-820l4-mhnen4cr1vd225",
+          "colors": [
+            "Trắng",
+            "Đen"
+          ],
+          "sizes": [
+            "M",
+            "L",
+            "XL"
+          ],
+          "styleTag": "Streetwear",
+          "occasionTag": "Đi cafe",
+          "targetGender": "UNISEX",
+          "purchaseUrl": "https://shopee.vn/product/1765606255/55156850679",
+          "purchaseChannel": "SHOPEE",
+          "sponsored": false
+        },
+        {
+          "name": "Hoodie zip DirtyCoins x Rolling Stones US Tongue",
+          "description": "Hoodie zip DirtyCoins x Rolling Stones US Tongue của DirtyCoins. Chất liệu nỉ chân cua. Form oversize. Màu: Navy. Size: M, L, XL. Hợp phong cách Streetwear, dịp dạo phố.",
+          "category": "Áo khoác",
+          "price": 927000,
+          "material": "Nỉ chân cua",
+          "fitType": "OVERSIZE",
+          "images": [
+            "https://down-vn.img.susercontent.com/file/vn-11134207-820l4-mhn05v3pihvl40",
+            "https://down-vn.img.susercontent.com/file/vn-11134207-820l4-mipoq2581log29",
+            "https://down-vn.img.susercontent.com/file/vn-11134207-820l4-mipoq256vgncee",
+            "https://down-vn.img.susercontent.com/file/vn-11134207-820l4-mhzutqqeneo82d",
+            "https://down-vn.img.susercontent.com/file/vn-11134207-820l4-mhzut4apu0p0d7",
+            "https://down-vn.img.susercontent.com/file/vn-11134207-820l4-mie3ktoczhmsf9",
+            "https://down-vn.img.susercontent.com/file/vn-11134207-820l4-mhn05taav8qqda",
+            "https://down-vn.img.susercontent.com/file/vn-11134207-820l4-mhn06m1dzjsw2c"
+          ],
+          "tryOnImage": "https://down-vn.img.susercontent.com/file/vn-11134207-820l4-mhn05v3pihvl40",
+          "colors": [
+            "Navy"
+          ],
+          "sizes": [
+            "M",
+            "L",
+            "XL"
+          ],
+          "styleTag": "Streetwear",
+          "occasionTag": "Dạo phố",
+          "targetGender": "UNISEX",
+          "purchaseUrl": "https://shopee.vn/product/1765606255/50907149839",
+          "purchaseChannel": "SHOPEE",
+          "sponsored": false
+        },
+        {
+          "name": "Sơ mi khaki DirtyCoins Y Embroidered",
+          "description": "Sơ mi khaki DirtyCoins Y Embroidered của DirtyCoins. Chất liệu khaki. Form rộng thoải mái. Màu: Đen. Size: S, M, L, XL. Hợp phong cách Vintage, dịp đi cafe.",
+          "category": "Áo",
+          "price": 593000,
+          "material": "Khaki",
+          "fitType": "RELAXED",
+          "images": [
+            "https://down-vn.img.susercontent.com/file/vn-11134207-7ras8-mb3jn37bc7vb72",
+            "https://down-vn.img.susercontent.com/file/vn-11134207-820l4-mfj5v5ylgtu39a",
+            "https://down-vn.img.susercontent.com/file/vn-11134207-820l4-mez5pbndbg97af",
+            "https://down-vn.img.susercontent.com/file/vn-11134207-7ras8-mb3jn38p8s7r0d",
+            "https://down-vn.img.susercontent.com/file/vn-11134207-7ras8-mb3jn3a36r4n0b",
+            "https://down-vn.img.susercontent.com/file/vn-11134207-7ras8-mb3jn3ax5jh464",
+            "https://down-vn.img.susercontent.com/file/vn-11134207-7ras8-mb3jn371b84872",
+            "https://down-vn.img.susercontent.com/file/vn-11134207-7ras8-mb3jn37laevsdc"
+          ],
+          "tryOnImage": "https://down-vn.img.susercontent.com/file/vn-11134207-7ras8-mb3jn37bc7vb72",
+          "colors": [
+            "Đen"
+          ],
+          "sizes": [
+            "S",
+            "M",
+            "L",
+            "XL"
+          ],
+          "styleTag": "Vintage",
+          "occasionTag": "Đi cafe",
+          "targetGender": "UNISEX",
+          "purchaseUrl": "https://shopee.vn/product/1765606255/46656868926",
+          "purchaseChannel": "SHOPEE",
+          "sponsored": false
+        },
+        {
+          "name": "Quần jeans baggy DirtyCoins Destroy",
+          "description": "Quần jeans baggy DirtyCoins Destroy của DirtyCoins. Chất liệu cotton denim. Form oversize. Màu: Xanh nhạt. Size: 26, 28, 30, 32, 34, 36. Hợp phong cách Streetwear, dịp dạo phố.",
+          "category": "Quần",
+          "price": 711000,
+          "material": "Cotton Denim",
+          "fitType": "OVERSIZE",
+          "images": [
+            "https://down-vn.img.susercontent.com/file/vn-11134207-7ras8-m408r8hpighz12",
+            "https://down-vn.img.susercontent.com/file/vn-11134207-7ras8-mdlgj13g5x2p32",
+            "https://down-vn.img.susercontent.com/file/vn-11134207-7ras8-mdlgjans610xfd",
+            "https://down-vn.img.susercontent.com/file/vn-11134207-7ras8-m408r8hpfnu8b1",
+            "https://down-vn.img.susercontent.com/file/vn-11134207-7ras8-m408r8hpfnd38c",
+            "https://down-vn.img.susercontent.com/file/vn-11134207-7ras8-m408r8hpe8sn6d",
+            "https://down-vn.img.susercontent.com/file/vn-11134207-7ras8-m408r8hph2eo27",
+            "https://down-vn.img.susercontent.com/file/vn-11134207-7ras8-m408r8itb88g26"
+          ],
+          "tryOnImage": "https://down-vn.img.susercontent.com/file/vn-11134207-7ras8-m408r8hpighz12",
+          "colors": [
+            "Xanh nhạt"
+          ],
+          "sizes": [
+            "26",
+            "28",
+            "30",
+            "32",
+            "34",
+            "36"
+          ],
+          "styleTag": "Streetwear",
+          "occasionTag": "Dạo phố",
+          "targetGender": "UNISEX",
+          "purchaseUrl": "https://shopee.vn/product/1765606255/51507139413",
+          "purchaseChannel": "SHOPEE",
+          "sponsored": false
+        },
+        {
+          "name": "Quần sweatpants DirtyCoins Star",
+          "description": "Quần sweatpants DirtyCoins Star của DirtyCoins. Chất liệu nỉ bông. Form rộng thoải mái. Màu: Đen, Xanh nhạt. Size: M, L, XL. Hợp phong cách Streetwear, dịp dạo phố.",
+          "category": "Quần",
+          "price": 298000,
+          "material": "Nỉ Bông",
+          "fitType": "RELAXED",
+          "images": [
+            "https://down-vn.img.susercontent.com/file/vn-11134207-7ras8-m4ipzrqbb85j45",
+            "https://down-vn.img.susercontent.com/file/vn-11134207-7ras8-mda3xwvwozzz37",
+            "https://down-vn.img.susercontent.com/file/vn-11134207-7ras8-m4im81hbqx0g12",
+            "https://down-vn.img.susercontent.com/file/vn-11134207-7ras8-m4im86ufux8va7",
+            "https://down-vn.img.susercontent.com/file/vn-11134207-7ras8-m4im81hbqxfzfc",
+            "https://down-vn.img.susercontent.com/file/vn-11134207-7ras8-m4im81hbpig0bb",
+            "https://down-vn.img.susercontent.com/file/vn-11134207-7ras8-m4im81hbpivj11",
+            "https://down-vn.img.susercontent.com/file/vn-11134207-7ras8-m4im81hvop7ked"
+          ],
+          "tryOnImage": "https://down-vn.img.susercontent.com/file/vn-11134207-7ras8-m4im86ufux8va7",
+          "colors": [
+            "Đen",
+            "Xanh nhạt"
+          ],
+          "sizes": [
+            "M",
+            "L",
+            "XL"
+          ],
+          "styleTag": "Streetwear",
+          "occasionTag": "Dạo phố",
+          "targetGender": "UNISEX",
+          "purchaseUrl": "https://shopee.vn/product/1765606255/45106874557",
+          "purchaseChannel": "SHOPEE",
+          "sponsored": false
+        },
+        {
+          "name": "Quần shorts dù DirtyCoins Curve Ripstop",
+          "description": "Quần shorts dù DirtyCoins Curve Ripstop của DirtyCoins. Chất liệu polyester. Form rộng thoải mái. Màu: Đen, Đỏ. Size: M, L, XL. Hợp phong cách Streetwear, dịp dạo phố.",
+          "category": "Quần",
+          "price": 521000,
+          "material": "Polyester",
+          "fitType": "RELAXED",
+          "images": [
+            "https://down-vn.img.susercontent.com/file/vn-11134207-7ras8-mb6rkpw7ltwz50",
+            "https://down-vn.img.susercontent.com/file/vn-11134207-820l4-mef58na0bi11a6",
+            "https://down-vn.img.susercontent.com/file/vn-11134207-7ras8-mawgyxsci8yfd8",
+            "https://down-vn.img.susercontent.com/file/vn-11134207-7ras8-mawgyxmsqdave6",
+            "https://down-vn.img.susercontent.com/file/vn-11134207-7ras8-mawgzc1nn36ga3",
+            "https://down-vn.img.susercontent.com/file/vn-11134207-7ras8-mawgyxmsqdi073",
+            "https://down-vn.img.susercontent.com/file/vn-11134207-7ras8-mawgyxmsrs2gb6",
+            "https://down-vn.img.susercontent.com/file/vn-11134207-7ras8-mawgyxn2pyon4c"
+          ],
+          "tryOnImage": "https://down-vn.img.susercontent.com/file/vn-11134207-7ras8-mawgyxmsqdave6",
+          "colors": [
+            "Đen",
+            "Đỏ"
+          ],
+          "sizes": [
+            "M",
+            "L",
+            "XL"
+          ],
+          "styleTag": "Streetwear",
+          "occasionTag": "Dạo phố",
+          "targetGender": "UNISEX",
+          "purchaseUrl": "https://shopee.vn/product/1765606255/50157162118",
+          "purchaseChannel": "SHOPEE",
+          "sponsored": false
+        },
+        {
+          "name": "Nón DirtyCoins Y Logo Cap",
+          "description": "Nón DirtyCoins Y Logo Cap của DirtyCoins. Chất liệu khaki. Form vừa. Màu: Đen. Size: Free size. Hợp phong cách Streetwear, dịp dạo phố.",
+          "category": "Phụ kiện",
+          "price": 378000,
+          "material": "Khaki",
+          "fitType": "REGULAR",
+          "images": [
+            "https://down-vn.img.susercontent.com/file/vn-11134207-7r98o-lwdzbn4ja9jv9b",
+            "https://down-vn.img.susercontent.com/file/vn-11134207-820l4-meb5elfir3ep41",
+            "https://down-vn.img.susercontent.com/file/vn-11134207-820l4-meb5eioiypkw22",
+            "https://down-vn.img.susercontent.com/file/vn-11134207-7qukw-lha240uc1qlv34",
+            "https://down-vn.img.susercontent.com/file/vn-11134207-7qukw-lhd12tavt78zcf",
+            "https://down-vn.img.susercontent.com/file/vn-11134207-7qukw-lhahvge6yfci5d",
+            "https://down-vn.img.susercontent.com/file/vn-11134207-7qukw-lhahvge6kdo21c"
+          ],
+          "tryOnImage": null,
+          "colors": [
+            "Đen"
+          ],
+          "sizes": [
+            "Free size"
+          ],
+          "styleTag": "Streetwear",
+          "occasionTag": "Dạo phố",
+          "targetGender": "UNISEX",
+          "purchaseUrl": "https://shopee.vn/product/1765606255/45206864994",
+          "purchaseChannel": "SHOPEE",
+          "sponsored": false
+        }
+      ]
+    },
+    {
+      "key": "regods",
+      "name": "Regods",
+      "ownerEmail": "regods@fitme.ai",
+      "description": "Local brand thành lập 12/2017, streetwear pha nét nữ tính: hoodie zip, baby tee đính đá, đồ chần bông phong cách Y2K. Sản phẩm đồng bộ từ shop Shopee chính thức regods.",
+      "logoUrl": "https://down-vn.img.susercontent.com/file/vn-11134216-820l4-mgi4b891smx41e",
+      "websiteUrl": null,
+      "shopeeUrl": "https://shopee.vn/regods",
+      "products": [
+        {
+          "name": "Hoodie zip Regods Ribbon nỉ chân cua",
+          "description": "Hoodie zip Regods Ribbon nỉ chân cua của Regods. Chất liệu nỉ. Form oversize. Màu: Xám. Size: M, L. Hợp phong cách Korean Casual, dịp dạo phố.",
+          "category": "Áo khoác",
+          "price": 532000,
+          "material": "Nỉ",
+          "fitType": "OVERSIZE",
+          "images": [
+            "https://down-vn.img.susercontent.com/file/vn-11134207-81ztc-ms7f9bjunyf848",
+            "https://down-vn.img.susercontent.com/file/vn-11134201-81ztc-mtdly1r9kdtu45",
+            "https://down-vn.img.susercontent.com/file/vn-11134201-81ztc-mtdly2kdn0neca",
+            "https://down-vn.img.susercontent.com/file/vn-11134201-81ztc-mtdly2l4r9c6c3",
+            "https://down-vn.img.susercontent.com/file/vn-11134201-81ztc-mtdly2xfjfgka6",
+            "https://down-vn.img.susercontent.com/file/vn-11134201-81ztc-mtdly2jmu22u46",
+            "https://down-vn.img.susercontent.com/file/vn-11134201-81ztc-mtdly2hytondde",
+            "https://down-vn.img.susercontent.com/file/vn-11134201-81ztc-mtdly2tqrbba7f",
+            "https://down-vn.img.susercontent.com/file/vn-11134201-81ztc-mtdlzft2ixhm20"
+          ],
+          "tryOnImage": "https://down-vn.img.susercontent.com/file/vn-11134201-81ztc-mtdlzft2ixhm20",
+          "colors": [
+            "Xám"
+          ],
+          "sizes": [
+            "M",
+            "L"
+          ],
+          "styleTag": "Korean Casual",
+          "occasionTag": "Dạo phố",
+          "targetGender": "UNISEX",
+          "purchaseUrl": "https://shopee.vn/product/36635146/29562977265",
+          "purchaseChannel": "SHOPEE",
+          "sponsored": false
+        },
+        {
+          "name": "Áo thun dập nổi 3D Regods Sculpted Tee",
+          "description": "Áo thun dập nổi 3D Regods Sculpted Tee của Regods. Chất liệu cotton. Form oversize. Màu: Đen, Trắng. Size: S, M, L. Hợp phong cách Minimal, dịp dạo phố.",
+          "category": "Áo",
+          "price": 361000,
+          "material": "Cotton",
+          "fitType": "OVERSIZE",
+          "images": [
+            "https://down-vn.img.susercontent.com/file/vn-11134207-820l4-mhrgu3klr3ly0f",
+            "https://down-vn.img.susercontent.com/file/vn-11134201-81ztc-mtdmh6jyxgjp4c",
+            "https://down-vn.img.susercontent.com/file/vn-11134201-81ztc-mtdmh7fhb9541d",
+            "https://down-vn.img.susercontent.com/file/vn-11134201-81ztc-mtdmh7kmot8gcb",
+            "https://down-vn.img.susercontent.com/file/vn-11134201-81ztc-mtdmh6wcei9t70",
+            "https://down-vn.img.susercontent.com/file/vn-11134201-81ztc-mtdmh6w1ilu009",
+            "https://down-vn.img.susercontent.com/file/vn-11134201-81ztc-mtdmh3zrv4lc91",
+            "https://down-vn.img.susercontent.com/file/vn-11134201-81ztc-mtdmh64so5xi84"
+          ],
+          "tryOnImage": "https://down-vn.img.susercontent.com/file/vn-11134201-81ztc-mtdmh6jyxgjp4c",
+          "colors": [
+            "Đen",
+            "Trắng"
+          ],
+          "sizes": [
+            "S",
+            "M",
+            "L"
+          ],
+          "styleTag": "Minimal",
+          "occasionTag": "Dạo phố",
+          "targetGender": "UNISEX",
+          "purchaseUrl": "https://shopee.vn/product/36635146/28689066631",
+          "purchaseChannel": "SHOPEE",
+          "sponsored": false
+        },
+        {
+          "name": "Áo thun Regods Militia Tee 280gsm",
+          "description": "Áo thun Regods Militia Tee 280gsm của Regods. Chất liệu cotton. Form oversize. Màu: Đen, Trắng. Size: M, L, XL. Hợp phong cách Streetwear, dịp dạo phố.",
+          "category": "Áo",
+          "price": 324000,
+          "material": "Cotton",
+          "fitType": "OVERSIZE",
+          "images": [
+            "https://down-vn.img.susercontent.com/file/vn-11134207-81ztc-mpc3fc0zolxp7d",
+            "https://down-vn.img.susercontent.com/file/vn-11134201-81ztc-mtdm9ezfs5xm34",
+            "https://down-vn.img.susercontent.com/file/vn-11134201-81ztc-mtdm8464k9afb5",
+            "https://down-vn.img.susercontent.com/file/vn-11134201-81ztc-mtdm841meh3cbc",
+            "https://down-vn.img.susercontent.com/file/vn-11134201-81ztc-mtdm84mp44ci8f",
+            "https://down-vn.img.susercontent.com/file/vn-11134201-81ztc-mtdm84tuy51ce9",
+            "https://down-vn.img.susercontent.com/file/vn-11134201-81ztc-mtdm9esvwyytb8",
+            "https://down-vn.img.susercontent.com/file/vn-11134201-81ztc-mtdm9exd4zy9d5",
+            "https://down-vn.img.susercontent.com/file/vn-11134207-81ztc-mnxv52p171fl54"
+          ],
+          "tryOnImage": "https://down-vn.img.susercontent.com/file/vn-11134207-81ztc-mnxv52p171fl54",
+          "colors": [
+            "Đen",
+            "Trắng"
+          ],
+          "sizes": [
+            "M",
+            "L",
+            "XL"
+          ],
+          "styleTag": "Streetwear",
+          "occasionTag": "Dạo phố",
+          "targetGender": "UNISEX",
+          "purchaseUrl": "https://shopee.vn/product/36635146/29944440881",
+          "purchaseChannel": "SHOPEE",
+          "sponsored": false
+        },
+        {
+          "name": "Áo khoác cropped ren Regods Tilla",
+          "description": "Áo khoác cropped ren Regods Tilla của Regods. Chất liệu ren. Form rộng thoải mái. Màu: Xám. Size: M, L. Hợp phong cách Korean Casual, dịp hẹn hò.",
+          "category": "Áo khoác",
+          "price": 656000,
+          "material": "Ren",
+          "fitType": "RELAXED",
+          "images": [
+            "https://down-vn.img.susercontent.com/file/vn-11134207-81ztc-ms7f4hpms9af10",
+            "https://down-vn.img.susercontent.com/file/vn-11134201-81ztc-mtdlztrphfyc86",
+            "https://down-vn.img.susercontent.com/file/vn-11134201-81ztc-mtdlzuj4asqqfc",
+            "https://down-vn.img.susercontent.com/file/vn-11134201-81ztc-mtdlztwadlhh09",
+            "https://down-vn.img.susercontent.com/file/vn-11134201-81ztc-mtdlzu5if8qvce",
+            "https://down-vn.img.susercontent.com/file/vn-11134201-81ztc-mtdlzun07x8n2a",
+            "https://down-vn.img.susercontent.com/file/vn-11134201-81ztc-mtdlzut790xy97",
+            "https://down-vn.img.susercontent.com/file/vn-11134201-81ztc-mtdlzuiwkoao77"
+          ],
+          "tryOnImage": "https://down-vn.img.susercontent.com/file/vn-11134201-81ztc-mtdlzu5if8qvce",
+          "colors": [
+            "Xám"
+          ],
+          "sizes": [
+            "M",
+            "L"
+          ],
+          "styleTag": "Korean Casual",
+          "occasionTag": "Hẹn hò",
+          "targetGender": "FEMALE",
+          "purchaseUrl": "https://shopee.vn/product/36635146/24721558819",
+          "purchaseChannel": "SHOPEE",
+          "sponsored": false
+        },
+        {
+          "name": "Baby tee Regods đính đá chữ R",
+          "description": "Baby tee Regods đính đá chữ R của Regods. Chất liệu cotton. Form ôm. Màu: Đen, Trắng. Size: S, M. Hợp phong cách Korean Casual, dịp đi cafe.",
+          "category": "Áo",
+          "price": 210000,
+          "material": "Cotton",
+          "fitType": "SLIM",
+          "images": [
+            "https://down-vn.img.susercontent.com/file/vn-11134207-820l4-mgp3ir19g64r1c",
+            "https://down-vn.img.susercontent.com/file/vn-11134201-81ztc-mtdm0lyxla814b",
+            "https://down-vn.img.susercontent.com/file/vn-11134201-81ztc-mtdm0mz7m70oe6",
+            "https://down-vn.img.susercontent.com/file/vn-11134201-81ztc-mtdm0mr9f11h5a",
+            "https://down-vn.img.susercontent.com/file/vn-11134201-81ztc-mtdm0nbprsw834",
+            "https://down-vn.img.susercontent.com/file/vn-11134201-81ztc-mtdm0nc1k0ed9f",
+            "https://down-vn.img.susercontent.com/file/vn-11134201-81ztc-mtdm0n0fv30hae",
+            "https://down-vn.img.susercontent.com/file/vn-11134201-81ztc-mtdm0mct572hfa"
+          ],
+          "tryOnImage": "https://down-vn.img.susercontent.com/file/vn-11134201-81ztc-mtdm0mct572hfa",
+          "colors": [
+            "Đen",
+            "Trắng"
+          ],
+          "sizes": [
+            "S",
+            "M"
+          ],
+          "styleTag": "Korean Casual",
+          "occasionTag": "Đi cafe",
+          "targetGender": "FEMALE",
+          "purchaseUrl": "https://shopee.vn/product/36635146/42261143810",
+          "purchaseChannel": "SHOPEE",
+          "sponsored": false
+        },
+        {
+          "name": "Áo thun dài tay Regods Longsleeve Sculpted",
+          "description": "Áo thun dài tay Regods Longsleeve Sculpted của Regods. Chất liệu cotton pha nylon. Form oversize. Màu: Đen, Trắng. Size: S, M. Hợp phong cách Minimal, dịp đi cafe.",
+          "category": "Áo",
+          "price": 475000,
+          "material": "Cotton pha nylon",
+          "fitType": "OVERSIZE",
+          "images": [
+            "https://down-vn.img.susercontent.com/file/vn-11134201-81ztc-mstcpfthrg915c",
+            "https://down-vn.img.susercontent.com/file/vn-11134201-81ztc-mtdlifetzm6f71",
+            "https://down-vn.img.susercontent.com/file/vn-11134201-81ztc-mtdljuv4l2iv25",
+            "https://down-vn.img.susercontent.com/file/vn-11134201-81ztc-mtdlife3owzr2f",
+            "https://down-vn.img.susercontent.com/file/vn-11134201-81ztc-mtdlieo0fsw422",
+            "https://down-vn.img.susercontent.com/file/vn-11134201-81ztc-mtdlif7fottz6f",
+            "https://down-vn.img.susercontent.com/file/vn-11134201-81ztc-mtdljuwvzncy3a",
+            "https://down-vn.img.susercontent.com/file/vn-11134201-81ztc-mtdlki5o98n927"
+          ],
+          "tryOnImage": "https://down-vn.img.susercontent.com/file/vn-11134201-81ztc-mtdlife3owzr2f",
+          "colors": [
+            "Đen",
+            "Trắng"
+          ],
+          "sizes": [
+            "S",
+            "M"
+          ],
+          "styleTag": "Minimal",
+          "occasionTag": "Đi cafe",
+          "targetGender": "FEMALE",
+          "purchaseUrl": "https://shopee.vn/product/36635146/50117445949",
+          "purchaseChannel": "SHOPEE",
+          "sponsored": false
+        },
+        {
+          "name": "Quần ống loe Regods Homeroom Flare Pants",
+          "description": "Quần ống loe Regods Homeroom Flare Pants của Regods. Chất liệu cotton pha nỉ. Form ôm. Màu: Xám, Hồng. Size: S, M. Hợp phong cách Korean Casual, dịp đi cafe.",
+          "category": "Quần",
+          "price": 759000,
+          "material": "Cotton pha nỉ",
+          "fitType": "SLIM",
+          "images": [
+            "https://down-vn.img.susercontent.com/file/vn-11134201-81ztc-mt22vi6a70g542",
+            "https://down-vn.img.susercontent.com/file/vn-11134201-81ztc-mtdlaql396h142",
+            "https://down-vn.img.susercontent.com/file/vn-11134201-81ztc-mtdlaq0sh9tt9b",
+            "https://down-vn.img.susercontent.com/file/vn-11134201-81ztc-mtdlaqtp98g017",
+            "https://down-vn.img.susercontent.com/file/vn-11134201-81ztc-mtdlarmqsnif9d",
+            "https://down-vn.img.susercontent.com/file/vn-11134201-81ztc-mtdlc4wxeqrl73",
+            "https://down-vn.img.susercontent.com/file/vn-11134201-81ztc-mtdlc48spclk8b",
+            "https://down-vn.img.susercontent.com/file/vn-11134201-81ztc-mtdlar8j2hhebb"
+          ],
+          "tryOnImage": "https://down-vn.img.susercontent.com/file/vn-11134201-81ztc-mtdlaq0sh9tt9b",
+          "colors": [
+            "Xám",
+            "Hồng"
+          ],
+          "sizes": [
+            "S",
+            "M"
+          ],
+          "styleTag": "Korean Casual",
+          "occasionTag": "Đi cafe",
+          "targetGender": "FEMALE",
+          "purchaseUrl": "https://shopee.vn/product/36635146/53717442149",
+          "purchaseChannel": "SHOPEE",
+          "sponsored": false
+        },
+        {
+          "name": "Quần shorts bí Regods Armor Shorts",
+          "description": "Quần shorts bí Regods Armor Shorts của Regods. Chất liệu cotton. Form rộng thoải mái. Màu: Đen. Size: S, M. Hợp phong cách Streetwear, dịp dạo phố.",
+          "category": "Quần",
+          "price": 420000,
+          "material": "Cotton",
+          "fitType": "RELAXED",
+          "images": [
+            "https://down-vn.img.susercontent.com/file/vn-11134207-81ztc-mm951qe2nqitbb",
+            "https://down-vn.img.susercontent.com/file/vn-11134201-81ztc-mtdkr1iay9s67b",
+            "https://down-vn.img.susercontent.com/file/vn-11134201-81ztc-mtdkx4o6641yfe",
+            "https://down-vn.img.susercontent.com/file/vn-11134201-81ztc-mtdkr20o72fcf4",
+            "https://down-vn.img.susercontent.com/file/vn-11134201-81ztc-mtdkx56kwdfof7",
+            "https://down-vn.img.susercontent.com/file/vn-11134201-81ztc-mtdkugcot3pgdd",
+            "https://down-vn.img.susercontent.com/file/vn-11134201-81ztc-mtdkug821ki2aa",
+            "https://down-vn.img.susercontent.com/file/vn-11134201-81ztc-mtdkx4v3kq2pfd"
+          ],
+          "tryOnImage": "https://down-vn.img.susercontent.com/file/vn-11134201-81ztc-mtdkx4v3kq2pfd",
+          "colors": [
+            "Đen"
+          ],
+          "sizes": [
+            "S",
+            "M"
+          ],
+          "styleTag": "Streetwear",
+          "occasionTag": "Dạo phố",
+          "targetGender": "FEMALE",
+          "purchaseUrl": "https://shopee.vn/product/36635146/29544450642",
+          "purchaseChannel": "SHOPEE",
+          "sponsored": false
+        },
+        {
+          "name": "Quần short Regods Crownless Mini Shorts",
+          "description": "Quần short Regods Crownless Mini Shorts của Regods. Chất liệu cotton. Form ôm. Màu: Trắng, Đen. Size: S, M. Hợp phong cách Korean Casual, dịp hẹn hò.",
+          "category": "Quần",
+          "price": 399000,
+          "material": "Cotton",
+          "fitType": "SLIM",
+          "images": [
+            "https://down-vn.img.susercontent.com/file/vn-11134207-81ztc-mnbbs8c7r9jc19",
+            "https://down-vn.img.susercontent.com/file/vn-11134201-81ztc-mtdkko3n8l542e",
+            "https://down-vn.img.susercontent.com/file/vn-11134201-81ztc-mtdkko0fuzuvfa",
+            "https://down-vn.img.susercontent.com/file/vn-11134201-81ztc-mtdkp22wa6mi9b",
+            "https://down-vn.img.susercontent.com/file/vn-11134201-81ztc-mtdkp1uxnh8m50",
+            "https://down-vn.img.susercontent.com/file/vn-11134201-81ztc-mtdkp1a741l4b5",
+            "https://down-vn.img.susercontent.com/file/vn-11134201-81ztc-mtdkp1edq39cb7",
+            "https://down-vn.img.susercontent.com/file/vn-11134201-81ztc-mtdkp2ddwh6p9a",
+            "https://down-vn.img.susercontent.com/file/vn-11134207-81ztc-mppxl57a6jv134"
+          ],
+          "tryOnImage": "https://down-vn.img.susercontent.com/file/vn-11134207-81ztc-mppxl57a6jv134",
+          "colors": [
+            "Trắng",
+            "Đen"
+          ],
+          "sizes": [
+            "S",
+            "M"
+          ],
+          "styleTag": "Korean Casual",
+          "occasionTag": "Hẹn hò",
+          "targetGender": "FEMALE",
+          "purchaseUrl": "https://shopee.vn/product/36635146/57009246556",
+          "purchaseChannel": "SHOPEE",
+          "sponsored": false
+        },
+        {
+          "name": "Balo chần bông Regods NOIR",
+          "description": "Balo chần bông Regods NOIR của Regods. Chất liệu phao chần bông. Form vừa. Màu: Đen. Size: Free size. Hợp phong cách Streetwear, dịp dạo phố.",
+          "category": "Phụ kiện",
+          "price": 846000,
+          "material": "Phao chần bông",
+          "fitType": "REGULAR",
+          "images": [
+            "https://down-vn.img.susercontent.com/file/vn-11134207-820l4-mgnjkclf0jyjaf",
+            "https://down-vn.img.susercontent.com/file/vn-11134201-81ztc-mtdmb0py18na36",
+            "https://down-vn.img.susercontent.com/file/vn-11134201-81ztc-mtdmb0wf8veu88",
+            "https://down-vn.img.susercontent.com/file/vn-11134201-81ztc-mtdmb0v5y3nmd2",
+            "https://down-vn.img.susercontent.com/file/vn-11134201-81ztc-mtdmb12z2nsw91",
+            "https://down-vn.img.susercontent.com/file/vn-11134201-81ztc-mtdmb17mqjnsf6",
+            "https://down-vn.img.susercontent.com/file/vn-11134201-81ztc-mtdmb17c78qs6d",
+            "https://down-vn.img.susercontent.com/file/vn-11134201-81ztc-mtdmbz83ny88c1"
+          ],
+          "tryOnImage": null,
+          "colors": [
+            "Đen"
+          ],
+          "sizes": [
+            "Free size"
+          ],
+          "styleTag": "Streetwear",
+          "occasionTag": "Dạo phố",
+          "targetGender": "UNISEX",
+          "purchaseUrl": "https://shopee.vn/product/36635146/41003345630",
+          "purchaseChannel": "SHOPEE",
+          "sponsored": false
+        }
+      ]
+    },
+    {
+      "key": "ulzzang",
+      "name": "ULZZANG",
+      "ownerEmail": "ulzzang@fitme.ai",
+      "description": "Xưởng may thời trang nữ phong cách Hàn Quốc (ulzzang): chân váy tennis, croptop, đầm ôm giá bình dân. Sản phẩm đồng bộ từ shop Shopee ULZZANG STORE.",
+      "logoUrl": "https://down-vn.img.susercontent.com/file/vn-11134216-7ras8-m50r35ld396e04",
+      "websiteUrl": null,
+      "shopeeUrl": "https://shopee.vn/ulzzangstorehcmvn",
+      "products": [
+        {
+          "name": "Chân váy tennis xếp ly có quần trong",
+          "description": "Chân váy tennis xếp ly có quần trong của ULZZANG. Form vừa. Màu: Đen, Trắng, Tím, Hồng. Size: S, M, L. Hợp phong cách Korean Casual, dịp dạo phố.",
+          "category": "Váy",
+          "price": 59000,
+          "material": null,
+          "fitType": "REGULAR",
+          "images": [
+            "https://down-vn.img.susercontent.com/file/9d84e372003b416b65eb782de919aa37",
+            "https://down-vn.img.susercontent.com/file/b56076843d2904fba628bee2a52d10ed",
+            "https://down-vn.img.susercontent.com/file/7a5a45b9c2437d2998b35dff87c182e0",
+            "https://down-vn.img.susercontent.com/file/e08a4ce9b2ba017cb5d810e75a6b47f7",
+            "https://down-vn.img.susercontent.com/file/180c143aaedbb61502ac2466f72b48dd",
+            "https://down-vn.img.susercontent.com/file/161caf1ecc8ab3dce1c4da37244998ef",
+            "https://down-vn.img.susercontent.com/file/66c5be86d56b43f7ac4fa9c672eb7cdf"
+          ],
+          "tryOnImage": "https://down-vn.img.susercontent.com/file/b56076843d2904fba628bee2a52d10ed",
+          "colors": [
+            "Đen",
+            "Trắng",
+            "Tím",
+            "Hồng"
+          ],
+          "sizes": [
+            "S",
+            "M",
+            "L"
+          ],
+          "styleTag": "Korean Casual",
+          "occasionTag": "Dạo phố",
+          "targetGender": "FEMALE",
+          "purchaseUrl": "https://shopee.vn/product/39566346/9865399416",
+          "purchaseChannel": "SHOPEE",
+          "sponsored": false
+        },
+        {
+          "name": "Chân váy tennis đính nơ",
+          "description": "Chân váy tennis đính nơ của ULZZANG. Form ôm. Màu: Đen, Trắng, Xám. Size: S, M, L. Hợp phong cách Korean Casual, dịp hẹn hò.",
+          "category": "Váy",
+          "price": 75000,
+          "material": null,
+          "fitType": "SLIM",
+          "images": [
+            "https://down-vn.img.susercontent.com/file/vn-11134207-7r98o-lzi81nwqbwddcd",
+            "https://down-vn.img.susercontent.com/file/vn-11134207-7r98o-lzkwief59nz5c2",
+            "https://down-vn.img.susercontent.com/file/vn-11134207-7r98o-lzi81nwqbw3x78",
+            "https://down-vn.img.susercontent.com/file/vn-11134207-7r98o-lzi81nx0bhhp88",
+            "https://down-vn.img.susercontent.com/file/vn-11134207-7r98o-lzi81nx0qxqlcc",
+            "https://down-vn.img.susercontent.com/file/vn-11134207-7r98o-lzi81nwr6sv5aa",
+            "https://down-vn.img.susercontent.com/file/vn-11134207-7r98o-lzi81nwqrccte6",
+            "https://down-vn.img.susercontent.com/file/vn-11134207-7r98o-lzi81nwrdtpd95"
+          ],
+          "tryOnImage": "https://down-vn.img.susercontent.com/file/vn-11134207-7r98o-lzi81nwr6sv5aa",
+          "colors": [
+            "Đen",
+            "Trắng",
+            "Xám"
+          ],
+          "sizes": [
+            "S",
+            "M",
+            "L"
+          ],
+          "styleTag": "Korean Casual",
+          "occasionTag": "Hẹn hò",
+          "targetGender": "FEMALE",
+          "purchaseUrl": "https://shopee.vn/product/39566346/26309712148",
+          "purchaseChannel": "SHOPEE",
+          "sponsored": false
+        },
+        {
+          "name": "Chân váy xếp ly basic",
+          "description": "Chân váy xếp ly basic của ULZZANG. Form vừa. Màu: Đen, Xám. Size: S, M, L. Hợp phong cách Korean Casual, dịp đi cafe.",
+          "category": "Váy",
+          "price": 62000,
+          "material": null,
+          "fitType": "REGULAR",
+          "images": [
+            "https://down-vn.img.susercontent.com/file/vn-11134207-7ras8-m0mfvlaux9cfb2",
+            "https://down-vn.img.susercontent.com/file/vn-11134207-7ras8-m0mfvlatppqncd",
+            "https://down-vn.img.susercontent.com/file/vn-11134207-7ras8-m0mfvlatppf109",
+            "https://down-vn.img.susercontent.com/file/vn-11134207-7ras8-m0mfvlavfiq78b",
+            "https://down-vn.img.susercontent.com/file/vn-11134207-7ras8-m0mfvlau55zjf0",
+            "https://down-vn.img.susercontent.com/file/vn-11134207-7ras8-m0mfvlau55nx72"
+          ],
+          "tryOnImage": "https://down-vn.img.susercontent.com/file/vn-11134207-7ras8-m0mfvlatppf109",
+          "colors": [
+            "Đen",
+            "Xám"
+          ],
+          "sizes": [
+            "S",
+            "M",
+            "L"
+          ],
+          "styleTag": "Korean Casual",
+          "occasionTag": "Đi cafe",
+          "targetGender": "FEMALE",
+          "purchaseUrl": "https://shopee.vn/product/39566346/28765565932",
+          "purchaseChannel": "SHOPEE",
+          "sponsored": false
+        },
+        {
+          "name": "Áo sơ mi trơn túi lật tay ngắn",
+          "description": "Áo sơ mi trơn túi lật tay ngắn của ULZZANG. Form vừa. Màu: Đen, Trắng. Size: Free size. Hợp phong cách Minimal, dịp đi làm.",
+          "category": "Áo",
+          "price": 55000,
+          "material": null,
+          "fitType": "REGULAR",
+          "images": [
+            "https://down-vn.img.susercontent.com/file/0afdadc0d397589cc6c2a9185a3595e2",
+            "https://down-vn.img.susercontent.com/file/a7506c225241eae03cd30104f6f0ec6d",
+            "https://down-vn.img.susercontent.com/file/ea4c31cae4800ab4a935b73296a6aabc",
+            "https://down-vn.img.susercontent.com/file/0ef987ba05a3a5c01bf99a4867bda930",
+            "https://down-vn.img.susercontent.com/file/f3213f1264e568d12e822087e946fbcd",
+            "https://down-vn.img.susercontent.com/file/2cc029c9fb35d639695056899158d01a",
+            "https://down-vn.img.susercontent.com/file/732d6529158ccc5f302267e846485c34",
+            "https://down-vn.img.susercontent.com/file/3a20080c3e3ea987f8628cd086f5ef71"
+          ],
+          "tryOnImage": "https://down-vn.img.susercontent.com/file/0afdadc0d397589cc6c2a9185a3595e2",
+          "colors": [
+            "Đen",
+            "Trắng"
+          ],
+          "sizes": [
+            "Free size"
+          ],
+          "styleTag": "Minimal",
+          "occasionTag": "Đi làm",
+          "targetGender": "FEMALE",
+          "purchaseUrl": "https://shopee.vn/product/39566346/17128036961",
+          "purchaseChannel": "SHOPEE",
+          "sponsored": false
+        },
+        {
+          "name": "Áo croptop ba lỗ thun gân",
+          "description": "Áo croptop ba lỗ thun gân của ULZZANG. Chất liệu cotton. Form ôm. Màu: Đen, Trắng, Hồng, Cam. Size: Free size. Hợp phong cách Korean Casual, dịp dạo phố.",
+          "category": "Áo",
+          "price": 39000,
+          "material": "Cotton",
+          "fitType": "SLIM",
+          "images": [
+            "https://down-vn.img.susercontent.com/file/vn-11134207-7qukw-ljrzfbd7xho427",
+            "https://down-vn.img.susercontent.com/file/vn-11134207-7qukw-ljrzfbd80at0cb",
+            "https://down-vn.img.susercontent.com/file/vn-11134207-7qukw-ljrzfbkpmiv660",
+            "https://down-vn.img.susercontent.com/file/vn-11134207-7qukw-ljrzfbkq1z9045",
+            "https://down-vn.img.susercontent.com/file/vn-11134207-7qukw-ljrzfbkqhfcy1d",
+            "https://down-vn.img.susercontent.com/file/vn-11134207-7qukw-ljrzfbkq1z4249",
+            "https://down-vn.img.susercontent.com/file/vn-11134207-7qukw-ljrzfbkpmj046d",
+            "https://down-vn.img.susercontent.com/file/vn-11134207-7qukw-ljrzfbkqhfhw66"
+          ],
+          "tryOnImage": "https://down-vn.img.susercontent.com/file/vn-11134207-7qukw-ljrzfbkpmj046d",
+          "colors": [
+            "Đen",
+            "Trắng",
+            "Hồng",
+            "Cam"
+          ],
+          "sizes": [
+            "Free size"
+          ],
+          "styleTag": "Korean Casual",
+          "occasionTag": "Dạo phố",
+          "targetGender": "FEMALE",
+          "purchaseUrl": "https://shopee.vn/product/39566346/23775277139",
+          "purchaseChannel": "SHOPEE",
+          "sponsored": false
+        },
+        {
+          "name": "Áo khoác lửng len gân",
+          "description": "Áo khoác lửng len gân của ULZZANG. Chất liệu len. Form ôm. Màu: Đen, Trắng, Beige. Size: Free size. Hợp phong cách Korean Casual, dịp đi cafe.",
+          "category": "Áo khoác",
+          "price": 30000,
+          "material": "Len",
+          "fitType": "SLIM",
+          "images": [
+            "https://down-vn.img.susercontent.com/file/e0f5ea1f7ba2f8a5f0ca56fe017b5b03",
+            "https://down-vn.img.susercontent.com/file/7edf35c0601c343425b584769417d53d",
+            "https://down-vn.img.susercontent.com/file/8a109711854195dcb17d30b55c4bfb8c",
+            "https://down-vn.img.susercontent.com/file/1cd45f987a3a49bd31aa7ad0e24fcc56",
+            "https://down-vn.img.susercontent.com/file/ceac380b9bf7c3a79b05861bcfc8a652",
+            "https://down-vn.img.susercontent.com/file/d09f52e1cc13bdd3d1e14bae084bb9ad",
+            "https://down-vn.img.susercontent.com/file/a9aed50d2535807f5516ce7c7e418a85",
+            "https://down-vn.img.susercontent.com/file/vn-11134207-7r98o-lntz5vascdf10c"
+          ],
+          "tryOnImage": null,
+          "colors": [
+            "Đen",
+            "Trắng",
+            "Beige"
+          ],
+          "sizes": [
+            "Free size"
+          ],
+          "styleTag": "Korean Casual",
+          "occasionTag": "Đi cafe",
+          "targetGender": "FEMALE",
+          "purchaseUrl": "https://shopee.vn/product/39566346/14889937150",
+          "purchaseChannel": "SHOPEE",
+          "sponsored": false
+        },
+        {
+          "name": "Đầm cổ vuông tay ngắn dáng A",
+          "description": "Đầm cổ vuông tay ngắn dáng A của ULZZANG. Form ôm. Màu: Đen, Nâu, Xám. Size: Free size. Hợp phong cách Korean Casual, dịp hẹn hò.",
+          "category": "Váy",
+          "price": 50000,
+          "material": null,
+          "fitType": "SLIM",
+          "images": [
+            "https://down-vn.img.susercontent.com/file/vn-11134207-7qukw-ljr5lmk83kea6c",
+            "https://down-vn.img.susercontent.com/file/vn-11134207-7qukw-ljr5lmk7o45efe",
+            "https://down-vn.img.susercontent.com/file/vn-11134207-7qukw-ljr5lmk8j0n6dd",
+            "https://down-vn.img.susercontent.com/file/vn-11134207-7qukw-ljr5lmk7o4accf",
+            "https://down-vn.img.susercontent.com/file/vn-11134207-7qukw-ljr5lmk8j0s4c4",
+            "https://down-vn.img.susercontent.com/file/vn-11134207-7qukw-ljr5lmk83kj826",
+            "https://down-vn.img.susercontent.com/file/vn-11134207-7r98o-lpsykva0rm4y08",
+            "https://down-vn.img.susercontent.com/file/vn-11134207-7r98o-lpsykva172dube"
+          ],
+          "tryOnImage": "https://down-vn.img.susercontent.com/file/vn-11134207-7qukw-ljr5lmk7o45efe",
+          "colors": [
+            "Đen",
+            "Nâu",
+            "Xám"
+          ],
+          "sizes": [
+            "Free size"
+          ],
+          "styleTag": "Korean Casual",
+          "occasionTag": "Hẹn hò",
+          "targetGender": "FEMALE",
+          "purchaseUrl": "https://shopee.vn/product/39566346/23349746406",
+          "purchaseChannel": "SHOPEE",
+          "sponsored": false
+        },
+        {
+          "name": "Đầm ôm body sọc cổ bẻ",
+          "description": "Đầm ôm body sọc cổ bẻ của ULZZANG. Form ôm. Màu: Đen, Xanh nhạt. Size: Free size. Hợp phong cách Korean Casual, dịp đi cafe.",
+          "category": "Váy",
+          "price": 69000,
+          "material": null,
+          "fitType": "SLIM",
+          "images": [
+            "https://down-vn.img.susercontent.com/file/09cf17765aa4e584dd550d5e1a1bc8fb",
+            "https://down-vn.img.susercontent.com/file/37b6fcfc293e2c0fc0c281585ae3fd6d",
+            "https://down-vn.img.susercontent.com/file/60a1c7f4e4d438b0db9fbf839c89d756",
+            "https://down-vn.img.susercontent.com/file/03bdf4a5b724331a55c8a76a3f6fabb5",
+            "https://down-vn.img.susercontent.com/file/37300bbdbe489b80f130047652c9a65d",
+            "https://down-vn.img.susercontent.com/file/4c4756ce13daf117b19465ad2a6b4ce4",
+            "https://down-vn.img.susercontent.com/file/f3947c25969e78034df9d9611e5c6bfe",
+            "https://down-vn.img.susercontent.com/file/6fcdec98ec579264d431359ff082491a"
+          ],
+          "tryOnImage": "https://down-vn.img.susercontent.com/file/f3947c25969e78034df9d9611e5c6bfe",
+          "colors": [
+            "Đen",
+            "Xanh nhạt"
+          ],
+          "sizes": [
+            "Free size"
+          ],
+          "styleTag": "Korean Casual",
+          "occasionTag": "Đi cafe",
+          "targetGender": "FEMALE",
+          "purchaseUrl": "https://shopee.vn/product/39566346/21425510952",
+          "purchaseChannel": "SHOPEE",
+          "sponsored": false
+        },
+        {
+          "name": "Áo sơ mi trắng cổ sen buộc nơ",
+          "description": "Áo sơ mi trắng cổ sen buộc nơ của ULZZANG. Form vừa. Màu: Trắng. Size: Free size. Hợp phong cách Korean Casual, dịp hẹn hò.",
+          "category": "Áo",
+          "price": 85000,
+          "material": null,
+          "fitType": "REGULAR",
+          "images": [
+            "https://down-vn.img.susercontent.com/file/vn-11134207-81ztc-mk7g768jgmbke4",
+            "https://down-vn.img.susercontent.com/file/vn-11134201-81ztc-ms7xwxw74b2c12",
+            "https://down-vn.img.susercontent.com/file/vn-11134207-81ztc-mk7g767i8kjrb4",
+            "https://down-vn.img.susercontent.com/file/vn-11134207-81ztc-mk895qc9kr9hc7",
+            "https://down-vn.img.susercontent.com/file/vn-11134207-81ztc-mk7gbod4gq2r6c",
+            "https://down-vn.img.susercontent.com/file/vn-11134207-81ztc-mk7sguunivpd09",
+            "https://down-vn.img.susercontent.com/file/vn-11134207-81ztc-mk6xrtdxlkhx14",
+            "https://down-vn.img.susercontent.com/file/vn-11134207-81ztc-mk6xrte7mkg5aa"
+          ],
+          "tryOnImage": "https://down-vn.img.susercontent.com/file/vn-11134201-81ztc-ms7xwxw74b2c12",
+          "colors": [
+            "Trắng"
+          ],
+          "sizes": [
+            "Free size"
+          ],
+          "styleTag": "Korean Casual",
+          "occasionTag": "Hẹn hò",
+          "targetGender": "FEMALE",
+          "purchaseUrl": "https://shopee.vn/product/39566346/47405847519",
+          "purchaseChannel": "SHOPEE",
+          "sponsored": false
+        },
+        {
+          "name": "Áo khoác cardigan ren hoa nổi",
+          "description": "Áo khoác cardigan ren hoa nổi của ULZZANG. Chất liệu ren. Form rộng thoải mái. Màu: Đen, Trắng, Beige. Size: Free size. Hợp phong cách Korean Casual, dịp đi cafe.",
+          "category": "Áo khoác",
+          "price": 70000,
+          "material": "Ren",
+          "fitType": "RELAXED",
+          "images": [
+            "https://down-vn.img.susercontent.com/file/vn-11134207-7r98o-lntz5vasayul7f",
+            "https://down-vn.img.susercontent.com/file/vn-11134207-7r98o-lntz5vas9ka521",
+            "https://down-vn.img.susercontent.com/file/vn-11134207-7r98o-lntz5vas9k6y9b",
+            "https://down-vn.img.susercontent.com/file/vn-11134207-7r98o-lntz5vasm7e539",
+            "https://down-vn.img.susercontent.com/file/vn-11134207-7r98o-lngyj2o9gzuicf",
+            "https://down-vn.img.susercontent.com/file/vn-11134207-7r98o-lngyj2o9gzuicf",
+            "https://down-vn.img.susercontent.com/file/vn-11134207-7r98o-lntz5vasp0fu5e"
+          ],
+          "tryOnImage": null,
+          "colors": [
+            "Đen",
+            "Trắng",
+            "Beige"
+          ],
+          "sizes": [
+            "Free size"
+          ],
+          "styleTag": "Korean Casual",
+          "occasionTag": "Đi cafe",
+          "targetGender": "FEMALE",
+          "purchaseUrl": "https://shopee.vn/product/39566346/24150470068",
+          "purchaseChannel": "SHOPEE",
+          "sponsored": false
+        }
+      ]
+    },
+    {
+      "key": "lenclothing",
+      "name": "Len Clothing",
+      "ownerEmail": "lenclothing@fitme.ai",
+      "description": "Local brand nữ bắt đầu từ denim: quần jeans ống loe, áo len – cardigan dệt kim và đồ mặc hằng ngày tối giản, bền bỉ. Sản phẩm đồng bộ từ shop Shopee lenclothing.",
+      "logoUrl": "https://down-vn.img.susercontent.com/file/vn-11134233-81ztc-ml8uo97xpkb333",
+      "websiteUrl": null,
+      "shopeeUrl": "https://shopee.vn/lenclothing",
+      "products": [
+        {
+          "name": "Cardigan len Len Clothing hoa nổi 3D A2523",
+          "description": "Cardigan len Len Clothing hoa nổi 3D A2523 của Len Clothing. Form vừa. Màu: Hồng, Cream, Nâu, Vàng. Size: Free size. Hợp phong cách Korean Casual, dịp hẹn hò.",
+          "category": "Áo khoác",
+          "price": 504000,
+          "material": null,
+          "fitType": "REGULAR",
+          "images": [
+            "https://down-vn.img.susercontent.com/file/vn-11134207-81ztc-mtjb54r47zls3c",
+            "https://down-vn.img.susercontent.com/file/vn-11134207-81ztc-mtjb552jy03r60",
+            "https://down-vn.img.susercontent.com/file/vn-11134207-81ztc-mtkpwzgdpts184",
+            "https://down-vn.img.susercontent.com/file/vn-11134207-81ztc-mtjb54yx1csgb9",
+            "https://down-vn.img.susercontent.com/file/vn-11134207-81ztc-mtjb54wppo93ed",
+            "https://down-vn.img.susercontent.com/file/vn-11134207-81ztc-mtjb54x8ipz409"
+          ],
+          "tryOnImage": "https://down-vn.img.susercontent.com/file/vn-11134207-81ztc-mtjb54x8ipz409",
+          "colors": [
+            "Hồng",
+            "Cream",
+            "Nâu",
+            "Vàng"
+          ],
+          "sizes": [
+            "Free size"
+          ],
+          "styleTag": "Korean Casual",
+          "occasionTag": "Hẹn hò",
+          "targetGender": "FEMALE",
+          "purchaseUrl": "https://shopee.vn/product/1761830676/47918437555",
+          "purchaseChannel": "SHOPEE",
+          "sponsored": false
+        },
+        {
+          "name": "Áo len ngắn tay Len Clothing nút màu A2364",
+          "description": "Áo len ngắn tay Len Clothing nút màu A2364 của Len Clothing. Form vừa. Màu: Cream, Hồng, Xanh nhạt, Xanh lá. Size: Free size. Hợp phong cách Korean Casual, dịp đi cafe.",
+          "category": "Áo",
+          "price": 432000,
+          "material": null,
+          "fitType": "REGULAR",
+          "images": [
+            "https://down-vn.img.susercontent.com/file/vn-11134207-81ztc-msi4xl2j4jrb04",
+            "https://down-vn.img.susercontent.com/file/vn-11134207-81ztc-msi4xrkm68so47",
+            "https://down-vn.img.susercontent.com/file/vn-11134207-81ztc-msi4xk6ohouc1c",
+            "https://down-vn.img.susercontent.com/file/vn-11134207-81ztc-mspc5kdn2ebpfa",
+            "https://down-vn.img.susercontent.com/file/vn-11134207-81ztc-mt3h5rpbzcax9a",
+            "https://down-vn.img.susercontent.com/file/vn-11134207-81ztc-mtjbebv9tybp76",
+            "https://down-vn.img.susercontent.com/file/vn-11134207-81ztc-mtjbebv22fb61b",
+            "https://down-vn.img.susercontent.com/file/vn-11134207-81ztc-mteofo5ditq99a"
+          ],
+          "tryOnImage": "https://down-vn.img.susercontent.com/file/vn-11134207-81ztc-mteofo5ditq99a",
+          "colors": [
+            "Cream",
+            "Hồng",
+            "Xanh nhạt",
+            "Xanh lá"
+          ],
+          "sizes": [
+            "Free size"
+          ],
+          "styleTag": "Korean Casual",
+          "occasionTag": "Đi cafe",
+          "targetGender": "FEMALE",
+          "purchaseUrl": "https://shopee.vn/product/1761830676/46167031782",
+          "purchaseChannel": "SHOPEE",
+          "sponsored": false
+        },
+        {
+          "name": "Áo thun dài tay Len Clothing kẻ sọc A2517",
+          "description": "Áo thun dài tay Len Clothing kẻ sọc A2517 của Len Clothing. Form vừa. Màu: Xanh nhạt, Hồng. Size: Free size. Hợp phong cách Minimal, dịp đi cafe.",
+          "category": "Áo",
+          "price": 348000,
+          "material": null,
+          "fitType": "REGULAR",
+          "images": [
+            "https://down-vn.img.susercontent.com/file/vn-11134207-81ztc-mtj9x8fgoowafa",
+            "https://down-vn.img.susercontent.com/file/vn-11134207-81ztc-mtj9zlbs1ude01",
+            "https://down-vn.img.susercontent.com/file/vn-11134207-81ztc-mtj9zjngioeic9",
+            "https://down-vn.img.susercontent.com/file/vn-11134207-81ztc-mtj9ynkur9q9ac",
+            "https://down-vn.img.susercontent.com/file/vn-11134207-81ztc-mtj9r9vt53462f",
+            "https://down-vn.img.susercontent.com/file/vn-11134207-81ztc-mthr55jhuayv27"
+          ],
+          "tryOnImage": "https://down-vn.img.susercontent.com/file/vn-11134207-81ztc-mtj9x8fgoowafa",
+          "colors": [
+            "Xanh nhạt",
+            "Hồng"
+          ],
+          "sizes": [
+            "Free size"
+          ],
+          "styleTag": "Minimal",
+          "occasionTag": "Đi cafe",
+          "targetGender": "FEMALE",
+          "purchaseUrl": "https://shopee.vn/product/1761830676/52818358870",
+          "purchaseChannel": "SHOPEE",
+          "sponsored": false
+        },
+        {
+          "name": "Quần short jeans Len Clothing ống rộng Q841236",
+          "description": "Quần short jeans Len Clothing ống rộng Q841236 của Len Clothing. Chất liệu denim. Form rộng thoải mái. Màu: Nâu, Xám, Cream, Đen. Size: S, M, L, XL. Hợp phong cách Korean Casual, dịp dạo phố.",
+          "category": "Quần",
+          "price": 456000,
+          "material": "Denim",
+          "fitType": "RELAXED",
+          "images": [
+            "https://down-vn.img.susercontent.com/file/vn-11134207-81ztc-msqs1en59vcw93",
+            "https://down-vn.img.susercontent.com/file/vn-11134207-81ztc-mm8fqyltc74237",
+            "https://down-vn.img.susercontent.com/file/vn-11134207-81ztc-mm8fqylxh3bc6a",
+            "https://down-vn.img.susercontent.com/file/vn-11134207-81ztc-mm8fqylxfoqw1c",
+            "https://down-vn.img.susercontent.com/file/vn-11134207-81ztc-mm8fqyltnfnk7a",
+            "https://down-vn.img.susercontent.com/file/vn-11134207-81ztc-mma3abun318lf3",
+            "https://down-vn.img.susercontent.com/file/vn-11134207-81ztc-mm8muj4f0g02cb",
+            "https://down-vn.img.susercontent.com/file/vn-11134207-81ztc-moyxfd0iv2ff86"
+          ],
+          "tryOnImage": "https://down-vn.img.susercontent.com/file/vn-11134207-81ztc-moyxfd0iv2ff86",
+          "colors": [
+            "Nâu",
+            "Xám",
+            "Cream",
+            "Đen"
+          ],
+          "sizes": [
+            "S",
+            "M",
+            "L",
+            "XL"
+          ],
+          "styleTag": "Korean Casual",
+          "occasionTag": "Dạo phố",
+          "targetGender": "FEMALE",
+          "purchaseUrl": "https://shopee.vn/product/1761830676/53857653246",
+          "purchaseChannel": "SHOPEE",
+          "sponsored": false
+        },
+        {
+          "name": "Quần jeans ống loe Len Clothing Basic Q2101",
+          "description": "Quần jeans ống loe Len Clothing Basic Q2101 của Len Clothing. Chất liệu denim. Form ôm. Màu: Đen, Trắng. Size: 26, 27, 28, 29, 30. Hợp phong cách Korean Casual, dịp dạo phố.",
+          "category": "Quần",
+          "price": 480000,
+          "material": "Denim",
+          "fitType": "SLIM",
+          "images": [
+            "https://down-vn.img.susercontent.com/file/vn-11134207-81ztc-msnp3n04r5e292",
+            "https://down-vn.img.susercontent.com/file/vn-11134207-81ztc-msnp3n09cwea81",
+            "https://down-vn.img.susercontent.com/file/vn-11134207-81ztc-msnp3n04pqtmac",
+            "https://down-vn.img.susercontent.com/file/vn-11134207-81ztc-mq4c6d2gpt6zb7",
+            "https://down-vn.img.susercontent.com/file/vn-11134207-81ztc-mq4c6d2bvmrwe1",
+            "https://down-vn.img.susercontent.com/file/vn-11134207-81ztc-mqpnzng30y6880",
+            "https://down-vn.img.susercontent.com/file/vn-11134207-81ztc-mqpnzng2zjlsa0",
+            "https://down-vn.img.susercontent.com/file/vn-11134207-81ztc-mqei35d829dua1"
+          ],
+          "tryOnImage": "https://down-vn.img.susercontent.com/file/vn-11134207-81ztc-msnp3n04r5e292",
+          "colors": [
+            "Đen",
+            "Trắng"
+          ],
+          "sizes": [
+            "26",
+            "27",
+            "28",
+            "29",
+            "30"
+          ],
+          "styleTag": "Korean Casual",
+          "occasionTag": "Dạo phố",
+          "targetGender": "FEMALE",
+          "purchaseUrl": "https://shopee.vn/product/1761830676/43632181667",
+          "purchaseChannel": "SHOPEE",
+          "sponsored": false
+        },
+        {
+          "name": "Áo khoác jeans Len Clothing Raw Denim A2110",
+          "description": "Áo khoác jeans Len Clothing Raw Denim A2110 của Len Clothing. Chất liệu denim. Form vừa. Màu: Xanh nhạt. Size: Free size. Hợp phong cách Streetwear, dịp dạo phố.",
+          "category": "Áo khoác",
+          "price": 480000,
+          "material": "Denim",
+          "fitType": "REGULAR",
+          "images": [
+            "https://down-vn.img.susercontent.com/file/vn-11134207-81ztc-msqs4eb6mwhs22",
+            "https://down-vn.img.susercontent.com/file/vn-11134207-81ztc-mq4izehtilu7bd",
+            "https://down-vn.img.susercontent.com/file/vn-11134207-81ztc-mq4izei02l8iff",
+            "https://down-vn.img.susercontent.com/file/vn-11134207-81ztc-mri80oayavid87",
+            "https://down-vn.img.susercontent.com/file/vn-11134207-81ztc-mqpnsf13x24i06",
+            "https://down-vn.img.susercontent.com/file/vn-11134207-81ztc-mqpnmfz3zim90c",
+            "https://down-vn.img.susercontent.com/file/vn-11134207-81ztc-mqpnrk8klhj5f2",
+            "https://down-vn.img.susercontent.com/file/vn-11134207-81ztc-mqekfvixqq6l60",
+            "https://down-vn.img.susercontent.com/file/vn-11134207-81ztc-mq4izeho661a80"
+          ],
+          "tryOnImage": "https://down-vn.img.susercontent.com/file/vn-11134207-81ztc-mq4izeho661a80",
+          "colors": [
+            "Xanh nhạt"
+          ],
+          "sizes": [
+            "Free size"
+          ],
+          "styleTag": "Streetwear",
+          "occasionTag": "Dạo phố",
+          "targetGender": "FEMALE",
+          "purchaseUrl": "https://shopee.vn/product/1761830676/55313162636",
+          "purchaseChannel": "SHOPEE",
+          "sponsored": false
+        },
+        {
+          "name": "Chân váy mini xếp li Len Clothing CV2365",
+          "description": "Chân váy mini xếp li Len Clothing CV2365 của Len Clothing. Chất liệu denim. Form vừa. Màu: Cream, Beige. Size: S, M, L. Hợp phong cách Korean Casual, dịp hẹn hò.",
+          "category": "Váy",
+          "price": 396000,
+          "material": "Denim",
+          "fitType": "REGULAR",
+          "images": [
+            "https://down-vn.img.susercontent.com/file/vn-11134207-81ztc-mt3d4ttwwzk5b3",
+            "https://down-vn.img.susercontent.com/file/vn-11134207-81ztc-mt3cdxiv9csm67",
+            "https://down-vn.img.susercontent.com/file/vn-11134207-81ztc-mt3ce07fubd474",
+            "https://down-vn.img.susercontent.com/file/vn-11134207-81ztc-msp9qf53kdfm88",
+            "https://down-vn.img.susercontent.com/file/vn-11134201-81ztc-mtgpss2vsr9faf",
+            "https://down-vn.img.susercontent.com/file/vn-11134207-81ztc-msp9slkpeayq39",
+            "https://down-vn.img.susercontent.com/file/vn-11134207-81ztc-mt3d1gi1x6h530",
+            "https://down-vn.img.susercontent.com/file/vn-11134207-81ztc-mt3d1gi1vrwp5f"
+          ],
+          "tryOnImage": "https://down-vn.img.susercontent.com/file/vn-11134207-81ztc-mt3d1gi1x6h530",
+          "colors": [
+            "Cream",
+            "Beige"
+          ],
+          "sizes": [
+            "S",
+            "M",
+            "L"
+          ],
+          "styleTag": "Korean Casual",
+          "occasionTag": "Hẹn hò",
+          "targetGender": "FEMALE",
+          "purchaseUrl": "https://shopee.vn/product/1761830676/49967364098",
+          "purchaseChannel": "SHOPEE",
+          "sponsored": false
+        },
+        {
+          "name": "Chân váy jeans mini túi hộp Len Clothing CV2308",
+          "description": "Chân váy jeans mini túi hộp Len Clothing CV2308 của Len Clothing. Form vừa. Màu: Beige, Xanh nhạt, Cream. Size: S, M, L. Hợp phong cách Streetwear, dịp dạo phố.",
+          "category": "Váy",
+          "price": 456000,
+          "material": null,
+          "fitType": "REGULAR",
+          "images": [
+            "https://down-vn.img.susercontent.com/file/vn-11134207-81ztc-msjpmnyf6ups5d",
+            "https://down-vn.img.susercontent.com/file/vn-11134207-81ztc-msjkl024cmbke4",
+            "https://down-vn.img.susercontent.com/file/vn-11134207-81ztc-msjkl01w71mx36",
+            "https://down-vn.img.susercontent.com/file/vn-11134207-81ztc-msjpmiep57uw49",
+            "https://down-vn.img.susercontent.com/file/vn-11134207-81ztc-msjpmiek9mvdc3",
+            "https://down-vn.img.susercontent.com/file/vn-11134207-81ztc-msjpmief47wo8f",
+            "https://down-vn.img.susercontent.com/file/vn-11134207-81ztc-msjpmyio6ps5c1",
+            "https://down-vn.img.susercontent.com/file/vn-11134207-81ztc-msjpmyfqkagw9e",
+            "https://down-vn.img.susercontent.com/file/vn-11134207-81ztc-msdu4hjxz4sk0d"
+          ],
+          "tryOnImage": "https://down-vn.img.susercontent.com/file/vn-11134207-81ztc-msdu4hjxz4sk0d",
+          "colors": [
+            "Beige",
+            "Xanh nhạt",
+            "Cream"
+          ],
+          "sizes": [
+            "S",
+            "M",
+            "L"
+          ],
+          "styleTag": "Streetwear",
+          "occasionTag": "Dạo phố",
+          "targetGender": "FEMALE",
+          "purchaseUrl": "https://shopee.vn/product/1761830676/40133957465",
+          "purchaseChannel": "SHOPEE",
+          "sponsored": false
+        },
+        {
+          "name": "Sweater Len Clothing thêu ngôi sao A2501",
+          "description": "Sweater Len Clothing thêu ngôi sao A2501 của Len Clothing. Form rộng thoải mái. Màu: Xám, Trắng, Navy. Size: Free size. Hợp phong cách Korean Casual, dịp đi cafe.",
+          "category": "Áo",
+          "price": 396000,
+          "material": null,
+          "fitType": "RELAXED",
+          "images": [
+            "https://down-vn.img.susercontent.com/file/vn-11134207-81ztc-mtja5py1ds010b",
+            "https://down-vn.img.susercontent.com/file/vn-11134207-81ztc-mtja5pst1gqt42",
+            "https://down-vn.img.susercontent.com/file/vn-11134207-81ztc-mthr0m2uojrc3b"
+          ],
+          "tryOnImage": "https://down-vn.img.susercontent.com/file/vn-11134207-81ztc-mtja5pst1gqt42",
+          "colors": [
+            "Xám",
+            "Trắng",
+            "Navy"
+          ],
+          "sizes": [
+            "Free size"
+          ],
+          "styleTag": "Korean Casual",
+          "occasionTag": "Đi cafe",
+          "targetGender": "FEMALE",
+          "purchaseUrl": "https://shopee.vn/product/1761830676/45618383602",
+          "purchaseChannel": "SHOPEE",
+          "sponsored": false
+        },
+        {
+          "name": "Áo polo len Len Clothing thêu hoa A2409",
+          "description": "Áo polo len Len Clothing thêu hoa A2409 của Len Clothing. Form vừa. Màu: Nâu, Navy, Trắng, Beige. Size: Free size. Hợp phong cách Korean Casual, dịp đi cafe.",
+          "category": "Áo",
+          "price": 456000,
+          "material": null,
+          "fitType": "REGULAR",
+          "images": [
+            "https://down-vn.img.susercontent.com/file/vn-11134207-81ztc-mspa13wx1u688b",
+            "https://down-vn.img.susercontent.com/file/vn-11134207-81ztc-mspa13x36dc20a",
+            "https://down-vn.img.susercontent.com/file/vn-11134207-81ztc-mspa13wx7gg829",
+            "https://down-vn.img.susercontent.com/file/vn-11134207-81ztc-mspa13x34yrme8",
+            "https://down-vn.img.susercontent.com/file/vn-11134207-81ztc-mspa2xjo8o3kf1"
+          ],
+          "tryOnImage": "https://down-vn.img.susercontent.com/file/vn-11134207-81ztc-mspa13wx1u688b",
+          "colors": [
+            "Nâu",
+            "Navy",
+            "Trắng",
+            "Beige"
+          ],
+          "sizes": [
+            "Free size"
+          ],
+          "styleTag": "Korean Casual",
+          "occasionTag": "Đi cafe",
+          "targetGender": "FEMALE",
+          "purchaseUrl": "https://shopee.vn/product/1761830676/57817341027",
+          "purchaseChannel": "SHOPEE",
+          "sponsored": false
+        }
+      ]
+    },
+    {
+      "key": "hagoo",
+      "name": "HAGOO",
+      "ownerEmail": "hagoo@fitme.ai",
+      "description": "Thương hiệu thời trang công sở nữ \"Timeless style, timeless life\": blazer, sơ mi, chân váy và quần âu thanh lịch. Sản phẩm đồng bộ từ shop Shopee Mall chính hãng HAGOO.",
+      "logoUrl": "https://down-vn.img.susercontent.com/file/vn-11134233-820l4-mivtu1xbr9jbab",
+      "websiteUrl": null,
+      "shopeeUrl": "https://shopee.vn/hagoo.official",
+      "products": [
+        {
+          "name": "Chân váy chữ A đỉa đôi HAGOO CV751",
+          "description": "Chân váy chữ A đỉa đôi HAGOO CV751 của HAGOO. Chất liệu kaki. Form vừa. Màu: Nâu, Cream, Đỏ, Đen. Size: S, M, L. Hợp phong cách Minimal, dịp đi làm.",
+          "category": "Váy",
+          "price": 800000,
+          "material": "Kaki",
+          "fitType": "REGULAR",
+          "images": [
+            "https://down-vn.img.susercontent.com/file/vn-11134207-81ztc-ms3ko5tnkkjo1d",
+            "https://down-vn.img.susercontent.com/file/vn-11134207-81ztc-mt3la30sf18g31",
+            "https://down-vn.img.susercontent.com/file/vn-11134207-81ztc-mtankpuhlursd3",
+            "https://down-vn.img.susercontent.com/file/vn-11134207-81ztc-mtankev2xrltf9",
+            "https://down-vn.img.susercontent.com/file/vn-11134207-81ztc-mtankkf877yf20",
+            "https://down-vn.img.susercontent.com/file/vn-11134207-81ztc-mtanta06ptl17d",
+            "https://down-vn.img.susercontent.com/file/vn-11134207-81ztc-ms3kq228xude09",
+            "https://down-vn.img.susercontent.com/file/vn-11134207-81ztc-ms3kq21bm9dz59"
+          ],
+          "tryOnImage": "https://down-vn.img.susercontent.com/file/vn-11134207-81ztc-ms3kq228xude09",
+          "colors": [
+            "Nâu",
+            "Cream",
+            "Đỏ",
+            "Đen"
+          ],
+          "sizes": [
+            "S",
+            "M",
+            "L"
+          ],
+          "styleTag": "Minimal",
+          "occasionTag": "Đi làm",
+          "targetGender": "FEMALE",
+          "purchaseUrl": "https://shopee.vn/product/299964175/44229164967",
+          "purchaseChannel": "SHOPEE",
+          "sponsored": false
+        },
+        {
+          "name": "Quần âu ống đứng hai ly HAGOO Q361",
+          "description": "Quần âu ống đứng hai ly HAGOO Q361 của HAGOO. Chất liệu chéo nhật. Form vừa. Màu: Đen, Trắng. Size: S, M, L. Hợp phong cách Minimal, dịp đi làm.",
+          "category": "Quần",
+          "price": 810000,
+          "material": "Chéo Nhật",
+          "fitType": "REGULAR",
+          "images": [
+            "https://down-vn.img.susercontent.com/file/vn-11134207-81ztc-mqh326aa7mki36",
+            "https://down-vn.img.susercontent.com/file/vn-11134207-81ztc-mt3la30sf18g31",
+            "https://down-vn.img.susercontent.com/file/vn-11134207-81ztc-mt3dfnrn5oufa6",
+            "https://down-vn.img.susercontent.com/file/vn-11134207-7r98o-lya98k3ch9al6b",
+            "https://down-vn.img.susercontent.com/file/vn-11134207-81ztc-mqsx4188dqmld0",
+            "https://down-vn.img.susercontent.com/file/vn-11134207-81ztc-mt3dfrfjpafb0e",
+            "https://down-vn.img.susercontent.com/file/vn-11134207-7r98o-lxvximeyf5cp07",
+            "https://down-vn.img.susercontent.com/file/vn-11134207-81ztc-mqsx4nbqzci785"
+          ],
+          "tryOnImage": "https://down-vn.img.susercontent.com/file/vn-11134207-7r98o-lxvximeyf5cp07",
+          "colors": [
+            "Đen",
+            "Trắng"
+          ],
+          "sizes": [
+            "S",
+            "M",
+            "L"
+          ],
+          "styleTag": "Minimal",
+          "occasionTag": "Đi làm",
+          "targetGender": "FEMALE",
+          "purchaseUrl": "https://shopee.vn/product/299964175/27055374886",
+          "purchaseChannel": "SHOPEE",
+          "sponsored": false
+        },
+        {
+          "name": "Đầm cổ tròn phối tafta HAGOO V387",
+          "description": "Đầm cổ tròn phối tafta HAGOO V387 của HAGOO. Chất liệu thun giấy hàn, tafta. Form ôm. Màu: Đen. Size: S, M, L. Hợp phong cách Minimal, dịp dự tiệc.",
+          "category": "Váy",
+          "price": 1102000,
+          "material": "Thun giấy hàn, Tafta",
+          "fitType": "SLIM",
+          "images": [
+            "https://down-vn.img.susercontent.com/file/vn-11134207-7r98o-lzik5073u1lt12",
+            "https://down-vn.img.susercontent.com/file/vn-11134207-81ztc-mt3la30sf18g31",
+            "https://down-vn.img.susercontent.com/file/vn-11134207-7r98o-m06se20syt1rd2",
+            "https://down-vn.img.susercontent.com/file/vn-11134207-7r98o-m06se98sfr7z68",
+            "https://down-vn.img.susercontent.com/file/vn-11134207-7r98o-lzik4vyi1cul7f",
+            "https://down-vn.img.susercontent.com/file/vn-11134207-7r98o-lzdfwzefn231f0",
+            "https://down-vn.img.susercontent.com/file/vn-11134207-7r98o-lzeuq5fg3jq956",
+            "https://down-vn.img.susercontent.com/file/vn-11134207-7r98o-lzeuq8pdaz4de1"
+          ],
+          "tryOnImage": "https://down-vn.img.susercontent.com/file/vn-11134207-7r98o-lzeuq5fg3jq956",
+          "colors": [
+            "Đen"
+          ],
+          "sizes": [
+            "S",
+            "M",
+            "L"
+          ],
+          "styleTag": "Minimal",
+          "occasionTag": "Dự tiệc",
+          "targetGender": "FEMALE",
+          "purchaseUrl": "https://shopee.vn/product/299964175/28609082134",
+          "purchaseChannel": "SHOPEE",
+          "sponsored": false
+        },
+        {
+          "name": "Blazer không ve dáng dài HAGOO B459",
+          "description": "Blazer không ve dáng dài HAGOO B459 của HAGOO. Form vừa. Màu: Đen, Đỏ, Nâu, Trắng. Size: S, M, L. Hợp phong cách Minimal, dịp đi làm.",
+          "category": "Áo khoác",
+          "price": 1460000,
+          "material": null,
+          "fitType": "REGULAR",
+          "images": [
+            "https://down-vn.img.susercontent.com/file/vn-11134207-7ras8-mbs164226mb613",
+            "https://down-vn.img.susercontent.com/file/vn-11134207-81ztc-mt3kt1j0x1515f",
+            "https://down-vn.img.susercontent.com/file/vn-11134207-7ras8-m2exzvwvpqcy11",
+            "https://down-vn.img.susercontent.com/file/vn-11134207-7ras8-m0v69dqdxvnz72",
+            "https://down-vn.img.susercontent.com/file/vn-11134207-7ras8-m0szs4lgy26n0c",
+            "https://down-vn.img.susercontent.com/file/vn-11134207-7ras8-m2afw6tdtbjoc3",
+            "https://down-vn.img.susercontent.com/file/vn-11134207-7ras8-m3u3uoanbhd48e",
+            "https://down-vn.img.susercontent.com/file/vn-11134207-7ras8-m2afziw03ovof3"
+          ],
+          "tryOnImage": "https://down-vn.img.susercontent.com/file/vn-11134207-7ras8-m0szs4lgy26n0c",
+          "colors": [
+            "Đen",
+            "Đỏ",
+            "Nâu",
+            "Trắng"
+          ],
+          "sizes": [
+            "S",
+            "M",
+            "L"
+          ],
+          "styleTag": "Minimal",
+          "occasionTag": "Đi làm",
+          "targetGender": "FEMALE",
+          "purchaseUrl": "https://shopee.vn/product/299964175/26962734011",
+          "purchaseChannel": "SHOPEE",
+          "sponsored": false
+        },
+        {
+          "name": "Sơ mi trắng dài tay HAGOO Bamboo A929",
+          "description": "Sơ mi trắng dài tay HAGOO Bamboo A929 của HAGOO. Chất liệu thô hàn cao cấp. Form vừa. Màu: Trắng, Xanh nhạt. Size: S, M, L. Hợp phong cách Minimal, dịp đi làm.",
+          "category": "Áo",
+          "price": 575000,
+          "material": "Thô Hàn cao cấp",
+          "fitType": "REGULAR",
+          "images": [
+            "https://down-vn.img.susercontent.com/file/vn-11134207-81ztc-mqr79ban5vyb11",
+            "https://down-vn.img.susercontent.com/file/vn-11134207-81ztc-mt3kt1j0x1515f",
+            "https://down-vn.img.susercontent.com/file/vn-11134207-81ztc-mpm31gb8t1ceb7",
+            "https://down-vn.img.susercontent.com/file/vn-11134207-81ztc-mlq2tgkzz0g5b1",
+            "https://down-vn.img.susercontent.com/file/vn-11134207-81ztc-mpemy8zvbea710",
+            "https://down-vn.img.susercontent.com/file/vn-11134207-81ztc-molcdke9tczy38",
+            "https://down-vn.img.susercontent.com/file/vn-11134207-820l4-mf8ci2ombiffd2",
+            "https://down-vn.img.susercontent.com/file/vn-11134207-81ztc-mme1qbv3cs1u67",
+            "https://down-vn.img.susercontent.com/file/vn-11134207-81ztc-ml7lrmadd1xr22"
+          ],
+          "tryOnImage": "https://down-vn.img.susercontent.com/file/vn-11134207-81ztc-ml7lrmadd1xr22",
+          "colors": [
+            "Trắng",
+            "Xanh nhạt"
+          ],
+          "sizes": [
+            "S",
+            "M",
+            "L"
+          ],
+          "styleTag": "Minimal",
+          "occasionTag": "Đi làm",
+          "targetGender": "FEMALE",
+          "purchaseUrl": "https://shopee.vn/product/299964175/26456661149",
+          "purchaseChannel": "SHOPEE",
+          "sponsored": false
+        },
+        {
+          "name": "Quần short ống rộng cạp cao HAGOO",
+          "description": "Quần short ống rộng cạp cao HAGOO của HAGOO. Chất liệu chéo hàn. Form rộng thoải mái. Màu: Đỏ, Đen, Nâu, Trắng. Size: S, M, L. Hợp phong cách Minimal, dịp đi cafe.",
+          "category": "Quần",
+          "price": 620000,
+          "material": "Chéo Hàn",
+          "fitType": "RELAXED",
+          "images": [
+            "https://down-vn.img.susercontent.com/file/vn-11134207-81ztc-moyvwjzf5loseb",
+            "https://down-vn.img.susercontent.com/file/vn-11134207-81ztc-mt3kt1j0x1515f",
+            "https://down-vn.img.susercontent.com/file/vn-11134207-81ztc-mqe6aopyapzhae",
+            "https://down-vn.img.susercontent.com/file/vn-11134207-7ras8-mcddfh62v2vmbc",
+            "https://down-vn.img.susercontent.com/file/vn-11134207-81ztc-mqd0ssuze2o095",
+            "https://down-vn.img.susercontent.com/file/vn-11134207-81ztc-mlugb1ihntvnbc",
+            "https://down-vn.img.susercontent.com/file/vn-11134207-81ztc-mnglffedjy1119",
+            "https://down-vn.img.susercontent.com/file/vn-11134207-7ra0g-m795nhr5m4vn2b"
+          ],
+          "tryOnImage": "https://down-vn.img.susercontent.com/file/vn-11134207-81ztc-mqd0ssuze2o095",
+          "colors": [
+            "Đỏ",
+            "Đen",
+            "Nâu",
+            "Trắng"
+          ],
+          "sizes": [
+            "S",
+            "M",
+            "L"
+          ],
+          "styleTag": "Minimal",
+          "occasionTag": "Đi cafe",
+          "targetGender": "FEMALE",
+          "purchaseUrl": "https://shopee.vn/product/299964175/25469523243",
+          "purchaseChannel": "SHOPEE",
+          "sponsored": false
+        },
+        {
+          "name": "Váy sơ mi jean dáng dài HAGOO V637",
+          "description": "Váy sơ mi jean dáng dài HAGOO V637 của HAGOO. Chất liệu jean mềm. Form vừa. Màu: Đen. Size: S, M, L. Hợp phong cách Minimal, dịp đi làm.",
+          "category": "Váy",
+          "price": 1400000,
+          "material": "Jean mềm",
+          "fitType": "REGULAR",
+          "images": [
+            "https://down-vn.img.susercontent.com/file/vn-11134207-7ra0g-m9bftpbb0dj659",
+            "https://down-vn.img.susercontent.com/file/vn-11134207-81ztc-mt3la30sf18g31",
+            "https://down-vn.img.susercontent.com/file/vn-11134207-7ra0g-m93yh5cvegjo94",
+            "https://down-vn.img.susercontent.com/file/vn-11134207-7ras8-mciub63rmhb62e",
+            "https://down-vn.img.susercontent.com/file/vn-11134207-7ra0g-m93yh5cleveq9d",
+            "https://down-vn.img.susercontent.com/file/vn-11134207-7ra0g-m8vt149junno8f",
+            "https://down-vn.img.susercontent.com/file/vn-11134207-7ra0g-m9wuf1v392ca3e",
+            "https://down-vn.img.susercontent.com/file/vn-11134207-7ra0g-m9cszuvgdc1w57"
+          ],
+          "tryOnImage": "https://down-vn.img.susercontent.com/file/vn-11134207-7ra0g-m9cszuvgdc1w57",
+          "colors": [
+            "Đen"
+          ],
+          "sizes": [
+            "S",
+            "M",
+            "L"
+          ],
+          "styleTag": "Minimal",
+          "occasionTag": "Đi làm",
+          "targetGender": "FEMALE",
+          "purchaseUrl": "https://shopee.vn/product/299964175/27234453783",
+          "purchaseChannel": "SHOPEE",
+          "sponsored": false
+        },
+        {
+          "name": "Chân váy dài xẻ trước HAGOO CV167",
+          "description": "Chân váy dài xẻ trước HAGOO CV167 của HAGOO. Form vừa. Màu: Xám, Đen, Nâu. Size: S, M, L. Hợp phong cách Minimal, dịp đi làm.",
+          "category": "Váy",
+          "price": 810000,
+          "material": null,
+          "fitType": "REGULAR",
+          "images": [
+            "https://down-vn.img.susercontent.com/file/vn-11134207-7r98o-lxxi2scfx78b62",
+            "https://down-vn.img.susercontent.com/file/vn-11134207-81ztc-mt39hfyq2eio6d",
+            "https://down-vn.img.susercontent.com/file/vn-11134207-7ras8-m339kvk08ttc4b",
+            "https://down-vn.img.susercontent.com/file/vn-11134207-820l4-mgyu73kk6lu78a",
+            "https://down-vn.img.susercontent.com/file/vn-11134207-7ras8-mc9dla0ouy7wbb",
+            "https://down-vn.img.susercontent.com/file/vn-11134207-820l4-mh0jgebvubd464",
+            "https://down-vn.img.susercontent.com/file/vn-11134207-7ras8-m1m8xkhon78324",
+            "https://down-vn.img.susercontent.com/file/vn-11134207-7r98o-lz2swsiq653h85"
+          ],
+          "tryOnImage": "https://down-vn.img.susercontent.com/file/vn-11134207-7r98o-lz2swsiq653h85",
+          "colors": [
+            "Xám",
             "Đen",
             "Nâu"
           ],
-          "styleTag": "Office",
-          "occasionTag": "Đi làm",
-          "sponsored": false
-        },
-        {
-          "name": "Túi tote canvas logo thêu",
-          "description": "Tote size medium, quai đeo vai. Đựng laptop 13 inch và essentials hằng ngày.",
-          "category": "Phụ kiện",
-          "price": 389000,
-          "material": "Canvas",
-          "fitType": "REGULAR",
-          "imageKey": "ksh-tui-tote",
-          "colors": [
-            "Beige",
-            "Đen"
-          ],
-          "styleTag": "Korean Casual",
-          "occasionTag": "Đi cafe",
-          "sponsored": false
-        },
-        {
-          "name": "Khăn choàng len pha mềm",
-          "description": "Len mỏng không ngứa, size lớn quấn 2 vòng. Tone neutral cho mùa lạnh.",
-          "category": "Phụ kiện",
-          "price": 279000,
-          "material": "Len pha",
-          "fitType": "REGULAR",
-          "imageKey": "ksh-khan-len",
-          "colors": [
-            "Beige",
-            "Xám"
+          "sizes": [
+            "S",
+            "M",
+            "L"
           ],
           "styleTag": "Minimal",
-          "occasionTag": "Dạo phố",
+          "occasionTag": "Đi làm",
+          "targetGender": "FEMALE",
+          "purchaseUrl": "https://shopee.vn/product/299964175/26450831070",
+          "purchaseChannel": "SHOPEE",
           "sponsored": false
         },
         {
-          "name": "Áo len cổ lọ basic",
-          "description": "Len đan mịn ôm nhẹ, không bí cổ. Layer trong blazer hoặc mặc riêng với quần ống rộng.",
+          "name": "Áo thun dài tay cổ lệch HAGOO A8029",
+          "description": "Áo thun dài tay cổ lệch HAGOO A8029 của HAGOO. Chất liệu thun hàn. Form ôm. Màu: Đỏ, Đen, Nâu. Size: S, M, L. Hợp phong cách Minimal, dịp đi làm.",
           "category": "Áo",
-          "price": 389000,
-          "material": "Len acrylic",
+          "price": 720000,
+          "material": "Thun Hàn",
           "fitType": "SLIM",
-          "imageKey": "ksh-ao-len-co-lo",
+          "images": [
+            "https://down-vn.img.susercontent.com/file/vn-11134207-820l4-mfz2fyhy172i67",
+            "https://down-vn.img.susercontent.com/file/vn-11134207-81ztc-mt3la30sf18g31",
+            "https://down-vn.img.susercontent.com/file/vn-11134207-820l4-mgyu73kk6lu78a",
+            "https://down-vn.img.susercontent.com/file/vn-11134207-820l4-mgsuu3zavsi10e",
+            "https://down-vn.img.susercontent.com/file/vn-11134207-820l4-mfz2fyhskjkfa4",
+            "https://down-vn.img.susercontent.com/file/vn-11134207-820l4-mfz2fyhro8i30a",
+            "https://down-vn.img.susercontent.com/file/vn-11134207-820l4-mh71gu5mjsawfb",
+            "https://down-vn.img.susercontent.com/file/vn-11134207-820l4-mhh2ctudxf5y89"
+          ],
+          "tryOnImage": "https://down-vn.img.susercontent.com/file/vn-11134207-820l4-mfz2fyhskjkfa4",
           "colors": [
-            "Cream",
+            "Đỏ",
+            "Đen",
+            "Nâu"
+          ],
+          "sizes": [
+            "S",
+            "M",
+            "L"
+          ],
+          "styleTag": "Minimal",
+          "occasionTag": "Đi làm",
+          "targetGender": "FEMALE",
+          "purchaseUrl": "https://shopee.vn/product/299964175/43824330136",
+          "purchaseChannel": "SHOPEE",
+          "sponsored": false
+        },
+        {
+          "name": "Quần jeans lụa ống loe HAGOO Q531",
+          "description": "Quần jeans lụa ống loe HAGOO Q531 của HAGOO. Chất liệu denim lụa. Form ôm. Màu: Đen. Size: S, M, L. Hợp phong cách Minimal, dịp đi làm.",
+          "category": "Quần",
+          "price": 1015000,
+          "material": "Denim lụa",
+          "fitType": "SLIM",
+          "images": [
+            "https://down-vn.img.susercontent.com/file/vn-11134207-7ras8-md17lf9t16zg26",
+            "https://down-vn.img.susercontent.com/file/vn-11134207-81ztc-mt3la30sf18g31",
+            "https://down-vn.img.susercontent.com/file/vn-11134207-820l4-minzukesotmre0",
+            "https://down-vn.img.susercontent.com/file/vn-11134207-820l4-mgvocof31erydc",
+            "https://down-vn.img.susercontent.com/file/vn-11134207-820l4-mi5fa29uca2q94",
+            "https://down-vn.img.susercontent.com/file/vn-11134207-7ras8-mcah9keia4sca0",
+            "https://down-vn.img.susercontent.com/file/vn-11134207-820l4-mgoi1a59r216a4",
+            "https://down-vn.img.susercontent.com/file/vn-11134207-7ras8-mcfrgwjzb1aqc6",
+            "https://down-vn.img.susercontent.com/file/vn-11134207-7ras8-mcfrgwj5c95edb"
+          ],
+          "tryOnImage": "https://down-vn.img.susercontent.com/file/vn-11134207-7ras8-mcfrgwj5c95edb",
+          "colors": [
             "Đen"
           ],
-          "styleTag": "Korean Casual",
-          "occasionTag": "Đi cafe",
+          "sizes": [
+            "S",
+            "M",
+            "L"
+          ],
+          "styleTag": "Minimal",
+          "occasionTag": "Đi làm",
+          "targetGender": "FEMALE",
+          "purchaseUrl": "https://shopee.vn/product/299964175/29669815996",
+          "purchaseChannel": "SHOPEE",
           "sponsored": false
         }
       ]
     },
     {
-      "key": "linen-muse",
-      "name": "Linen Muse",
-      "description": "Tinh thần quiet luxury — linen, cotton organic và tone đất cho ngày thường thanh lịch.",
-      "logoUrl": "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?auto=format&fit=crop&w=200&h=200&q=80",
-      "contactEmail": "hello@linenmuse.vn",
-      "websiteUrl": "https://linenmuse.vn",
-      "shopeeUrl": "https://shopee.vn/linenmuse",
+      "key": "gumac",
+      "name": "GUMAC",
+      "ownerEmail": "gumac@fitme.ai",
+      "description": "Thương hiệu thời trang công sở Việt hơn 10 năm theo triết lý \"Thời trang Hạnh Phúc\": sơ mi, quần tây, chân váy giá dễ tiếp cận. Sản phẩm đồng bộ từ shop Shopee Mall GUMAC Official Store.",
+      "logoUrl": "https://down-vn.img.susercontent.com/file/vn-11134216-81ztc-msw45k63gkqpc8",
+      "websiteUrl": null,
+      "shopeeUrl": "https://shopee.vn/gumac_fashion",
       "products": [
         {
-          "name": "Áo sơ mi linen oversized",
-          "description": "100% linen thoáng, form rộng French tuck. Màu đất dễ phối túi wicker và sandal.",
+          "name": "Sơ mi lụa tay dài GUMAC nẹp giấu nút",
+          "description": "Sơ mi lụa tay dài GUMAC nẹp giấu nút của GUMAC. Chất liệu lụa. Form vừa. Màu: Trắng, Đen, Beige, Xanh nhạt. Size: XS, S, M, L, XL. Hợp phong cách Minimal, dịp đi làm.",
           "category": "Áo",
-          "price": 689000,
-          "material": "Linen",
-          "fitType": "OVERSIZE",
-          "imageKey": "lm-ao-so-mi-linen",
-          "colors": [
-            "Beige",
-            "Trắng"
+          "price": 375000,
+          "material": "Lụa",
+          "fitType": "REGULAR",
+          "images": [
+            "https://down-vn.img.susercontent.com/file/sg-11134201-82588-mu0drtb49p8l11",
+            "https://down-vn.img.susercontent.com/file/vn-11134207-820l4-mhllxaafk2dd03",
+            "https://down-vn.img.susercontent.com/file/vn-11134207-81ztc-mpyu0w0hehana9",
+            "https://down-vn.img.susercontent.com/file/vn-11134207-81ztc-mpyu0w0bgyyq2e",
+            "https://down-vn.img.susercontent.com/file/vn-11134207-81ztc-mn9ow2mqsqo564",
+            "https://down-vn.img.susercontent.com/file/vn-11134207-81ztc-mn9owf0sg4qq43",
+            "https://down-vn.img.susercontent.com/file/vn-11134207-81ztc-mnmhsvd6xp8hb1",
+            "https://down-vn.img.susercontent.com/file/vn-11134207-81ztc-mnmhsvdcwm4m88"
           ],
-          "styleTag": "Minimal",
-          "occasionTag": "Đi cafe",
-          "sponsored": true
-        },
-        {
-          "name": "Áo tank cotton organic",
-          "description": "Cotton GOTS mềm, viền bo gọn. Layer dưới sơ mi linen hoặc blazer unlined.",
-          "category": "Áo",
-          "price": 249000,
-          "material": "Cotton organic",
-          "fitType": "SLIM",
-          "imageKey": "lm-ao-tank",
+          "tryOnImage": "https://down-vn.img.susercontent.com/file/vn-11134207-81ztc-mn9owf0sg4qq43",
           "colors": [
             "Trắng",
-            "Olive"
-          ],
-          "styleTag": "Minimal",
-          "occasionTag": "Dạo phố",
-          "sponsored": false
-        },
-        {
-          "name": "Quần linen ống suông",
-          "description": "Linen pha giữ form, cạp elastic sau thoải mái. Item must-have mùa hè.",
-          "category": "Quần",
-          "price": 599000,
-          "material": "Linen pha",
-          "fitType": "RELAXED",
-          "imageKey": "lm-quan-linen-suong",
-          "colors": [
-            "Beige",
-            "Trắng"
-          ],
-          "styleTag": "Minimal",
-          "occasionTag": "Đi cafe",
-          "sponsored": false
-        },
-        {
-          "name": "Quần tây cotton mềm",
-          "description": "Cotton stretch mỏng, nếp ly sắc. Phù hợp smart casual không quá formal.",
-          "category": "Quần",
-          "price": 549000,
-          "material": "Cotton stretch",
-          "fitType": "REGULAR",
-          "imageKey": "lm-quan-tay-cotton",
-          "colors": [
-            "Navy",
-            "Beige"
-          ],
-          "styleTag": "Office",
-          "occasionTag": "Đi làm",
-          "sponsored": false
-        },
-        {
-          "name": "Váy wrap linen midi",
-          "description": "Wrap dress linen, buộc eo tôn dáng. Đi biển hoặc brunch đều hợp.",
-          "category": "Váy",
-          "price": 749000,
-          "material": "Linen",
-          "fitType": "REGULAR",
-          "imageKey": "lm-vay-wrap-linen",
-          "colors": [
-            "Beige",
-            "Olive"
-          ],
-          "styleTag": "Minimal",
-          "occasionTag": "Hẹn hò",
-          "sponsored": true
-        },
-        {
-          "name": "Váy satin slip midi",
-          "description": "Satin lụa mờ, dây điều chỉnh. Layer cardigan len cho buổi tối thanh lịch.",
-          "category": "Váy",
-          "price": 629000,
-          "material": "Satin",
-          "fitType": "SLIM",
-          "imageKey": "lm-vay-slip-satin",
-          "colors": [
-            "Champagne",
-            "Đen"
-          ],
-          "styleTag": "Vintage",
-          "occasionTag": "Dự tiệc",
-          "sponsored": false
-        },
-        {
-          "name": "Blazer linen không lót",
-          "description": "Blazer unlined nhẹ, vai tự nhiên. Phối quần linen cùng bộ tone-on-tone.",
-          "category": "Áo khoác",
-          "price": 899000,
-          "material": "Linen pha",
-          "fitType": "RELAXED",
-          "imageKey": "lm-blazer-linen",
-          "colors": [
-            "Beige",
-            "Trắng"
-          ],
-          "styleTag": "Office",
-          "occasionTag": "Đi làm",
-          "sponsored": false
-        },
-        {
-          "name": "Cardigan dài len pha",
-          "description": "Cardigan maxi len mỏng, mặc như áo khoác nhẹ. Tone neutral signature của Linen Muse.",
-          "category": "Áo khoác",
-          "price": 659000,
-          "material": "Len pha",
-          "fitType": "RELAXED",
-          "imageKey": "lm-cardigan-dai",
-          "colors": [
-            "Cream",
-            "Xám"
-          ],
-          "styleTag": "Minimal",
-          "occasionTag": "Đi cafe",
-          "sponsored": false
-        },
-        {
-          "name": "Sandal da flat quai chéo",
-          "description": "Da thật quai chéo, đế cao su êm. Phối váy linen hoặc quần ống suông.",
-          "category": "Giày",
-          "price": 559000,
-          "material": "Da",
-          "fitType": "REGULAR",
-          "imageKey": "lm-sandal-quai-cheo",
-          "colors": [
-            "Nâu",
-            "Đen"
-          ],
-          "styleTag": "Minimal",
-          "occasionTag": "Dạo phố",
-          "sponsored": false
-        },
-        {
-          "name": "Sneaker da trắng minimal",
-          "description": "Upper da mịn, logo ẩn. Sneaker quiet luxury cho office casual.",
-          "category": "Giày",
-          "price": 899000,
-          "material": "Da",
-          "fitType": "REGULAR",
-          "imageKey": "lm-sneaker-da-trang",
-          "colors": [
-            "Trắng"
-          ],
-          "styleTag": "Minimal",
-          "occasionTag": "Đi làm",
-          "sponsored": false
-        },
-        {
-          "name": "Túi bucket da mềm",
-          "description": "Bucket bag da mềm, quai đeo chéo. Đựng phone, ví và son cho ngày thường.",
-          "category": "Phụ kiện",
-          "price": 799000,
-          "material": "Da",
-          "fitType": "REGULAR",
-          "imageKey": "lm-tui-bucket-da",
-          "colors": [
-            "Nâu",
-            "Đen"
-          ],
-          "styleTag": "Minimal",
-          "occasionTag": "Đi cafe",
-          "sponsored": true
-        },
-        {
-          "name": "Khăn linen phong cách Riviera",
-          "description": "Linen mỏng in họa tiết nhẹ, dùng làm khăn cổ hoặc quấn túi.",
-          "category": "Phụ kiện",
-          "price": 319000,
-          "material": "Linen",
-          "fitType": "REGULAR",
-          "imageKey": "lm-khan-linen-riviera",
-          "colors": [
+            "Đen",
             "Beige",
             "Xanh nhạt"
           ],
-          "styleTag": "Vintage",
-          "occasionTag": "Hẹn hò",
+          "sizes": [
+            "XS",
+            "S",
+            "M",
+            "L",
+            "XL"
+          ],
+          "styleTag": "Minimal",
+          "occasionTag": "Đi làm",
+          "targetGender": "FEMALE",
+          "purchaseUrl": "https://shopee.vn/product/106933589/24315877942",
+          "purchaseChannel": "SHOPEE",
           "sponsored": false
-        }
-      ]
-    },
-    {
-      "key": "seoul-basic",
-      "name": "Seoul Basic",
-      "description": "Basics chất lượng giá tốt — tee, hoodie và quần jogger theo trend Seoul daily wear.",
-      "logoUrl": "https://images.unsplash.com/photo-1489987707025-afc232f7ea0f?auto=format&fit=crop&w=200&h=200&q=80",
-      "contactEmail": "hello@seoulbasic.vn",
-      "websiteUrl": "https://seoulbasic.vn",
-      "shopeeUrl": "https://shopee.vn/seoulbasic",
-      "products": [
+        },
         {
-          "name": "Áo thun basic cổ tròn",
-          "description": "Cotton compact 220gsm, form regular fit. Có đủ bảng màu basic để mix capsule wardrobe.",
+          "name": "Quần tây ống đứng lưng cao GUMAC",
+          "description": "Quần tây ống đứng lưng cao GUMAC của GUMAC. Form vừa. Màu: Đen, Navy, Xám. Size: XS, S, M, L, XL, XXL, XXXL. Hợp phong cách Minimal, dịp đi làm.",
+          "category": "Quần",
+          "price": 419000,
+          "material": null,
+          "fitType": "REGULAR",
+          "images": [
+            "https://down-vn.img.susercontent.com/file/sg-11134201-8258e-mu0dpl34pbt30f",
+            "https://down-vn.img.susercontent.com/file/vn-11134207-81ztc-mpbzq9scpypt79",
+            "https://down-vn.img.susercontent.com/file/vn-11134207-81ztc-mpyv1711ibkb85",
+            "https://down-vn.img.susercontent.com/file/vn-11134207-81ztc-mpyv1711mj9q95",
+            "https://down-vn.img.susercontent.com/file/vn-11134207-81ztc-mn9octmpk6q02c",
+            "https://down-vn.img.susercontent.com/file/vn-11134207-81ztc-mn9octmiax35e8",
+            "https://down-vn.img.susercontent.com/file/vn-11134207-81ztc-mnkua94nryte11",
+            "https://down-vn.img.susercontent.com/file/vn-11134207-81ztc-mn9octmikr2cdf",
+            "https://down-vn.img.susercontent.com/file/vn-11134207-81ztc-mn9ol17qtaf936"
+          ],
+          "tryOnImage": "https://down-vn.img.susercontent.com/file/vn-11134207-81ztc-mn9ol17qtaf936",
+          "colors": [
+            "Đen",
+            "Navy",
+            "Xám"
+          ],
+          "sizes": [
+            "XS",
+            "S",
+            "M",
+            "L",
+            "XL",
+            "XXL",
+            "XXXL"
+          ],
+          "styleTag": "Minimal",
+          "occasionTag": "Đi làm",
+          "targetGender": "FEMALE",
+          "purchaseUrl": "https://shopee.vn/product/106933589/29838514888",
+          "purchaseChannel": "SHOPEE",
+          "sponsored": false
+        },
+        {
+          "name": "Chân váy chữ A công sở GUMAC",
+          "description": "Chân váy chữ A công sở GUMAC của GUMAC. Form vừa. Màu: Đen, Nâu, Beige, Xám. Size: XS, S, M, L, XL, XXL. Hợp phong cách Minimal, dịp đi làm.",
+          "category": "Váy",
+          "price": 330000,
+          "material": null,
+          "fitType": "REGULAR",
+          "images": [
+            "https://down-vn.img.susercontent.com/file/sg-11134201-825ad-mu0ds24r7hmu8f",
+            "https://down-vn.img.susercontent.com/file/vn-11134207-81ztc-moqleiruzgg1dd",
+            "https://down-vn.img.susercontent.com/file/vn-11134207-81ztc-mpyu3422g55950",
+            "https://down-vn.img.susercontent.com/file/vn-11134207-81ztc-mpyu341ygv7k3b",
+            "https://down-vn.img.susercontent.com/file/vn-11134207-81ztc-mo986ahlkr9k4e",
+            "https://down-vn.img.susercontent.com/file/vn-11134207-81ztc-mnmh1x772kn7b9",
+            "https://down-vn.img.susercontent.com/file/vn-11134207-81ztc-mnmh1x6hh43qdf",
+            "https://down-vn.img.susercontent.com/file/vn-11134207-81ztc-mnmh2vwu5xqa93",
+            "https://down-vn.img.susercontent.com/file/vn-11134207-81ztc-mnmh5c3vzxmt07"
+          ],
+          "tryOnImage": "https://down-vn.img.susercontent.com/file/vn-11134207-81ztc-mnmh5c3vzxmt07",
+          "colors": [
+            "Đen",
+            "Nâu",
+            "Beige",
+            "Xám"
+          ],
+          "sizes": [
+            "XS",
+            "S",
+            "M",
+            "L",
+            "XL",
+            "XXL"
+          ],
+          "styleTag": "Minimal",
+          "occasionTag": "Đi làm",
+          "targetGender": "FEMALE",
+          "purchaseUrl": "https://shopee.vn/product/106933589/18092462730",
+          "purchaseChannel": "SHOPEE",
+          "sponsored": false
+        },
+        {
+          "name": "Đầm chữ A phối nơ cổ GUMAC",
+          "description": "Đầm chữ A phối nơ cổ GUMAC của GUMAC. Chất liệu cotton. Form vừa. Màu: Navy, Cam. Size: XS, S, M, L, XL, XXL, XXXL. Hợp phong cách Minimal, dịp đi làm.",
+          "category": "Váy",
+          "price": 499000,
+          "material": "Cotton",
+          "fitType": "REGULAR",
+          "images": [
+            "https://down-vn.img.susercontent.com/file/sg-11134201-825aq-mu0ds2rs5koz66",
+            "https://down-vn.img.susercontent.com/file/vn-11134207-81ztc-mrib52ijiia4d4",
+            "https://down-vn.img.susercontent.com/file/vn-11134207-81ztc-mpyurkf8u03m0d",
+            "https://down-vn.img.susercontent.com/file/vn-11134207-81ztc-mpyurkfil6317b",
+            "https://down-vn.img.susercontent.com/file/vn-11134207-820l4-mjl9g4zlbeo5fa",
+            "https://down-vn.img.susercontent.com/file/vn-11134207-820l4-mjl9geti4j5uc4",
+            "https://down-vn.img.susercontent.com/file/vn-11134207-820l4-mjl9g4zq9ssm59",
+            "https://down-vn.img.susercontent.com/file/vn-11134207-820l4-mjl9getdoef9dd",
+            "https://down-vn.img.susercontent.com/file/vn-11134207-820l4-mjl9gmxt4k5ef3"
+          ],
+          "tryOnImage": "https://down-vn.img.susercontent.com/file/vn-11134207-820l4-mjl9gmxt4k5ef3",
+          "colors": [
+            "Navy",
+            "Cam"
+          ],
+          "sizes": [
+            "XS",
+            "S",
+            "M",
+            "L",
+            "XL",
+            "XXL",
+            "XXXL"
+          ],
+          "styleTag": "Minimal",
+          "occasionTag": "Đi làm",
+          "targetGender": "FEMALE",
+          "purchaseUrl": "https://shopee.vn/product/106933589/16986432364",
+          "purchaseChannel": "SHOPEE",
+          "sponsored": false
+        },
+        {
+          "name": "Áo polo nữ GUMAC cotton TICI",
+          "description": "Áo polo nữ GUMAC cotton TICI của GUMAC. Chất liệu thun tc. Form vừa. Màu: Trắng, Hồng, Đỏ đô, Cam. Size: S, M, L, XL, XXL, XXXL. Hợp phong cách Minimal, dịp đi làm.",
+          "category": "Áo",
+          "price": 198000,
+          "material": "Thun TC",
+          "fitType": "REGULAR",
+          "images": [
+            "https://down-vn.img.susercontent.com/file/sg-11134201-825ar-mu0dq9u2eqkh13",
+            "https://down-vn.img.susercontent.com/file/vn-11134207-81ztc-morso78gitxo43",
+            "https://down-vn.img.susercontent.com/file/vn-11134207-81ztc-mpkmk47ofqj2ab",
+            "https://down-vn.img.susercontent.com/file/vn-11134207-81ztc-mpyvzmsdys5o18",
+            "https://down-vn.img.susercontent.com/file/vn-11134207-81ztc-ms54zf5r78xxa8",
+            "https://down-vn.img.susercontent.com/file/vn-11134207-81ztc-ms54zidiby8803",
+            "https://down-vn.img.susercontent.com/file/vn-11134207-81ztc-ms54z9wbiolc6a",
+            "https://down-vn.img.susercontent.com/file/vn-11134207-81ztc-ms54zzh5pd6s49",
+            "https://down-vn.img.susercontent.com/file/vn-11134207-81ztc-mo3t7frlgmpv00"
+          ],
+          "tryOnImage": "https://down-vn.img.susercontent.com/file/vn-11134207-81ztc-mo3t7frlgmpv00",
+          "colors": [
+            "Trắng",
+            "Hồng",
+            "Đỏ đô",
+            "Cam"
+          ],
+          "sizes": [
+            "S",
+            "M",
+            "L",
+            "XL",
+            "XXL",
+            "XXXL"
+          ],
+          "styleTag": "Minimal",
+          "occasionTag": "Đi làm",
+          "targetGender": "FEMALE",
+          "purchaseUrl": "https://shopee.vn/product/106933589/4074576501",
+          "purchaseChannel": "SHOPEE",
+          "sponsored": false
+        },
+        {
+          "name": "Áo thun baby tee GUMAC thun gân",
+          "description": "Áo thun baby tee GUMAC thun gân của GUMAC. Chất liệu cotton. Form ôm. Màu: Đen, Hồng, Nâu, Xanh nhạt. Size: S, M, L, XL, XXL. Hợp phong cách Korean Casual, dịp đi cafe.",
           "category": "Áo",
           "price": 199000,
           "material": "Cotton",
-          "fitType": "REGULAR",
-          "imageKey": "sb-ao-thun-basic",
-          "colors": [
-            "Trắng",
-            "Đen",
-            "Xám"
-          ],
-          "styleTag": "Korean Casual",
-          "occasionTag": "Dạo phố",
-          "sponsored": false
-        },
-        {
-          "name": "Áo nỉ hoodie zip mỏng",
-          "description": "Nỉ bông mỏng, zip full. Layer trong áo khoác gió hoặc mặc riêng mùa thu.",
-          "category": "Áo khoác",
-          "price": 449000,
-          "material": "Cotton nỉ",
-          "fitType": "RELAXED",
-          "imageKey": "sb-ao-hoodie-zip",
-          "colors": [
-            "Xám",
-            "Đen"
-          ],
-          "styleTag": "Streetwear",
-          "occasionTag": "Dạo phố",
-          "sponsored": true
-        },
-        {
-          "name": "Áo len cổ tròn basic",
-          "description": "Len acrylic mịn, giá tốt. Màu earth tone dễ phối theo phong cách Seoul daily.",
-          "category": "Áo",
-          "price": 299000,
-          "material": "Len acrylic",
-          "fitType": "REGULAR",
-          "imageKey": "sb-ao-len-basic",
-          "colors": [
-            "Beige",
-            "Navy"
-          ],
-          "styleTag": "Korean Casual",
-          "occasionTag": "Đi cafe",
-          "sponsored": false
-        },
-        {
-          "name": "Quần jogger cotton fleece",
-          "description": "Jogger nỉ bông trong, bo gấu. Comfort wear trend Hàn Quốc, phối sneaker chunky.",
-          "category": "Quần",
-          "price": 379000,
-          "material": "Cotton fleece",
-          "fitType": "RELAXED",
-          "imageKey": "sb-quan-jogger-fleece",
-          "colors": [
-            "Xám",
-            "Đen"
-          ],
-          "styleTag": "Streetwear",
-          "occasionTag": "Dạo phố",
-          "sponsored": false
-        },
-        {
-          "name": "Quần jeans đen slim",
-          "description": "Denim đen wash solid, form slim không quá chật. Basic đi học, đi làm đều được.",
-          "category": "Quần",
-          "price": 429000,
-          "material": "Denim",
           "fitType": "SLIM",
-          "imageKey": "sb-quan-jeans-den-slim",
-          "colors": [
-            "Đen"
+          "images": [
+            "https://down-vn.img.susercontent.com/file/sg-11134201-825b2-mu0dpmghenlt80",
+            "https://down-vn.img.susercontent.com/file/vn-11134207-81ztc-mlnckcoh32f9d3",
+            "https://down-vn.img.susercontent.com/file/vn-11134207-81ztc-mlg6n0u44xs2a8",
+            "https://down-vn.img.susercontent.com/file/vn-11134207-81ztc-mpyufyrm48we21",
+            "https://down-vn.img.susercontent.com/file/vn-11134207-81ztc-mpyufyroawpb56",
+            "https://down-vn.img.susercontent.com/file/vn-11134207-81ztc-mnmha33g64g583",
+            "https://down-vn.img.susercontent.com/file/vn-11134207-81ztc-mnmha33g4pvp66",
+            "https://down-vn.img.susercontent.com/file/vn-11134207-81ztc-mnmhcylns2ro4f"
           ],
-          "styleTag": "Korean Casual",
-          "occasionTag": "Đi làm",
-          "sponsored": false
-        },
-        {
-          "name": "Chân váy tennis xếp ly",
-          "description": "Vải polyester giữ ly, dài trên gối. Phối áo thun tuck-in kiểu preppy Seoul.",
-          "category": "Váy",
-          "price": 349000,
-          "material": "Polyester",
-          "fitType": "REGULAR",
-          "imageKey": "sb-chan-vay-tennis-ly",
+          "tryOnImage": "https://down-vn.img.susercontent.com/file/vn-11134207-81ztc-mnmhcylns2ro4f",
           "colors": [
             "Đen",
-            "Navy"
+            "Hồng",
+            "Nâu",
+            "Xanh nhạt"
+          ],
+          "sizes": [
+            "S",
+            "M",
+            "L",
+            "XL",
+            "XXL"
           ],
           "styleTag": "Korean Casual",
           "occasionTag": "Đi cafe",
+          "targetGender": "FEMALE",
+          "purchaseUrl": "https://shopee.vn/product/106933589/29801063380",
+          "purchaseChannel": "SHOPEE",
           "sponsored": false
         },
         {
-          "name": "Váy hoodie dress",
-          "description": "Hoodie dress cotton nỉ, túi kangaroo. Streetwear nữ tính kiểu Hongdae.",
-          "category": "Váy",
-          "price": 399000,
-          "material": "Cotton nỉ",
-          "fitType": "OVERSIZE",
-          "imageKey": "sb-vay-hoodie-dress",
-          "colors": [
-            "Xám",
-            "Beige"
+          "name": "Quần jeans dáng suông GUMAC",
+          "description": "Quần jeans dáng suông GUMAC của GUMAC. Form rộng thoải mái. Màu: Xanh nhạt. Size: S, M, L, XL, XXL. Hợp phong cách Minimal, dịp đi cafe.",
+          "category": "Quần",
+          "price": 524000,
+          "material": null,
+          "fitType": "RELAXED",
+          "images": [
+            "https://down-vn.img.susercontent.com/file/sg-11134201-8258o-mu0dr8135z40d5",
+            "https://down-vn.img.susercontent.com/file/vn-11134207-820l4-mhpnhhsqg1zaff",
+            "https://down-vn.img.susercontent.com/file/vn-11134207-81ztc-mpyvk26fsxkx28",
+            "https://down-vn.img.susercontent.com/file/vn-11134207-81ztc-mpyvk268cn4251",
+            "https://down-vn.img.susercontent.com/file/vn-11134207-81ztc-mnmev94tji81cf",
+            "https://down-vn.img.susercontent.com/file/vn-11134207-81ztc-mnmev94v7wn9ac",
+            "https://down-vn.img.susercontent.com/file/vn-11134207-81ztc-mnmev94v6i2tcf",
+            "https://down-vn.img.susercontent.com/file/vn-11134207-81ztc-mnmev94q2hogc3",
+            "https://down-vn.img.susercontent.com/file/vn-11134207-81ztc-mnmezls2yr5u9a"
           ],
-          "styleTag": "Streetwear",
-          "occasionTag": "Dạo phố",
-          "sponsored": true
+          "tryOnImage": "https://down-vn.img.susercontent.com/file/vn-11134207-81ztc-mnmezls2yr5u9a",
+          "colors": [
+            "Xanh nhạt"
+          ],
+          "sizes": [
+            "S",
+            "M",
+            "L",
+            "XL",
+            "XXL"
+          ],
+          "styleTag": "Minimal",
+          "occasionTag": "Đi cafe",
+          "targetGender": "FEMALE",
+          "purchaseUrl": "https://shopee.vn/product/106933589/26268174968",
+          "purchaseChannel": "SHOPEE",
+          "sponsored": false
         },
         {
-          "name": "Áo khoác gió chống nước",
-          "description": "Vải nylon mỏng, gấp gọn túi. Essential cho commute và du lịch cuối tuần.",
-          "category": "Áo khoác",
-          "price": 499000,
-          "material": "Nylon",
-          "fitType": "REGULAR",
-          "imageKey": "sb-ao-khoac-gio",
+          "name": "Áo kiểu lửng xẻ V GUMAC",
+          "description": "Áo kiểu lửng xẻ V GUMAC của GUMAC. Chất liệu bố. Form ôm. Màu: Đen, Beige, Vàng, Trắng. Size: S, M, L, XL, XXL, XXXL. Hợp phong cách Minimal, dịp đi làm.",
+          "category": "Áo",
+          "price": 429000,
+          "material": "Bố",
+          "fitType": "SLIM",
+          "images": [
+            "https://down-vn.img.susercontent.com/file/sg-11134201-8258q-mu0drfmv2f4521",
+            "https://down-vn.img.susercontent.com/file/vn-11134207-820l4-mhpmej4ggf0g5b",
+            "https://down-vn.img.susercontent.com/file/vn-11134207-81ztc-mpyu7lc3irri7c",
+            "https://down-vn.img.susercontent.com/file/vn-11134207-81ztc-mpyu7lc04kcv2b",
+            "https://down-vn.img.susercontent.com/file/vn-11134207-81ztc-mnmhnqyri2gx08",
+            "https://down-vn.img.susercontent.com/file/vn-11134207-81ztc-mnmhnqyvbq4j12",
+            "https://down-vn.img.susercontent.com/file/vn-11134207-81ztc-mnmhnqyvabk39e",
+            "https://down-vn.img.susercontent.com/file/vn-11134207-81ztc-mnmhnqyvd4oz13",
+            "https://down-vn.img.susercontent.com/file/vn-11134207-81ztc-mrb9rxecuhhd06"
+          ],
+          "tryOnImage": "https://down-vn.img.susercontent.com/file/vn-11134207-81ztc-mrb9rxecuhhd06",
           "colors": [
             "Đen",
-            "Beige"
-          ],
-          "styleTag": "Streetwear",
-          "occasionTag": "Dạo phố",
-          "sponsored": false
-        },
-        {
-          "name": "Sneaker chunky đế cao",
-          "description": "Đế 4cm trend dad shoe, upper pha da & mesh. Điểm nhấn cho outfit basic.",
-          "category": "Giày",
-          "price": 559000,
-          "material": "Da PU",
-          "fitType": "REGULAR",
-          "imageKey": "sb-sneaker-chunky",
-          "colors": [
-            "Trắng",
-            "Beige"
-          ],
-          "styleTag": "Streetwear",
-          "occasionTag": "Dạo phố",
-          "sponsored": false
-        },
-        {
-          "name": "Giày slip-on canvas",
-          "description": "Slip-on tiện lợi, đế cao su bền. Mang nhanh cho ngày bận rộn.",
-          "category": "Giày",
-          "price": 329000,
-          "material": "Canvas",
-          "fitType": "REGULAR",
-          "imageKey": "sb-giay-slipon-canvas",
-          "colors": [
-            "Đen",
+            "Beige",
+            "Vàng",
             "Trắng"
           ],
-          "styleTag": "Korean Casual",
-          "occasionTag": "Đi cafe",
+          "sizes": [
+            "S",
+            "M",
+            "L",
+            "XL",
+            "XXL",
+            "XXXL"
+          ],
+          "styleTag": "Minimal",
+          "occasionTag": "Đi làm",
+          "targetGender": "FEMALE",
+          "purchaseUrl": "https://shopee.vn/product/106933589/25637671692",
+          "purchaseChannel": "SHOPEE",
           "sponsored": false
         },
         {
-          "name": "Balo mini nylon",
-          "description": "Balo size mini, nhiều ngăn. Phong cách học sinh đại học Seoul.",
-          "category": "Phụ kiện",
-          "price": 359000,
-          "material": "Nylon",
+          "name": "Chân váy xếp ly dáng dài GUMAC",
+          "description": "Chân váy xếp ly dáng dài GUMAC của GUMAC. Form vừa. Màu: Đen, Đỏ đô, Nâu, Xám. Size: XS, S, M, L, XL, XXL. Hợp phong cách Minimal, dịp đi làm.",
+          "category": "Váy",
+          "price": 399000,
+          "material": null,
           "fitType": "REGULAR",
-          "imageKey": "sb-balo-mini-nylon",
+          "images": [
+            "https://down-vn.img.susercontent.com/file/sg-11134201-8257z-mu0dru41mryg64",
+            "https://down-vn.img.susercontent.com/file/vn-11134207-81ztc-morsmfp0vo5d25",
+            "https://down-vn.img.susercontent.com/file/vn-11134207-81ztc-mpyvqv5jso3w88",
+            "https://down-vn.img.susercontent.com/file/vn-11134207-81ztc-mpyvqv5mes5e93",
+            "https://down-vn.img.susercontent.com/file/vn-11134207-81ztc-mnmhnqyx75dw2f",
+            "https://down-vn.img.susercontent.com/file/vn-11134207-81ztc-mkar9i8h6sque9",
+            "https://down-vn.img.susercontent.com/file/vn-11134207-81ztc-mkhoctnoadqc2a",
+            "https://down-vn.img.susercontent.com/file/vn-11134207-81ztc-mnmhxnvtcxzad5",
+            "https://down-vn.img.susercontent.com/file/vn-11134207-81ztc-mnmhznt2l1c0d8"
+          ],
+          "tryOnImage": "https://down-vn.img.susercontent.com/file/vn-11134207-81ztc-mnmhznt2l1c0d8",
           "colors": [
             "Đen",
-            "Navy"
+            "Đỏ đô",
+            "Nâu",
+            "Xám"
           ],
-          "styleTag": "Streetwear",
-          "occasionTag": "Dạo phố",
+          "sizes": [
+            "XS",
+            "S",
+            "M",
+            "L",
+            "XL",
+            "XXL"
+          ],
+          "styleTag": "Minimal",
+          "occasionTag": "Đi làm",
+          "targetGender": "FEMALE",
+          "purchaseUrl": "https://shopee.vn/product/106933589/24305490065",
+          "purchaseChannel": "SHOPEE",
           "sponsored": false
         },
         {
-          "name": "Mũ bucket reversible",
-          "description": "Bucket hai mặt màu, cotton canvas. Phụ kiện streetwear giá học sinh.",
-          "category": "Phụ kiện",
-          "price": 179000,
-          "material": "Canvas",
+          "name": "Giày cao gót mũi nhọn GUMAC",
+          "description": "Giày cao gót mũi nhọn GUMAC của GUMAC. Form vừa. Màu: Nâu, Đen, Cream. Size: 35, 36, 37, 38, 39. Hợp phong cách Minimal, dịp đi làm.",
+          "category": "Giày",
+          "price": 495000,
+          "material": null,
           "fitType": "REGULAR",
-          "imageKey": "sb-mu-bucket",
-          "colors": [
-            "Beige",
-            "Đen"
+          "images": [
+            "https://down-vn.img.susercontent.com/file/sg-11134201-8259i-mu0dpzen318h44",
+            "https://down-vn.img.susercontent.com/file/sg-11134201-824gu-mfhp0o0a0c9799",
+            "https://down-vn.img.susercontent.com/file/vn-11134207-820l4-mjp1jk1nnrwkf1",
+            "https://down-vn.img.susercontent.com/file/vn-11134207-820l4-mjp1jk1ni5mr0c",
+            "https://down-vn.img.susercontent.com/file/vn-11134207-820l4-mjp1jk1ngr2b67",
+            "https://down-vn.img.susercontent.com/file/vn-11134207-820l4-mjp1jk1np6h081",
+            "https://down-vn.img.susercontent.com/file/vn-11134207-820l4-mjp1jk1uddl169",
+            "https://down-vn.img.susercontent.com/file/vn-11134207-820l4-mjp1jqglo5qf99"
           ],
-          "styleTag": "Streetwear",
-          "occasionTag": "Dạo phố",
+          "tryOnImage": null,
+          "colors": [
+            "Nâu",
+            "Đen",
+            "Cream"
+          ],
+          "sizes": [
+            "35",
+            "36",
+            "37",
+            "38",
+            "39"
+          ],
+          "styleTag": "Minimal",
+          "occasionTag": "Đi làm",
+          "targetGender": "FEMALE",
+          "purchaseUrl": "https://shopee.vn/product/106933589/29079903892",
+          "purchaseChannel": "SHOPEE",
           "sponsored": false
         }
       ]

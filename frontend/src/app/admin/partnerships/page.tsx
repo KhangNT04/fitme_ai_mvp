@@ -97,7 +97,7 @@ export default function AdminPartnershipsPage() {
         <h2 className="text-sm font-semibold">Đang active</h2>
         {(partnershipsQuery.data ?? []).length === 0 ? (
           <p className="rounded-xl border border-dashed border-border/70 p-4 text-sm text-muted-foreground">
-            Chưa có partnership. Seed mặc định: K-Style House ↔ Seoul Basic (nếu catalog seed còn).
+            Chưa có partnership. Thêm cặp brand cùng phân khúc ở form bên trên.
           </p>
         ) : (
           (partnershipsQuery.data as BrandPartnership[]).map((p) => (

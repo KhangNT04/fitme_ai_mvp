@@ -17,6 +17,7 @@ import com.fitme.common.enums.ItemRole;
 import com.fitme.tryon.dto.*;
 import com.fitme.product.entity.Product;
 import com.fitme.product.repository.ProductRepository;
+import com.fitme.product.service.ProductEligibilityService;
 import com.fitme.recommendation.dto.RecommendationResponse;
 import com.fitme.recommendation.service.OutfitCompositionService;
 import com.fitme.recommendation.service.SizeResolutionService;
@@ -61,6 +62,7 @@ public class TryOnService {
     private final AiVtonClient aiVtonClient;
     private final TryOnAvatarService tryOnAvatarService;
     private final PlusFreeTryOnService plusFreeTryOnService;
+    private final ProductEligibilityService eligibilityService;
 
     @Transactional
     public TryOnResponse create(CreateTryOnRequest request) {
@@ -117,7 +119,7 @@ public class TryOnService {
         }
         Product product = productRepository.findById(request.getProductId())
                 .orElseThrow(() -> new NotFoundException("Sản phẩm không tồn tại"));
-        if (product.getStatus() != ProductStatus.ACTIVE || !product.isAiTryOnEligible()) {
+        if (!isTryOnReady(product)) {
             throw new BusinessException("Sản phẩm này chưa hỗ trợ thử đồ AI", "TRY_ON_NOT_ELIGIBLE");
         }
 
@@ -168,6 +170,7 @@ public class TryOnService {
         if (items.isEmpty()) {
             throw new BusinessException("Cần thêm ít nhất một sản phẩm");
         }
+        requireItemsStillTryOnReady(items);
 
         UUID chargeUserId = null;
         boolean preferFreeTry = false;
@@ -458,6 +461,29 @@ public class TryOnService {
         }
         analyticsService.track(eventType, tryOn.getUserId(), tryOn.getSessionId(),
                 null, request.getProductId(), null, tryOnId, null);
+    }
+
+    /** Listed, eligible and with the brand's TRY_ON image: the only garment photo AI try-on may render. */
+    private boolean isTryOnReady(Product product) {
+        return product.getStatus() == ProductStatus.ACTIVE
+                && product.isAiTryOnEligible()
+                && eligibilityService.hasTryOnImage(product.getId());
+    }
+
+    /**
+     * Items added earlier may have been hidden, made ineligible or lost their TRY_ON image since; generating
+     * would otherwise render a different photo (or skip the garment) and still charge the user.
+     */
+    private void requireItemsStillTryOnReady(List<TryOnItem> items) {
+        for (TryOnItem item : items) {
+            Product product = productRepository.findById(item.getProductId()).orElse(null);
+            if (product == null || !isTryOnReady(product)) {
+                String name = product != null ? "«" + product.getName() + "»" : "Một sản phẩm trong bộ đồ";
+                throw new BusinessException(
+                        name + " không còn hỗ trợ thử đồ AI. Hãy bỏ món này và chọn sản phẩm khác.",
+                        "TRY_ON_ITEM_UNAVAILABLE");
+            }
+        }
     }
 
     private TryOnRequest getOwned(UUID id) {

@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef, useState } from "react";
-import { ImagePlus, Loader2, Upload, X } from "lucide-react";
+import { ImagePlus, Loader2, Sparkles, Upload, X } from "lucide-react";
 import { Label } from "@/components/ui/label";
 import { AppImage } from "@/components/common/AppImage";
 import { validateImageFile } from "@/lib/upload-file";
@@ -112,6 +112,10 @@ interface BrandProductImagesUploadProps {
   value: string;
   onChange: (value: string) => void;
   onUpload: (file: File) => Promise<string>;
+  /** Image currently used for AI try-on. */
+  tryOnImage?: string;
+  /** Omit for categories that cannot be tried on; hides the picker. */
+  onTryOnImageChange?: (url: string) => void;
   disabled?: boolean;
 }
 
@@ -126,8 +130,11 @@ export function BrandProductImagesUpload({
   value,
   onChange,
   onUpload,
+  tryOnImage,
+  onTryOnImageChange,
   disabled,
 }: BrandProductImagesUploadProps) {
+  const canPickTryOn = !!onTryOnImageChange;
   const inputRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState("");
@@ -172,12 +179,42 @@ export function BrandProductImagesUpload({
     <div>
       <Label>Ảnh sản phẩm</Label>
       <p className="mt-1 text-xs text-muted-foreground">Tải ảnh từ thiết bị hoặc dán URL bên dưới. Cần ít nhất 1 ảnh.</p>
+      {canPickTryOn && images.length > 0 && (
+        <p className="mt-1 text-xs text-muted-foreground">
+          Bấm <span className="font-medium text-foreground">Dùng ảnh này để thử đồ</span> trên ảnh rõ món đồ nhất: chụp chính
+          diện, thấy trọn sản phẩm, nền trơn, không bị che hay ghép nhiều ảnh. Ảnh người mẫu mặc đứng thẳng cũng được.
+        </p>
+      )}
 
       {images.length > 0 && (
         <div className="mt-3 grid grid-cols-3 gap-2 sm:grid-cols-4">
-          {images.map((url, index) => (
-            <div key={`${url}-${index}`} className="group relative aspect-[3/4] overflow-hidden rounded-xl border border-border/60 bg-muted/30">
+          {images.map((url, index) => {
+            const isTryOn = canPickTryOn && url === tryOnImage;
+            return (
+            <div
+              key={`${url}-${index}`}
+              className={cn(
+                "group relative aspect-[3/4] overflow-hidden rounded-xl border bg-muted/30",
+                isTryOn ? "border-primary ring-2 ring-primary" : "border-border/60",
+              )}
+            >
               <AppImage src={url} alt="" fill className="object-cover" sizes="120px" unoptimized />
+              {canPickTryOn &&
+                (isTryOn ? (
+                  <span className="absolute inset-x-1 bottom-1 flex items-center justify-center gap-1 rounded-full bg-primary px-2 py-0.5 text-[10px] font-semibold text-primary-foreground">
+                    <Sparkles className="h-3 w-3" aria-hidden="true" />
+                    Ảnh thử đồ AI
+                  </span>
+                ) : (
+                  <button
+                    type="button"
+                    disabled={disabled || uploading}
+                    onClick={() => onTryOnImageChange?.(url)}
+                    className="absolute inset-x-1 bottom-1 rounded-lg bg-black/55 px-1.5 py-0.5 text-[10px] font-medium leading-tight text-white transition-opacity sm:opacity-0 sm:group-hover:opacity-100 sm:focus:opacity-100"
+                  >
+                    Dùng ảnh này để thử đồ
+                  </button>
+                ))}
               <button
                 type="button"
                 aria-label="Xóa ảnh"
@@ -188,7 +225,8 @@ export function BrandProductImagesUpload({
                 <X className="h-3.5 w-3.5" />
               </button>
             </div>
-          ))}
+            );
+          })}
         </div>
       )}
 

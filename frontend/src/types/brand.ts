@@ -56,5 +56,7 @@ export interface CreateProductRequest {
   purchaseUrl: string;
   description?: string;
   images?: string[];
+  /** One of `images`: the garment photo AI try-on renders. */
+  tryOnImage?: string;
   sizeCharts?: SizeChartRow[];
 }

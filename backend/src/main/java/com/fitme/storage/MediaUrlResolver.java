@@ -4,6 +4,8 @@ import com.fitme.common.config.FitMeProperties;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
+import java.util.Optional;
+
 @Component
 @RequiredArgsConstructor
 public class MediaUrlResolver {
@@ -30,6 +32,19 @@ public class MediaUrlResolver {
             }
         }
         return joinBase(resolveBackendBaseUrl(), value);
+    }
+
+    /** Direct public object URL (R2 public bucket) for a stored path; empty when storage is not public R2. */
+    public Optional<String> directPublicUrl(String storedPath) {
+        if (storedPath == null || storedPath.isBlank() || !isR2Mode()) {
+            return Optional.empty();
+        }
+        String r2Base = properties.getStorage().getR2().getPublicBaseUrl();
+        if (r2Base == null || r2Base.isBlank()) {
+            return Optional.empty();
+        }
+        String objectKey = R2StorageService.extractObjectKey(StoredMediaPaths.normalizeToUploadPath(storedPath), null);
+        return Optional.of(R2StorageService.buildPublicUrl(r2Base, objectKey));
     }
 
     /**

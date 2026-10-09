@@ -27,26 +27,40 @@ public class FashionCatalogSeeder {
     private static final Logger log = LoggerFactory.getLogger(FashionCatalogSeeder.class);
     private static final String LEGACY_DEMO_PREFIX = "Sản phẩm demo ";
     /** Bump when seeded product fields change so existing databases re-sync on startup. */
-    private static final String CATALOG_META_TAG = "catalog-v8";
-    private static final String[] SIZES = {"S", "M", "L", "XL"};
-    /** Per size (same order as SIZES): chest, waist, hip, heightMin, heightMax, weightMin, weightMax. */
+    private static final String CATALOG_META_TAG = "catalog-v9";
+    private static final List<String> DEFAULT_SIZES = List.of("S", "M", "L", "XL");
+    private static final List<String> STANDARD_SIZES = List.of("XS", "S", "M", "L", "XL", "XXL", "XXXL");
+    /** Per size (same order as STANDARD_SIZES): chest, waist, hip, heightMin, heightMax, weightMin, weightMax. */
     private static final int[][] SIZE_CHART = {
+            {80, 62, 84, 140, 155, 33, 45},
             {84, 66, 88, 145, 162, 38, 52},
             {90, 72, 94, 158, 170, 48, 62},
             {96, 78, 100, 166, 178, 58, 72},
             {102, 84, 106, 174, 190, 68, 90},
+            {108, 90, 112, 176, 192, 80, 100},
+            {114, 96, 118, 178, 194, 90, 110},
     };
-    private static final Map<String, String> COLOR_HEX = Map.of(
-            "Trắng", "#FFFFFF",
-            "Đen", "#111111",
-            "Navy", "#1F2A44",
-            "Beige", "#D8C3A5",
-            "Olive", "#6B7B3A",
-            "Xanh nhạt", "#A7C7E7",
-            "Nâu", "#7B4B2A",
-            "Xám", "#8E8E8E",
-            "Cream", "#F3E9D2",
-            "Champagne", "#E8D4B0");
+    private static final int[] FREE_SIZE_ROW = {92, 74, 96, 150, 172, 42, 65};
+    private static final Map<String, String> COLOR_HEX = Map.ofEntries(
+            Map.entry("Trắng", "#FFFFFF"),
+            Map.entry("Đen", "#111111"),
+            Map.entry("Navy", "#1F2A44"),
+            Map.entry("Beige", "#D8C3A5"),
+            Map.entry("Olive", "#6B7B3A"),
+            Map.entry("Xanh nhạt", "#A7C7E7"),
+            Map.entry("Xanh dương", "#3B6FB6"),
+            Map.entry("Xanh lá", "#4F7A4A"),
+            Map.entry("Nâu", "#7B4B2A"),
+            Map.entry("Xám", "#8E8E8E"),
+            Map.entry("Cream", "#F3E9D2"),
+            Map.entry("Kem", "#F3E9D2"),
+            Map.entry("Champagne", "#E8D4B0"),
+            Map.entry("Hồng", "#F2B8C6"),
+            Map.entry("Đỏ", "#C62828"),
+            Map.entry("Đỏ đô", "#7B1E2B"),
+            Map.entry("Tím", "#8E6BBF"),
+            Map.entry("Cam", "#E67E22"),
+            Map.entry("Vàng", "#F2D16B"));
     private static final String DEFAULT_COLOR_HEX = "#333333";
 
     private final FashionCatalogLoader catalogLoader;
@@ -55,6 +69,7 @@ public class FashionCatalogSeeder {
     private final ProductVariantRepository variantRepository;
     private final ProductTagRepository tagRepository;
     private final SizeChartRepository sizeChartRepository;
+    private final CatalogMediaService catalogMediaService;
 
     public int seedBrandCatalog(Brand brand, FashionCatalogLoader.BrandEntry entry) {
         int created = 0;
@@ -156,15 +171,28 @@ public class FashionCatalogSeeder {
         product.setMaterial(entry.material);
         product.setFitType(fitType);
         product.setPurchaseUrl(purchaseUrl(brand, brandKey, entry));
-        product.setPurchaseChannel(PurchaseChannel.BRAND_WEBSITE);
+        product.setPurchaseChannel(purchaseChannel(entry));
         product.setStockStatus(StockStatus.IN_STOCK);
         product.setStatus(ProductStatus.ACTIVE);
         product.setSponsored(entry.sponsored);
-        product.setAiTryOnEligible(isTryOnCategory(entry.category));
-        productRepository.save(product);
 
+        String brandTryOnPick = currentTryOnImage(product.getId());
         clearRelatedData(product.getId());
-        saveRelatedData(product.getId(), brandKey, entry, seq);
+        boolean hasTryOn = saveRelatedData(product.getId(), brandKey, entry, seq, brandTryOnPick);
+        product.setAiTryOnEligible(hasTryOn && isTryOnCategory(entry.category));
+        productRepository.save(product);
+    }
+
+    private String currentTryOnImage(UUID productId) {
+        return imageRepository.findByProductIdOrderBySortOrderAsc(productId).stream()
+                .filter(img -> ProductImage.TYPE_TRY_ON.equals(img.getImageType()))
+                .map(ProductImage::getImageUrl)
+                .findFirst()
+                .orElse(null);
+    }
+
+    private static List<String> sizesOf(FashionCatalogLoader.ProductEntry entry) {
+        return entry.sizes != null && !entry.sizes.isEmpty() ? entry.sizes : DEFAULT_SIZES;
     }
 
     private static List<String> colorsOf(FashionCatalogLoader.ProductEntry entry) {
@@ -185,7 +213,7 @@ public class FashionCatalogSeeder {
         }
 
         Set<String> wanted = new HashSet<>();
-        for (String size : SIZES) {
+        for (String size : sizesOf(entry)) {
             for (String color : colorsOf(entry)) {
                 String key = variantKey(size, color);
                 wanted.add(key);
@@ -212,7 +240,7 @@ public class FashionCatalogSeeder {
                 .colorName(color)
                 .colorHex(colorHex(color))
                 .sizeLabel(size)
-                .sku("FITME-" + brandKey + "-" + seq + "-" + size + "-" + color.charAt(0))
+                .sku("FITME-" + brandKey + "-" + seq + "-" + size.replace(' ', '-') + "-" + color.charAt(0))
                 .stockStatus(StockStatus.IN_STOCK)
                 .build();
     }
@@ -237,14 +265,15 @@ public class FashionCatalogSeeder {
                 .material(entry.material)
                 .fitType(fitType)
                 .purchaseUrl(purchaseUrl(brand, brandKey, entry))
-                .purchaseChannel(PurchaseChannel.BRAND_WEBSITE)
+                .purchaseChannel(purchaseChannel(entry))
                 .stockStatus(StockStatus.IN_STOCK)
                 .status(ProductStatus.ACTIVE)
                 .isSponsored(entry.sponsored)
-                .aiTryOnEligible(isTryOnCategory(entry.category))
                 .build());
 
-        saveRelatedData(product.getId(), brandKey, entry, seq);
+        boolean hasTryOn = saveRelatedData(product.getId(), brandKey, entry, seq, null);
+        product.setAiTryOnEligible(hasTryOn && isTryOnCategory(entry.category));
+        productRepository.save(product);
     }
 
     private void clearRelatedData(UUID productId) {
@@ -253,18 +282,34 @@ public class FashionCatalogSeeder {
         sizeChartRepository.findByProductId(productId).forEach(sizeChartRepository::delete);
     }
 
-    private void saveRelatedData(UUID productId, String brandKey, FashionCatalogLoader.ProductEntry entry, int seq) {
-        FashionCatalogLoader.FashionCatalog catalog = catalogLoader.load();
-        List<String> imageUrls = catalog.images.get(entry.imageKey);
-        if (imageUrls == null || imageUrls.isEmpty()) {
-            throw new IllegalStateException("Missing image key: " + entry.imageKey);
+    /**
+     * Saves gallery, variants, tags and size chart. A try-on pick the brand made in the portal survives
+     * catalog re-syncs while that photo is still in the gallery. Returns whether a try-on image was set.
+     */
+    private boolean saveRelatedData(
+            UUID productId,
+            String brandKey,
+            FashionCatalogLoader.ProductEntry entry,
+            int seq,
+            String brandTryOnPick) {
+        List<String> sourceUrls = galleryOf(entry);
+        String tryOnSource = null;
+        if (isTryOnCategory(entry.category)) {
+            tryOnSource = sourceUrls.stream()
+                    .filter(source -> catalogMediaService.refersTo(brandTryOnPick, source))
+                    .findFirst()
+                    .orElse(entry.tryOnImage);
         }
 
-        for (int i = 0; i < imageUrls.size(); i++) {
+        boolean tryOnSaved = false;
+        for (int i = 0; i < sourceUrls.size(); i++) {
+            String source = sourceUrls.get(i);
+            boolean isTryOn = !tryOnSaved && source.equals(tryOnSource);
+            tryOnSaved |= isTryOn;
             imageRepository.save(ProductImage.builder()
                     .productId(productId)
-                    .imageUrl(imageUrls.get(i))
-                    .imageType(i == 0 ? "MAIN" : "DETAIL")
+                    .imageUrl(catalogMediaService.resolve(source))
+                    .imageType(isTryOn ? ProductImage.TYPE_TRY_ON : i == 0 ? ProductImage.TYPE_MAIN : ProductImage.TYPE_DETAIL)
                     .sortOrder(i)
                     .build());
         }
@@ -289,7 +334,7 @@ public class FashionCatalogSeeder {
         tagRepository.save(ProductTag.builder()
                 .productId(productId)
                 .tagType("TARGET_GENDER")
-                .tagValue(inferTargetGender(entry).name())
+                .tagValue(targetGender(entry).name())
                 .build());
         tagRepository.save(ProductTag.builder()
                 .productId(productId)
@@ -302,11 +347,12 @@ public class FashionCatalogSeeder {
                 .tagValue(CATALOG_META_TAG)
                 .build());
 
-        for (int i = 0; i < SIZES.length; i++) {
-            int[] row = SIZE_CHART[i];
+        List<String> sizes = sizesOf(entry);
+        for (int i = 0; i < sizes.size(); i++) {
+            int[] row = sizeChartRow(sizes.get(i), i);
             sizeChartRepository.save(SizeChart.builder()
                     .productId(productId)
-                    .sizeLabel(SIZES[i])
+                    .sizeLabel(sizes.get(i))
                     .chestCm(BigDecimal.valueOf(row[0]))
                     .waistCm(BigDecimal.valueOf(row[1]))
                     .hipCm(BigDecimal.valueOf(row[2]))
@@ -316,6 +362,52 @@ public class FashionCatalogSeeder {
                     .weightMaxKg(BigDecimal.valueOf(row[6]))
                     .build());
         }
+        return tryOnSaved;
+    }
+
+    private List<String> galleryOf(FashionCatalogLoader.ProductEntry entry) {
+        List<String> imageUrls = entry.images != null && !entry.images.isEmpty()
+                ? entry.images
+                : catalogLoader.load().images != null ? catalogLoader.load().images.get(entry.imageKey) : null;
+        if (imageUrls == null || imageUrls.isEmpty()) {
+            throw new IllegalStateException("No images for catalog product: " + entry.name);
+        }
+        return imageUrls;
+    }
+
+    /** Standard letter sizes use the graduated chart; other labels (jeans waist, free size) follow list order. */
+    private static int[] sizeChartRow(String size, int index) {
+        String label = size.trim().toUpperCase();
+        int standard = STANDARD_SIZES.indexOf(label);
+        if (standard >= 0) {
+            return SIZE_CHART[standard];
+        }
+        if (label.startsWith("FREE")) {
+            return FREE_SIZE_ROW;
+        }
+        return SIZE_CHART[Math.min(index + 1, SIZE_CHART.length - 1)];
+    }
+
+    private static ProductTargetGender targetGender(FashionCatalogLoader.ProductEntry entry) {
+        if (entry.targetGender != null) {
+            try {
+                return ProductTargetGender.valueOf(entry.targetGender);
+            } catch (IllegalArgumentException ignored) {
+                // fall through to inference
+            }
+        }
+        return inferTargetGender(entry);
+    }
+
+    private static PurchaseChannel purchaseChannel(FashionCatalogLoader.ProductEntry entry) {
+        if (entry.purchaseChannel != null && UrlValidator.isValidHttpUrl(entry.purchaseUrl)) {
+            try {
+                return PurchaseChannel.valueOf(entry.purchaseChannel);
+            } catch (IllegalArgumentException ignored) {
+                // fall through to the brand website
+            }
+        }
+        return PurchaseChannel.BRAND_WEBSITE;
     }
 
     private static ProductTargetGender inferTargetGender(FashionCatalogLoader.ProductEntry entry) {
@@ -339,11 +431,17 @@ public class FashionCatalogSeeder {
     }
 
     private static boolean isTryOnCategory(String category) {
-        return !"Phụ kiện".equals(category);
+        return !"Phụ kiện".equals(category) && !"Giày".equals(category);
     }
 
-    /** Product page on the brand's own store: its website when configured, else https://{brandKey}.vn. */
+    /**
+     * The catalog's own listing URL (e.g. the Shopee product page) when valid; otherwise the brand's
+     * website, else https://{brandKey}.vn.
+     */
     static String purchaseUrl(Brand brand, String brandKey, FashionCatalogLoader.ProductEntry entry) {
+        if (UrlValidator.isValidHttpUrl(entry.purchaseUrl)) {
+            return entry.purchaseUrl.trim();
+        }
         String website = brand.getWebsiteUrl();
         String base = UrlValidator.isValidHttpUrl(website)
                 ? website.trim().replaceAll("/+$", "")

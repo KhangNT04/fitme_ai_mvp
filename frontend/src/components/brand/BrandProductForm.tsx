@@ -27,7 +27,25 @@ export interface BrandProductFormValues {
   purchaseUrl: string;
   description: string;
   imageUrls: string;
+  /** Gallery image picked for AI try-on; empty until the brand chooses. */
+  tryOnImage: string;
   sizeCharts: SizeChartRow[];
+}
+
+/** Categories the VTON model cannot render, so they never get a try-on image. */
+const NO_TRY_ON_CATEGORIES = new Set(["Phụ kiện", "Giày"]);
+
+function splitImageUrls(imageUrls: string): string[] {
+  return imageUrls.split("\n").map((u) => u.trim()).filter(Boolean);
+}
+
+/** The brand's pick while it is still in the gallery, else the first image; none for accessories and shoes. */
+export function effectiveTryOnImage(
+  form: Pick<BrandProductFormValues, "category" | "imageUrls" | "tryOnImage">,
+): string | undefined {
+  if (NO_TRY_ON_CATEGORIES.has(form.category)) return undefined;
+  const images = splitImageUrls(form.imageUrls);
+  return images.includes(form.tryOnImage) ? form.tryOnImage : images[0];
 }
 
 export function emptyBrandProductForm(): BrandProductFormValues {
@@ -45,6 +63,7 @@ export function emptyBrandProductForm(): BrandProductFormValues {
     purchaseUrl: "",
     description: "",
     imageUrls: "",
+    tryOnImage: "",
     sizeCharts: DEFAULT_SIZES.map((sizeLabel, index) => ({
       sizeLabel,
       chestCm: 88 + index * 4,
@@ -72,6 +91,7 @@ export function productToFormValues(product: {
   purchaseUrl: string;
   description?: string;
   images: string[];
+  tryOnImage?: string;
   sizeCharts?: SizeChartRow[];
 }): BrandProductFormValues {
   const sizes = product.sizes.length ? product.sizes : DEFAULT_SIZES;
@@ -89,6 +109,7 @@ export function productToFormValues(product: {
     purchaseUrl: product.purchaseUrl,
     description: product.description || "",
     imageUrls: product.images.join("\n"),
+    tryOnImage: product.tryOnImage ?? "",
     sizeCharts: product.sizeCharts?.length
       ? product.sizeCharts
       : sizes.map((sizeLabel, index) => ({
@@ -118,7 +139,8 @@ export function formValuesToRequest(form: BrandProductFormValues): CreateProduct
     occasionTags: form.occasionTags.split(",").map((t) => t.trim()).filter(Boolean),
     purchaseUrl: form.purchaseUrl,
     description: form.description || undefined,
-    images: form.imageUrls.split("\n").map((u) => u.trim()).filter(Boolean),
+    images: splitImageUrls(form.imageUrls),
+    tryOnImage: effectiveTryOnImage(form),
     sizeCharts: form.sizeCharts,
   };
 }
@@ -255,8 +277,14 @@ export function BrandProductForm({
       <div>
         <BrandProductImagesUpload
           value={form.imageUrls}
-          onChange={(imageUrls) => setForm({ ...form, imageUrls })}
+          onChange={(imageUrls) => setForm((prev) => ({ ...prev, imageUrls }))}
           onUpload={(file) => brandApi.uploadProductImage(file)}
+          tryOnImage={effectiveTryOnImage(form)}
+          onTryOnImageChange={
+            NO_TRY_ON_CATEGORIES.has(form.category)
+              ? undefined
+              : (tryOnImage) => setForm((prev) => ({ ...prev, tryOnImage }))
+          }
           disabled={loading}
         />
         {imageError && <p className="mt-1 text-xs text-red-600">{imageError}</p>}

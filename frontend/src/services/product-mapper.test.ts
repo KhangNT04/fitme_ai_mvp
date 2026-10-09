@@ -78,4 +78,37 @@ describe("product-mapper", () => {
     expect(product.colors).toEqual(["Đen", "Trắng"]);
     expect(product.sizes).toEqual(["M", "L"]);
   });
+
+  it("marks the brand-chosen gallery image as the AI try-on image", () => {
+    const payload = toBackendProductRequest({
+      name: "Shirt",
+      category: "Áo",
+      price: 200000,
+      colors: ["Đen"],
+      sizes: ["M"],
+      fitType: "REGULAR",
+      targetGender: "UNISEX",
+      styleTags: [],
+      occasionTags: [],
+      purchaseUrl: "https://shopee.vn/shirt",
+      images: ["https://example.com/model.jpg", "https://example.com/flat.jpg"],
+      tryOnImage: "https://example.com/flat.jpg",
+    });
+
+    expect(payload.images.map((img) => img.imageType)).toEqual(["MAIN", "TRY_ON"]);
+
+    const product = mapProduct({
+      id: "p1",
+      brandId: "b1",
+      brandName: "Brand",
+      name: "Shirt",
+      category: "Áo",
+      price: 200000,
+      purchaseUrl: "https://shopee.vn/shirt",
+      status: "ACTIVE",
+      aiTryOnEligible: true,
+      images: payload.images,
+    });
+    expect(product.tryOnImage).toBe("https://example.com/flat.jpg");
+  });
 });

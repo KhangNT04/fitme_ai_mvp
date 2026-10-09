@@ -58,6 +58,8 @@ export interface BackendProduct {
   sizeCharts?: BackendSizeChart[];
 }
 
+export const TRY_ON_IMAGE_TYPE = "TRY_ON";
+
 export function toBackendProductRequest(data: CreateProductRequest) {
   const colors = data.colors.filter(Boolean);
   const sizes = data.sizes.filter(Boolean);
@@ -77,9 +79,10 @@ export function toBackendProductRequest(data: CreateProductRequest) {
   ];
 
   const imageUrls = (data.images || []).map((u) => u.trim()).filter(Boolean);
+  const tryOnIndex = data.tryOnImage ? imageUrls.indexOf(data.tryOnImage.trim()) : -1;
   const images = imageUrls.map((imageUrl, index) => ({
     imageUrl,
-    imageType: index === 0 ? "MAIN" : "DETAIL",
+    imageType: index === tryOnIndex ? TRY_ON_IMAGE_TYPE : index === 0 ? "MAIN" : "DETAIL",
     sortOrder: index,
   }));
 
@@ -142,6 +145,9 @@ export function mapProduct(raw: BackendProduct): Product {
       type: img.imageType || "MAIN",
       sortOrder: img.sortOrder ?? 0,
     })),
+    tryOnImage: resolveOptionalImageSrc(
+      (raw.images || []).find((img) => img.imageType === TRY_ON_IMAGE_TYPE)?.imageUrl,
+    ),
     colors,
     sizes,
     sizeCharts,

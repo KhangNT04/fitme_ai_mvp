@@ -43,7 +43,7 @@ import { requiredNumberRegisterOptions, requiredKgWeightRegisterOptions, profile
 import { Chip } from "@/components/ui/chip";
 import { Badge } from "@/components/ui/badge";
 import { SkinTonePicker } from "@/components/ui/skin-tone-picker";
-import { getUserErrorMessage } from "@/lib/user-error-message";
+import { getUserErrorMessage, isTryOnUnavailableError } from "@/lib/user-error-message";
 import { isServerPreviewUrl, resolveImageSrc } from "@/lib/media-url";
 import { toast } from "@/stores/toast-store";
 import { needsFitkenTopUp, tryOnCostLabel } from "@/lib/tryon-cost";
@@ -320,7 +320,17 @@ export default function TryOnInputPage() {
         ...(previewMode === "AVATAR" && data.avatarKey ? { avatarKey: data.avatarKey } : {}),
       });
       for (const item of selectedItems) {
-        await tryonApi.addItem(id, item.productId, item.category, item.name);
+        try {
+          await tryonApi.addItem(id, item.productId, item.category, item.name);
+        } catch (e: unknown) {
+          if (isTryOnUnavailableError(e)) {
+            toast.error(
+              `«${item.name}» không còn hỗ trợ thử đồ AI. Hãy bỏ món này khỏi outfit và chọn sản phẩm khác.`
+            );
+            return;
+          }
+          throw e;
+        }
       }
       await profileApi.saveBodyProfile(tryOnFormToBodyProfile(data));
       await queryClient.invalidateQueries({ queryKey: ["body-profile"] });

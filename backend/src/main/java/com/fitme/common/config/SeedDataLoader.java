@@ -50,6 +50,7 @@ public class SeedDataLoader implements CommandLineRunner {
     private final FitkenService fitkenService;
     private final ConsumerSubscriptionService consumerSubscriptionService;
     private final BrandPartnershipService brandPartnershipService;
+    private final CatalogMediaService catalogMediaService;
 
     @Value("${fitme.seed.admin-email:admin@fitme.ai}")
     private String adminEmail;
@@ -111,7 +112,8 @@ public class SeedDataLoader implements CommandLineRunner {
                 .status(UserStatus.ACTIVE)
                 .build());
 
-        UserAccount brandOwner = userRepository.save(UserAccount.builder()
+        // Brand owner without a brand: demo account for the "apply as a new brand" flow.
+        userRepository.save(UserAccount.builder()
                 .email(brandEmail)
                 .passwordHash(passwordEncoder.encode(seedPassword))
                 .displayName("FitMe Editorial")
@@ -142,32 +144,23 @@ public class SeedDataLoader implements CommandLineRunner {
 
         int totalProducts = 0;
         for (FashionCatalogLoader.BrandEntry entry : fashionCatalogLoader.load().brands) {
-            Brand brand = ensureApprovedBrand(brandOwner.getId(), entry);
+            Brand brand = ensureApprovedBrand(entry);
             totalProducts += fashionCatalogSeeder.seedBrandCatalog(brand, entry);
         }
 
-        brandRepository.save(Brand.builder()
-                .name("Urban Threads")
-                .description("Streetwear đường phố — đang chờ duyệt từ ban biên tập FitMe.")
-                .logoUrl("https://images.unsplash.com/photo-1556821840-3a63f95609a7?auto=format&fit=crop&w=200&h=200&q=80")
-                .status(BrandStatus.PENDING)
-                .contactEmail("pending@urban.vn")
-                .build());
-
         seedRulesIfEmpty();
         seedFlaggedLinksIfEmpty();
-        seedBrandPartnershipsIfNeeded();
 
         log.info(
-                "Seed complete: {} fashion products across {} brands. Admin: {} / {}",
+                "Seed complete: {} fashion products across {} brands. Admin: {}",
                 totalProducts,
                 fashionCatalogLoader.load().brands.size(),
-                adminEmail,
-                seedPassword);
+                adminEmail);
     }
 
     /** Refresh fashion catalog on existing DB (local, staging, or prod with seed off). */
     private void refreshFashionCatalogData() {
+        retireDemoBrands();
         deactivateOrphanLegacyDemoProducts();
         ensureFashionBrandsExist();
 
@@ -177,10 +170,45 @@ public class SeedDataLoader implements CommandLineRunner {
 
         seedRulesIfEmpty();
         seedFlaggedLinksIfEmpty();
-        seedBrandPartnershipsIfNeeded();
 
         int activeCount = productRepository.findByStatus(ProductStatus.ACTIVE).size();
         log.info("Catalog status: {} active products", activeCount);
+    }
+
+    /**
+     * Soft-retires demo brands dropped from the catalog: suspended, unowned, products hidden and
+     * partnerships ended. Rows are kept so users' try-on, wardrobe and click history stay intact.
+     */
+    private void retireDemoBrands() {
+        List<String> retired = fashionCatalogLoader.load().retiredBrands;
+        if (retired == null) {
+            return;
+        }
+        for (String name : retired) {
+            brandRepository.findByName(name).ifPresent(this::retireBrand);
+        }
+    }
+
+    private void retireBrand(Brand brand) {
+        int hiddenProducts = 0;
+        for (Product product : productRepository.findByBrandId(brand.getId())) {
+            if (product.getStatus() != ProductStatus.INACTIVE) {
+                product.setStatus(ProductStatus.INACTIVE);
+                productRepository.save(product);
+                hiddenProducts++;
+            }
+        }
+        int endedPartnerships = brandPartnershipService.deactivateAllForBrand(brand.getId());
+        boolean changed = brand.getStatus() != BrandStatus.SUSPENDED || brand.getOwnerUserId() != null;
+        if (changed) {
+            brand.setStatus(BrandStatus.SUSPENDED);
+            brand.setOwnerUserId(null);
+            brandRepository.save(brand);
+        }
+        if (changed || hiddenProducts > 0 || endedPartnerships > 0) {
+            log.info("Retired demo brand {}: {} products hidden, {} partnerships ended",
+                    brand.getName(), hiddenProducts, endedPartnerships);
+        }
     }
 
     private void deactivateOrphanLegacyDemoProducts() {
@@ -206,15 +234,8 @@ public class SeedDataLoader implements CommandLineRunner {
     }
 
     private void refreshFashionCatalog() {
-        FashionCatalogLoader.FashionCatalog catalog = fashionCatalogLoader.load();
-        Optional<UserAccount> brandOwner = userRepository.findByEmail(brandEmail);
-        if (brandOwner.isEmpty()) {
-            log.warn("Fashion catalog refresh skipped: brand owner {} not found", brandEmail);
-            return;
-        }
-        UserAccount owner = brandOwner.get();
-        for (FashionCatalogLoader.BrandEntry entry : catalog.brands) {
-            Brand brand = ensureApprovedBrand(owner.getId(), entry);
+        for (FashionCatalogLoader.BrandEntry entry : fashionCatalogLoader.load().brands) {
+            Brand brand = ensureApprovedBrand(entry);
             if (fashionCatalogSeeder.needsFashionRefresh(brand, entry)) {
                 log.info("Refreshing fashion catalog for brand {}", brand.getName());
                 fashionCatalogSeeder.syncBrandCatalog(brand, entry);
@@ -223,11 +244,44 @@ public class SeedDataLoader implements CommandLineRunner {
     }
 
     private void ensureFashionBrandsExist() {
-        userRepository.findByEmail(brandEmail).ifPresent(owner -> {
-            for (FashionCatalogLoader.BrandEntry entry : fashionCatalogLoader.load().brands) {
-                ensureApprovedBrand(owner.getId(), entry);
-            }
+        for (FashionCatalogLoader.BrandEntry entry : fashionCatalogLoader.load().brands) {
+            ensureApprovedBrand(entry);
+        }
+    }
+
+    /**
+     * Each catalog brand is managed by its own BRAND_OWNER account (created verified, seed password).
+     * Falls back to the shared seed brand account for entries without an owner email.
+     */
+    private UserAccount ensureBrandOwnerAccount(FashionCatalogLoader.BrandEntry entry) {
+        String email = entry.ownerEmail != null && !entry.ownerEmail.isBlank()
+                ? entry.ownerEmail.trim().toLowerCase()
+                : brandEmail;
+        return userRepository.findByEmail(email).orElseGet(() -> {
+            log.info("Creating brand owner account {} for {}", email, entry.name);
+            return userRepository.save(UserAccount.builder()
+                    .email(email)
+                    .passwordHash(passwordEncoder.encode(seedPassword))
+                    .displayName(entry.name)
+                    .role(UserRole.BRAND_OWNER)
+                    .emailVerified(true)
+                    .status(UserStatus.ACTIVE)
+                    .build());
         });
+    }
+
+    /** Brands still unowned or on the shared seed account move to their catalog owner; other owners are kept. */
+    private boolean shouldReassignOwner(Brand brand, UUID catalogOwnerId) {
+        UUID current = brand.getOwnerUserId();
+        if (current == null) {
+            return true;
+        }
+        if (current.equals(catalogOwnerId)) {
+            return false;
+        }
+        return userRepository.findById(current)
+                .map(owner -> owner.getEmail().equalsIgnoreCase(brandEmail))
+                .orElse(true);
     }
 
     private boolean isApprovedBrand(UUID brandId) {
@@ -236,19 +290,22 @@ public class SeedDataLoader implements CommandLineRunner {
                 .orElse(false);
     }
 
-    private Brand ensureApprovedBrand(UUID ownerUserId, FashionCatalogLoader.BrandEntry entry) {
+    private Brand ensureApprovedBrand(FashionCatalogLoader.BrandEntry entry) {
+        UUID ownerUserId = ensureBrandOwnerAccount(entry).getId();
+        String logoUrl = catalogMediaService.resolve(entry.logoUrl);
         Optional<Brand> existing = brandRepository.findByName(entry.name);
         if (existing.isPresent()) {
             Brand brand = existing.get();
             brand.setDescription(entry.description);
-            brand.setLogoUrl(entry.logoUrl);
+            brand.setLogoUrl(logoUrl);
             brand.setWebsiteUrl(entry.websiteUrl);
             brand.setShopeeUrl(entry.shopeeUrl);
             brand.setContactEmail(entry.contactEmail);
             if (brand.getStatus() != BrandStatus.APPROVED) {
                 brand.setStatus(BrandStatus.APPROVED);
             }
-            if (brand.getOwnerUserId() == null) {
+            if (shouldReassignOwner(brand, ownerUserId)) {
+                log.info("Brand {} is now managed by its own account", brand.getName());
                 brand.setOwnerUserId(ownerUserId);
             }
             return brandRepository.save(brand);
@@ -257,7 +314,7 @@ public class SeedDataLoader implements CommandLineRunner {
                 .ownerUserId(ownerUserId)
                 .name(entry.name)
                 .description(entry.description)
-                .logoUrl(entry.logoUrl)
+                .logoUrl(logoUrl)
                 .websiteUrl(entry.websiteUrl)
                 .shopeeUrl(entry.shopeeUrl)
                 .status(BrandStatus.APPROVED)
@@ -337,19 +394,5 @@ public class SeedDataLoader implements CommandLineRunner {
         }
 
         log.info("Seeded sample flagged purchase links for admin review");
-    }
-
-    /** Demo partner graph: K-Style House ↔ Seoul Basic (same Gen Z lane). */
-    private void seedBrandPartnershipsIfNeeded() {
-        Optional<Brand> kStyle = brandRepository.findByName("K-Style House");
-        Optional<Brand> seoul = brandRepository.findByName("Seoul Basic");
-        if (kStyle.isEmpty() || seoul.isEmpty()) {
-            return;
-        }
-        if (brandPartnershipService.arePartners(kStyle.get().getId(), seoul.get().getId())) {
-            return;
-        }
-        brandPartnershipService.upsertPartnership(kStyle.get().getId(), seoul.get().getId());
-        log.info("Seeded brand partnership: K-Style House ↔ Seoul Basic");
     }
 }

@@ -38,6 +38,8 @@ public class FashionCatalogLoader {
         public Map<String, List<String>> images;
         /** Optional VTON-specific garment images (flat-lay) keyed by product imageKey. */
         public Map<String, String> tryOnImages;
+        /** Former demo brands: suspended and hidden on startup, rows kept for history. */
+        public List<String> retiredBrands;
         public List<BrandEntry> brands;
     }
 
@@ -45,6 +47,8 @@ public class FashionCatalogLoader {
     public static class BrandEntry {
         public String key;
         public String name;
+        /** BRAND_OWNER account that manages this brand in the portal; created on startup if missing. */
+        public String ownerEmail;
         public String description;
         public String logoUrl;
         public String contactEmail;
@@ -62,9 +66,17 @@ public class FashionCatalogLoader {
         public String material;
         public String fitType;
         public String imageKey;
+        /** Product gallery; takes precedence over the shared {@code images[imageKey]} list. */
+        public List<String> images;
+        /** One of {@link #images}: the garment photo AI try-on renders. Null = not suitable for try-on. */
+        public String tryOnImage;
         public List<String> colors;
+        public List<String> sizes;
         public String styleTag;
         public String occasionTag;
+        public String targetGender;
+        public String purchaseUrl;
+        public String purchaseChannel;
         public boolean sponsored;
     }
 }

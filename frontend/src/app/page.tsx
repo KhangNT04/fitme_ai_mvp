@@ -45,14 +45,15 @@ const features = [
 ];
 
 const MARQUEE_ITEMS = [
-  "K-Fashion",
-  "Linen Muse",
-  "Seoul Basic",
+  "Teelab",
+  "DirtyCoins",
+  "Regods",
+  "ULZZANG",
   "AI Styling",
   "Try Before Buy",
-  "New Season",
-  "Office Chic",
-  "Weekend Edit",
+  "Local Brand",
+  "Streetwear",
+  "Korean Casual",
 ];
 
 const LOOKBOOK = [

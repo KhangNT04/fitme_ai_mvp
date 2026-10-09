@@ -73,4 +73,13 @@ public class BrandPartnershipService {
     public List<BrandPartnership> listActive() {
         return partnershipRepository.findByStatus(BrandPartnershipStatus.ACTIVE);
     }
+
+    /** Ends every active partnership of the brand; returns how many were ended. */
+    @Transactional
+    public int deactivateAllForBrand(UUID brandId) {
+        List<BrandPartnership> rows = partnershipRepository.findActiveForBrand(brandId, BrandPartnershipStatus.ACTIVE);
+        rows.forEach(row -> row.setStatus(BrandPartnershipStatus.INACTIVE));
+        partnershipRepository.saveAll(rows);
+        return rows.size();
+    }
 }

@@ -5,6 +5,7 @@ import com.fitme.common.enums.ProductStatus;
 import com.fitme.common.enums.StockStatus;
 import com.fitme.product.entity.Product;
 import com.fitme.product.entity.ProductImage;
+import com.fitme.product.entity.ProductVariant;
 import com.fitme.product.repository.ProductImageRepository;
 import com.fitme.product.repository.ProductVariantRepository;
 import com.fitme.product.repository.SizeChartRepository;
@@ -94,5 +95,33 @@ class ProductEligibilityServiceTest {
                 .thenReturn(List.of(ProductImage.builder().productId(productId).imageUrl("https://example.com/img.jpg").build()));
 
         assertFalse(eligibilityService.canShowBuyButton(activeProduct));
+    }
+
+    @Test
+    void canBeUsedForAiTryOn_requiresTheBrandChosenTryOnImage() {
+        ProductVariant variant = ProductVariant.builder().productId(productId).colorName("Đen").sizeLabel("M").build();
+        when(variantRepository.findByProductId(productId)).thenReturn(List.of(variant));
+        when(imageRepository.findByProductIdOrderBySortOrderAsc(productId))
+                .thenReturn(List.of(image("MAIN"), image("DETAIL")))
+                .thenReturn(List.of(image("MAIN"), image("DETAIL")))
+                .thenReturn(List.of(image("MAIN"), image(ProductImage.TYPE_TRY_ON)));
+
+        assertFalse(eligibilityService.canBeUsedForAiTryOn(activeProduct));
+        assertTrue(eligibilityService.canBeUsedForAiTryOn(activeProduct));
+    }
+
+    @Test
+    void moderationIssues_flagMissingTryOnImageExceptForAccessories() {
+        when(imageRepository.findByProductIdOrderBySortOrderAsc(productId)).thenReturn(List.of(image("MAIN")));
+
+        assertTrue(eligibilityService.getModerationIssues(activeProduct).contains("Chưa chọn ảnh thử đồ AI"));
+        assertFalse(ProductEligibilityService.isBlockingModerationIssue("Chưa chọn ảnh thử đồ AI"));
+
+        activeProduct.setCategory("Phụ kiện");
+        assertFalse(eligibilityService.getModerationIssues(activeProduct).contains("Chưa chọn ảnh thử đồ AI"));
+    }
+
+    private ProductImage image(String type) {
+        return ProductImage.builder().productId(productId).imageUrl("https://example.com/" + type + ".jpg").imageType(type).build();
     }
 }

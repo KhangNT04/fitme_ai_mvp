@@ -48,7 +48,13 @@ export function AdminProductDetail({ product, flagReason, className }: AdminProd
           <h3 className="mb-3 text-sm font-semibold text-foreground">Ảnh sản phẩm ({images.length})</h3>
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4">
             {images.map((img, index) => (
-              <figure key={`${img.url}-${index}`} className="overflow-hidden rounded-xl border border-border/60 bg-muted/30">
+              <figure
+                key={`${img.url}-${index}`}
+                className={cn(
+                  "overflow-hidden rounded-xl border bg-muted/30",
+                  img.type === "TRY_ON" ? "border-primary ring-2 ring-primary" : "border-border/60",
+                )}
+              >
                 <div className="relative aspect-[3/4]">
                   <Image
                     src={img.url || PLACEHOLDER_PRODUCT}
@@ -59,7 +65,9 @@ export function AdminProductDetail({ product, flagReason, className }: AdminProd
                     unoptimized
                   />
                 </div>
-                <figcaption className="px-2 py-1 text-xs text-muted-foreground">{img.type}</figcaption>
+                <figcaption className="px-2 py-1 text-xs text-muted-foreground">
+                  {img.type === "TRY_ON" ? "Ảnh thử đồ AI" : img.type}
+                </figcaption>
               </figure>
             ))}
           </div>

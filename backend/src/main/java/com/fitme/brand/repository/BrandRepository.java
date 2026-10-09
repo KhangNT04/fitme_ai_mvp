@@ -12,6 +12,9 @@ public interface BrandRepository extends JpaRepository<Brand, UUID> {
 
     List<Brand> findByOwnerUserId(UUID ownerUserId);
 
+    /** Stable pick for owners that manage several brands (seed editorial account). */
+    List<Brand> findByOwnerUserIdOrderByCreatedAtAsc(UUID ownerUserId);
+
     List<Brand> findByStatus(BrandStatus status);
 
     long countByStatus(BrandStatus status);

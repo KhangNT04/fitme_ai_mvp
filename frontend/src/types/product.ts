@@ -30,6 +30,8 @@ export interface Product {
   price: number;
   images: string[];
   imageDetails?: ProductImageDetail[];
+  /** Gallery image the brand chose as the AI try-on garment photo. */
+  tryOnImage?: string;
   colors: string[];
   sizes: string[];
   sizeCharts?: SizeChartRow[];

@@ -3,6 +3,7 @@ package com.fitme.product.service;
 import com.fitme.common.enums.ProductStatus;
 import com.fitme.common.enums.StockStatus;
 import com.fitme.product.entity.Product;
+import com.fitme.product.entity.ProductImage;
 import com.fitme.product.repository.ProductImageRepository;
 import com.fitme.product.repository.ProductVariantRepository;
 import com.fitme.product.repository.SizeChartRepository;
@@ -53,21 +54,37 @@ public class ProductEligibilityService {
             return false;
         }
         UUID productId = product.getId();
-        boolean hasImage = !imageRepository.findByProductIdOrderBySortOrderAsc(productId).isEmpty();
         boolean hasSize = !variantRepository.findByProductId(productId).isEmpty()
                 || !sizeChartRepository.findByProductId(productId).isEmpty();
         boolean hasColor = variantRepository.findByProductId(productId).stream()
                 .anyMatch(v -> v.getColorName() != null && !v.getColorName().isBlank());
-        return hasImage && hasSize && hasColor;
+        return hasTryOnImage(productId) && hasSize && hasColor;
+    }
+
+    /** The brand must pick which gallery image the AI renders; product shots alone are not enough. */
+    public boolean hasTryOnImage(UUID productId) {
+        return imageRepository.findByProductIdOrderBySortOrderAsc(productId).stream()
+                .anyMatch(img -> ProductImage.TYPE_TRY_ON.equalsIgnoreCase(img.getImageType()));
+    }
+
+    /** Shoes and accessories are skipped by the VTON garment mapping, so they never need a try-on image. */
+    private static boolean isOutsideVtonScope(Product product) {
+        return isOutsideVtonScope(product.getCategory());
+    }
+
+    public static boolean isOutsideVtonScope(String category) {
+        String value = category != null ? category.trim() : "";
+        return value.equalsIgnoreCase("Phụ kiện") || value.equalsIgnoreCase("Giày");
     }
 
     /** AI try-on is paid by the consumer in Fitken, so only product metadata matters here. */
     public boolean canBeUsedForAiTryOn(Product product) {
-        return meetsProductMetadataForTryOn(product);
+        return !isOutsideVtonScope(product) && meetsProductMetadataForTryOn(product);
     }
 
     static final String MISSING_IMAGE_ISSUE = "Thiếu ảnh sản phẩm";
     static final String MISSING_PURCHASE_URL_ISSUE = "Thiếu link mua hàng hợp lệ";
+    static final String MISSING_TRY_ON_IMAGE_ISSUE = "Chưa chọn ảnh thử đồ AI";
 
     /** Issues that stop an admin from approving: shoppers need a photo and a working link to the brand's store. */
     public static boolean isBlockingModerationIssue(String issue) {
@@ -79,6 +96,8 @@ public class ProductEligibilityService {
         java.util.List<String> issues = new java.util.ArrayList<>();
         if (imageRepository.findByProductIdOrderBySortOrderAsc(productId).isEmpty()) {
             issues.add(MISSING_IMAGE_ISSUE);
+        } else if (!isOutsideVtonScope(product) && !hasTryOnImage(productId)) {
+            issues.add(MISSING_TRY_ON_IMAGE_ISSUE);
         }
         if (!UrlValidator.isValidHttpUrl(product.getPurchaseUrl())) {
             issues.add(MISSING_PURCHASE_URL_ISSUE);

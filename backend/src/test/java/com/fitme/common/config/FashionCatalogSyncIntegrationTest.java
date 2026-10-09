@@ -5,8 +5,10 @@ import com.fitme.common.enums.ProductStatus;
 import com.fitme.common.enums.PurchaseChannel;
 import com.fitme.common.util.UrlValidator;
 import com.fitme.product.entity.Product;
+import com.fitme.product.entity.ProductImage;
 import com.fitme.product.entity.ProductVariant;
 import com.fitme.product.entity.SizeChart;
+import com.fitme.product.repository.ProductImageRepository;
 import com.fitme.product.repository.ProductRepository;
 import com.fitme.product.repository.ProductVariantRepository;
 import com.fitme.product.repository.SizeChartRepository;
@@ -27,6 +29,7 @@ class FashionCatalogSyncIntegrationTest extends AbstractIntegrationTest {
     @Autowired ProductRepository products;
     @Autowired ProductVariantRepository variants;
     @Autowired SizeChartRepository sizeCharts;
+    @Autowired ProductImageRepository images;
 
     @Test
     void refreshKeepsVariantIdsAndIgnoresBrandOwnProducts() {
@@ -54,34 +57,59 @@ class FashionCatalogSyncIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
-    void seededProductsLinkToTheBrandStore() {
+    void seededProductsLinkToTheirShopeeListing() {
         FashionCatalogLoader.BrandEntry entry = catalogLoader.load().brands.getFirst();
         TestDataHelper.BrandOwnerContext owner = testData.createBrandOwner();
         seeder.seedBrandCatalog(owner.brand(), entry);
 
         List<Product> seeded = products.findByBrandId(owner.brand().getId());
-        assertThat(seeded).isNotEmpty().allSatisfy(product -> {
-            assertThat(product.getPurchaseChannel()).isEqualTo(PurchaseChannel.BRAND_WEBSITE);
+        assertThat(seeded).hasSize(entry.products.size()).allSatisfy(product -> {
+            assertThat(product.getPurchaseChannel()).isEqualTo(PurchaseChannel.SHOPEE);
             assertThat(UrlValidator.isValidHttpUrl(product.getPurchaseUrl())).isTrue();
-            assertThat(product.getPurchaseUrl()).doesNotContain("shopee.vn").contains("/products/");
+            assertThat(product.getPurchaseUrl()).startsWith("https://shopee.vn/product/");
         });
     }
 
     @Test
-    void syncRewritesLegacyShopeePurchaseUrls() {
+    void syncRestoresTheCatalogPurchaseUrl() {
         FashionCatalogLoader.BrandEntry entry = catalogLoader.load().brands.getFirst();
         TestDataHelper.BrandOwnerContext owner = testData.createBrandOwner();
         seeder.seedBrandCatalog(owner.brand(), entry);
         Product catalogProduct = firstCatalogProduct(owner);
-        catalogProduct.setPurchaseUrl("https://shopee.vn/legacy/item");
-        catalogProduct.setPurchaseChannel(PurchaseChannel.SHOPEE);
+        catalogProduct.setPurchaseUrl("https://example.com/legacy/item");
+        catalogProduct.setPurchaseChannel(PurchaseChannel.BRAND_WEBSITE);
         products.save(catalogProduct);
 
         seeder.syncBrandCatalog(owner.brand(), entry);
 
         Product after = products.findById(catalogProduct.getId()).orElseThrow();
-        assertThat(after.getPurchaseChannel()).isEqualTo(PurchaseChannel.BRAND_WEBSITE);
-        assertThat(after.getPurchaseUrl()).doesNotContain("shopee.vn");
+        assertThat(after.getPurchaseChannel()).isEqualTo(PurchaseChannel.SHOPEE);
+        assertThat(after.getPurchaseUrl()).isEqualTo(entry.products.getFirst().purchaseUrl);
+    }
+
+    @Test
+    void brandChosenTryOnImageIsTheOnlyTryOnImage() {
+        FashionCatalogLoader.BrandEntry entry = catalogLoader.load().brands.getFirst();
+        TestDataHelper.BrandOwnerContext owner = testData.createBrandOwner();
+        seeder.seedBrandCatalog(owner.brand(), entry);
+
+        Product catalogProduct = firstCatalogProduct(owner);
+        FashionCatalogLoader.ProductEntry first = entry.products.getFirst();
+        List<ProductImage> gallery = images.findByProductIdOrderBySortOrderAsc(catalogProduct.getId());
+
+        assertThat(gallery).hasSize(first.images.size());
+        assertThat(gallery).filteredOn(img -> ProductImage.TYPE_TRY_ON.equals(img.getImageType()))
+                .extracting(ProductImage::getImageUrl)
+                .containsExactly(first.tryOnImage);
+        assertThat(catalogProduct.isAiTryOnEligible()).isTrue();
+
+        Product accessory = products.findByBrandId(owner.brand().getId()).stream()
+                .filter(p -> "Phụ kiện".equals(p.getCategory()))
+                .findFirst()
+                .orElseThrow();
+        assertThat(accessory.isAiTryOnEligible()).isFalse();
+        assertThat(images.findByProductIdOrderBySortOrderAsc(accessory.getId()))
+                .noneMatch(img -> ProductImage.TYPE_TRY_ON.equals(img.getImageType()));
     }
 
     @Test
@@ -95,7 +123,8 @@ class FashionCatalogSyncIntegrationTest extends AbstractIntegrationTest {
         List<SizeChart> charts = sizeCharts.findByProductId(catalogProduct.getId()).stream()
                 .sorted(Comparator.comparing(SizeChart::getChestCm))
                 .toList();
-        assertThat(charts).extracting(SizeChart::getSizeLabel).containsExactly("S", "M", "L", "XL");
+        assertThat(charts).extracting(SizeChart::getSizeLabel)
+                .containsExactlyElementsOf(entry.products.getFirst().sizes);
         assertThat(charts).extracting(SizeChart::getHeightMinCm).doesNotHaveDuplicates();
 
         assertThat(variants.findByProductId(catalogProduct.getId()))
@@ -112,6 +141,7 @@ class FashionCatalogSyncIntegrationTest extends AbstractIntegrationTest {
     private static int variantCountBefore(FashionCatalogLoader.BrandEntry entry) {
         FashionCatalogLoader.ProductEntry first = entry.products.getFirst();
         int colors = first.colors != null && !first.colors.isEmpty() ? first.colors.size() : 2;
-        return 4 * colors;
+        int sizes = first.sizes != null && !first.sizes.isEmpty() ? first.sizes.size() : 4;
+        return sizes * colors;
     }
 }

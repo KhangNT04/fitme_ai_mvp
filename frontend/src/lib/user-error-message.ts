@@ -208,5 +208,23 @@ export function getUserErrorMessage(
       ? trimmed
       : PREMIUM_REQUIRED_MESSAGE;
   }
+  if (isTryOnUnavailableError(error)) {
+    const trimmed = message?.trim();
+    return trimmed && isLikelyVietnamese(trimmed) && !isCorruptedVietnamese(trimmed)
+      ? trimmed
+      : TRY_ON_UNAVAILABLE_MESSAGE;
+  }
   return formatUserErrorMessage(message, status, normalizedOptions);
+}
+
+export const TRY_ON_UNAVAILABLE_MESSAGE =
+  "Sản phẩm này không còn hỗ trợ thử đồ AI. Hãy bỏ món này khỏi outfit và chọn sản phẩm khác.";
+
+/**
+ * The product was hidden, made ineligible or lost the brand's try-on photo: TRY_ON_NOT_ELIGIBLE when adding it,
+ * TRY_ON_ITEM_UNAVAILABLE when generating an outfit that still holds it.
+ */
+export function isTryOnUnavailableError(error: unknown): boolean {
+  const code = extractErrorCode(error);
+  return code === "TRY_ON_NOT_ELIGIBLE" || code === "TRY_ON_ITEM_UNAVAILABLE";
 }

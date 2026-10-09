@@ -1,9 +1,11 @@
 import { describe, expect, it } from "vitest";
 import {
   PREMIUM_REQUIRED_MESSAGE,
+  TRY_ON_UNAVAILABLE_MESSAGE,
   formatUserErrorMessage,
   getUserErrorMessage,
   isPremiumRequiredError,
+  isTryOnUnavailableError,
 } from "./user-error-message";
 
 describe("formatUserErrorMessage", () => {
@@ -68,5 +70,19 @@ describe("getUserErrorMessage", () => {
       isPremiumRequiredError({ response: { status: 403, data: { errorCode: "PREMIUM_REQUIRED" } } }),
     ).toBe(true);
     expect(isPremiumRequiredError({ message: "x", status: 403 })).toBe(false);
+  });
+
+  it("explains try-on items that lost AI try-on support", () => {
+    const stale = {
+      message: "«Áo thun» không còn hỗ trợ thử đồ AI. Hãy bỏ món này và chọn sản phẩm khác.",
+      status: 400,
+      code: "TRY_ON_ITEM_UNAVAILABLE",
+    };
+    expect(isTryOnUnavailableError(stale)).toBe(true);
+    expect(getUserErrorMessage(stale)).toBe(stale.message);
+    expect(getUserErrorMessage({ message: "Bad Request", status: 400, code: "TRY_ON_NOT_ELIGIBLE" })).toBe(
+      TRY_ON_UNAVAILABLE_MESSAGE,
+    );
+    expect(isTryOnUnavailableError({ message: "x", status: 400 })).toBe(false);
   });
 });

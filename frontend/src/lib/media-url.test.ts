@@ -15,6 +15,12 @@ describe("resolveImageSrc", () => {
     expect(resolveImageSrc("https://pub.example.r2.dev/user-photos/x.jpg")).toBe("/uploads/user-photos/x.jpg");
   });
 
+  it("loads public catalog media straight from the bucket", () => {
+    const catalog = "https://pub.example.r2.dev/catalog-media/vn-11134207-abc.jpg";
+    expect(resolveImageSrc(catalog)).toBe(catalog);
+    expect(resolveImageList([catalog])).toEqual([catalog]);
+  });
+
   it("uses placeholder for ephemeral ai-vton output URLs", () => {
     const expired = "https://fitme-ai-vton.onrender.com/outputs/abc.jpg";
     expect(isEphemeralVtonOutputUrl(expired)).toBe(true);

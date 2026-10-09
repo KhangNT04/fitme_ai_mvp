@@ -126,6 +126,7 @@ jobs:
           JWT_SECRET: ci-jwt-secret-min-256-bits-long-for-testing-only
           CORS_ORIGINS: http://localhost:3000
           FITME_SEED_ENABLED: "true"
+          FITME_CATALOG_MIRROR_ENABLED: "false"
           FITME_AUTH_EXPOSE_VERIFICATION_CODE: "true"
           FITME_AUTH_MIN_FORM_MS: "0"
           FITME_TEST_EXPOSE_RESET_TOKENS: "true"

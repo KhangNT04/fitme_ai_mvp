@@ -76,7 +76,7 @@ public class BrandService {
     }
 
     public BrandApplicationResponse getMyApplication(UUID userId) {
-        return brandRepository.findByOwnerUserId(userId).stream()
+        return brandRepository.findByOwnerUserIdOrderByCreatedAtAsc(userId).stream()
                 .findFirst()
                 .map(brand -> BrandApplicationResponse.builder()
                         .brand(toResponse(brand))
@@ -143,7 +143,7 @@ public class BrandService {
     }
 
     public Brand getBrandForOwner(UUID ownerUserId) {
-        Brand brand = brandRepository.findByOwnerUserId(ownerUserId).stream()
+        Brand brand = brandRepository.findByOwnerUserIdOrderByCreatedAtAsc(ownerUserId).stream()
                 .findFirst()
                 .orElseThrow(() -> new NotFoundException("Chưa có brand"));
         requireApproved(brand);
@@ -180,7 +180,7 @@ public class BrandService {
     }
 
     public Brand getBrandEntityForOwner(UUID ownerUserId) {
-        return brandRepository.findByOwnerUserId(ownerUserId).stream()
+        return brandRepository.findByOwnerUserIdOrderByCreatedAtAsc(ownerUserId).stream()
                 .findFirst()
                 .orElseThrow(() -> new NotFoundException("Chưa có brand"));
     }

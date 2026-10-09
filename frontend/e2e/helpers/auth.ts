@@ -19,7 +19,7 @@ async function waitForPortalSession(page: Page) {
   }
 }
 
-export async function loginBrand(page: Page, email = "brand@fitme.ai") {
+export async function loginBrand(page: Page, email = "teelab@fitme.ai") {
   await page.goto("/brand/login");
   await fillLoginForm(page, email, DEMO_PASSWORD);
   const sessionSync = waitForPortalSession(page);

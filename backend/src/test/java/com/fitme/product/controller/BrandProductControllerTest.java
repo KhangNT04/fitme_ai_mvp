@@ -166,6 +166,44 @@ class BrandProductControllerTest extends AbstractIntegrationTest {
                 .isZero();
     }
 
+    @Test
+    void tryOnImage_defaultsToFirstPhotoAndFollowsTheBrandsPick() throws Exception {
+        String productId = createProduct("[{\"colorName\":\"Đen\",\"sizeLabel\":\"M\"}]");
+        String gallery = """
+                {"name":"Áo","category":"Áo","price":299000,"purchaseUrl":"%s",
+                 "variants":[{"colorName":"Đen","sizeLabel":"M"}],
+                 "images":[
+                   {"imageUrl":"https://picsum.photos/400/500","imageType":"%s"},
+                   {"imageUrl":"https://picsum.photos/401/500","imageType":"%s"},
+                   {"imageUrl":"https://picsum.photos/402/500","imageType":"%s"}]}
+                """;
+
+        mockMvc.perform(put("/api/v1/brand/products/{id}", productId)
+                        .with(user(principal))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(gallery.formatted(PURCHASE_URL, "MAIN", "DETAIL", "DETAIL")))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.images[0].imageType").value("TRY_ON"))
+                .andExpect(jsonPath("$.data.images[1].imageType").value("DETAIL"));
+
+        mockMvc.perform(put("/api/v1/brand/products/{id}", productId)
+                        .with(user(principal))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(gallery.formatted(PURCHASE_URL, "MAIN", "TRY_ON", "TRY_ON")))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.images[0].imageType").value("MAIN"))
+                .andExpect(jsonPath("$.data.images[1].imageType").value("TRY_ON"))
+                .andExpect(jsonPath("$.data.images[2].imageType").value("DETAIL"));
+
+        mockMvc.perform(put("/api/v1/brand/products/{id}", productId)
+                        .with(user(principal))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(gallery.formatted(PURCHASE_URL, "MAIN", "TRY_ON", "DETAIL")
+                                .replace("\"category\":\"Áo\"", "\"category\":\"Phụ kiện\"")))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.images[?(@.imageType=='TRY_ON')]").isEmpty());
+    }
+
     private String createProduct(String variantsJson) throws Exception {
         String json = mockMvc.perform(post("/api/v1/brand/products")
                         .with(user(principal))

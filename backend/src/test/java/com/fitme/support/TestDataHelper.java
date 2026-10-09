@@ -123,7 +123,7 @@ public class TestDataHelper {
         imageRepository.save(ProductImage.builder()
                 .productId(product.getId())
                 .imageUrl("https://picsum.photos/400/500")
-                .imageType("MAIN")
+                .imageType(ProductImage.TYPE_TRY_ON)
                 .sortOrder(0)
                 .build());
 
@@ -154,7 +154,7 @@ public class TestDataHelper {
         imageRepository.save(ProductImage.builder()
                 .productId(product.getId())
                 .imageUrl("https://picsum.photos/400/500")
-                .imageType("MAIN")
+                .imageType(ProductImage.TYPE_TRY_ON)
                 .sortOrder(0)
                 .build());
 

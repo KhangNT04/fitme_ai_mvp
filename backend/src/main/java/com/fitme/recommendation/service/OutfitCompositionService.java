@@ -138,12 +138,13 @@ public class OutfitCompositionService {
         return primaryProductImageUrl(productId);
     }
 
+    /** The brand's TRY_ON gallery image, or null: AI try-on never falls back to a product shot. */
     public String resolveTryOnImageUrl(UUID productId) {
         return imageRepository.findByProductIdOrderBySortOrderAsc(productId).stream()
-                .filter(img -> "TRY_ON".equalsIgnoreCase(img.getImageType()))
+                .filter(img -> ProductImage.TYPE_TRY_ON.equalsIgnoreCase(img.getImageType()))
                 .findFirst()
                 .map(ProductImage::getImageUrl)
-                .orElseGet(() -> primaryProductImageUrl(productId));
+                .orElse(null);
     }
 
     private String primaryProductImageUrl(UUID productId) {

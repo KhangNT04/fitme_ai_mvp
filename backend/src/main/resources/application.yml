@@ -126,6 +126,10 @@ fitme:
       access-key-id: ${R2_ACCESS_KEY_ID:}
       secret-access-key: ${R2_SECRET_ACCESS_KEY:}
       public-base-url: ${R2_PUBLIC_BASE_URL:}
+  # Copy catalog images (product photos, brand logos) from the source CDN into FitMe storage after startup.
+  catalog-media:
+    mirror-enabled: ${FITME_CATALOG_MIRROR_ENABLED:true}
+    concurrency: ${FITME_CATALOG_MIRROR_CONCURRENCY:4}
 
 springdoc:
   api-docs:

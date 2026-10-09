@@ -101,6 +101,7 @@ def test_fashn_inlines_localhost_person_url_as_base64(mock_client_cls, monkeypat
     URIs instead of sending the raw localhost URL — see app/local_image_inline.py."""
     monkeypatch.setenv("AI_MODE", "api")
     monkeypatch.setenv("FASHN_API_KEY", "test-key")
+    monkeypatch.setenv("VTON_ALLOW_LOCAL_URLS", "true")
     reset_provider()
 
     submit_response = _mock_response(200, {"id": "pred-456"})

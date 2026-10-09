@@ -60,6 +60,18 @@ public class Brand {
     @Builder.Default
     private BrandStatus status = BrandStatus.PENDING;
 
+    /** Stable key of the seed catalog entry this brand comes from; null for brands that signed up themselves. */
+    @Column(name = "catalog_key", length = 64)
+    private String catalogKey;
+
+    /** True while the brand profile still mirrors the catalog; any edit by the owner hands it over to the brand. */
+    @Column(name = "catalog_managed", nullable = false)
+    @Builder.Default
+    private boolean catalogManaged = false;
+
+    @Column(name = "catalog_hash", length = 64)
+    private String catalogHash;
+
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;

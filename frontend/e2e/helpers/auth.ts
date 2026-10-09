@@ -1,6 +1,13 @@
 import { type Page, expect } from "@playwright/test";
 
-export const DEMO_PASSWORD = "fitme123";
+/** Password of the seeded demo accounts: the backend's FITME_SEED_PASSWORD (CI generates one per run). */
+export function demoPassword(): string {
+  const password = process.env.FITME_SEED_PASSWORD;
+  if (!password) {
+    throw new Error("Set FITME_SEED_PASSWORD (same value as the backend seed) to run the E2E logins");
+  }
+  return password;
+}
 
 async function fillLoginForm(page: Page, email: string, password: string) {
   await page.locator('input[type="email"]').first().fill(email);
@@ -21,7 +28,7 @@ async function waitForPortalSession(page: Page) {
 
 export async function loginBrand(page: Page, email = "teelab@fitme.ai") {
   await page.goto("/brand/login");
-  await fillLoginForm(page, email, DEMO_PASSWORD);
+  await fillLoginForm(page, email, demoPassword());
   const sessionSync = waitForPortalSession(page);
   await page.getByRole("button", { name: "Đăng nhập" }).click();
   await sessionSync;
@@ -30,7 +37,7 @@ export async function loginBrand(page: Page, email = "teelab@fitme.ai") {
 
 export async function loginAdmin(page: Page, email = "admin@fitme.ai") {
   await page.goto("/admin/login");
-  await fillLoginForm(page, email, DEMO_PASSWORD);
+  await fillLoginForm(page, email, demoPassword());
   const sessionSync = waitForPortalSession(page);
   await page.getByRole("button", { name: "Đăng nhập" }).click();
   await sessionSync;
@@ -39,7 +46,7 @@ export async function loginAdmin(page: Page, email = "admin@fitme.ai") {
 
 export async function loginUser(page: Page, email = "user@fitme.ai") {
   await page.goto("/auth/login");
-  await fillLoginForm(page, email, DEMO_PASSWORD);
+  await fillLoginForm(page, email, demoPassword());
   await page.getByRole("button", { name: "Đăng nhập" }).click();
   await page.waitForURL(/\/profile/, { timeout: 30_000 });
   await expect(page.getByRole("heading", { name: "Hồ sơ của tôi" })).toBeVisible({

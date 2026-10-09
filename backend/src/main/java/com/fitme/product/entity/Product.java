@@ -76,6 +76,18 @@ public class Product {
     @Builder.Default
     private boolean aiTryOnEligible = false;
 
+    /** Marketplace item id of the seed catalog entry this product comes from (e.g. the Shopee item id). */
+    @Column(name = "catalog_item_id", length = 64)
+    private String catalogItemId;
+
+    /** True while the product still mirrors the catalog; any edit by the brand stops catalog re-syncs. */
+    @Column(name = "catalog_managed", nullable = false)
+    @Builder.Default
+    private boolean catalogManaged = false;
+
+    @Column(name = "catalog_hash", length = 64)
+    private String catalogHash;
+
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;

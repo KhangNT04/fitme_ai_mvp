@@ -15,12 +15,15 @@ import com.fitme.product.repository.SizeChartRepository;
 import com.fitme.support.TestDataHelper;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.jdbc.core.JdbcTemplate;
 
 import java.util.Comparator;
 import java.util.List;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 class FashionCatalogSyncIntegrationTest extends AbstractIntegrationTest {
     @Autowired FashionCatalogSeeder seeder;
@@ -30,6 +33,7 @@ class FashionCatalogSyncIntegrationTest extends AbstractIntegrationTest {
     @Autowired ProductVariantRepository variants;
     @Autowired SizeChartRepository sizeCharts;
     @Autowired ProductImageRepository images;
+    @Autowired JdbcTemplate jdbc;
 
     @Test
     void refreshKeepsVariantIdsAndIgnoresBrandOwnProducts() {
@@ -39,12 +43,11 @@ class FashionCatalogSyncIntegrationTest extends AbstractIntegrationTest {
 
         Product catalogProduct = firstCatalogProduct(owner);
         ProductVariant variant = variants.findByProductId(catalogProduct.getId()).getFirst();
+        markCatalogEntryChanged(catalogProduct);
 
         Product ownProduct = testData.createDraftProductForBrand(owner.brand(), "Áo tự đăng " + UUID.randomUUID());
         ownProduct.setStatus(ProductStatus.ACTIVE);
         products.save(ownProduct);
-
-        assertThat(seeder.needsFashionRefresh(owner.brand(), entry)).isFalse();
 
         seeder.syncBrandCatalog(owner.brand(), entry);
 
@@ -53,7 +56,7 @@ class FashionCatalogSyncIntegrationTest extends AbstractIntegrationTest {
         Product ownAfter = products.findById(ownProduct.getId()).orElseThrow();
         assertThat(ownAfter.getStatus()).isEqualTo(ProductStatus.ACTIVE);
         assertThat(ownAfter.getName()).isEqualTo(ownProduct.getName());
-        assertThat(seeder.needsFashionRefresh(owner.brand(), entry)).isFalse();
+        assertThat(products.findByBrandId(owner.brand().getId())).hasSize(entry.products.size() + 1);
     }
 
     @Test
@@ -67,11 +70,14 @@ class FashionCatalogSyncIntegrationTest extends AbstractIntegrationTest {
             assertThat(product.getPurchaseChannel()).isEqualTo(PurchaseChannel.SHOPEE);
             assertThat(UrlValidator.isValidHttpUrl(product.getPurchaseUrl())).isTrue();
             assertThat(product.getPurchaseUrl()).startsWith("https://shopee.vn/product/");
+            assertThat(product.getPurchaseUrl()).endsWith("/" + product.getCatalogItemId());
+            assertThat(product.isCatalogManaged()).isTrue();
+            assertThat(product.getCatalogHash()).hasSize(64);
         });
     }
 
     @Test
-    void syncRestoresTheCatalogPurchaseUrl() {
+    void changedCatalogEntriesAreReappliedButUnchangedOnesAreLeftAlone() {
         FashionCatalogLoader.BrandEntry entry = catalogLoader.load().brands.getFirst();
         TestDataHelper.BrandOwnerContext owner = testData.createBrandOwner();
         seeder.seedBrandCatalog(owner.brand(), entry);
@@ -81,10 +87,100 @@ class FashionCatalogSyncIntegrationTest extends AbstractIntegrationTest {
         products.save(catalogProduct);
 
         seeder.syncBrandCatalog(owner.brand(), entry);
+        assertThat(products.findById(catalogProduct.getId()).orElseThrow().getPurchaseUrl())
+                .isEqualTo("https://example.com/legacy/item");
+
+        markCatalogEntryChanged(products.findById(catalogProduct.getId()).orElseThrow());
+        seeder.syncBrandCatalog(owner.brand(), entry);
 
         Product after = products.findById(catalogProduct.getId()).orElseThrow();
         assertThat(after.getPurchaseChannel()).isEqualTo(PurchaseChannel.SHOPEE);
         assertThat(after.getPurchaseUrl()).isEqualTo(entry.products.getFirst().purchaseUrl);
+    }
+
+    @Test
+    void brandEditedProductsAreNeverOverwritten() {
+        FashionCatalogLoader.BrandEntry entry = catalogLoader.load().brands.getFirst();
+        TestDataHelper.BrandOwnerContext owner = testData.createBrandOwner();
+        seeder.seedBrandCatalog(owner.brand(), entry);
+        Product edited = firstCatalogProduct(owner);
+        edited.setName("Tên brand tự đặt");
+        edited.setCatalogManaged(false);
+        edited.setCatalogHash("outdated");
+        products.save(edited);
+
+        seeder.syncBrandCatalog(owner.brand(), entry);
+
+        Product after = products.findById(edited.getId()).orElseThrow();
+        assertThat(after.getName()).isEqualTo("Tên brand tự đặt");
+        assertThat(after.getCatalogHash()).isEqualTo("outdated");
+    }
+
+    @Test
+    void hiddenRejectedOrFlaggedProductsStayThatWayAcrossSyncs() {
+        FashionCatalogLoader.BrandEntry entry = catalogLoader.load().brands.getFirst();
+        TestDataHelper.BrandOwnerContext owner = testData.createBrandOwner();
+        seeder.seedBrandCatalog(owner.brand(), entry);
+        List<Product> seeded = products.findByBrandId(owner.brand().getId()).stream()
+                .sorted(Comparator.comparing(Product::getCreatedAt))
+                .toList();
+        List<ProductStatus> moderated = List.of(ProductStatus.INACTIVE, ProductStatus.REJECTED, ProductStatus.FLAGGED);
+        for (int i = 0; i < moderated.size(); i++) {
+            Product product = seeded.get(i);
+            product.setStatus(moderated.get(i));
+            markCatalogEntryChanged(product);
+        }
+
+        seeder.syncBrandCatalog(owner.brand(), entry);
+
+        for (int i = 0; i < moderated.size(); i++) {
+            Product after = products.findById(seeded.get(i).getId()).orElseThrow();
+            assertThat(after.getStatus()).isEqualTo(moderated.get(i));
+            assertThat(after.getCatalogHash()).isNotEqualTo("outdated");
+        }
+    }
+
+    @Test
+    void legacyRowsAreLinkedToItemIdsOnceInCatalogOrder() {
+        FashionCatalogLoader.BrandEntry entry = catalogLoader.load().brands.getFirst();
+        TestDataHelper.BrandOwnerContext owner = testData.createBrandOwner();
+        seeder.seedBrandCatalog(owner.brand(), entry);
+        List<UUID> idsInCatalogOrder = new java.util.ArrayList<>();
+        for (int i = 0; i < entry.products.size(); i++) {
+            String itemId = entry.products.get(i).itemId;
+            Product product = products.findByBrandId(owner.brand().getId()).stream()
+                    .filter(p -> itemId.equals(p.getCatalogItemId()))
+                    .findFirst()
+                    .orElseThrow();
+            idsInCatalogOrder.add(product.getId());
+            jdbc.update("""
+                    UPDATE products SET catalog_item_id = NULL, catalog_hash = NULL,
+                           created_at = TIMESTAMPTZ '2020-01-01 00:00:00+00' + (? * INTERVAL '1 minute')
+                    WHERE id = ?""", i, product.getId());
+        }
+
+        seeder.syncBrandCatalog(owner.brand(), entry);
+
+        assertThat(products.findByBrandId(owner.brand().getId())).hasSize(entry.products.size());
+        for (int i = 0; i < idsInCatalogOrder.size(); i++) {
+            assertThat(products.findById(idsInCatalogOrder.get(i)).orElseThrow().getCatalogItemId())
+                    .isEqualTo(entry.products.get(i).itemId);
+        }
+    }
+
+    @Test
+    void productsDroppedFromTheCatalogAreHidden() {
+        FashionCatalogLoader.BrandEntry full = catalogLoader.load().brands.getFirst();
+        TestDataHelper.BrandOwnerContext owner = testData.createBrandOwner();
+        seeder.seedBrandCatalog(owner.brand(), full);
+        FashionCatalogLoader.BrandEntry trimmed = copyWithoutLastProduct(full);
+        String droppedItemId = full.products.getLast().itemId;
+
+        seeder.syncBrandCatalog(owner.brand(), trimmed);
+
+        assertThat(products.findByBrandId(owner.brand().getId()))
+                .allSatisfy(p -> assertThat(p.getStatus()).isEqualTo(
+                        droppedItemId.equals(p.getCatalogItemId()) ? ProductStatus.INACTIVE : ProductStatus.ACTIVE));
     }
 
     @Test
@@ -113,6 +209,22 @@ class FashionCatalogSyncIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
+    void theDatabaseRejectsASecondTryOnImage() {
+        FashionCatalogLoader.BrandEntry entry = catalogLoader.load().brands.getFirst();
+        TestDataHelper.BrandOwnerContext owner = testData.createBrandOwner();
+        seeder.seedBrandCatalog(owner.brand(), entry);
+        Product catalogProduct = firstCatalogProduct(owner);
+
+        assertThatThrownBy(() -> images.saveAndFlush(ProductImage.builder()
+                .productId(catalogProduct.getId())
+                .imageUrl("https://cdn.test/second-try-on.jpg")
+                .imageType(ProductImage.TYPE_TRY_ON)
+                .sortOrder(99)
+                .build()))
+                .isInstanceOf(DataIntegrityViolationException.class);
+    }
+
+    @Test
     void seededSizeChartsAreGraduatedAndColorsHaveRealHex() {
         FashionCatalogLoader.BrandEntry entry = catalogLoader.load().brands.getFirst();
         TestDataHelper.BrandOwnerContext owner = testData.createBrandOwner();
@@ -132,9 +244,25 @@ class FashionCatalogSyncIntegrationTest extends AbstractIntegrationTest {
                 .allSatisfy(v -> assertThat(v.getColorHex()).isEqualTo("#FFFFFF"));
     }
 
+    /** Simulates a new catalog version for this product (its stored hash no longer matches the entry). */
+    private void markCatalogEntryChanged(Product product) {
+        product.setCatalogHash("outdated");
+        products.save(product);
+    }
+
+    private static FashionCatalogLoader.BrandEntry copyWithoutLastProduct(FashionCatalogLoader.BrandEntry source) {
+        FashionCatalogLoader.BrandEntry copy = new FashionCatalogLoader.BrandEntry();
+        copy.key = source.key;
+        copy.name = source.name;
+        copy.products = source.products.subList(0, source.products.size() - 1);
+        return copy;
+    }
+
     private Product firstCatalogProduct(TestDataHelper.BrandOwnerContext owner) {
+        String firstItemId = catalogLoader.load().brands.getFirst().products.getFirst().itemId;
         return products.findByBrandId(owner.brand().getId()).stream()
-                .min(Comparator.comparing(Product::getCreatedAt))
+                .filter(p -> firstItemId.equals(p.getCatalogItemId()))
+                .findFirst()
                 .orElseThrow();
     }
 

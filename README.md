@@ -47,7 +47,7 @@ Chi tiết: [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) · API: [`docs/API_CO
 5. Điều chỉnh ví Fitken người dùng và cấu hình gói dịch vụ consumer (`/admin/billing/plans`)
 6. Quản lý rules, flagged links, privacy requests, try-on monitoring
 
-**Tài khoản demo (seed):** `admin@fitme.ai`, `user@fitme.ai`, mỗi brand thật một tài khoản (`teelab@fitme.ai`, …) — mật khẩu từ `FITME_SEED_PASSWORD`, xem bảng bên dưới.
+**Tài khoản demo (seed):** `admin@fitme.ai`, `user@fitme.ai`, mỗi brand thật một tài khoản (`teelab@fitme.ai`, …) — xem bảng và cách lấy mật khẩu bên dưới.
 
 ## Chạy nhanh với Docker
 
@@ -159,7 +159,7 @@ Frontend: http://localhost:3000
 | brand@fitme.ai | Brand Owner chưa có brand (luồng đăng ký brand) |
 | user@fitme.ai | User |
 
-Mật khẩu là giá trị `FITME_SEED_PASSWORD` lúc seed (không ghi trong tài liệu).
+Mật khẩu của `admin@`, `brand@`, `user@`, `premium@` là giá trị `FITME_SEED_PASSWORD` lúc seed (không ghi trong tài liệu; không có giá trị mặc định — để trống thì các tài khoản này nhận mật khẩu ngẫu nhiên). Tài khoản brand thật (`teelab@`, …) luôn được tạo với mật khẩu ngẫu nhiên không ai biết; admin bàn giao cho brand tại **Quản trị → Tài khoản → Đăng nhập** (đổi email/mật khẩu). Chỉ dev/CI mới bật `FITME_SEED_CATALOG_OWNER_LOGIN=true` để các tài khoản này dùng `FITME_SEED_PASSWORD` (bị bỏ qua trên profile `prod`).
 
 ## Luồng demo chính
 

@@ -85,20 +85,21 @@ Giữ `DB_USERNAME` và `DB_PASSWORD` riêng (không nhét vào URL).
 | `FITME_SEED_FASHION_REFRESH` | `true` *(mặc định prod — đồng bộ catalog thời trang khi backend khởi động)* |
 | `FITME_SEED_PASSWORD` | chỉ khi bật seed — dùng mật khẩu mạnh |
 | `UPLOAD_DIR` | `/tmp/uploads` |
-| `PAYOS_MOCK` | `true` *(test billing trên cloud không cần key; đổi `false` khi có PayOS)* |
+| `PAYOS_MOCK` | `false` *(profile `prod` từ chối khởi động nếu `true` hoặc thiếu `PAYOS_CHECKSUM_KEY`)* |
 | `PAYOS_SUBSCRIPTION_RETURN_URL` | `https://fitme-ai-mvp.vercel.app/billing/return?status=success` |
 | `PAYOS_SUBSCRIPTION_CANCEL_URL` | `https://fitme-ai-mvp.vercel.app/billing/return?status=cancel` |
 | `PAYOS_BRAND_PLUS_RETURN_URL` | *(tuỳ chọn)* mặc định `<origin>/brand/plan/return?status=success`, lấy origin từ `PAYOS_SUBSCRIPTION_RETURN_URL` |
 | `PAYOS_BRAND_PLUS_CANCEL_URL` | *(tuỳ chọn)* mặc định `<origin>/brand/plan/return?status=cancel` |
-| `PAYOS_CLIENT_ID` | *(chỉ khi `PAYOS_MOCK=false`)* |
-| `PAYOS_API_KEY` | *(chỉ khi `PAYOS_MOCK=false`)* |
-| `PAYOS_CHECKSUM_KEY` | *(chỉ khi `PAYOS_MOCK=false`)* |
+| `PAYOS_CLIENT_ID` | khóa PayOS *(bắt buộc)* |
+| `PAYOS_API_KEY` | khóa PayOS *(bắt buộc)* |
+| `PAYOS_CHECKSUM_KEY` | khóa PayOS *(bắt buộc — thiếu thì backend không khởi động)* |
 | `FITME_AI_STYLIST_MODE` | `gemini` *(production; `rule` chỉ khi tắt Gemini)* |
 | `GEMINI_API_KEY` | API key từ [Google AI Studio](https://aistudio.google.com/apikey) |
 | `GEMINI_MODEL` | `gemini-2.0-flash` *(tùy chọn)* |
 | `GEMINI_TIMEOUT_MS` | `25000` *(khuyến nghị trên Render)* |
 | `FITME_AI_MODE` | `hf` *(gọi ai-vton; `mock` chỉ dev local)* |
 | `AI_VTON_URL` | `https://fitme-ai-vton.onrender.com` |
+| `AI_VTON_INTERNAL_TOKEN` | chuỗi random ≥32 ký tự — **cùng giá trị** với `VTON_INTERNAL_TOKEN` trên service `fitme-ai-vton` (header `X-Internal-Token`) |
 | `FITME_PUBLIC_BASE_URL` | URL backend Render (vd. `https://fitme-ai-mvp.onrender.com`) |
 | `FITME_STORAGE_MODE` | `r2` *(production VTON; `local` chỉ dev)* |
 | `R2_ENDPOINT` | `https://<account-id>.r2.cloudflarestorage.com` |
@@ -232,7 +233,13 @@ Chỉ tạo khi `FITME_SEED_ENABLED=true` **và** DB Neon **trống** lần đ�
 | brand@fitme.ai | Brand chưa có brand |
 | user@fitme.ai | User |
 
-Mật khẩu: `FITME_SEED_PASSWORD` (nếu bật seed).
+Mật khẩu `admin@` / `brand@` / `user@`: `FITME_SEED_PASSWORD` (nếu bật seed; để trống → mật khẩu ngẫu nhiên). Đặt biến này trên dashboard (`sync: false` trong `render.yaml`), không bao giờ ghi vào file.
+
+Tài khoản brand thật (`teelab@`…) được tạo bởi đồng bộ catalog (`FITME_SEED_FASHION_REFRESH`), kể cả khi seed tắt, với **mật khẩu ngẫu nhiên không ai biết** — không đăng nhập được cho tới khi admin bàn giao ở **Quản trị → Tài khoản → Đăng nhập** (đổi email và/hoặc đặt mật khẩu cho brand). Đồng bộ lại không bao giờ đổi mật khẩu tài khoản đã có.
+
+### Bí mật nội bộ ai-vton
+
+Service `fitme-ai-vton` public trên Render. Tạo một chuỗi random, đặt cùng giá trị vào `VTON_INTERNAL_TOKEN` (fitme-ai-vton) và `AI_VTON_INTERNAL_TOKEN` (fitme-api), rồi redeploy cả hai. Khi `VTON_INTERNAL_TOKEN` trống, ai-vton không kiểm tra token (để thứ tự deploy không làm gãy try-on).
 
 ### Bật lại seed demo
 

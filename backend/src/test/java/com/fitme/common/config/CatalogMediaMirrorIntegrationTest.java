@@ -18,7 +18,6 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.net.InetSocketAddress;
-import java.util.Comparator;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -129,7 +128,8 @@ class CatalogMediaMirrorIntegrationTest extends AbstractIntegrationTest {
         TestDataHelper.BrandOwnerContext owner = testData.createBrandOwner();
         seeder.seedBrandCatalog(owner.brand(), entry);
         Product product = products.findByBrandId(owner.brand().getId()).stream()
-                .min(Comparator.comparing(Product::getCreatedAt))
+                .filter(p -> first.itemId.equals(p.getCatalogItemId()))
+                .findFirst()
                 .orElseThrow();
 
         List<ProductImage> gallery = images.findByProductIdOrderBySortOrderAsc(product.getId());
@@ -140,10 +140,14 @@ class CatalogMediaMirrorIntegrationTest extends AbstractIntegrationTest {
 
         int pickIndex = defaultIndex == first.images.size() - 1 ? 0 : first.images.size() - 1;
         for (ProductImage img : gallery) {
-            img.setImageType(img.getSortOrder() == pickIndex ? ProductImage.TYPE_TRY_ON
-                    : img.getSortOrder() == 0 ? ProductImage.TYPE_MAIN : ProductImage.TYPE_DETAIL);
-            images.save(img);
+            img.setImageType(img.getSortOrder() == 0 ? ProductImage.TYPE_MAIN : ProductImage.TYPE_DETAIL);
+            images.saveAndFlush(img);
         }
+        ProductImage pick = gallery.stream().filter(img -> img.getSortOrder() == pickIndex).findFirst().orElseThrow();
+        pick.setImageType(ProductImage.TYPE_TRY_ON);
+        images.saveAndFlush(pick);
+        product.setCatalogHash("outdated");
+        products.save(product);
 
         seeder.syncBrandCatalog(owner.brand(), entry);
 

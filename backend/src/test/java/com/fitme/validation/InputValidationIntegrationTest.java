@@ -94,22 +94,23 @@ class InputValidationIntegrationTest extends AbstractIntegrationTest {
     void brandSettingsUpdateKeepsSocialLinksThatWereNotSent() throws Exception {
         TestDataHelper.BrandOwnerContext owner = testDataHelper.createBrandOwner();
         FitMeUserPrincipal principal = new FitMeUserPrincipal(owner.user());
+        String name = "Social Brand " + java.util.UUID.randomUUID();
 
         mockMvc.perform(put("/api/v1/brand/me")
                         .with(user(principal))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
-                                {"name":"Social Brand","instagramUrl":"https://instagram.com/social",
+                                {"name":"%s","instagramUrl":"https://instagram.com/social",
                                  "tiktokShopUrl":"https://tiktok.com/@social"}
-                                """))
+                                """.formatted(name)))
                 .andExpect(status().isOk());
 
         mockMvc.perform(put("/api/v1/brand/me")
                         .with(user(principal))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
-                                {"name":"Social Brand","contactPhone":"0901234567","tiktokShopUrl":""}
-                                """))
+                                {"name":"%s","contactPhone":"0901234567","tiktokShopUrl":""}
+                                """.formatted(name)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.instagramUrl").value("https://instagram.com/social"))
                 .andExpect(jsonPath("$.data.tiktokShopUrl").doesNotExist())

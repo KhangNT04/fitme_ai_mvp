@@ -1,5 +1,7 @@
 package com.fitme.common.config;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fitme.brand.entity.Brand;
 import com.fitme.common.enums.*;
 import com.fitme.common.util.UrlValidator;
@@ -11,10 +13,14 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.text.Normalizer;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.HexFormat;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -25,7 +31,6 @@ import java.util.UUID;
 public class FashionCatalogSeeder {
 
     private static final Logger log = LoggerFactory.getLogger(FashionCatalogSeeder.class);
-    private static final String LEGACY_DEMO_PREFIX = "Sản phẩm demo ";
     /** Bump when seeded product fields change so existing databases re-sync on startup. */
     private static final String CATALOG_META_TAG = "catalog-v9";
     private static final List<String> DEFAULT_SIZES = List.of("S", "M", "L", "XL");
@@ -70,6 +75,7 @@ public class FashionCatalogSeeder {
     private final ProductTagRepository tagRepository;
     private final SizeChartRepository sizeChartRepository;
     private final CatalogMediaService catalogMediaService;
+    private final ObjectMapper objectMapper;
 
     public int seedBrandCatalog(Brand brand, FashionCatalogLoader.BrandEntry entry) {
         int created = 0;
@@ -82,78 +88,106 @@ public class FashionCatalogSeeder {
         return created;
     }
 
-    public boolean needsFashionRefresh(Brand brand, FashionCatalogLoader.BrandEntry entry) {
-        List<Product> active = catalogManagedProducts(brand).stream()
-                .filter(p -> p.getStatus() == ProductStatus.ACTIVE)
-                .toList();
-        if (active.size() != entry.products.size()) {
-            return true;
-        }
-        return active.stream().anyMatch(p -> p.getName().startsWith(LEGACY_DEMO_PREFIX))
-                || active.stream().anyMatch(p -> !hasCurrentCatalogMeta(p))
-                || active.stream().anyMatch(this::missingTargetGenderTag)
-                || usesRemoteCatalogImages(active);
-    }
-
-    /** Products the brand created itself (no catalog META tag) are never touched by the seeder. */
-    private List<Product> catalogManagedProducts(Brand brand) {
-        return productRepository.findByBrandId(brand.getId()).stream()
-                .filter(p -> p.getName().startsWith(LEGACY_DEMO_PREFIX) || hasAnyCatalogMeta(p))
-                .toList();
-    }
-
-    private boolean hasAnyCatalogMeta(Product product) {
-        return tagRepository.findByProductId(product.getId()).stream()
-                .anyMatch(t -> "META".equals(t.getTagType())
-                        && t.getTagValue() != null
-                        && t.getTagValue().startsWith("catalog-"));
-    }
-
-    private boolean missingTargetGenderTag(Product product) {
-        return tagRepository.findByProductId(product.getId()).stream()
-                .noneMatch(t -> "TARGET_GENDER".equals(t.getTagType()));
-    }
-
-    private boolean hasCurrentCatalogMeta(Product product) {
-        return tagRepository.findByProductId(product.getId()).stream()
-                .anyMatch(t -> "META".equals(t.getTagType()) && CATALOG_META_TAG.equals(t.getTagValue()));
-    }
-
-    private boolean usesRemoteCatalogImages(List<Product> products) {
-        for (Product product : products) {
-            for (ProductImage image : imageRepository.findByProductIdOrderBySortOrderAsc(product.getId())) {
-                String url = image.getImageUrl();
-                if (url != null && url.startsWith("https://images.unsplash.com")) {
-                    return true;
-                }
-            }
-        }
-        return false;
-    }
-
-    /** Updates products in place so FK references (recommendations, try-on, …) stay valid. */
+    /**
+     * Idempotent catalog sync, matched by marketplace item id. Products are updated in place (FK references
+     * from recommendations, try-on, … stay valid) only while still catalog-managed and when their catalog
+     * entry changed. Status is never touched on update, so products hidden, rejected or flagged stay that way;
+     * catalog-managed products dropped from the catalog are hidden. Brand-created or brand-edited products
+     * are left alone.
+     */
     public void syncBrandCatalog(Brand brand, FashionCatalogLoader.BrandEntry entry) {
-        List<Product> existing = catalogManagedProducts(brand).stream()
-                .sorted(Comparator.comparing(Product::getCreatedAt))
-                .toList();
-
-        int seq = 1;
-        for (int i = 0; i < entry.products.size(); i++) {
-            FashionCatalogLoader.ProductEntry productEntry = entry.products.get(i);
-            if (i < existing.size()) {
-                updateCatalogProduct(existing.get(i), brand, entry.key, productEntry, seq++);
-            } else {
-                createCatalogProduct(brand, entry.key, productEntry, seq++);
+        List<Product> brandProducts = productRepository.findByBrandId(brand.getId());
+        assignItemIdsOnce(brandProducts, entry);
+        Map<String, Product> byItemId = new HashMap<>();
+        for (Product product : brandProducts) {
+            if (product.getCatalogItemId() != null) {
+                byItemId.put(product.getCatalogItemId(), product);
             }
         }
 
-        for (int i = entry.products.size(); i < existing.size(); i++) {
-            Product extra = existing.get(i);
-            extra.setStatus(ProductStatus.INACTIVE);
-            productRepository.save(extra);
+        int created = 0;
+        int updated = 0;
+        int edited = 0;
+        Set<String> wanted = new HashSet<>();
+        int seq = 1;
+        for (FashionCatalogLoader.ProductEntry productEntry : entry.products) {
+            String itemId = requireItemId(entry.key, productEntry);
+            wanted.add(itemId);
+            Product product = byItemId.get(itemId);
+            if (product == null) {
+                createCatalogProduct(brand, entry.key, productEntry, seq);
+                created++;
+            } else if (!product.isCatalogManaged()) {
+                edited++;
+            } else if (!catalogHash(productEntry).equals(product.getCatalogHash())) {
+                updateCatalogProduct(product, brand, entry.key, productEntry, seq);
+                updated++;
+            }
+            seq++;
         }
 
-        log.info("Synced {} fashion products for {}", entry.products.size(), brand.getName());
+        int hidden = 0;
+        for (Product product : brandProducts) {
+            boolean dropped = product.getCatalogItemId() == null || !wanted.contains(product.getCatalogItemId());
+            if (product.isCatalogManaged() && dropped && product.getStatus() == ProductStatus.ACTIVE) {
+                product.setStatus(ProductStatus.INACTIVE);
+                productRepository.save(product);
+                hidden++;
+            }
+        }
+
+        if (created + updated + hidden > 0) {
+            log.info("Synced catalog for {}: {} created, {} updated, {} hidden, {} kept as edited by the brand",
+                    brand.getName(), created, updated, hidden, edited);
+        }
+    }
+
+    /**
+     * Databases seeded before item ids existed matched catalog entries by list position; link those rows to
+     * their item ids once, in that same order (visible products first so the storefront keeps its products).
+     */
+    private void assignItemIdsOnce(List<Product> brandProducts, FashionCatalogLoader.BrandEntry entry) {
+        if (brandProducts.stream().anyMatch(p -> p.getCatalogItemId() != null)) {
+            return;
+        }
+        List<Product> legacy = brandProducts.stream()
+                .filter(Product::isCatalogManaged)
+                .sorted(Comparator.comparing((Product p) -> p.getStatus() != ProductStatus.ACTIVE)
+                        .thenComparing(Product::getCreatedAt))
+                .toList();
+        int linked = Math.min(legacy.size(), entry.products.size());
+        for (int i = 0; i < linked; i++) {
+            Product product = legacy.get(i);
+            product.setCatalogItemId(requireItemId(entry.key, entry.products.get(i)));
+            productRepository.save(product);
+        }
+        if (linked > 0) {
+            log.info("Linked {} existing products of {} to catalog item ids", linked, entry.name);
+        }
+    }
+
+    private static String requireItemId(String brandKey, FashionCatalogLoader.ProductEntry entry) {
+        if (entry.itemId == null || entry.itemId.isBlank()) {
+            throw new IllegalStateException("Catalog product without itemId in " + brandKey + ": " + entry.name);
+        }
+        return entry.itemId.trim();
+    }
+
+    private String catalogHash(FashionCatalogLoader.ProductEntry entry) {
+        try {
+            return sha256(CATALOG_META_TAG + "\u0000" + objectMapper.writeValueAsString(entry));
+        } catch (JsonProcessingException e) {
+            throw new IllegalStateException("Cannot hash catalog entry " + entry.name, e);
+        }
+    }
+
+    static String sha256(String value) {
+        try {
+            byte[] digest = MessageDigest.getInstance("SHA-256").digest(value.getBytes(StandardCharsets.UTF_8));
+            return HexFormat.of().formatHex(digest);
+        } catch (NoSuchAlgorithmException e) {
+            throw new IllegalStateException(e);
+        }
     }
 
     private void updateCatalogProduct(
@@ -173,8 +207,8 @@ public class FashionCatalogSeeder {
         product.setPurchaseUrl(purchaseUrl(brand, brandKey, entry));
         product.setPurchaseChannel(purchaseChannel(entry));
         product.setStockStatus(StockStatus.IN_STOCK);
-        product.setStatus(ProductStatus.ACTIVE);
         product.setSponsored(entry.sponsored);
+        product.setCatalogHash(catalogHash(entry));
 
         String brandTryOnPick = currentTryOnImage(product.getId());
         clearRelatedData(product.getId());
@@ -269,6 +303,9 @@ public class FashionCatalogSeeder {
                 .stockStatus(StockStatus.IN_STOCK)
                 .status(ProductStatus.ACTIVE)
                 .isSponsored(entry.sponsored)
+                .catalogItemId(requireItemId(brandKey, entry))
+                .catalogManaged(true)
+                .catalogHash(catalogHash(entry))
                 .build());
 
         boolean hasTryOn = saveRelatedData(product.getId(), brandKey, entry, seq, null);
@@ -280,6 +317,8 @@ public class FashionCatalogSeeder {
         imageRepository.findByProductIdOrderBySortOrderAsc(productId).forEach(imageRepository::delete);
         tagRepository.findByProductId(productId).forEach(tagRepository::delete);
         sizeChartRepository.findByProductId(productId).forEach(sizeChartRepository::delete);
+        // Hibernate flushes inserts before deletes; the one-TRY_ON-per-product index needs the deletes first.
+        imageRepository.flush();
     }
 
     /**

@@ -57,7 +57,10 @@ fitme:
     dir: ${UPLOAD_DIR:./uploads}
   seed:
     enabled: ${FITME_SEED_ENABLED:true}
-    password: ${FITME_SEED_PASSWORD:fitme123}
+    # No default: unset = seeded demo accounts get a random, unusable password (set it in .env.local for dev).
+    password: ${FITME_SEED_PASSWORD:}
+    # Dev/CI only (ignored under prod): catalog brand-owner accounts also get the seed password.
+    catalog-owner-login: ${FITME_SEED_CATALOG_OWNER_LOGIN:false}
     top-up-enabled: ${FITME_SEED_TOP_UP:true}
     products-per-brand: ${FITME_SEED_PRODUCTS_PER_BRAND:18}
     min-active-products: ${FITME_SEED_MIN_ACTIVE_PRODUCTS:36}
@@ -107,6 +110,7 @@ fitme:
   ai:
     mode: ${FITME_AI_MODE:mock}
     vton-base-url: ${AI_VTON_URL:http://localhost:8001}
+    vton-internal-token: ${AI_VTON_INTERNAL_TOKEN:}
     embeddings-base-url: ${AI_EMBEDDINGS_URL:http://localhost:8102}
     public-base-url: ${FITME_PUBLIC_BASE_URL:http://localhost:8080}
     poll-interval-ms: ${FITME_AI_POLL_INTERVAL_MS:3000}

@@ -1,11 +1,11 @@
 {
   "version": 7,
   "retiredBrands": [
-    "K-Style House",
-    "Linen Muse",
-    "Seoul Basic",
-    "Urban Threads",
-    "Khang Shop"
+    "k-style-house",
+    "linen-muse",
+    "seoul-basic",
+    "urban-threads",
+    "khang-shop"
   ],
   "brands": [
     {
@@ -18,6 +18,7 @@
       "shopeeUrl": "https://shopee.vn/teelab.vietnam",
       "products": [
         {
+          "itemId": "48008544622",
           "name": "Áo thun Teelab Alter Essentials Oversized TS379",
           "description": "Áo thun Teelab Alter Essentials Oversized TS379 của Teelab. Chất liệu cotton. Form oversize. Màu: Đen, Trắng, Navy, Đỏ đô. Size: S, M, L, XL. Hợp phong cách Streetwear, dịp dạo phố.",
           "category": "Áo",
@@ -56,6 +57,7 @@
           "sponsored": false
         },
         {
+          "itemId": "48258539541",
           "name": "Sơ mi Oxford dài tay Teelab Alter Oversized SS066",
           "description": "Sơ mi Oxford dài tay Teelab Alter Oversized SS066 của Teelab. Chất liệu oxford. Form oversize. Màu: Trắng, Đen, Navy, Xanh nhạt. Size: S, M, L, XL. Hợp phong cách Minimal, dịp đi làm.",
           "category": "Áo",
@@ -93,6 +95,7 @@
           "sponsored": false
         },
         {
+          "itemId": "44908539656",
           "name": "Áo polo Teelab Alter Essentials Oversized AP075",
           "description": "Áo polo Teelab Alter Essentials Oversized AP075 của Teelab. Chất liệu thun 2 da. Form oversize. Màu: Trắng, Đen, Navy, Xám. Size: S, M, L, XL. Hợp phong cách Minimal, dịp đi cafe.",
           "category": "Áo",
@@ -130,6 +133,7 @@
           "sponsored": false
         },
         {
+          "itemId": "54958524427",
           "name": "Cardigan len Teelab Alter Simple Love AK125",
           "description": "Cardigan len Teelab Alter Simple Love AK125 của Teelab. Chất liệu len. Form oversize. Màu: Đen, Cream. Size: S, M, L, XL. Hợp phong cách Korean Casual, dịp hẹn hò.",
           "category": "Áo khoác",
@@ -165,6 +169,7 @@
           "sponsored": false
         },
         {
+          "itemId": "49808550318",
           "name": "Áo khoác gió Teelab Alter Windbreaker Legacy AK074",
           "description": "Áo khoác gió Teelab Alter Windbreaker Legacy AK074 của Teelab. Chất liệu gió dù. Form oversize. Màu: Đen, Xám. Size: M, L, XL. Hợp phong cách Streetwear, dịp dạo phố.",
           "category": "Áo khoác",
@@ -198,6 +203,7 @@
           "sponsored": false
         },
         {
+          "itemId": "51858528840",
           "name": "Sweater nỉ Teelab Alter Signature HD096",
           "description": "Sweater nỉ Teelab Alter Signature HD096 của Teelab. Chất liệu nỉ lông. Form oversize. Màu: Đen, Xám, Cream, Đỏ. Size: M, L, XL. Hợp phong cách Korean Casual, dịp đi cafe.",
           "category": "Áo",
@@ -234,6 +240,7 @@
           "sponsored": false
         },
         {
+          "itemId": "56508530323",
           "name": "Quần nỉ Teelab Alter Oversized Classic Pants PS125",
           "description": "Quần nỉ Teelab Alter Oversized Classic Pants PS125 của Teelab. Chất liệu nỉ. Form oversize. Màu: Đen, Xám. Size: S, M, L, XL. Hợp phong cách Streetwear, dịp dạo phố.",
           "category": "Quần",
@@ -269,6 +276,7 @@
           "sponsored": false
         },
         {
+          "itemId": "49658550414",
           "name": "Quần jeans form rộng Teelab Alter PS116",
           "description": "Quần jeans form rộng Teelab Alter PS116 của Teelab. Chất liệu denim. Form rộng thoải mái. Màu: Đen, Xanh nhạt, Nâu, Xám. Size: S, M, L, XL. Hợp phong cách Streetwear, dịp dạo phố.",
           "category": "Quần",
@@ -306,6 +314,7 @@
           "sponsored": false
         },
         {
+          "itemId": "58008530458",
           "name": "Quần shorts nỉ Teelab Alter World Tour SH002",
           "description": "Quần shorts nỉ Teelab Alter World Tour SH002 của Teelab. Chất liệu nỉ. Form rộng thoải mái. Màu: Đen, Navy. Size: S, M, L, XL. Hợp phong cách Streetwear, dịp dạo phố.",
           "category": "Quần",
@@ -340,6 +349,7 @@
           "sponsored": false
         },
         {
+          "itemId": "40179917686",
           "name": "Balo Teelab Alter Racer Backpack AC077",
           "description": "Balo Teelab Alter Racer Backpack AC077 của Teelab. Chất liệu da pvc. Form vừa. Màu: Đen. Size: Free size. Hợp phong cách Streetwear, dịp dạo phố.",
           "category": "Phụ kiện",
@@ -382,6 +392,7 @@
       "shopeeUrl": "https://shopee.vn/dirtycoins.store",
       "products": [
         {
+          "itemId": "44479320162",
           "name": "Áo thun DirtyCoins Wavy Logo T-shirt",
           "description": "Áo thun DirtyCoins Wavy Logo T-shirt của DirtyCoins. Chất liệu cotton. Form rộng thoải mái. Màu: Đen, Trắng, Xanh lá. Size: S, M, L, XL. Hợp phong cách Streetwear, dịp dạo phố.",
           "category": "Áo",
@@ -418,6 +429,7 @@
           "sponsored": false
         },
         {
+          "itemId": "52412041717",
           "name": "Áo DirtyCoins Soccer Jersey Sparkle",
           "description": "Áo DirtyCoins Soccer Jersey Sparkle của DirtyCoins. Form rộng thoải mái. Màu: Trắng. Size: S, M, L, XL, XXL. Hợp phong cách Streetwear, dịp dạo phố.",
           "category": "Áo",
@@ -453,6 +465,7 @@
           "sponsored": false
         },
         {
+          "itemId": "45556859248",
           "name": "Áo thun tay dài DirtyCoins x Rolling Stones Raglan",
           "description": "Áo thun tay dài DirtyCoins x Rolling Stones Raglan của DirtyCoins. Chất liệu cotton. Form vừa. Màu: Đen, Trắng. Size: M, L, XL. Hợp phong cách Vintage, dịp dạo phố.",
           "category": "Áo",
@@ -487,6 +500,7 @@
           "sponsored": false
         },
         {
+          "itemId": "55156850679",
           "name": "Áo polo DirtyCoins x Rolling Stones Embroidery",
           "description": "Áo polo DirtyCoins x Rolling Stones Embroidery của DirtyCoins. Chất liệu sợi tổng hợp. Form vừa. Màu: Trắng, Đen. Size: M, L, XL. Hợp phong cách Streetwear, dịp đi cafe.",
           "category": "Áo",
@@ -521,6 +535,7 @@
           "sponsored": false
         },
         {
+          "itemId": "50907149839",
           "name": "Hoodie zip DirtyCoins x Rolling Stones US Tongue",
           "description": "Hoodie zip DirtyCoins x Rolling Stones US Tongue của DirtyCoins. Chất liệu nỉ chân cua. Form oversize. Màu: Navy. Size: M, L, XL. Hợp phong cách Streetwear, dịp dạo phố.",
           "category": "Áo khoác",
@@ -554,6 +569,7 @@
           "sponsored": false
         },
         {
+          "itemId": "46656868926",
           "name": "Sơ mi khaki DirtyCoins Y Embroidered",
           "description": "Sơ mi khaki DirtyCoins Y Embroidered của DirtyCoins. Chất liệu khaki. Form rộng thoải mái. Màu: Đen. Size: S, M, L, XL. Hợp phong cách Vintage, dịp đi cafe.",
           "category": "Áo",
@@ -588,6 +604,7 @@
           "sponsored": false
         },
         {
+          "itemId": "51507139413",
           "name": "Quần jeans baggy DirtyCoins Destroy",
           "description": "Quần jeans baggy DirtyCoins Destroy của DirtyCoins. Chất liệu cotton denim. Form oversize. Màu: Xanh nhạt. Size: 26, 28, 30, 32, 34, 36. Hợp phong cách Streetwear, dịp dạo phố.",
           "category": "Quần",
@@ -624,6 +641,7 @@
           "sponsored": false
         },
         {
+          "itemId": "45106874557",
           "name": "Quần sweatpants DirtyCoins Star",
           "description": "Quần sweatpants DirtyCoins Star của DirtyCoins. Chất liệu nỉ bông. Form rộng thoải mái. Màu: Đen, Xanh nhạt. Size: M, L, XL. Hợp phong cách Streetwear, dịp dạo phố.",
           "category": "Quần",
@@ -658,6 +676,7 @@
           "sponsored": false
         },
         {
+          "itemId": "50157162118",
           "name": "Quần shorts dù DirtyCoins Curve Ripstop",
           "description": "Quần shorts dù DirtyCoins Curve Ripstop của DirtyCoins. Chất liệu polyester. Form rộng thoải mái. Màu: Đen, Đỏ. Size: M, L, XL. Hợp phong cách Streetwear, dịp dạo phố.",
           "category": "Quần",
@@ -692,6 +711,7 @@
           "sponsored": false
         },
         {
+          "itemId": "45206864994",
           "name": "Nón DirtyCoins Y Logo Cap",
           "description": "Nón DirtyCoins Y Logo Cap của DirtyCoins. Chất liệu khaki. Form vừa. Màu: Đen. Size: Free size. Hợp phong cách Streetwear, dịp dạo phố.",
           "category": "Phụ kiện",
@@ -733,6 +753,7 @@
       "shopeeUrl": "https://shopee.vn/regods",
       "products": [
         {
+          "itemId": "29562977265",
           "name": "Hoodie zip Regods Ribbon nỉ chân cua",
           "description": "Hoodie zip Regods Ribbon nỉ chân cua của Regods. Chất liệu nỉ. Form oversize. Màu: Xám. Size: M, L. Hợp phong cách Korean Casual, dịp dạo phố.",
           "category": "Áo khoác",
@@ -766,6 +787,7 @@
           "sponsored": false
         },
         {
+          "itemId": "28689066631",
           "name": "Áo thun dập nổi 3D Regods Sculpted Tee",
           "description": "Áo thun dập nổi 3D Regods Sculpted Tee của Regods. Chất liệu cotton. Form oversize. Màu: Đen, Trắng. Size: S, M, L. Hợp phong cách Minimal, dịp dạo phố.",
           "category": "Áo",
@@ -800,6 +822,7 @@
           "sponsored": false
         },
         {
+          "itemId": "29944440881",
           "name": "Áo thun Regods Militia Tee 280gsm",
           "description": "Áo thun Regods Militia Tee 280gsm của Regods. Chất liệu cotton. Form oversize. Màu: Đen, Trắng. Size: M, L, XL. Hợp phong cách Streetwear, dịp dạo phố.",
           "category": "Áo",
@@ -835,6 +858,7 @@
           "sponsored": false
         },
         {
+          "itemId": "24721558819",
           "name": "Áo khoác cropped ren Regods Tilla",
           "description": "Áo khoác cropped ren Regods Tilla của Regods. Chất liệu ren. Form rộng thoải mái. Màu: Xám. Size: M, L. Hợp phong cách Korean Casual, dịp hẹn hò.",
           "category": "Áo khoác",
@@ -867,6 +891,7 @@
           "sponsored": false
         },
         {
+          "itemId": "42261143810",
           "name": "Baby tee Regods đính đá chữ R",
           "description": "Baby tee Regods đính đá chữ R của Regods. Chất liệu cotton. Form ôm. Màu: Đen, Trắng. Size: S, M. Hợp phong cách Korean Casual, dịp đi cafe.",
           "category": "Áo",
@@ -900,6 +925,7 @@
           "sponsored": false
         },
         {
+          "itemId": "50117445949",
           "name": "Áo thun dài tay Regods Longsleeve Sculpted",
           "description": "Áo thun dài tay Regods Longsleeve Sculpted của Regods. Chất liệu cotton pha nylon. Form oversize. Màu: Đen, Trắng. Size: S, M. Hợp phong cách Minimal, dịp đi cafe.",
           "category": "Áo",
@@ -933,6 +959,7 @@
           "sponsored": false
         },
         {
+          "itemId": "53717442149",
           "name": "Quần ống loe Regods Homeroom Flare Pants",
           "description": "Quần ống loe Regods Homeroom Flare Pants của Regods. Chất liệu cotton pha nỉ. Form ôm. Màu: Xám, Hồng. Size: S, M. Hợp phong cách Korean Casual, dịp đi cafe.",
           "category": "Quần",
@@ -966,6 +993,7 @@
           "sponsored": false
         },
         {
+          "itemId": "29544450642",
           "name": "Quần shorts bí Regods Armor Shorts",
           "description": "Quần shorts bí Regods Armor Shorts của Regods. Chất liệu cotton. Form rộng thoải mái. Màu: Đen. Size: S, M. Hợp phong cách Streetwear, dịp dạo phố.",
           "category": "Quần",
@@ -998,6 +1026,7 @@
           "sponsored": false
         },
         {
+          "itemId": "57009246556",
           "name": "Quần short Regods Crownless Mini Shorts",
           "description": "Quần short Regods Crownless Mini Shorts của Regods. Chất liệu cotton. Form ôm. Màu: Trắng, Đen. Size: S, M. Hợp phong cách Korean Casual, dịp hẹn hò.",
           "category": "Quần",
@@ -1032,6 +1061,7 @@
           "sponsored": false
         },
         {
+          "itemId": "41003345630",
           "name": "Balo chần bông Regods NOIR",
           "description": "Balo chần bông Regods NOIR của Regods. Chất liệu phao chần bông. Form vừa. Màu: Đen. Size: Free size. Hợp phong cách Streetwear, dịp dạo phố.",
           "category": "Phụ kiện",
@@ -1074,6 +1104,7 @@
       "shopeeUrl": "https://shopee.vn/ulzzangstorehcmvn",
       "products": [
         {
+          "itemId": "9865399416",
           "name": "Chân váy tennis xếp ly có quần trong",
           "description": "Chân váy tennis xếp ly có quần trong của ULZZANG. Form vừa. Màu: Đen, Trắng, Tím, Hồng. Size: S, M, L. Hợp phong cách Korean Casual, dịp dạo phố.",
           "category": "Váy",
@@ -1109,6 +1140,7 @@
           "sponsored": false
         },
         {
+          "itemId": "26309712148",
           "name": "Chân váy tennis đính nơ",
           "description": "Chân váy tennis đính nơ của ULZZANG. Form ôm. Màu: Đen, Trắng, Xám. Size: S, M, L. Hợp phong cách Korean Casual, dịp hẹn hò.",
           "category": "Váy",
@@ -1144,6 +1176,7 @@
           "sponsored": false
         },
         {
+          "itemId": "28765565932",
           "name": "Chân váy xếp ly basic",
           "description": "Chân váy xếp ly basic của ULZZANG. Form vừa. Màu: Đen, Xám. Size: S, M, L. Hợp phong cách Korean Casual, dịp đi cafe.",
           "category": "Váy",
@@ -1176,6 +1209,7 @@
           "sponsored": false
         },
         {
+          "itemId": "17128036961",
           "name": "Áo sơ mi trơn túi lật tay ngắn",
           "description": "Áo sơ mi trơn túi lật tay ngắn của ULZZANG. Form vừa. Màu: Đen, Trắng. Size: Free size. Hợp phong cách Minimal, dịp đi làm.",
           "category": "Áo",
@@ -1208,6 +1242,7 @@
           "sponsored": false
         },
         {
+          "itemId": "23775277139",
           "name": "Áo croptop ba lỗ thun gân",
           "description": "Áo croptop ba lỗ thun gân của ULZZANG. Chất liệu cotton. Form ôm. Màu: Đen, Trắng, Hồng, Cam. Size: Free size. Hợp phong cách Korean Casual, dịp dạo phố.",
           "category": "Áo",
@@ -1242,6 +1277,7 @@
           "sponsored": false
         },
         {
+          "itemId": "14889937150",
           "name": "Áo khoác lửng len gân",
           "description": "Áo khoác lửng len gân của ULZZANG. Chất liệu len. Form ôm. Màu: Đen, Trắng, Beige. Size: Free size. Hợp phong cách Korean Casual, dịp đi cafe.",
           "category": "Áo khoác",
@@ -1275,6 +1311,7 @@
           "sponsored": false
         },
         {
+          "itemId": "23349746406",
           "name": "Đầm cổ vuông tay ngắn dáng A",
           "description": "Đầm cổ vuông tay ngắn dáng A của ULZZANG. Form ôm. Màu: Đen, Nâu, Xám. Size: Free size. Hợp phong cách Korean Casual, dịp hẹn hò.",
           "category": "Váy",
@@ -1308,6 +1345,7 @@
           "sponsored": false
         },
         {
+          "itemId": "21425510952",
           "name": "Đầm ôm body sọc cổ bẻ",
           "description": "Đầm ôm body sọc cổ bẻ của ULZZANG. Form ôm. Màu: Đen, Xanh nhạt. Size: Free size. Hợp phong cách Korean Casual, dịp đi cafe.",
           "category": "Váy",
@@ -1340,6 +1378,7 @@
           "sponsored": false
         },
         {
+          "itemId": "47405847519",
           "name": "Áo sơ mi trắng cổ sen buộc nơ",
           "description": "Áo sơ mi trắng cổ sen buộc nơ của ULZZANG. Form vừa. Màu: Trắng. Size: Free size. Hợp phong cách Korean Casual, dịp hẹn hò.",
           "category": "Áo",
@@ -1371,6 +1410,7 @@
           "sponsored": false
         },
         {
+          "itemId": "24150470068",
           "name": "Áo khoác cardigan ren hoa nổi",
           "description": "Áo khoác cardigan ren hoa nổi của ULZZANG. Chất liệu ren. Form rộng thoải mái. Màu: Đen, Trắng, Beige. Size: Free size. Hợp phong cách Korean Casual, dịp đi cafe.",
           "category": "Áo khoác",
@@ -1414,6 +1454,7 @@
       "shopeeUrl": "https://shopee.vn/lenclothing",
       "products": [
         {
+          "itemId": "47918437555",
           "name": "Cardigan len Len Clothing hoa nổi 3D A2523",
           "description": "Cardigan len Len Clothing hoa nổi 3D A2523 của Len Clothing. Form vừa. Màu: Hồng, Cream, Nâu, Vàng. Size: Free size. Hợp phong cách Korean Casual, dịp hẹn hò.",
           "category": "Áo khoác",
@@ -1446,6 +1487,7 @@
           "sponsored": false
         },
         {
+          "itemId": "46167031782",
           "name": "Áo len ngắn tay Len Clothing nút màu A2364",
           "description": "Áo len ngắn tay Len Clothing nút màu A2364 của Len Clothing. Form vừa. Màu: Cream, Hồng, Xanh nhạt, Xanh lá. Size: Free size. Hợp phong cách Korean Casual, dịp đi cafe.",
           "category": "Áo",
@@ -1480,6 +1522,7 @@
           "sponsored": false
         },
         {
+          "itemId": "52818358870",
           "name": "Áo thun dài tay Len Clothing kẻ sọc A2517",
           "description": "Áo thun dài tay Len Clothing kẻ sọc A2517 của Len Clothing. Form vừa. Màu: Xanh nhạt, Hồng. Size: Free size. Hợp phong cách Minimal, dịp đi cafe.",
           "category": "Áo",
@@ -1510,6 +1553,7 @@
           "sponsored": false
         },
         {
+          "itemId": "53857653246",
           "name": "Quần short jeans Len Clothing ống rộng Q841236",
           "description": "Quần short jeans Len Clothing ống rộng Q841236 của Len Clothing. Chất liệu denim. Form rộng thoải mái. Màu: Nâu, Xám, Cream, Đen. Size: S, M, L, XL. Hợp phong cách Korean Casual, dịp dạo phố.",
           "category": "Quần",
@@ -1547,6 +1591,7 @@
           "sponsored": false
         },
         {
+          "itemId": "43632181667",
           "name": "Quần jeans ống loe Len Clothing Basic Q2101",
           "description": "Quần jeans ống loe Len Clothing Basic Q2101 của Len Clothing. Chất liệu denim. Form ôm. Màu: Đen, Trắng. Size: 26, 27, 28, 29, 30. Hợp phong cách Korean Casual, dịp dạo phố.",
           "category": "Quần",
@@ -1583,6 +1628,7 @@
           "sponsored": false
         },
         {
+          "itemId": "55313162636",
           "name": "Áo khoác jeans Len Clothing Raw Denim A2110",
           "description": "Áo khoác jeans Len Clothing Raw Denim A2110 của Len Clothing. Chất liệu denim. Form vừa. Màu: Xanh nhạt. Size: Free size. Hợp phong cách Streetwear, dịp dạo phố.",
           "category": "Áo khoác",
@@ -1615,6 +1661,7 @@
           "sponsored": false
         },
         {
+          "itemId": "49967364098",
           "name": "Chân váy mini xếp li Len Clothing CV2365",
           "description": "Chân váy mini xếp li Len Clothing CV2365 của Len Clothing. Chất liệu denim. Form vừa. Màu: Cream, Beige. Size: S, M, L. Hợp phong cách Korean Casual, dịp hẹn hò.",
           "category": "Váy",
@@ -1649,6 +1696,7 @@
           "sponsored": false
         },
         {
+          "itemId": "40133957465",
           "name": "Chân váy jeans mini túi hộp Len Clothing CV2308",
           "description": "Chân váy jeans mini túi hộp Len Clothing CV2308 của Len Clothing. Form vừa. Màu: Beige, Xanh nhạt, Cream. Size: S, M, L. Hợp phong cách Streetwear, dịp dạo phố.",
           "category": "Váy",
@@ -1685,6 +1733,7 @@
           "sponsored": false
         },
         {
+          "itemId": "45618383602",
           "name": "Sweater Len Clothing thêu ngôi sao A2501",
           "description": "Sweater Len Clothing thêu ngôi sao A2501 của Len Clothing. Form rộng thoải mái. Màu: Xám, Trắng, Navy. Size: Free size. Hợp phong cách Korean Casual, dịp đi cafe.",
           "category": "Áo",
@@ -1713,6 +1762,7 @@
           "sponsored": false
         },
         {
+          "itemId": "57817341027",
           "name": "Áo polo len Len Clothing thêu hoa A2409",
           "description": "Áo polo len Len Clothing thêu hoa A2409 của Len Clothing. Form vừa. Màu: Nâu, Navy, Trắng, Beige. Size: Free size. Hợp phong cách Korean Casual, dịp đi cafe.",
           "category": "Áo",
@@ -1755,6 +1805,7 @@
       "shopeeUrl": "https://shopee.vn/hagoo.official",
       "products": [
         {
+          "itemId": "44229164967",
           "name": "Chân váy chữ A đỉa đôi HAGOO CV751",
           "description": "Chân váy chữ A đỉa đôi HAGOO CV751 của HAGOO. Chất liệu kaki. Form vừa. Màu: Nâu, Cream, Đỏ, Đen. Size: S, M, L. Hợp phong cách Minimal, dịp đi làm.",
           "category": "Váy",
@@ -1791,6 +1842,7 @@
           "sponsored": false
         },
         {
+          "itemId": "27055374886",
           "name": "Quần âu ống đứng hai ly HAGOO Q361",
           "description": "Quần âu ống đứng hai ly HAGOO Q361 của HAGOO. Chất liệu chéo nhật. Form vừa. Màu: Đen, Trắng. Size: S, M, L. Hợp phong cách Minimal, dịp đi làm.",
           "category": "Quần",
@@ -1825,6 +1877,7 @@
           "sponsored": false
         },
         {
+          "itemId": "28609082134",
           "name": "Đầm cổ tròn phối tafta HAGOO V387",
           "description": "Đầm cổ tròn phối tafta HAGOO V387 của HAGOO. Chất liệu thun giấy hàn, tafta. Form ôm. Màu: Đen. Size: S, M, L. Hợp phong cách Minimal, dịp dự tiệc.",
           "category": "Váy",
@@ -1858,6 +1911,7 @@
           "sponsored": false
         },
         {
+          "itemId": "26962734011",
           "name": "Blazer không ve dáng dài HAGOO B459",
           "description": "Blazer không ve dáng dài HAGOO B459 của HAGOO. Form vừa. Màu: Đen, Đỏ, Nâu, Trắng. Size: S, M, L. Hợp phong cách Minimal, dịp đi làm.",
           "category": "Áo khoác",
@@ -1894,6 +1948,7 @@
           "sponsored": false
         },
         {
+          "itemId": "26456661149",
           "name": "Sơ mi trắng dài tay HAGOO Bamboo A929",
           "description": "Sơ mi trắng dài tay HAGOO Bamboo A929 của HAGOO. Chất liệu thô hàn cao cấp. Form vừa. Màu: Trắng, Xanh nhạt. Size: S, M, L. Hợp phong cách Minimal, dịp đi làm.",
           "category": "Áo",
@@ -1929,6 +1984,7 @@
           "sponsored": false
         },
         {
+          "itemId": "25469523243",
           "name": "Quần short ống rộng cạp cao HAGOO",
           "description": "Quần short ống rộng cạp cao HAGOO của HAGOO. Chất liệu chéo hàn. Form rộng thoải mái. Màu: Đỏ, Đen, Nâu, Trắng. Size: S, M, L. Hợp phong cách Minimal, dịp đi cafe.",
           "category": "Quần",
@@ -1965,6 +2021,7 @@
           "sponsored": false
         },
         {
+          "itemId": "27234453783",
           "name": "Váy sơ mi jean dáng dài HAGOO V637",
           "description": "Váy sơ mi jean dáng dài HAGOO V637 của HAGOO. Chất liệu jean mềm. Form vừa. Màu: Đen. Size: S, M, L. Hợp phong cách Minimal, dịp đi làm.",
           "category": "Váy",
@@ -1998,6 +2055,7 @@
           "sponsored": false
         },
         {
+          "itemId": "26450831070",
           "name": "Chân váy dài xẻ trước HAGOO CV167",
           "description": "Chân váy dài xẻ trước HAGOO CV167 của HAGOO. Form vừa. Màu: Xám, Đen, Nâu. Size: S, M, L. Hợp phong cách Minimal, dịp đi làm.",
           "category": "Váy",
@@ -2033,6 +2091,7 @@
           "sponsored": false
         },
         {
+          "itemId": "43824330136",
           "name": "Áo thun dài tay cổ lệch HAGOO A8029",
           "description": "Áo thun dài tay cổ lệch HAGOO A8029 của HAGOO. Chất liệu thun hàn. Form ôm. Màu: Đỏ, Đen, Nâu. Size: S, M, L. Hợp phong cách Minimal, dịp đi làm.",
           "category": "Áo",
@@ -2068,6 +2127,7 @@
           "sponsored": false
         },
         {
+          "itemId": "29669815996",
           "name": "Quần jeans lụa ống loe HAGOO Q531",
           "description": "Quần jeans lụa ống loe HAGOO Q531 của HAGOO. Chất liệu denim lụa. Form ôm. Màu: Đen. Size: S, M, L. Hợp phong cách Minimal, dịp đi làm.",
           "category": "Quần",
@@ -2113,6 +2173,7 @@
       "shopeeUrl": "https://shopee.vn/gumac_fashion",
       "products": [
         {
+          "itemId": "24315877942",
           "name": "Sơ mi lụa tay dài GUMAC nẹp giấu nút",
           "description": "Sơ mi lụa tay dài GUMAC nẹp giấu nút của GUMAC. Chất liệu lụa. Form vừa. Màu: Trắng, Đen, Beige, Xanh nhạt. Size: XS, S, M, L, XL. Hợp phong cách Minimal, dịp đi làm.",
           "category": "Áo",
@@ -2151,6 +2212,7 @@
           "sponsored": false
         },
         {
+          "itemId": "29838514888",
           "name": "Quần tây ống đứng lưng cao GUMAC",
           "description": "Quần tây ống đứng lưng cao GUMAC của GUMAC. Form vừa. Màu: Đen, Navy, Xám. Size: XS, S, M, L, XL, XXL, XXXL. Hợp phong cách Minimal, dịp đi làm.",
           "category": "Quần",
@@ -2191,6 +2253,7 @@
           "sponsored": false
         },
         {
+          "itemId": "18092462730",
           "name": "Chân váy chữ A công sở GUMAC",
           "description": "Chân váy chữ A công sở GUMAC của GUMAC. Form vừa. Màu: Đen, Nâu, Beige, Xám. Size: XS, S, M, L, XL, XXL. Hợp phong cách Minimal, dịp đi làm.",
           "category": "Váy",
@@ -2231,6 +2294,7 @@
           "sponsored": false
         },
         {
+          "itemId": "16986432364",
           "name": "Đầm chữ A phối nơ cổ GUMAC",
           "description": "Đầm chữ A phối nơ cổ GUMAC của GUMAC. Chất liệu cotton. Form vừa. Màu: Navy, Cam. Size: XS, S, M, L, XL, XXL, XXXL. Hợp phong cách Minimal, dịp đi làm.",
           "category": "Váy",
@@ -2270,6 +2334,7 @@
           "sponsored": false
         },
         {
+          "itemId": "4074576501",
           "name": "Áo polo nữ GUMAC cotton TICI",
           "description": "Áo polo nữ GUMAC cotton TICI của GUMAC. Chất liệu thun tc. Form vừa. Màu: Trắng, Hồng, Đỏ đô, Cam. Size: S, M, L, XL, XXL, XXXL. Hợp phong cách Minimal, dịp đi làm.",
           "category": "Áo",
@@ -2310,6 +2375,7 @@
           "sponsored": false
         },
         {
+          "itemId": "29801063380",
           "name": "Áo thun baby tee GUMAC thun gân",
           "description": "Áo thun baby tee GUMAC thun gân của GUMAC. Chất liệu cotton. Form ôm. Màu: Đen, Hồng, Nâu, Xanh nhạt. Size: S, M, L, XL, XXL. Hợp phong cách Korean Casual, dịp đi cafe.",
           "category": "Áo",
@@ -2348,6 +2414,7 @@
           "sponsored": false
         },
         {
+          "itemId": "26268174968",
           "name": "Quần jeans dáng suông GUMAC",
           "description": "Quần jeans dáng suông GUMAC của GUMAC. Form rộng thoải mái. Màu: Xanh nhạt. Size: S, M, L, XL, XXL. Hợp phong cách Minimal, dịp đi cafe.",
           "category": "Quần",
@@ -2384,6 +2451,7 @@
           "sponsored": false
         },
         {
+          "itemId": "25637671692",
           "name": "Áo kiểu lửng xẻ V GUMAC",
           "description": "Áo kiểu lửng xẻ V GUMAC của GUMAC. Chất liệu bố. Form ôm. Màu: Đen, Beige, Vàng, Trắng. Size: S, M, L, XL, XXL, XXXL. Hợp phong cách Minimal, dịp đi làm.",
           "category": "Áo",
@@ -2424,6 +2492,7 @@
           "sponsored": false
         },
         {
+          "itemId": "24305490065",
           "name": "Chân váy xếp ly dáng dài GUMAC",
           "description": "Chân váy xếp ly dáng dài GUMAC của GUMAC. Form vừa. Màu: Đen, Đỏ đô, Nâu, Xám. Size: XS, S, M, L, XL, XXL. Hợp phong cách Minimal, dịp đi làm.",
           "category": "Váy",
@@ -2464,6 +2533,7 @@
           "sponsored": false
         },
         {
+          "itemId": "29079903892",
           "name": "Giày cao gót mũi nhọn GUMAC",
           "description": "Giày cao gót mũi nhọn GUMAC của GUMAC. Form vừa. Màu: Nâu, Đen, Cream. Size: 35, 36, 37, 38, 39. Hợp phong cách Minimal, dịp đi làm.",
           "category": "Giày",

@@ -1,5 +1,5 @@
 import { test, expect } from "@playwright/test";
-import { loginUser, loginPremiumUser, loginBrand, loginAdmin, DEMO_PASSWORD } from "./helpers/auth";
+import { loginUser, loginPremiumUser, loginBrand, loginAdmin, demoPassword } from "./helpers/auth";
 import {
   completeConsultationToResult,
   ensureReachedAiChat,
@@ -185,7 +185,7 @@ test.describe("Luồng liên role — Brand application", () => {
 
     await page.goto("/brand/login");
     await page.locator('input[type="email"]').fill(email);
-    await page.locator('input[type="password"]').fill(DEMO_PASSWORD);
+    await page.locator('input[type="password"]').fill(demoPassword());
     await page.getByRole("button", { name: "Đăng nhập" }).click();
     await page.waitForURL(/\/brand\/dashboard/, { timeout: 30_000 });
     await expect(page.getByRole("heading", { name: "Tổng quan" })).toBeVisible();

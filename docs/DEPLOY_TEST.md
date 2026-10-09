@@ -90,7 +90,7 @@ Chỉ tạo khi DB trống và `FITME_SEED_ENABLED=true`:
 | brand@fitme.ai | Brand chưa có brand |
 | user@fitme.ai | User |
 
-Mật khẩu: giá trị `FITME_SEED_PASSWORD` (mặc định `<giá trị trong biến FITME_PASSWORD>`).
+Mật khẩu `admin@` / `brand@` / `user@`: giá trị `FITME_SEED_PASSWORD` (không có mặc định; để trống → mật khẩu ngẫu nhiên). Tài khoản brand thật được tạo với mật khẩu ngẫu nhiên không dùng được; admin bàn giao ở **Quản trị → Tài khoản → Đăng nhập**. Môi trường test muốn đăng nhập thẳng các tài khoản brand thì đặt thêm `FITME_SEED_CATALOG_OWNER_LOGIN=true` (không có tác dụng dưới profile `prod`).
 
 ## Lệnh vận hành
 

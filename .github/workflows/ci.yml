@@ -117,6 +117,10 @@ jobs:
         working-directory: frontend
         run: npx playwright install chromium --with-deps
 
+      # Throwaway password for the seeded demo accounts of this run only (backend seed + Playwright logins).
+      - name: Generate seed password
+        run: echo "FITME_SEED_PASSWORD=ci-$(openssl rand -hex 16)" >> "$GITHUB_ENV"
+
       - name: Start backend
         working-directory: backend
         env:
@@ -126,6 +130,7 @@ jobs:
           JWT_SECRET: ci-jwt-secret-min-256-bits-long-for-testing-only
           CORS_ORIGINS: http://localhost:3000
           FITME_SEED_ENABLED: "true"
+          FITME_SEED_CATALOG_OWNER_LOGIN: "true"
           FITME_CATALOG_MIRROR_ENABLED: "false"
           FITME_AUTH_EXPOSE_VERIFICATION_CODE: "true"
           FITME_AUTH_MIN_FORM_MS: "0"

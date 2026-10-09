@@ -1,5 +1,6 @@
 package com.fitme.admin.service;
 
+import com.fitme.admin.dto.AdminCredentialsRequest;
 import com.fitme.admin.dto.AdminUserDto;
 import com.fitme.auth.entity.UserAccount;
 import com.fitme.auth.repository.UserAccountRepository;
@@ -12,6 +13,7 @@ import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -45,6 +47,7 @@ public class AdminUserService {
 
     private final JdbcTemplate jdbc;
     private final UserAccountRepository userAccountRepository;
+    private final PasswordEncoder passwordEncoder;
 
     @Transactional(readOnly = true)
     public AdminUserDto.Page list(String query, UserRole role, UserStatus status, int page, int size) {
@@ -99,6 +102,41 @@ public class AdminUserService {
             userAccountRepository.saveAndFlush(user);
             log.info("Admin {} set account {} to {}", adminId, userId, status);
         }
+        return get(userId);
+    }
+
+    /**
+     * Sets a new sign-in email and/or password, e.g. to hand a seeded brand account over to the real brand.
+     * Admin accounts are excluded; the new email counts as verified because an admin vouches for it.
+     */
+    @Transactional
+    public AdminUserDto updateCredentials(UUID adminId, UUID userId, AdminCredentialsRequest request) {
+        String email = request.email() == null || request.email().isBlank()
+                ? null
+                : request.email().toLowerCase(Locale.ROOT).trim();
+        String password = request.password() == null || request.password().isEmpty() ? null : request.password();
+        if (email == null && password == null) {
+            throw new BusinessException("Nhập email mới hoặc mật khẩu mới");
+        }
+        UserAccount user = userAccountRepository.findById(userId)
+                .filter(u -> u.getStatus() != UserStatus.DELETED)
+                .orElseThrow(() -> new NotFoundException("Không tìm thấy tài khoản"));
+        if (user.getRole() == UserRole.ADMIN) {
+            throw new BusinessException("Không thể đổi thông tin đăng nhập của quản trị viên tại đây");
+        }
+        if (email != null && !email.equals(user.getEmail())) {
+            if (userAccountRepository.existsByEmail(email)) {
+                throw new BusinessException("Email đã được sử dụng bởi tài khoản khác", "EMAIL_TAKEN");
+            }
+            user.setEmail(email);
+            user.setEmailVerified(true);
+        }
+        if (password != null) {
+            user.setPasswordHash(passwordEncoder.encode(password));
+        }
+        userAccountRepository.saveAndFlush(user);
+        log.info("Admin {} updated sign-in credentials of account {} (email changed: {}, password changed: {})",
+                adminId, userId, email != null, password != null);
         return get(userId);
     }
 

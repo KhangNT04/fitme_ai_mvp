@@ -124,12 +124,15 @@ public class ProductService {
         if (request.getStockStatus() != null) {
             product.setStockStatus(request.getStockStatus());
         }
+        product.setCatalogManaged(false);
         productRepository.save(product);
         imageRepository.findByProductIdOrderBySortOrderAsc(productId).forEach(imageRepository::delete);
         tagRepository.findByProductId(productId).stream()
                 .filter(tag -> !isSystemTag(tag.getTagType()))
                 .forEach(tagRepository::delete);
         sizeChartRepository.findByProductId(productId).forEach(sizeChartRepository::delete);
+        // Hibernate flushes inserts before deletes; the one-TRY_ON-per-product index needs the deletes first.
+        imageRepository.flush();
         saveImagesTagsAndSizeCharts(productId, request);
         if (request.getVariants() != null) {
             syncVariants(productId, request.getVariants());
@@ -400,7 +403,7 @@ public class ProductService {
         return 0;
     }
 
-    /** META tags mark catalog-managed products; brands can neither send nor erase them. */
+    /** META tags are written by the catalog seeder; brands can neither send nor erase them. */
     private static boolean isSystemTag(String tagType) {
         return "META".equals(tagType);
     }

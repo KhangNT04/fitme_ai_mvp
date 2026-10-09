@@ -1,40 +1,29 @@
 from __future__ import annotations
 
 import logging
-from urllib.parse import urlparse
 
 import httpx
 
+from app.url_safety import UnsafeUrlError, check_url, fetch, is_local_url
+
 logger = logging.getLogger(__name__)
 
-_PRIVATE_HOSTS = frozenset({"localhost", "127.0.0.1", "0.0.0.0"})
+_PREFLIGHT_TIMEOUT_SECONDS = 20.0
 
 
 def validate_image_url(url: str, label: str) -> None:
-    if not url or not url.strip():
-        raise ValueError(f"{label} URL is required")
-
-    parsed = urlparse(url)
-    host = (parsed.hostname or "").lower()
-    if host in _PRIVATE_HOSTS:
+    """Rejects URLs ai-vton must not fetch (see app.url_safety), then checks the image is reachable."""
+    if url and url.strip().startswith("data:image/"):
+        return
+    check_url(url, label)
+    if is_local_url(url):
         return
 
-    if not url.startswith("http://") and not url.startswith("https://"):
-        return
-
-    with httpx.Client(timeout=20.0, follow_redirects=True) as client:
-        response = _fetch_with_fallback(client, url)
-        response.raise_for_status()
-        content_type = (response.headers.get("content-type") or "").lower()
-        if content_type and not content_type.startswith("image/"):
-            logger.warning("%s URL content-type is %s, continuing anyway", label, content_type)
-
-
-def _fetch_with_fallback(client: httpx.Client, url: str) -> httpx.Response:
     try:
-        response = client.head(url)
-        if response.status_code < 400:
-            return response
+        image = fetch(url, label, timeout=_PREFLIGHT_TIMEOUT_SECONDS, method="HEAD")
+    except UnsafeUrlError:
+        raise
     except httpx.HTTPError:
-        pass
-    return client.get(url)
+        image = fetch(url, label, timeout=_PREFLIGHT_TIMEOUT_SECONDS)
+    if image.content_type and not image.content_type.startswith("image/"):
+        logger.warning("%s URL content-type is %s, continuing anyway", label, image.content_type)

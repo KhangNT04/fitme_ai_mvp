@@ -12,6 +12,9 @@ export DB_PASSWORD="${DB_PASSWORD:-fitme123}"
 export JWT_SECRET="${JWT_SECRET:-ci-jwt-secret-min-256-bits-long-for-testing-only}"
 export CORS_ORIGINS="${CORS_ORIGINS:-http://localhost:3000}"
 export FITME_SEED_ENABLED="${FITME_SEED_ENABLED:-true}"
+# Throwaway demo password for this run (backend seed + Playwright logins) unless one is provided.
+export FITME_SEED_PASSWORD="${FITME_SEED_PASSWORD:-ci-$(openssl rand -hex 16)}"
+export FITME_SEED_CATALOG_OWNER_LOGIN="${FITME_SEED_CATALOG_OWNER_LOGIN:-true}"
 export PLAYWRIGHT_START_SERVER=1
 
 echo ">> Starting backend..."

@@ -7,8 +7,18 @@ FastAPI microservice for virtual try-on via Hugging Face Space (IDM-VTON).
 ```bash
 cd ai-services/vton
 pip install -e ".[dev]"
-AI_MODE=mock uvicorn app.main:app --reload --port 8001
+AI_MODE=mock VTON_ALLOW_LOCAL_URLS=true uvicorn app.main:app --reload --port 8001
 ```
+
+## Security
+
+| Env | Default | Meaning |
+|-----|---------|---------|
+| `VTON_INTERNAL_TOKEN` | _(empty)_ | When set, every endpoint except `/health` and `/outputs/*` requires this value in the `X-Internal-Token` header (constant-time compare). The backend sends it from `AI_VTON_INTERNAL_TOKEN`. Set both together; unset = not enforced. |
+| `VTON_ALLOW_LOCAL_URLS` | `false` | Local development only: accept `http://localhost` image URLs. Otherwise image URLs must be public `https` URLs. |
+| `VTON_MAX_IMAGE_BYTES` | `10485760` (10MB) | Size cap for every image ai-vton downloads itself. |
+
+Every image URL ai-vton (or a provider SDK it drives) would fetch is checked first (`app/url_safety.py`): https only, the host must resolve exclusively to public addresses (no loopback, private, link-local / cloud metadata, CGNAT or reserved ranges), redirects are re-validated hop by hop, downloads are size-capped. Unsafe URLs are rejected with `422 INVALID_IMAGE`.
 
 ## Modes
 

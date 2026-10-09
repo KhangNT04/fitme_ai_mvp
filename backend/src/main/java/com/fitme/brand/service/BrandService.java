@@ -8,6 +8,7 @@ import com.fitme.brand.dto.BrandResponse;
 import com.fitme.brand.entity.Brand;
 import com.fitme.brand.repository.BrandRepository;
 import com.fitme.brandplus.service.BrandPlusService;
+import com.fitme.common.config.CatalogMediaService;
 import com.fitme.common.enums.BrandStatus;
 import com.fitme.common.enums.UserRole;
 import com.fitme.common.exception.BusinessException;
@@ -44,6 +45,7 @@ public class BrandService {
         if (!existing.isEmpty()) {
             Brand existingBrand = existing.getFirst();
             if (existingBrand.getStatus() == BrandStatus.REJECTED) {
+                requireUniqueName(request.getName(), existingBrand.getId());
                 existingBrand.setName(request.getName());
                 existingBrand.setDescription(request.getDescription());
                 existingBrand.setWebsiteUrl(request.getWebsiteUrl());
@@ -58,6 +60,7 @@ public class BrandService {
             }
             throw new BusinessException("Bạn đã gửi đơn đăng ký brand");
         }
+        requireUniqueName(request.getName(), null);
         Brand brand = Brand.builder()
                 .ownerUserId(userId)
                 .name(request.getName())
@@ -95,6 +98,7 @@ public class BrandService {
         if (!existing.isEmpty()) {
             throw new BusinessException("Bạn đã có brand đăng ký");
         }
+        requireUniqueName(request.getName(), null);
         Brand brand = Brand.builder()
                 .ownerUserId(ownerUserId)
                 .name(request.getName())
@@ -120,8 +124,10 @@ public class BrandService {
     public BrandResponse updateMyBrand(UUID ownerUserId, BrandOnboardingRequest request) {
         Brand brand = getBrandForOwner(ownerUserId);
         if (request.getName() != null && !request.getName().isBlank()) {
+            requireUniqueName(request.getName(), brand.getId());
             brand.setName(request.getName().trim());
         }
+        brand.setCatalogManaged(false);
         if (request.getLogoUrl() != null) {
             brand.setLogoUrl(request.getLogoUrl());
         }
@@ -134,6 +140,21 @@ public class BrandService {
         patch(request.getContactEmail(), brand::setContactEmail);
         patch(request.getContactPhone(), brand::setContactPhone);
         return toResponse(brandRepository.save(brand));
+    }
+
+    /** Brand names are unique regardless of case and surrounding spaces. */
+    private void requireUniqueName(String name, UUID ownBrandId) {
+        if (name == null || name.isBlank()) {
+            return;
+        }
+        String trimmed = name.trim();
+        boolean taken = ownBrandId == null
+                ? brandRepository.existsByNameIgnoreCase(trimmed)
+                : brandRepository.existsByNameIgnoreCaseAndIdNot(trimmed, ownBrandId);
+        if (taken) {
+            throw new BusinessException("Tên brand «" + trimmed + "» đã được sử dụng. Vui lòng chọn tên khác.",
+                    "BRAND_NAME_TAKEN");
+        }
     }
 
     /** Omitted (null) fields keep their value; an empty string clears the field. */
@@ -166,8 +187,11 @@ public class BrandService {
         String previousPath = brand.getLogoUrl();
         String path = storageService.store("brands/logos", brand.getId() + "-" + file.getOriginalFilename(), file);
         brand.setLogoUrl(path);
+        brand.setCatalogManaged(false);
         Brand saved = brandRepository.save(brand);
-        if (previousPath != null && !previousPath.equals(path) && previousPath.startsWith("/uploads/")) {
+        // Catalog logos live in the shared catalog-media mirror and must not be deleted with the brand's upload.
+        if (previousPath != null && !previousPath.equals(path) && previousPath.startsWith("/uploads/")
+                && !previousPath.startsWith("/uploads/" + CatalogMediaService.FOLDER + "/")) {
             storageService.delete(previousPath);
         }
         return toResponse(saved);

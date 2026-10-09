@@ -30,19 +30,19 @@ services:
         value: "false"
       - key: FITME_SEED_FASHION_REFRESH
         value: "true"
+      # Only used when seeding a fresh database; never commit a value here.
       - key: FITME_SEED_PASSWORD
-        value: fitme123
+        sync: false
       - key: UPLOAD_DIR
         value: /tmp/uploads
-      # PayOS (FitMe Pro subscription) — mock=true: test cloud không cần PayOS key.
-      # PayOS thật: đổi PAYOS_MOCK=false trong Render dashboard + set 3 key bên dưới, rồi redeploy.
+      # PayOS thật (prod): backend từ chối khởi động nếu PAYOS_MOCK=true hoặc thiếu PAYOS_CHECKSUM_KEY.
       - key: PAYOS_MOCK
-        value: "true"
+        value: "false"
       - key: PAYOS_SUBSCRIPTION_RETURN_URL
         value: https://fitme-ai-mvp.vercel.app/billing/return?status=success
       - key: PAYOS_SUBSCRIPTION_CANCEL_URL
         value: https://fitme-ai-mvp.vercel.app/billing/return?status=cancel
-      # Khi bật PayOS thật: PAYOS_MOCK=false + set 3 key dưới trong Render dashboard (sync: false)
+      # Set 3 key dưới trong Render dashboard (sync: false)
       - key: PAYOS_CLIENT_ID
         sync: false
       - key: PAYOS_API_KEY
@@ -57,6 +57,9 @@ services:
         value: hf
       - key: AI_VTON_URL
         value: https://fitme-ai-vton.onrender.com
+      # Shared secret sent as X-Internal-Token; must match VTON_INTERNAL_TOKEN on fitme-ai-vton.
+      - key: AI_VTON_INTERNAL_TOKEN
+        sync: false
       - key: FITME_PUBLIC_BASE_URL
         value: https://fitme-ai-mvp.onrender.com
       # AI Stylist — set GEMINI_API_KEY in dashboard (required for Gemini)
@@ -93,6 +96,9 @@ services:
     envVars:
       - key: AI_MODE
         value: hf
+      # When set, every endpoint except /health requires this value in the X-Internal-Token header.
+      - key: VTON_INTERNAL_TOKEN
+        sync: false
       # FASHN hosted API (https://app.fashn.ai/api) — set this + change AI_MODE
       # (above, and FITME_AI_MODE on fitme-api) to "api" to use it in production.
       - key: FASHN_API_KEY

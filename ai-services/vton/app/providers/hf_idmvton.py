@@ -17,6 +17,7 @@ from app.category_mapper import garment_description as default_garment_descripti
 from app.category_mapper import is_supported, normalize_category
 from app.composite import build_composite_url
 from app.image_preflight import validate_image_url
+from app.url_safety import UnsafeUrlError, check_url
 from app.providers.base import VtonJobResult
 from app.providers.replicate_idmvton import is_replicate_configured, run_replicate_tryon
 
@@ -87,6 +88,12 @@ class HfIdmVtonProvider:
                 error_code="UNSUPPORTED_CATEGORY",
                 error_message=f"Category not supported: {category}",
             )
+        try:
+            for label, url in (("person", person_image_url), ("garment", garment_image_url)):
+                if not url.startswith("data:image/"):
+                    check_url(url, label)
+        except UnsafeUrlError as exc:
+            return VtonJobResult(job_id=job_id, status="failed", error_code="INVALID_IMAGE", error_message=str(exc))
 
         description = (garment_description or "").strip() or default_garment_description(normalized)
         with self._lock:

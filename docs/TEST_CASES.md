@@ -125,7 +125,7 @@ Không thanh toán PayOS thật, hạn chế tạo preview FASHN (tốn phí), d
 | Brand (mỗi tài khoản một brand thật) | `teelab@fitme.ai` (Teelab, E2E `loginBrand`), `dirtycoins@fitme.ai`, `regods@fitme.ai`, `ulzzang@fitme.ai`, `lenclothing@fitme.ai`, `hagoo@fitme.ai`, `gumac@fitme.ai` |
 | Brand chưa có brand | `brand@fitme.ai` (luồng đăng ký brand mới) |
 
-Mật khẩu không ghi trong tài liệu. Seed local lấy từ biến môi trường `FITME_SEED_PASSWORD`; script kiểm thử prod đọc `FITME_EMAIL` / `FITME_PASSWORD`. Hỏi người quản lý môi trường để lấy giá trị.
+Mật khẩu không ghi trong tài liệu. Seed local lấy từ biến môi trường `FITME_SEED_PASSWORD`; script kiểm thử prod đọc `FITME_EMAIL` / `FITME_PASSWORD`. Hỏi người quản lý môi trường để lấy giá trị. Tài khoản brand thật chỉ đăng nhập được bằng `FITME_SEED_PASSWORD` khi môi trường bật `FITME_SEED_CATALOG_OWNER_LOGIN=true` (dev/CI); trên prod chúng có mật khẩu ngẫu nhiên cho tới khi admin bàn giao (Quản trị → Tài khoản → Đăng nhập).
 
 ## 5. Spec E2E và trạng thái
 

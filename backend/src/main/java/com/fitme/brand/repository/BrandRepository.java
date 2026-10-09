@@ -19,5 +19,12 @@ public interface BrandRepository extends JpaRepository<Brand, UUID> {
 
     long countByStatus(BrandStatus status);
 
-    Optional<Brand> findByName(String name);
+    Optional<Brand> findByCatalogKey(String catalogKey);
+
+    /** Legacy rows may share a name, so name lookups always return a list. */
+    List<Brand> findByNameIgnoreCaseOrderByCreatedAtAsc(String name);
+
+    boolean existsByNameIgnoreCase(String name);
+
+    boolean existsByNameIgnoreCaseAndIdNot(String name, UUID id);
 }

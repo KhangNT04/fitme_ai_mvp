@@ -1,5 +1,5 @@
 import { type Page, expect } from "@playwright/test";
-import { DEMO_PASSWORD } from "./auth";
+import { demoPassword } from "./auth";
 
 export function uniqueEmail(prefix = "e2e") {
   return `${prefix}-${Date.now()}@test.fitme.ai`;
@@ -10,7 +10,7 @@ export async function registerUser(
   email: string,
   options?: { fullName?: string; password?: string; redirect?: string },
 ) {
-  const password = options?.password ?? DEMO_PASSWORD;
+  const password = options?.password ?? demoPassword();
   const redirect = options?.redirect ?? "/profile";
   await page.goto(`/auth/register?redirect=${encodeURIComponent(redirect)}`);
   await expect(page.getByRole("heading", { name: "Đăng ký tài khoản" })).toBeVisible({

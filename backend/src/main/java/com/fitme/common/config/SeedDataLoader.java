@@ -9,7 +9,6 @@ import com.fitme.auth.repository.UserAccountRepository;
 import com.fitme.billing.service.ConsumerSubscriptionService;
 import com.fitme.brand.entity.Brand;
 import com.fitme.brand.repository.BrandRepository;
-import com.fitme.brand.service.BrandPartnershipService;
 import com.fitme.common.enums.*;
 import com.fitme.fitken.service.FitkenService;
 import com.fitme.product.entity.Product;
@@ -28,7 +27,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.UUID;
 
 @Component
 @Profile("!test")
@@ -49,8 +47,7 @@ public class SeedDataLoader implements CommandLineRunner {
     private final FashionCatalogSeeder fashionCatalogSeeder;
     private final FitkenService fitkenService;
     private final ConsumerSubscriptionService consumerSubscriptionService;
-    private final BrandPartnershipService brandPartnershipService;
-    private final CatalogMediaService catalogMediaService;
+    private final CatalogBrandSync catalogBrandSync;
 
     @Value("${fitme.seed.admin-email:admin@fitme.ai}")
     private String adminEmail;
@@ -65,7 +62,8 @@ public class SeedDataLoader implements CommandLineRunner {
     @Value("${fitme.seed.premium-email:premium@fitme.ai}")
     private String premiumEmail;
 
-    @Value("${fitme.seed.password:fitme123}")
+    /** No default: without FITME_SEED_PASSWORD the seeded demo accounts get a random, unusable password. */
+    @Value("${fitme.seed.password:}")
     private String seedPassword;
 
     @Value("${fitme.seed.enabled:true}")
@@ -102,10 +100,11 @@ public class SeedDataLoader implements CommandLineRunner {
 
     private void seedFreshDatabase() {
         log.info("Seeding FitMe fashion catalog (fresh database)...");
+        String demoPasswordHash = seedPasswordHash();
 
         userRepository.save(UserAccount.builder()
                 .email(adminEmail)
-                .passwordHash(passwordEncoder.encode(seedPassword))
+                .passwordHash(demoPasswordHash)
                 .displayName("FitMe Admin")
                 .role(UserRole.ADMIN)
                 .emailVerified(true)
@@ -115,7 +114,7 @@ public class SeedDataLoader implements CommandLineRunner {
         // Brand owner without a brand: demo account for the "apply as a new brand" flow.
         userRepository.save(UserAccount.builder()
                 .email(brandEmail)
-                .passwordHash(passwordEncoder.encode(seedPassword))
+                .passwordHash(demoPasswordHash)
                 .displayName("FitMe Editorial")
                 .role(UserRole.BRAND_OWNER)
                 .emailVerified(true)
@@ -124,7 +123,7 @@ public class SeedDataLoader implements CommandLineRunner {
 
         UserAccount demoUser = userRepository.save(UserAccount.builder()
                 .email(userEmail)
-                .passwordHash(passwordEncoder.encode(seedPassword))
+                .passwordHash(demoPasswordHash)
                 .displayName("Minh Anh")
                 .role(UserRole.USER)
                 .emailVerified(true)
@@ -134,7 +133,7 @@ public class SeedDataLoader implements CommandLineRunner {
 
         UserAccount premiumUser = userRepository.save(UserAccount.builder()
                 .email(premiumEmail)
-                .passwordHash(passwordEncoder.encode(seedPassword))
+                .passwordHash(demoPasswordHash)
                 .displayName("Bảo Ngọc")
                 .role(UserRole.USER)
                 .emailVerified(true)
@@ -175,47 +174,15 @@ public class SeedDataLoader implements CommandLineRunner {
         log.info("Catalog status: {} active products", activeCount);
     }
 
-    /**
-     * Soft-retires demo brands dropped from the catalog: suspended, unowned, products hidden and
-     * partnerships ended. Rows are kept so users' try-on, wardrobe and click history stay intact.
-     */
     private void retireDemoBrands() {
-        List<String> retired = fashionCatalogLoader.load().retiredBrands;
-        if (retired == null) {
-            return;
-        }
-        for (String name : retired) {
-            brandRepository.findByName(name).ifPresent(this::retireBrand);
-        }
-    }
-
-    private void retireBrand(Brand brand) {
-        int hiddenProducts = 0;
-        for (Product product : productRepository.findByBrandId(brand.getId())) {
-            if (product.getStatus() != ProductStatus.INACTIVE) {
-                product.setStatus(ProductStatus.INACTIVE);
-                productRepository.save(product);
-                hiddenProducts++;
-            }
-        }
-        int endedPartnerships = brandPartnershipService.deactivateAllForBrand(brand.getId());
-        boolean changed = brand.getStatus() != BrandStatus.SUSPENDED || brand.getOwnerUserId() != null;
-        if (changed) {
-            brand.setStatus(BrandStatus.SUSPENDED);
-            brand.setOwnerUserId(null);
-            brandRepository.save(brand);
-        }
-        if (changed || hiddenProducts > 0 || endedPartnerships > 0) {
-            log.info("Retired demo brand {}: {} products hidden, {} partnerships ended",
-                    brand.getName(), hiddenProducts, endedPartnerships);
-        }
+        catalogBrandSync.retireBrands(fashionCatalogLoader.load().retiredBrands);
     }
 
     private void deactivateOrphanLegacyDemoProducts() {
         List<Product> legacy = productRepository.findByNameStartingWith(LEGACY_DEMO_PREFIX);
         FashionCatalogLoader.FashionCatalog catalog = fashionCatalogLoader.load();
         var fashionBrandIds = catalog.brands.stream()
-                .map(entry -> brandRepository.findByName(entry.name).map(Brand::getId))
+                .map(entry -> brandRepository.findByCatalogKey(entry.key).map(Brand::getId))
                 .flatMap(Optional::stream)
                 .collect(java.util.stream.Collectors.toSet());
 
@@ -235,11 +202,7 @@ public class SeedDataLoader implements CommandLineRunner {
 
     private void refreshFashionCatalog() {
         for (FashionCatalogLoader.BrandEntry entry : fashionCatalogLoader.load().brands) {
-            Brand brand = ensureApprovedBrand(entry);
-            if (fashionCatalogSeeder.needsFashionRefresh(brand, entry)) {
-                log.info("Refreshing fashion catalog for brand {}", brand.getName());
-                fashionCatalogSeeder.syncBrandCatalog(brand, entry);
-            }
+            fashionCatalogSeeder.syncBrandCatalog(ensureApprovedBrand(entry), entry);
         }
     }
 
@@ -249,77 +212,16 @@ public class SeedDataLoader implements CommandLineRunner {
         }
     }
 
-    /**
-     * Each catalog brand is managed by its own BRAND_OWNER account (created verified, seed password).
-     * Falls back to the shared seed brand account for entries without an owner email.
-     */
-    private UserAccount ensureBrandOwnerAccount(FashionCatalogLoader.BrandEntry entry) {
-        String email = entry.ownerEmail != null && !entry.ownerEmail.isBlank()
-                ? entry.ownerEmail.trim().toLowerCase()
-                : brandEmail;
-        return userRepository.findByEmail(email).orElseGet(() -> {
-            log.info("Creating brand owner account {} for {}", email, entry.name);
-            return userRepository.save(UserAccount.builder()
-                    .email(email)
-                    .passwordHash(passwordEncoder.encode(seedPassword))
-                    .displayName(entry.name)
-                    .role(UserRole.BRAND_OWNER)
-                    .emailVerified(true)
-                    .status(UserStatus.ACTIVE)
-                    .build());
-        });
-    }
-
-    /** Brands still unowned or on the shared seed account move to their catalog owner; other owners are kept. */
-    private boolean shouldReassignOwner(Brand brand, UUID catalogOwnerId) {
-        UUID current = brand.getOwnerUserId();
-        if (current == null) {
-            return true;
-        }
-        if (current.equals(catalogOwnerId)) {
-            return false;
-        }
-        return userRepository.findById(current)
-                .map(owner -> owner.getEmail().equalsIgnoreCase(brandEmail))
-                .orElse(true);
-    }
-
-    private boolean isApprovedBrand(UUID brandId) {
-        return brandRepository.findById(brandId)
-                .map(b -> b.getStatus() == BrandStatus.APPROVED)
-                .orElse(false);
-    }
-
     private Brand ensureApprovedBrand(FashionCatalogLoader.BrandEntry entry) {
-        UUID ownerUserId = ensureBrandOwnerAccount(entry).getId();
-        String logoUrl = catalogMediaService.resolve(entry.logoUrl);
-        Optional<Brand> existing = brandRepository.findByName(entry.name);
-        if (existing.isPresent()) {
-            Brand brand = existing.get();
-            brand.setDescription(entry.description);
-            brand.setLogoUrl(logoUrl);
-            brand.setWebsiteUrl(entry.websiteUrl);
-            brand.setShopeeUrl(entry.shopeeUrl);
-            brand.setContactEmail(entry.contactEmail);
-            if (brand.getStatus() != BrandStatus.APPROVED) {
-                brand.setStatus(BrandStatus.APPROVED);
-            }
-            if (shouldReassignOwner(brand, ownerUserId)) {
-                log.info("Brand {} is now managed by its own account", brand.getName());
-                brand.setOwnerUserId(ownerUserId);
-            }
-            return brandRepository.save(brand);
+        return catalogBrandSync.ensureBrand(entry);
+    }
+
+    private String seedPasswordHash() {
+        if (seedPassword == null || seedPassword.isBlank()) {
+            log.warn("FITME_SEED_PASSWORD is not set: seeded demo accounts get a random password and need a reset");
+            return CatalogBrandSync.unusablePasswordHash(passwordEncoder);
         }
-        return brandRepository.save(Brand.builder()
-                .ownerUserId(ownerUserId)
-                .name(entry.name)
-                .description(entry.description)
-                .logoUrl(logoUrl)
-                .websiteUrl(entry.websiteUrl)
-                .shopeeUrl(entry.shopeeUrl)
-                .status(BrandStatus.APPROVED)
-                .contactEmail(entry.contactEmail)
-                .build());
+        return passwordEncoder.encode(seedPassword);
     }
 
     private void seedRulesIfEmpty() {

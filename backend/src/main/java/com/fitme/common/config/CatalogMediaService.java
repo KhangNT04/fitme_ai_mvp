@@ -40,7 +40,7 @@ import java.util.stream.Collectors;
 public class CatalogMediaService {
 
     private static final Logger log = LoggerFactory.getLogger(CatalogMediaService.class);
-    static final String FOLDER = "catalog-media";
+    public static final String FOLDER = "catalog-media";
     private static final int MAX_BYTES = 10 * 1024 * 1024;
     private static final Duration CONNECT_TIMEOUT = Duration.ofSeconds(10);
     private static final Duration REQUEST_TIMEOUT = Duration.ofSeconds(30);

@@ -7,6 +7,8 @@ from urllib.parse import urlsplit, urlunsplit
 
 import httpx
 
+from app.url_safety import allow_local_urls
+
 logger = logging.getLogger(__name__)
 
 _LOCAL_HOSTS = frozenset(
@@ -58,14 +60,15 @@ def inline_if_local(url: str | None, label: str) -> str | None:
     Compose) and embeds them inline.
 
     No-op for any non-local URL — production always uses public URLs
-    (Render/Vercel domains or R2), which FASHN fetches directly as before.
+    (Render/Vercel domains or R2), which FASHN fetches directly as before —
+    and unless VTON_ALLOW_LOCAL_URLS=true (local development only).
     """
-    if not url or not _ENABLED or not _is_local_url(url):
+    if not url or not _ENABLED or not _is_local_url(url) or not allow_local_urls():
         return url
 
     fetch_url = _rewrite_to_internal(url)
     try:
-        with httpx.Client(timeout=_FETCH_TIMEOUT_SECONDS, follow_redirects=True) as client:
+        with httpx.Client(timeout=_FETCH_TIMEOUT_SECONDS, follow_redirects=False) as client:
             response = client.get(fetch_url)
             response.raise_for_status()
     except httpx.HTTPError as exc:

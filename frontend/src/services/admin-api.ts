@@ -213,6 +213,11 @@ export const adminApi = {
     const res = await apiClient.patch(`/admin/users/${userId}/status`, { status });
     return unwrap(res);
   },
+  /** Hands an account over to its real owner: new sign-in email and/or password (omitted fields are kept). */
+  setUserCredentials: async (userId: string, data: { email?: string; password?: string }): Promise<AdminUser> => {
+    const res = await apiClient.patch(`/admin/users/${userId}/credentials`, data);
+    return unwrap(res);
+  },
   setUserConsumerPlan: async (userId: string, plan: "FREE" | "PREMIUM"): Promise<void> => {
     await apiClient.patch(`/admin/users/${userId}/consumer-plan`, { plan });
   },

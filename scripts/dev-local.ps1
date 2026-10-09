@@ -65,6 +65,7 @@ if ($Native) {
     Write-Host "  cd ai-services/vton"
     Write-Host "  pip install -e `".[dev]`""
     Write-Host "  `$env:AI_MODE='mock'   # or hf + HF_TOKEN"
+    Write-Host "  `$env:VTON_ALLOW_LOCAL_URLS='true'   # accept http://localhost image URLs (dev only)"
     Write-Host "  uvicorn app.main:app --reload --port 8001"
     Write-Host ""
     Write-Host "App: http://localhost:3000  |  Docs: docs/LOCAL_AI_DEV.md"

@@ -8,12 +8,23 @@ import pytest
 
 
 @pytest.fixture(autouse=True)
-def _reload_module():
+def _reload_module(monkeypatch):
     """Reload so module-level env-derived constants pick up monkeypatched env vars."""
+    monkeypatch.setenv("VTON_ALLOW_LOCAL_URLS", "true")
     import app.local_image_inline as mod
 
     yield mod
     importlib.reload(mod)
+
+
+@patch("app.local_image_inline.httpx.Client")
+def test_localhost_url_is_not_fetched_unless_local_urls_are_allowed(mock_client_cls, monkeypatch):
+    monkeypatch.setenv("VTON_ALLOW_LOCAL_URLS", "false")
+    from app.local_image_inline import inline_if_local
+
+    url = "http://localhost:8080/uploads/user-photos/abc.jpg"
+    assert inline_if_local(url, "person") == url
+    mock_client_cls.assert_not_called()
 
 
 def _mock_get_response(status_code=200, content=b"fake-bytes", content_type="image/jpeg"):

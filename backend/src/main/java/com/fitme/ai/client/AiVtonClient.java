@@ -28,6 +28,7 @@ import java.util.concurrent.atomic.AtomicLong;
 public class AiVtonClient {
 
     private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
+    static final String INTERNAL_TOKEN_HEADER = "X-Internal-Token";
 
     private final FitMeProperties properties;
     private final AtomicLong lastWakePingAt = new AtomicLong();
@@ -253,10 +254,14 @@ public class AiVtonClient {
         // request instead, which ai-vton parses correctly.
         SimpleClientHttpRequestFactory requestFactory = new SimpleClientHttpRequestFactory();
         requestFactory.setBufferRequestBody(true);
-        return RestClient.builder()
+        RestClient.Builder builder = RestClient.builder()
                 .baseUrl(properties.getAi().getVtonBaseUrl())
-                .requestFactory(requestFactory)
-                .build();
+                .requestFactory(requestFactory);
+        String token = properties.getAi().getVtonInternalToken();
+        if (token != null && !token.isBlank()) {
+            builder.defaultHeader(INTERNAL_TOKEN_HEADER, token.trim());
+        }
+        return builder.build();
     }
 
     @Data

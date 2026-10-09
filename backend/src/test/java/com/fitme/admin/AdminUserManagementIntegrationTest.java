@@ -87,6 +87,60 @@ class AdminUserManagementIntegrationTest extends AbstractIntegrationTest {
         setStatus(consumer, consumer.getUserId().toString(), "SUSPENDED").andExpect(status().isForbidden());
     }
 
+    @Test
+    void adminHandsABrandAccountOverWithANewEmailAndPassword() throws Exception {
+        FitMeUserPrincipal admin = new FitMeUserPrincipal(testDataHelper.createAdmin().user());
+        TestDataHelper.BrandOwnerContext owner = testDataHelper.createBrandOwner();
+        String userId = owner.user().getId().toString();
+        String newEmail = "Real-Owner-" + UUID.randomUUID().toString().substring(0, 8) + "@Brand.test";
+
+        setCredentials(admin, userId, "{\"email\":\"%s\",\"password\":\"Handover-2026\"}".formatted(newEmail))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.email").value(newEmail.toLowerCase()))
+                .andExpect(jsonPath("$.data.emailVerified").value(true))
+                .andExpect(jsonPath("$.data.brandName").value(owner.brand().getName()));
+
+        login(newEmail.toLowerCase(), "Handover-2026").andExpect(status().isOk());
+        login(owner.user().getEmail(), "test123").andExpect(status().isUnauthorized());
+
+        setCredentials(admin, userId, "{\"password\":\"Second-pass-1\"}").andExpect(status().isOk());
+        login(newEmail.toLowerCase(), "Second-pass-1").andExpect(status().isOk());
+        login(newEmail.toLowerCase(), "Handover-2026").andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    void credentialChangesAreValidated() throws Exception {
+        FitMeUserPrincipal admin = new FitMeUserPrincipal(testDataHelper.createAdmin().user());
+        String userId = testDataHelper.createBrandOwner().user().getId().toString();
+        String takenEmail = testDataHelper.createUser().user().getEmail();
+        String otherAdminId = testDataHelper.createAdmin().user().getId().toString();
+
+        setCredentials(admin, userId, "{}").andExpect(status().isBadRequest());
+        setCredentials(admin, userId, "{\"password\":\"short\"}").andExpect(status().isBadRequest());
+        setCredentials(admin, userId, "{\"email\":\"not-an-email\"}").andExpect(status().isBadRequest());
+        setCredentials(admin, userId, "{\"email\":\"%s\"}".formatted(takenEmail.toUpperCase()))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.errorCode").value("EMAIL_TAKEN"));
+        setCredentials(admin, otherAdminId, "{\"password\":\"Takeover-123\"}").andExpect(status().isBadRequest());
+        setCredentials(admin, UUID.randomUUID().toString(), "{\"password\":\"Whatever-123\"}")
+                .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void onlyAdminsCanChangeCredentials() throws Exception {
+        TestDataHelper.BrandOwnerContext owner = testDataHelper.createBrandOwner();
+        FitMeUserPrincipal brand = new FitMeUserPrincipal(owner.user());
+        setCredentials(brand, owner.user().getId().toString(), "{\"password\":\"Self-service-1\"}")
+                .andExpect(status().isForbidden());
+    }
+
+    private ResultActions setCredentials(FitMeUserPrincipal actor, String userId, String body) throws Exception {
+        return mockMvc.perform(patch("/api/v1/admin/users/{id}/credentials", userId)
+                .with(user(actor))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(body));
+    }
+
     private ResultActions setStatus(FitMeUserPrincipal actor, String userId, String status) throws Exception {
         return mockMvc.perform(patch("/api/v1/admin/users/{id}/status", userId)
                 .with(user(actor))

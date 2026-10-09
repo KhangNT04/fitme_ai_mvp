@@ -8,6 +8,7 @@ from typing import Any
 import httpx
 
 from app.image_preflight import validate_image_url
+from app.url_safety import UnsafeUrlError
 from app.local_image_inline import inline_if_local
 from app.providers.base import VtonJobResult
 
@@ -81,6 +82,8 @@ class FashnApiProvider:
         for label, url in (("person", person_image_url), ("garment", garment_image_url)):
             try:
                 validate_image_url(url, label)
+            except UnsafeUrlError as exc:
+                return self._fail(job_id, "INVALID_IMAGE", str(exc))
             except Exception as exc:  # noqa: BLE001 — best-effort warning only
                 logger.warning(
                     "FASHN %s URL may be unreachable from api.fashn.ai for job %s: %s",

@@ -70,6 +70,8 @@ Các `errorCode` thường gặp:
 | `ALREADY_CHECKED_IN`, `SHARE_INVALID_URL`, `SHARE_DUPLICATE`, `SHARE_DAILY_LIMIT`, `REVIEW_EXISTS` | 400 | Nhận thưởng, đánh giá |
 | `TRY_ON_NOT_ELIGIBLE` | 400 | Thêm món vào phiên thử: sản phẩm bị ẩn, không đủ điều kiện thử AI hoặc chưa có ảnh thử đồ (`TRY_ON`) |
 | `TRY_ON_ITEM_UNAVAILABLE` | 400 | `POST /try-on/requests/{id}/generate`: một món trong phiên đã bị ẩn / mất điều kiện / mất ảnh `TRY_ON` sau khi thêm. Không gọi AI, không trừ Fitken; thông báo nêu tên món cần bỏ |
+| `BRAND_NAME_TAKEN` | 400 | Đăng ký / onboard / đổi tên brand trùng tên brand khác (không phân biệt hoa thường, bỏ khoảng trắng đầu cuối) |
+| `EMAIL_TAKEN` | 400 | `PATCH /admin/users/{id}/credentials`: email mới đã thuộc tài khoản khác |
 
 ## Service mapping
 
@@ -315,6 +317,7 @@ Lỗi: 404 "Cài đặt không tồn tại"; 400 `SETTING_INVALID` với một t
 | `GET` | `/admin/users?q=&role=&status=&page=0&size=20` | Admin | Danh sách tài khoản (không gồm tài khoản đã xóa): `{ items: [{ id, email, displayName, role, status, emailVerified, consumerPlan, fitkenBalance, createdAt, lastActiveDate, brandName, signupSource }], total, page, size, summary: { totalAccounts, consumers, brandOwners, admins, suspended, premiumUsers } }`. `q` tìm theo email/tên |
 | `GET` | `/admin/users/{id}` | Admin | Chi tiết một tài khoản |
 | `PATCH` | `/admin/users/{id}/status` | Admin | Khóa/mở khóa: Body `{ status: ACTIVE\|SUSPENDED }`. Không khóa được chính mình hoặc admin khác. Tài khoản bị khóa mất phiên ngay; đăng nhập/refresh → `400 ACCOUNT_LOCKED` |
+| `PATCH` | `/admin/users/{id}/credentials` | Admin | Bàn giao tài khoản (vd. tài khoản brand seed cho brand thật): Body `{ email?, password? }` — ít nhất một trường; email được chuẩn hóa chữ thường và coi là đã xác minh; mật khẩu 8–100 ký tự. Không áp dụng cho tài khoản admin. Email trùng → `400 EMAIL_TAKEN` |
 | `GET` | `/admin/metrics?days=30` | Admin | Tăng trưởng: người dùng hoạt động, nguồn đăng ký, phễu Đăng ký → Xác minh email → Dùng tư vấn / thử đồ AI → Bắt đầu thanh toán gói Premium → Đã thanh toán; doanh thu và thanh toán gói Premium |
 | `GET` | `/admin/reports/paying-customers` | Admin | Chỉ giao dịch gói Premium (`PREMIUM_SUBSCRIPTION`) |
 | `GET` | `/admin/reports/paying-customers/export` | Admin | CSV `fitme-khach-tra-tien-YYYY-MM-DD.csv` (UTF-8 BOM, chống CSV injection) |

@@ -414,7 +414,15 @@ AI try-on chỉ dùng ảnh `TRY_ON` brand chọn trong gallery (không fallback
 
 ### 5.3b Catalog thật & ảnh
 
-`seed/fashion-catalog.json` (7 brand Shopee, 70 SP) được đồng bộ khi khởi động bởi `SeedDataLoader` + `FashionCatalogSeeder`: mỗi brand có tài khoản chủ riêng (`ownerEmail`), brand trong `retiredBrands` bị tạm ngưng. `CatalogMediaMirrorRunner` chạy nền sau `ApplicationReadyEvent`: `CatalogMediaService` tải từng ảnh nguồn chưa có trong bảng `catalog_media_mirror` (timeout 10s/30s, 4 luồng), lưu qua `StorageService` vào `catalog-media/<mã ảnh Shopee>.jpg` (R2 trên prod, ổ đĩa local khi dev) rồi đổi `product_images.image_url` / `brands.logo_url` sang bản sao. URL lưu là URL public R2 nếu kiểm tra truy cập được, nếu không là `/uploads/catalog-media/...` (backend phục vụ). Ảnh tải lỗi giữ URL nguồn và được thử lại ở lần khởi động sau. Tắt bằng `FITME_CATALOG_MIRROR_ENABLED=false` (CI E2E).
+`seed/fashion-catalog.json` (7 brand Shopee, 70 SP) được đồng bộ khi khởi động bởi `SeedDataLoader` → `CatalogBrandSync` (brand) + `FashionCatalogSeeder` (sản phẩm):
+
+- **Khóa ổn định, không theo tên/vị trí:** brand khớp theo `brands.catalog_key` (= `key` trong catalog), sản phẩm khớp theo `products.catalog_item_id` (= `itemId`, mã item Shopee). `retiredBrands` là danh sách `catalog_key`; brand đó bị tạm ngưng, bỏ chủ, ẩn sản phẩm, kết thúc partnership. Migration V35 gán key cho 7 brand thật + 5 brand demo cũ theo tên một lần; DB cũ chưa có item id được nối theo thứ tạo một lần (ưu tiên sản phẩm đang hiển thị).
+- **Không ghi đè chỉnh sửa:** brand/sản phẩm chỉ được catalog cập nhật khi còn `catalog_managed = true` **và** hash mục catalog (`catalog_hash`) thay đổi. Brand sửa hồ sơ / logo hoặc sửa sản phẩm trong portal → `catalog_managed = false`, catalog không đụng nữa. Đồng bộ không bao giờ đổi trạng thái sản phẩm (sản phẩm bị ẩn / từ chối / gắn cờ giữ nguyên) và chỉ đặt brand `APPROVED` khi tạo mới (admin tạm ngưng thì giữ nguyên). Sản phẩm catalog bị bỏ khỏi file → ẩn.
+- **Tài khoản chủ brand** (`ownerEmail`) được tạo với mật khẩu ngẫu nhiên không dùng được (BCrypt của 32 byte `SecureRandom`, không lưu/log); tài khoản đã tồn tại không bao giờ bị đổi mật khẩu. Admin bàn giao qua `PATCH /admin/users/{id}/credentials` (UI: Quản trị → Tài khoản → Đăng nhập). Dev/CI có thể bật `FITME_SEED_CATALOG_OWNER_LOGIN=true` để dùng `FITME_SEED_PASSWORD` (bị bỏ qua dưới profile `prod`).
+- **Một ảnh `TRY_ON` / sản phẩm:** partial unique index `uq_product_images_one_try_on`; giày/phụ kiện không có ảnh `TRY_ON`. Code xóa rồi chèn lại ảnh phải `flush()` sau khi xóa (Hibernate chèn trước, xóa sau).
+- Tên brand duy nhất không phân biệt hoa thường (`BRAND_NAME_TAKEN`); index `uq_brands_lower_name` chỉ được tạo khi dữ liệu cũ không trùng.
+
+`CatalogMediaMirrorRunner` chạy nền sau `ApplicationReadyEvent`: `CatalogMediaService` tải từng ảnh nguồn chưa có trong bảng `catalog_media_mirror` (timeout 10s/30s, 4 luồng), lưu qua `StorageService` vào `catalog-media/<mã ảnh Shopee>.jpg` (R2 trên prod, ổ đĩa local khi dev) rồi đổi `product_images.image_url` / `brands.logo_url` sang bản sao. URL lưu là URL public R2 nếu kiểm tra truy cập được, nếu không là `/uploads/catalog-media/...` (backend phục vụ). Ảnh tải lỗi giữ URL nguồn và được thử lại ở lần khởi động sau. Tắt bằng `FITME_CATALOG_MIRROR_ENABLED=false` (CI E2E).
 
 ### 5.4 Brand application
 
@@ -437,10 +445,12 @@ User re-login                → JWT mới có role BRAND_OWNER
 | `JWT_SECRET` | dev placeholder | **Bắt buộc đổi production** |
 | `CORS_ORIGINS` | `http://localhost:3000` | Comma-separated |
 | `FITME_SEED_ENABLED` | true | Tắt trên prod thật |
-| `FITME_SEED_PASSWORD` | dev default trong `application.yml` | Mật khẩu tài khoản seed (`user@`, `premium@`, `brand@`, `admin@fitme.ai`); **đặt giá trị riêng** trên môi trường chia sẻ |
+| `FITME_SEED_PASSWORD` | không có (đặt trong `.env.local` khi dev) | Mật khẩu tài khoản seed (`user@`, `premium@`, `brand@`, `admin@fitme.ai`) khi seed DB trống; để trống → mật khẩu ngẫu nhiên. Không bao giờ ghi giá trị vào file commit |
+| `FITME_SEED_CATALOG_OWNER_LOGIN` | false | Dev/CI: tài khoản brand thật (`teelab@`…) mới tạo cũng dùng `FITME_SEED_PASSWORD`. Bị bỏ qua dưới profile `prod` |
+| `AI_VTON_INTERNAL_TOKEN` | trống | Bí mật chung gửi kèm header `X-Internal-Token` tới ai-vton (phải trùng `VTON_INTERNAL_TOKEN` của ai-vton) |
 | `FITME_TEST_EXPOSE_RESET_TOKENS` | false | Bật cho E2E reset-password |
 | `UPLOAD_DIR` | `./uploads` | Local photo storage |
-| `PAYOS_MOCK` | true | `true` = link thanh toán giả lập (mở là PAID). **Prod thật phải `false`** |
+| `PAYOS_MOCK` | true | `true` = link thanh toán giả lập (mở là PAID). Dưới profile `prod`, backend **từ chối khởi động** nếu `PAYOS_MOCK=true` hoặc thiếu `PAYOS_CHECKSUM_KEY` (`PayOsProductionGuard`) |
 | `PAYOS_CLIENT_ID` / `PAYOS_API_KEY` / `PAYOS_CHECKSUM_KEY` | trống | Khoá PayOS (chỉ đặt qua env / secret store) |
 | `PAYOS_SUBSCRIPTION_RETURN_URL` / `PAYOS_SUBSCRIPTION_CANCEL_URL` | `http://localhost:3000/billing/return?status=…` | Trang trả về gói Premium |
 | `PAYOS_BRAND_PLUS_RETURN_URL` / `PAYOS_BRAND_PLUS_CANCEL_URL` | trống | Trang trả về Gói Plus; trống = `/brand/plan/return?status=…` trên origin của `PAYOS_SUBSCRIPTION_RETURN_URL` |

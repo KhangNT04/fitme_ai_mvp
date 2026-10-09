@@ -38,7 +38,7 @@ public class FashionCatalogLoader {
         public Map<String, List<String>> images;
         /** Optional VTON-specific garment images (flat-lay) keyed by product imageKey. */
         public Map<String, String> tryOnImages;
-        /** Former demo brands: suspended and hidden on startup, rows kept for history. */
+        /** Catalog keys of former demo brands: suspended and hidden on startup, rows kept for history. */
         public List<String> retiredBrands;
         public List<BrandEntry> brands;
     }
@@ -59,6 +59,8 @@ public class FashionCatalogLoader {
 
     @JsonIgnoreProperties(ignoreUnknown = true)
     public static class ProductEntry {
+        /** Marketplace item id (unique within the brand): how a catalog entry finds its product row. */
+        public String itemId;
         public String name;
         public String description;
         public String category;

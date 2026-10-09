@@ -151,7 +151,13 @@ Dùng trên mọi môi trường có bật seed (`FITME_SEED_ENABLED=true`, DB t
 
 Mật khẩu **không ghi trong tài liệu**: là giá trị biến môi trường `FITME_SEED_PASSWORD` khi seed. Script smoke trên prod đọc tài khoản từ `FITME_EMAIL` / `FITME_PASSWORD`. Hỏi admin môi trường nếu cần.
 
-Tài khoản brand được tạo (đã xác thực email) khi backend khởi động, kể cả trên prod (`FITME_SEED_ENABLED=false`); brand nào còn thuộc `brand@fitme.ai` hoặc chưa có chủ sẽ được chuyển sang tài khoản riêng. Ảnh sản phẩm và logo của catalog được sao chép về kho media FitMe (Cloudflare R2 trên prod) ngay sau khi khởi động, không dẫn link trực tiếp tới CDN Shopee.
+Tài khoản brand được tạo (đã xác thực email) khi backend khởi động, kể cả trên prod (`FITME_SEED_ENABLED=false`); brand nào còn thuộc `brand@fitme.ai` hoặc chưa có chủ sẽ được chuyển sang tài khoản riêng. Các tài khoản này có **mật khẩu ngẫu nhiên không ai biết**, nên chưa đăng nhập được cho tới khi admin bàn giao:
+
+1. Admin vào **Quản trị → Tài khoản**, tìm tài khoản brand (vd. `teelab@fitme.ai`).
+2. Bấm **Đăng nhập**, nhập email thật của brand và/hoặc mật khẩu mới (tối thiểu 8 ký tự), lưu.
+3. Gửi thông tin cho brand qua kênh riêng; brand đăng nhập tại `{BASE_URL}/brand/login` và nên đổi mật khẩu ngay.
+
+Khởi động lại backend không bao giờ đổi lại mật khẩu hay email đã bàn giao. Brand đổi hồ sơ, logo hoặc sửa sản phẩm thì dữ liệu catalog gốc không ghi đè lên nữa. Ảnh sản phẩm và logo của catalog được sao chép về kho media FitMe (Cloudflare R2 trên prod) ngay sau khi khởi động, không dẫn link trực tiếp tới CDN Shopee.
 
 ### 1.7 Sử dụng trên điện thoại (mobile)
 

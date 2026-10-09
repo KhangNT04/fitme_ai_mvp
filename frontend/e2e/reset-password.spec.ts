@@ -1,5 +1,5 @@
 import { test, expect } from "@playwright/test";
-import { DEMO_PASSWORD } from "./helpers/auth";
+import { demoPassword } from "./helpers/auth";
 import { registerUser, uniqueEmail } from "./helpers/roles";
 
 const API_BASE = process.env.PLAYWRIGHT_API_URL || "http://localhost:8080/api/v1";
@@ -34,7 +34,7 @@ test.describe("Reset password flow", () => {
     });
     expect(reuse.status(), "a reset token must not work twice").toBe(400);
 
-    const oldLogin = await request.post(`${API_BASE}/auth/login`, { data: { email, password: DEMO_PASSWORD } });
+    const oldLogin = await request.post(`${API_BASE}/auth/login`, { data: { email, password: demoPassword() } });
     expect(oldLogin.ok(), "old password must stop working").toBeFalsy();
 
     await guest.goto("/auth/login");

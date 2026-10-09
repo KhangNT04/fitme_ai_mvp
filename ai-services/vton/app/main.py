@@ -1,9 +1,11 @@
 from __future__ import annotations
 
+import hmac
 import os
 import uuid
 
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Request
+from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 
@@ -12,6 +14,7 @@ from app.composite import ensure_output_dir
 from app.providers import get_provider
 from app.providers.mock import new_job_id
 from app.sequence import SequenceGarment, sequence_runner
+from app.url_safety import UnsafeUrlError, check_url
 
 AI_MODE = os.getenv("AI_MODE", "mock")
 _HF_FALLBACK_COMPOSITE = os.getenv("HF_FALLBACK_COMPOSITE", "true").strip().lower() in {
@@ -21,6 +24,26 @@ _HF_FALLBACK_COMPOSITE = os.getenv("HF_FALLBACK_COMPOSITE", "true").strip().lowe
 }
 
 app = FastAPI(title="FitMe AI VTON", version="1.0.0")
+
+# Health checks and rendered outputs (unguessable file names shown to end users) stay public.
+_PUBLIC_PATHS = ("/health",)
+_PUBLIC_PREFIXES = ("/outputs/",)
+
+
+@app.middleware("http")
+async def require_internal_token(request: Request, call_next):
+    """When VTON_INTERNAL_TOKEN is set, only callers presenting it (the FitMe backend) may use the API."""
+    expected = os.getenv("VTON_INTERNAL_TOKEN", "").strip()
+    path = request.url.path
+    if expected and path not in _PUBLIC_PATHS and not path.startswith(_PUBLIC_PREFIXES):
+        supplied = request.headers.get("x-internal-token", "")
+        if not hmac.compare_digest(supplied.encode("utf-8"), expected.encode("utf-8")):
+            return JSONResponse(
+                status_code=401,
+                content={"error_code": "UNAUTHORIZED", "error_message": "Missing or invalid internal token"},
+            )
+    return await call_next(request)
+
 
 _output_dir = ensure_output_dir()
 app.mount("/outputs", StaticFiles(directory=str(_output_dir)), name="outputs")
@@ -97,9 +120,27 @@ def _resolve_garments(body: TryOnRequest) -> list[GarmentInput]:
     ]
 
 
+def _require_safe_urls(person_image_url: str, garments: list[GarmentInput]) -> None:
+    """Rejects any image URL this service (or a provider SDK it drives) must not fetch."""
+    if os.getenv("AI_MODE", "mock").strip().lower() == "mock":
+        return
+    labelled = [("person", person_image_url)] + [("garment", g.garment_image_url) for g in garments]
+    for label, url in labelled:
+        if url.startswith("data:image/"):
+            continue
+        try:
+            check_url(url, label)
+        except UnsafeUrlError as exc:
+            raise HTTPException(
+                status_code=422,
+                detail={"error_code": "INVALID_IMAGE", "error_message": str(exc)},
+            ) from exc
+
+
 @app.post("/v1/try-on", status_code=202, response_model=TryOnJobResponse)
 def submit_try_on(body: TryOnRequest) -> TryOnJobResponse:
     garments = _resolve_garments(body)
+    _require_safe_urls(body.person_image_url, garments)
 
     normalized_garments: list[SequenceGarment] = []
     for garment in garments:

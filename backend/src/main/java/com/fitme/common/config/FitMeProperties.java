@@ -61,6 +61,8 @@ public class FitMeProperties {
     public static class Ai {
         private String mode = "mock";
         private String vtonBaseUrl = "http://localhost:8001";
+        /** Shared secret sent as X-Internal-Token to ai-vton (which enforces it when VTON_INTERNAL_TOKEN is set). */
+        private String vtonInternalToken;
         private String embeddingsBaseUrl = "http://localhost:8102";
         private String publicBaseUrl = "http://localhost:8080";
         private long pollIntervalMs = 3000;

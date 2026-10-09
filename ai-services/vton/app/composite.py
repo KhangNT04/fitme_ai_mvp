@@ -6,8 +6,9 @@ import os
 import uuid
 from pathlib import Path
 
-import httpx
 from PIL import Image, ImageFilter, ImageOps
+
+from app.url_safety import fetch
 
 logger = logging.getLogger(__name__)
 
@@ -48,10 +49,7 @@ def build_composite_url(
 
 
 def _fetch_image(url: str) -> bytes:
-    with httpx.Client(timeout=30.0, follow_redirects=True) as client:
-        response = client.get(url)
-        response.raise_for_status()
-        return response.content
+    return fetch(url, "composite input", timeout=30.0).content
 
 
 def _trim_garment(garment: Image.Image) -> Image.Image:

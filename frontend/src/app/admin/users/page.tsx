@@ -72,6 +72,9 @@ export default function AdminUsersPage() {
   const [fitkenTarget, setFitkenTarget] = useState<AdminUser | null>(null);
   const [fitkenDelta, setFitkenDelta] = useState(0);
   const [fitkenNote, setFitkenNote] = useState("");
+  const [credentialsTarget, setCredentialsTarget] = useState<AdminUser | null>(null);
+  const [newEmail, setNewEmail] = useState("");
+  const [newPassword, setNewPassword] = useState("");
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -131,6 +134,32 @@ export default function AdminUsersPage() {
     },
     onError: actionFeedback({ errorMessage: "Không thể điều chỉnh Fitken" }).onError,
   });
+
+  const credentialsMutation = useMutation({
+    mutationFn: () => {
+      const email = newEmail.trim();
+      return adminApi.setUserCredentials(credentialsTarget!.id, {
+        email: email && email !== credentialsTarget!.email ? email : undefined,
+        password: newPassword || undefined,
+      });
+    },
+    onSuccess: (user) => {
+      setCredentialsTarget(null);
+      setNewPassword("");
+      refresh();
+      actionFeedback({ successMessage: `Đã cập nhật thông tin đăng nhập của ${user.email}` }).onSuccess();
+    },
+    onError: actionFeedback({ errorMessage: "Không thể cập nhật thông tin đăng nhập" }).onError,
+  });
+
+  const openCredentials = (user: AdminUser) => {
+    setCredentialsTarget(user);
+    setNewEmail(user.email);
+    setNewPassword("");
+  };
+
+  const credentialsChanged =
+    newPassword.length > 0 || (newEmail.trim() !== "" && newEmail.trim() !== credentialsTarget?.email);
 
   const openFitken = (user: AdminUser) => {
     setFitkenTarget(user);
@@ -302,6 +331,11 @@ export default function AdminUsersPage() {
                             </PortalActionButton>
                           </>
                         )}
+                        {user.role !== "ADMIN" && (
+                          <PortalActionButton variant="edit" hideIcon onClick={() => openCredentials(user)}>
+                            Đăng nhập
+                          </PortalActionButton>
+                        )}
                         {!isSelf && user.role !== "ADMIN" && (
                           <PortalActionButton
                             variant={locked ? "approve" : "suspend"}
@@ -403,6 +437,57 @@ export default function AdminUsersPage() {
               </Button>
               <Button type="submit" disabled={fitkenMutation.isPending || fitkenDelta === 0}>
                 {fitkenMutation.isPending ? "Đang xử lý..." : "Áp dụng"}
+              </Button>
+            </div>
+          </form>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={!!credentialsTarget} onOpenChange={(open) => !open && setCredentialsTarget(null)}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Thông tin đăng nhập</DialogTitle>
+            <DialogDescription>
+              Bàn giao tài khoản {credentialsTarget?.brandName ?? credentialsTarget?.email} cho chủ sở hữu thật: đổi
+              email đăng nhập và/hoặc đặt mật khẩu mới. Để trống mật khẩu nếu chỉ đổi email.
+            </DialogDescription>
+          </DialogHeader>
+          <form
+            className="space-y-4"
+            onSubmit={(e) => {
+              e.preventDefault();
+              if (credentialsChanged) credentialsMutation.mutate();
+            }}
+          >
+            <div className="space-y-2">
+              <Label htmlFor="credentials-email">Email đăng nhập</Label>
+              <Input
+                id="credentials-email"
+                type="email"
+                autoComplete="off"
+                value={newEmail}
+                onChange={(e) => setNewEmail(e.target.value)}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="credentials-password">Mật khẩu mới</Label>
+              <Input
+                id="credentials-password"
+                type="password"
+                autoComplete="new-password"
+                minLength={8}
+                maxLength={100}
+                value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)}
+                placeholder="Tối thiểu 8 ký tự"
+              />
+            </div>
+            <div className="flex justify-end gap-2">
+              <Button type="button" variant="outline" onClick={() => setCredentialsTarget(null)}>
+                Hủy
+              </Button>
+              <Button type="submit" disabled={credentialsMutation.isPending || !credentialsChanged}>
+                {credentialsMutation.isPending ? "Đang lưu..." : "Lưu"}
               </Button>
             </div>
           </form>

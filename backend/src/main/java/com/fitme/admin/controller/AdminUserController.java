@@ -1,5 +1,6 @@
 package com.fitme.admin.controller;
 
+import com.fitme.admin.dto.AdminCredentialsRequest;
 import com.fitme.admin.dto.AdminUserDto;
 import com.fitme.admin.service.AdminUserService;
 import com.fitme.common.dto.ApiResponse;
@@ -7,6 +8,7 @@ import com.fitme.common.enums.UserRole;
 import com.fitme.common.enums.UserStatus;
 import com.fitme.common.exception.BusinessException;
 import com.fitme.common.security.RequestContext;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -45,6 +47,12 @@ public class AdminUserController {
             throw new BusinessException("Trạng thái không hợp lệ (ACTIVE hoặc SUSPENDED)");
         }
         return ApiResponse.ok(adminUserService.setStatus(RequestContext.requireUserId(), id, status));
+    }
+
+    @PatchMapping("/{id}/credentials")
+    public ApiResponse<AdminUserDto> updateCredentials(@PathVariable UUID id,
+                                                       @Valid @RequestBody AdminCredentialsRequest body) {
+        return ApiResponse.ok(adminUserService.updateCredentials(RequestContext.requireUserId(), id, body));
     }
 
     private static <E extends Enum<E>> E parse(Class<E> type, String raw) {

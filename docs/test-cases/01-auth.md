@@ -153,7 +153,9 @@ Phạm vi: đăng ký, xác minh email, đăng nhập, token & phiên, quên / �
 | ID | Loại | Ưu tiên | Tiền điều kiện | Các bước | Dữ liệu test | Kết quả mong đợi | BE | FE | E2E | PROD | Ghi chú |
 |---|---|---|---|---|---|---|---|---|---|---|---|
 | AUTH-POR-01 | H | P0 | — | Mở `/admin/login`, đăng nhập admin | `admin@fitme.ai` | Đặt cookie `fitme-access`, `fitme-role`; vào `/admin/dashboard` | — | — | ✅ | ✅ | role-flows portal |
-| AUTH-POR-02 | H | P0 | — | Mở `/brand/login`, đăng nhập brand | `teelab@fitme.ai` | Vào `/brand/dashboard` của Teelab, chỉ thấy brand của mình | — | — | ✅ | ✅ | |
+| AUTH-POR-02 | H | P0 | Dev/CI bật `FITME_SEED_CATALOG_OWNER_LOGIN=true`, hoặc admin đã bàn giao mật khẩu | Mở `/brand/login`, đăng nhập brand | `teelab@fitme.ai` | Vào `/brand/dashboard` của Teelab, chỉ thấy brand của mình | — | — | ✅ | ✅ | |
+| AUTH-POR-02b | B | P0 | Prod, tài khoản brand chưa bàn giao | Đăng nhập `teelab@fitme.ai` với mật khẩu seed | `teelab@fitme.ai` | Bị từ chối (sai email hoặc mật khẩu) | — | — | ✅ | — | |
+| AUTH-POR-02c | H | P1 | Admin | Quản trị → Tài khoản → `teelab@` → **Đăng nhập**, đặt email/mật khẩu mới, rồi đăng nhập brand bằng thông tin mới | email mới, mật khẩu ≥8 | Đăng nhập brand được; email trùng → "Email đã được sử dụng"; tài khoản admin không có nút | — | — | ✅ | — | |
 | AUTH-POR-03 | E | P1 | — | Đăng nhập `/admin/login` bằng tài khoản user | Tài khoản test user | "Tài khoản này không có quyền Admin."; không vào được dashboard | — | ❌ | ❌ | ❌ | Đã sửa #10 (`934b924`). Trước đây: Token user vẫn bị lưu vào localStorage dù bị từ chối |
 | AUTH-POR-04 | E | P1 | — | Đăng nhập `/brand/login` bằng admin | `admin@fitme.ai` | "Tài khoản này không có quyền Brand. Vui lòng dùng tài khoản brand." | ❌ | — | ✅ | ❌ | rbac "brand login rejects admin credentials" |
 | AUTH-POR-05 | E | P2 | — | Bấm đăng nhập portal khi để trống / email sai | — | Hiện lỗi dưới từng ô | — | ✅ | ❌ | ❌ | Đã sửa #27 (`d88f285`). Trước đây: Form portal không hiển thị lỗi trường, bấm không có phản hồi |

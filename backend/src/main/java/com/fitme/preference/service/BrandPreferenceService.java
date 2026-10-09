@@ -37,6 +37,15 @@ public class BrandPreferenceService {
     /** Favorites + mode used for scoring; empty for Free users so their recommendations are unaffected. */
     public record ScoringPreference(Set<UUID> favoriteBrandIds, BrandMixMode mode) {
         public static final ScoringPreference NONE = new ScoringPreference(Set.of(), BrandMixMode.DIVERSE);
+
+        /** Products from other brands must not be suggested at all. */
+        public boolean favoritesOnly() {
+            return mode == BrandMixMode.FAVORITES_ONLY && !favoriteBrandIds.isEmpty();
+        }
+
+        public boolean allows(UUID brandId) {
+            return !favoritesOnly() || (brandId != null && favoriteBrandIds.contains(brandId));
+        }
     }
 
     private final JdbcTemplate jdbc;

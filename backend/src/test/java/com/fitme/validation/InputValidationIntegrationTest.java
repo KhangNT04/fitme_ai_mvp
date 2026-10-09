@@ -118,6 +118,43 @@ class InputValidationIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
+    void brandLinksRejectScriptDataAndFileUrls() throws Exception {
+        TestDataHelper.BrandOwnerContext owner = testDataHelper.createBrandOwner();
+        FitMeUserPrincipal principal = new FitMeUserPrincipal(owner.user());
+        String name = "Link Brand " + java.util.UUID.randomUUID();
+        for (String field : new String[]{"logoUrl", "websiteUrl", "shopeeUrl", "tiktokShopUrl", "instagramUrl", "facebookUrl"}) {
+            for (String bad : new String[]{"javascript:alert(1)", "data:text/html,x", "file:///etc/passwd"}) {
+                mockMvc.perform(put("/api/v1/brand/me")
+                                .with(user(principal))
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(objectMapper.writeValueAsString(java.util.Map.of("name", name, field, bad))))
+                        .andExpect(status().isBadRequest())
+                        .andExpect(jsonPath("$.errorCode").value("INVALID_URL"));
+            }
+        }
+
+        mockMvc.perform(put("/api/v1/brand/me")
+                        .with(user(principal))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"name":"%s","logoUrl":"/uploads/brands/logos/x.png",
+                                 "websiteUrl":"https://brand.example.vn","facebookUrl":""}
+                                """.formatted(name)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.logoUrl").value("/uploads/brands/logos/x.png"));
+
+        FitMeUserPrincipal applicant = new FitMeUserPrincipal(testDataHelper.createUser().user());
+        mockMvc.perform(post("/api/v1/brand/applications")
+                        .with(user(applicant))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"name":"Applicant %s","websiteUrl":"javascript:alert(1)"}
+                                """.formatted(java.util.UUID.randomUUID())))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.errorCode").value("INVALID_URL"));
+    }
+
+    @Test
     void tryOnRejectsProductThatIsNotEligible() throws Exception {
         TestDataHelper.BrandOwnerContext owner = testDataHelper.createBrandOwner();
         Product draft = testDataHelper.createDraftProductForBrand(owner.brand(), "Draft tee");

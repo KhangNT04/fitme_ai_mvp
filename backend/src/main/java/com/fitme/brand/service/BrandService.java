@@ -13,6 +13,7 @@ import com.fitme.common.enums.BrandStatus;
 import com.fitme.common.enums.UserRole;
 import com.fitme.common.exception.BusinessException;
 import com.fitme.common.exception.NotFoundException;
+import com.fitme.common.util.UrlValidator;
 import com.fitme.brand.dto.MediaUploadResponse;
 import com.fitme.storage.StorageService;
 import lombok.RequiredArgsConstructor;
@@ -36,6 +37,7 @@ public class BrandService {
 
     @Transactional
     public BrandResponse applyForBrand(UUID userId, BrandOnboardingRequest request) {
+        requireValidLinks(request);
         UserAccount user = userAccountRepository.findById(userId)
                 .orElseThrow(() -> new NotFoundException("Tài khoản không tồn tại"));
         if (user.getRole() != UserRole.USER) {
@@ -94,6 +96,7 @@ public class BrandService {
 
     @Transactional
     public BrandResponse onboard(UUID ownerUserId, BrandOnboardingRequest request) {
+        requireValidLinks(request);
         List<Brand> existing = brandRepository.findByOwnerUserId(ownerUserId);
         if (!existing.isEmpty()) {
             throw new BusinessException("Bạn đã có brand đăng ký");
@@ -122,6 +125,7 @@ public class BrandService {
 
     @Transactional
     public BrandResponse updateMyBrand(UUID ownerUserId, BrandOnboardingRequest request) {
+        requireValidLinks(request);
         Brand brand = getBrandForOwner(ownerUserId);
         if (request.getName() != null && !request.getName().isBlank()) {
             requireUniqueName(request.getName(), brand.getId());
@@ -154,6 +158,26 @@ public class BrandService {
         if (taken) {
             throw new BusinessException("Tên brand «" + trimmed + "» đã được sử dụng. Vui lòng chọn tên khác.",
                     "BRAND_NAME_TAKEN");
+        }
+    }
+
+    /** Blank links are allowed (they clear the field); anything else must be a real web / image link. */
+    private static void requireValidLinks(BrandOnboardingRequest request) {
+        String logo = request.getLogoUrl();
+        if (logo != null && !logo.isBlank() && !UrlValidator.isValidImageUrl(logo)) {
+            throw new BusinessException("Link logo không hợp lệ, cần dạng https://... hoặc ảnh tải lên từ FitMe",
+                    "INVALID_URL");
+        }
+        requireValidWebLink(request.getWebsiteUrl(), "website");
+        requireValidWebLink(request.getShopeeUrl(), "Shopee");
+        requireValidWebLink(request.getTiktokShopUrl(), "TikTok Shop");
+        requireValidWebLink(request.getInstagramUrl(), "Instagram");
+        requireValidWebLink(request.getFacebookUrl(), "Facebook");
+    }
+
+    private static void requireValidWebLink(String url, String label) {
+        if (url != null && !url.isBlank() && !UrlValidator.isValidHttpUrl(url)) {
+            throw new BusinessException("Link " + label + " không hợp lệ, cần dạng https://...", "INVALID_URL");
         }
     }
 

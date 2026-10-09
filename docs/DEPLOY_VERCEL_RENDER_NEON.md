@@ -95,7 +95,7 @@ Giữ `DB_USERNAME` và `DB_PASSWORD` riêng (không nhét vào URL).
 | `PAYOS_CHECKSUM_KEY` | khóa PayOS *(bắt buộc — thiếu thì backend không khởi động)* |
 | `FITME_AI_STYLIST_MODE` | `gemini` *(production; `rule` chỉ khi tắt Gemini)* |
 | `GEMINI_API_KEY` | API key từ [Google AI Studio](https://aistudio.google.com/apikey) |
-| `GEMINI_MODEL` | `gemini-2.0-flash` *(tùy chọn)* |
+| `GEMINI_MODEL` | `gemini-flash-latest` *(tùy chọn)* |
 | `GEMINI_TIMEOUT_MS` | `25000` *(khuyến nghị trên Render)* |
 | `FITME_AI_MODE` | `hf` *(gọi ai-vton; `mock` chỉ dev local)* |
 | `AI_VTON_URL` | `https://fitme-ai-vton.onrender.com` |
@@ -371,7 +371,7 @@ Sau khi deploy xong, kiểm tra log Render có dòng `Refreshing fashion catalog
 |------|----------|
 | `FITME_AI_STYLIST_MODE` | `gemini` (mặc định `rule`) |
 | `GEMINI_API_KEY` | **Có** — thiếu key thì mọi outfit dùng rule engine |
-| `GEMINI_MODEL` | `gemini-2.0-flash` |
+| `GEMINI_MODEL` | `gemini-flash-latest` |
 | `GEMINI_TIMEOUT_MS` | `25000` (Render free chậm) |
 | `GEMINI_CANDIDATE_LIMIT` | `30` |
 

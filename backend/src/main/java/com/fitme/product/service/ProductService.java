@@ -6,8 +6,11 @@ import com.fitme.brandplus.service.BrandPlusService;
 import com.fitme.common.enums.BrandStatus;
 import com.fitme.common.enums.ProductStatus;
 import com.fitme.common.exception.BusinessException;
+import com.fitme.common.exception.ConflictException;
 import com.fitme.common.util.UrlValidator;
 import com.fitme.common.exception.NotFoundException;
+import com.fitme.common.security.RequestContext;
+import com.fitme.preference.service.BrandPreferenceService;
 import com.fitme.product.dto.*;
 import com.fitme.product.entity.Product;
 import com.fitme.product.entity.ProductImage;
@@ -17,11 +20,13 @@ import com.fitme.product.entity.SizeChart;
 import com.fitme.product.repository.*;
 import com.fitme.product.util.ProductCategoryGroups;
 import com.fitme.settings.service.SystemSettingsService;
+import com.fitme.storage.StoredMediaPaths;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.net.URI;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -38,6 +43,7 @@ public class ProductService {
     private final ProductEligibilityService eligibilityService;
     private final BrandPlusService brandPlusService;
     private final SystemSettingsService settingsService;
+    private final BrandPreferenceService brandPreferenceService;
 
     public List<ProductResponse> listPublicProducts(ProductFilter filter) {
         Set<UUID> plusBrandIds = brandPlusService.activePlusBrandIds();
@@ -57,7 +63,10 @@ public class ProductService {
         return toResponse(product);
     }
 
-    /** Same category group; Brand Plus products come first unless the admin turned the Plus boost off. */
+    /**
+     * Same category group; Brand Plus products come first unless the admin turned the Plus boost off.
+     * Premium users in FAVORITES_ONLY mode only see their favorite brands.
+     */
     public List<ProductResponse> getSimilarProducts(UUID id) {
         Product product = productRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException("Sản phẩm không tồn tại"));
@@ -65,8 +74,11 @@ public class ProductService {
         boolean prioritizePlus = settingsService.recommendationPlusBoost() > 0;
         Comparator<Product> plusFirst = Comparator.comparing(
                 (Product p) -> prioritizePlus && plusBrandIds.contains(p.getBrandId()));
+        BrandPreferenceService.ScoringPreference favorites =
+                brandPreferenceService.forScoring(RequestContext.getCurrentUserId().orElse(null));
         return productRepository.findByStatus(ProductStatus.ACTIVE).stream()
                 .filter(p -> !p.getId().equals(id))
+                .filter(p -> favorites.allows(p.getBrandId()))
                 .filter(p -> isBrandApproved(p.getBrandId()))
                 .filter(p -> ProductCategoryGroups.sameGroup(p.getCategory(), product.getCategory()))
                 .sorted(plusFirst.reversed())
@@ -90,6 +102,7 @@ public class ProductService {
     @Transactional
     public ProductResponse createProduct(UUID brandId, CreateProductRequest request) {
         requireValidPurchaseUrl(request.getPurchaseUrl());
+        requireValidImageUrls(request.getImages());
         Product product = Product.builder()
                 .brandId(brandId)
                 .name(request.getName())
@@ -109,10 +122,18 @@ public class ProductService {
         return toResponse(productRepository.findById(product.getId()).orElseThrow());
     }
 
+    /**
+     * A live (ACTIVE) product whose buy link, photo set or try-on photo changes goes back to PENDING_REVIEW,
+     * since those are what moderation checks. Text, price, stock and variant edits keep it live.
+     */
     @Transactional
     public ProductResponse updateProduct(UUID brandId, UUID productId, CreateProductRequest request) {
         Product product = getOwnedProduct(brandId, productId);
         requireValidPurchaseUrl(request.getPurchaseUrl());
+        requireValidImageUrls(request.getImages());
+        boolean wasLive = product.getStatus() == ProductStatus.ACTIVE;
+        String previousPurchaseUrl = product.getPurchaseUrl();
+        MediaSnapshot previousMedia = mediaSnapshot(productId);
         product.setName(request.getName());
         product.setDescription(request.getDescription());
         product.setCategory(request.getCategory());
@@ -137,8 +158,70 @@ public class ProductService {
         if (request.getVariants() != null) {
             syncVariants(productId, request.getVariants());
         }
+        if (wasLive && (!sameUrl(previousPurchaseUrl, request.getPurchaseUrl())
+                || previousMedia.changedTo(mediaSnapshot(productId)))) {
+            product.setStatus(ProductStatus.PENDING_REVIEW);
+        }
         updateAiEligibility(product);
         return toResponse(product);
+    }
+
+    /** Photo URLs (order-insensitive), the one used for AI try-on, and the first photo. */
+    private record MediaSnapshot(List<String> imageUrls, String tryOnUrl, String firstUrl) {
+
+        /**
+         * A product saved without a try-on photo gets its first photo as try-on on the next edit;
+         * that default alone is not a change.
+         */
+        boolean changedTo(MediaSnapshot next) {
+            if (!imageUrls.equals(next.imageUrls)) {
+                return true;
+            }
+            String previousTryOn = tryOnUrl != null ? tryOnUrl : firstUrl;
+            return next.tryOnUrl != null && !next.tryOnUrl.equals(previousTryOn);
+        }
+    }
+
+    private MediaSnapshot mediaSnapshot(UUID productId) {
+        List<ProductImage> images = imageRepository.findByProductIdOrderBySortOrderAsc(productId);
+        List<String> urls = images.stream()
+                .map(i -> canonicalImageUrl(i.getImageUrl()))
+                .sorted()
+                .toList();
+        String tryOnUrl = images.stream()
+                .filter(i -> ProductImage.TYPE_TRY_ON.equalsIgnoreCase(i.getImageType()))
+                .map(i -> canonicalImageUrl(i.getImageUrl()))
+                .findFirst()
+                .orElse(null);
+        String firstUrl = images.isEmpty() ? null : canonicalImageUrl(images.getFirst().getImageUrl());
+        return new MediaSnapshot(urls, tryOnUrl, firstUrl);
+    }
+
+    /**
+     * The brand portal turns legacy R2 links (other than public catalog media) into {@code /uploads/...}
+     * before saving them back; both forms point at the same object.
+     */
+    static String canonicalImageUrl(String url) {
+        if (url == null) {
+            return "";
+        }
+        String trimmed = url.trim();
+        try {
+            URI uri = URI.create(trimmed);
+            String host = uri.getHost();
+            String path = uri.getPath();
+            if (host != null && host.toLowerCase().endsWith(".r2.dev")
+                    && (path == null || !path.startsWith("/catalog-media/"))) {
+                return StoredMediaPaths.normalizeToUploadPath(trimmed);
+            }
+        } catch (IllegalArgumentException ignored) {
+            // not a URI; compare as typed
+        }
+        return trimmed;
+    }
+
+    private static boolean sameUrl(String a, String b) {
+        return Objects.equals(a == null ? null : a.trim(), b == null ? null : b.trim());
     }
 
     /**
@@ -214,6 +297,12 @@ public class ProductService {
         if (product.getStatus() != ProductStatus.INACTIVE) {
             throw new BusinessException("Chỉ có thể xóa vĩnh viễn sản phẩm đã ẩn (Tạm ẩn)");
         }
+        if (productRepository.hasCustomerHistory(productId)) {
+            throw new ConflictException(
+                    "Không thể xóa vĩnh viễn sản phẩm đã có đánh giá, khách quan tâm hoặc lịch sử thử đồ. "
+                            + "Hãy giữ ở trạng thái Tạm ẩn.",
+                    "PRODUCT_HAS_HISTORY");
+        }
         clearRelated(productId);
         productRepository.delete(product);
     }
@@ -277,6 +366,19 @@ public class ProductService {
             throw new BusinessException(
                     "Link mua hàng không hợp lệ, cần dạng https://... tới trang sản phẩm của cửa hàng",
                     "INVALID_PURCHASE_URL");
+        }
+    }
+
+    private static void requireValidImageUrls(List<ProductImageDto> images) {
+        if (images == null) {
+            return;
+        }
+        for (ProductImageDto image : images) {
+            if (image == null || !UrlValidator.isValidImageUrl(image.getImageUrl())) {
+                throw new BusinessException(
+                        "Link ảnh sản phẩm không hợp lệ, cần dạng https://... hoặc ảnh tải lên từ FitMe",
+                        "INVALID_IMAGE_URL");
+            }
         }
     }
 

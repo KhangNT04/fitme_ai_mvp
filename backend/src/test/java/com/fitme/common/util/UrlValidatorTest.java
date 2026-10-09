@@ -37,4 +37,33 @@ class UrlValidatorTest {
     void isValidHttpUrl_null_returnsFalse() {
         assertFalse(UrlValidator.isValidHttpUrl(null));
     }
+
+    @ParameterizedTest
+    @ValueSource(strings = {
+            "https://picsum.photos/400/500",
+            "https://pub-123.r2.dev/brands/products/a.jpg",
+            "http://localhost:8080/uploads/brands/products/a.jpg",
+            "/uploads/brands/products/a.jpg",
+            "/catalog/brand-x/shirt.jpg"
+    })
+    void isValidImageUrl_acceptsHttpAndFitMeMediaPaths(String url) {
+        assertTrue(UrlValidator.isValidImageUrl(url));
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {
+            "",
+            "javascript:alert(1)",
+            "JavaScript:alert(1)",
+            "data:image/png;base64,AAAA",
+            "file:///etc/passwd",
+            "ftp://example.com/a.jpg",
+            "//evil.example.com/a.jpg",
+            "/uploads/../secrets.txt",
+            "/etc/passwd",
+            "image.jpg"
+    })
+    void isValidImageUrl_rejectsDangerousOrForeignSchemes(String url) {
+        assertFalse(UrlValidator.isValidImageUrl(url));
+    }
 }

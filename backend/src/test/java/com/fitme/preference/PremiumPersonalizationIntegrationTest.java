@@ -131,6 +131,77 @@ class PremiumPersonalizationIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
+    void favoritesOnlyNeverFallsBackToOtherBrandsAndExplainsThePartialOutfit() throws Exception {
+        FitMeUserPrincipal premium = new FitMeUserPrincipal(testDataHelper.createPremiumUser().user());
+        testDataHelper.createEligibleProduct("Áo thun brand khác", "Áo thun");
+        testDataHelper.createEligibleProduct("Quần jean brand khác", "Quần jean");
+        testDataHelper.createEligibleProduct("Giày brand khác", "Giày sneaker");
+        Brand favorite = testDataHelper.createApprovedBrand();
+        // Only a top: favorites alone can't make top + bottom.
+        testDataHelper.createEligibleProductForBrand(favorite, "Áo thun yêu thích", "Áo thun");
+
+        saveProfiles(premium);
+        mockMvc.perform(put(PREFS).with(user(premium))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(prefsJson("FAVORITES_ONLY", List.of(favorite.getId()))))
+                .andExpect(status().isOk());
+
+        String body = mockMvc.perform(post("/api/v1/recommendations").with(user(premium))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"wardrobeMode\": \"NO_WARDROBE_DATA\"}"))
+                .andExpect(status().isOk())
+                .andReturn().getResponse().getContentAsString();
+        JsonNode data = objectMapper.readTree(body).get("data");
+        assertThat(data.path("notice").asText()).contains("Brand yêu thích");
+
+        for (JsonNode option : data.get("options")) {
+            String recommendationId = option.get("recommendationId").asText();
+            JsonNode detail = objectMapper.readTree(mockMvc.perform(
+                            get("/api/v1/recommendations/{id}", recommendationId).with(user(premium)))
+                    .andExpect(status().isOk())
+                    .andReturn().getResponse().getContentAsString()).get("data");
+            for (JsonNode item : detail.get("outfitItems")) {
+                if (item.hasNonNull("productId")) {
+                    assertThat(item.get("brandId").asText()).isEqualTo(favorite.getId().toString());
+                }
+            }
+            JsonNode similar = objectMapper.readTree(mockMvc.perform(
+                            get("/api/v1/recommendations/{id}/similar-products", recommendationId).with(user(premium)))
+                    .andExpect(status().isOk())
+                    .andReturn().getResponse().getContentAsString()).get("data");
+            for (JsonNode item : similar) {
+                assertThat(brandOf(item.get("productId").asText())).isEqualTo(favorite.getId());
+            }
+        }
+    }
+
+    @Test
+    void favoritesOnlyLimitsSimilarProductsToFavoriteBrands() throws Exception {
+        FitMeUserPrincipal premium = new FitMeUserPrincipal(testDataHelper.createPremiumUser().user());
+        var anchor = testDataHelper.createEligibleProduct("Áo thun gốc", "Áo thun");
+        testDataHelper.createEligibleProduct("Áo thun brand khác", "Áo thun");
+        Brand favorite = testDataHelper.createApprovedBrand();
+        testDataHelper.createEligibleProductForBrand(favorite, "Áo thun yêu thích", "Áo thun");
+        mockMvc.perform(put(PREFS).with(user(premium))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(prefsJson("FAVORITES_ONLY", List.of(favorite.getId()))))
+                .andExpect(status().isOk());
+
+        JsonNode similar = objectMapper.readTree(mockMvc.perform(
+                        get("/api/v1/products/{id}/similar", anchor.getId()).with(user(premium)))
+                .andExpect(status().isOk())
+                .andReturn().getResponse().getContentAsString()).get("data");
+        assertThat(similar).isNotEmpty();
+        for (JsonNode item : similar) {
+            assertThat(item.get("brandId").asText()).isEqualTo(favorite.getId().toString());
+        }
+    }
+
+    private UUID brandOf(String productId) {
+        return jdbc.queryForObject("SELECT brand_id FROM products WHERE id = ?::uuid", UUID.class, productId);
+    }
+
+    @Test
     void freeUserWardrobeModeFallsBackToBrandOnly() throws Exception {
         FitMeUserPrincipal free = new FitMeUserPrincipal(testDataHelper.createUser().user());
         jdbc.update("INSERT INTO wardrobe_items (user_id, name, category, item_type) VALUES (?, 'Áo cũ của tôi', 'Áo thun', 'TOP')",

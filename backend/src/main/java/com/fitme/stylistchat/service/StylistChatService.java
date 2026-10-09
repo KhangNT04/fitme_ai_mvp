@@ -149,7 +149,8 @@ public class StylistChatService {
         applyOccasionDisplayLabels(intent, options, recommendations);
 
         if (recommendations.isEmpty()) {
-            String emptyReply = "Mình chưa ghép được set sản phẩm phù hợp ngay lúc này. "
+            String emptyReply = options.getNotice() != null ? options.getNotice()
+                    : "Mình chưa ghép được set sản phẩm phù hợp ngay lúc này. "
                     + "Bạn thử mô tả cụ thể hơn (vd: áo sơ mi đi làm, đi cafe tối giản) nhé.";
             if (conversation != null) {
                 saveMessage(conversation.getId(), "assistant", "text", emptyReply, null);
@@ -177,6 +178,9 @@ public class StylistChatService {
         }
 
         String assistantContent = buildOutfitIntro(intent, options);
+        if (options.getNotice() != null) {
+            assistantContent = assistantContent + "\n\n" + options.getNotice();
+        }
         String contentForStore = assistantContent;
         try {
             contentForStore = objectMapper.writeValueAsString(Map.of(

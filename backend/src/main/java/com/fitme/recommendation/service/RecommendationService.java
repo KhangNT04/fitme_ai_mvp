@@ -59,6 +59,12 @@ public class RecommendationService {
     private static final int MIN_BUDGET_POOL = 8;
     /** Similarity runs 0-7 where outfit scores run ~0-100, so the Plus boost is scaled down (15 -> 1.5). */
     private static final double SIMILARITY_PLUS_SCALE = 0.1;
+    static final String FAVORITES_PARTIAL_NOTICE =
+            "Brand yêu thích của bạn chưa đủ sản phẩm để phối trọn bộ nên outfit có thể còn thiếu món. "
+                    + "Thêm brand yêu thích hoặc chuyển sang chế độ Đa dạng nhiều brand để xem gợi ý đầy đủ hơn.";
+    static final String FAVORITES_EMPTY_NOTICE =
+            "Brand yêu thích của bạn hiện chưa có sản phẩm phù hợp để phối outfit. "
+                    + "Thêm brand yêu thích hoặc chuyển sang chế độ Đa dạng nhiều brand để xem gợi ý.";
 
     private final OutfitRequestRepository outfitRequestRepository;
     private final RecommendationRepository recommendationRepository;
@@ -211,6 +217,7 @@ public class RecommendationService {
         RecommendationOptionsResponse optionsResponse = RecommendationOptionsResponse.builder()
                 .requestId(outfitRequest.getId())
                 .options(options)
+                .notice(favoritesOnlyNotice(scoreContext, hasCoreOutfitRoles(baseEligible), options.isEmpty()))
                 .build();
         return new ChatGenerationResult(optionsResponse, recommendations);
     }
@@ -482,8 +489,11 @@ public class RecommendationService {
                 .filter(g -> g != ProductTargetGender.UNISEX)
                 .collect(java.util.stream.Collectors.toSet());
         BrandPlusPriority.Snapshot plus = brandPlusPriority.snapshot();
+        BrandPreferenceService.ScoringPreference favorites =
+                brandPreferenceService.forScoring(RequestContext.getCurrentUserId().orElse(null));
         return productRepository.findByStatus(ProductStatus.ACTIVE).stream()
                 .filter(p -> !anchorIds.contains(p.getId()))
+                .filter(p -> favorites.allows(p.getBrandId()))
                 .filter(eligibilityService::canBeRecommended)
                 .filter(p -> genderCompatible(productAudienceService.resolveTargetGender(p), anchorGenders))
                 .map(p -> java.util.Map.entry(p, similarityScore(p, anchors)))
@@ -554,17 +564,26 @@ public class RecommendationService {
     }
 
     /**
-     * FAVORITES_ONLY soft filter: keep only favorite-brand products when they can still form an outfit
-     * (top + bottom, or a one-piece); otherwise keep the full pool and rely on scoring to rank favorites first.
+     * FAVORITES_ONLY is a hard filter: only favorite-brand products, even when they can't form a full outfit
+     * (the response then carries {@link #FAVORITES_PARTIAL_NOTICE} / {@link #FAVORITES_EMPTY_NOTICE}).
      */
     List<Product> applyFavoriteBrandFilter(List<Product> pool, OutfitScoreContext scoreContext) {
         if (!scoreContext.favoritesOnly()) {
             return pool;
         }
-        List<Product> favorites = pool.stream()
+        return pool.stream()
                 .filter(p -> outfitScoringService.isFavoriteBrand(p, scoreContext))
                 .toList();
-        return hasCoreOutfitRoles(favorites) ? favorites : pool;
+    }
+
+    static String favoritesOnlyNotice(OutfitScoreContext scoreContext, boolean hasCoreRoles, boolean noOutfit) {
+        if (!scoreContext.favoritesOnly()) {
+            return null;
+        }
+        if (noOutfit) {
+            return FAVORITES_EMPTY_NOTICE;
+        }
+        return hasCoreRoles ? null : FAVORITES_PARTIAL_NOTICE;
     }
 
     private boolean hasCoreOutfitRoles(List<Product> products) {

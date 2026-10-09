@@ -21,6 +21,7 @@ import com.fitme.userprofile.repository.StyleProfileRepository;
 import com.fitme.wardrobe.entity.WardrobeItem;
 import com.fitme.wardrobe.repository.WardrobeItemRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -30,6 +31,7 @@ import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class SessionService {
 
     private final AnonymousSessionRepository sessionRepository;
@@ -62,6 +64,10 @@ public class SessionService {
         return toResponse(session);
     }
 
+    /**
+     * Moves the guest session's unowned data to the logged-in user. A session already linked to another
+     * account (shared browser) is left untouched so one user's data never leaks to the next.
+     */
     @Transactional
     public void linkToUser(String sessionToken) {
         UUID userId = RequestContext.requireUserId();
@@ -69,6 +75,11 @@ public class SessionService {
                 .orElseThrow(() -> new NotFoundException("Session không tồn tại"));
         if (session.getExpiresAt().isBefore(Instant.now())) {
             throw new BusinessException("Session đã hết hạn");
+        }
+        if (session.getLinkedUserId() != null && !session.getLinkedUserId().equals(userId)) {
+            log.warn("Skipping link of session {} to user {}: already linked to another user",
+                    session.getId(), userId);
+            return;
         }
         UUID sessionId = session.getId();
         migrateSessionDataToUser(sessionId, userId);
@@ -78,13 +89,20 @@ public class SessionService {
         sessionRepository.save(session);
     }
 
+    /** Only rows without an owner are claimed; rows another account already owns stay with that account. */
     private void migrateSessionDataToUser(UUID sessionId, UUID userId) {
-        bodyProfileRepository.findBySessionId(sessionId).forEach(p -> assignUserId(p, userId));
-        styleProfileRepository.findBySessionId(sessionId).forEach(p -> assignUserId(p, userId));
-        wardrobeItemRepository.findBySessionId(sessionId).forEach(item -> assignUserId(item, userId));
-        recommendationRepository.findBySessionId(sessionId).forEach(rec -> assignUserId(rec, userId));
-        outfitRequestRepository.findBySessionId(sessionId).forEach(req -> assignUserId(req, userId));
-        tryOnRequestRepository.findBySessionId(sessionId).forEach(req -> assignUserId(req, userId));
+        bodyProfileRepository.findBySessionId(sessionId).stream()
+                .filter(p -> p.getUserId() == null).forEach(p -> assignUserId(p, userId));
+        styleProfileRepository.findBySessionId(sessionId).stream()
+                .filter(p -> p.getUserId() == null).forEach(p -> assignUserId(p, userId));
+        wardrobeItemRepository.findBySessionId(sessionId).stream()
+                .filter(item -> item.getUserId() == null).forEach(item -> assignUserId(item, userId));
+        recommendationRepository.findBySessionId(sessionId).stream()
+                .filter(rec -> rec.getUserId() == null).forEach(rec -> assignUserId(rec, userId));
+        outfitRequestRepository.findBySessionId(sessionId).stream()
+                .filter(req -> req.getUserId() == null).forEach(req -> assignUserId(req, userId));
+        tryOnRequestRepository.findBySessionId(sessionId).stream()
+                .filter(req -> req.getUserId() == null).forEach(req -> assignUserId(req, userId));
     }
 
     private void assignUserId(BodyProfile profile, UUID userId) {

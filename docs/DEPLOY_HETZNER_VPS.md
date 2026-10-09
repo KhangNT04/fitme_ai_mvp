@@ -273,7 +273,7 @@ Giống hệt bộ biến dùng cho Render (để có thể **failover qua lại
 | `R2_ENDPOINT` / `R2_BUCKET` / `R2_ACCESS_KEY_ID` / `R2_SECRET_ACCESS_KEY` / `R2_PUBLIC_BASE_URL` | Cloudflare R2 | **Cùng bucket** với Render — bắt buộc để failover không mất ảnh |
 | `FITME_AI_STYLIST_MODE` | `gemini` | `rule` nếu tắt Gemini |
 | `GEMINI_API_KEY` | key từ [Google AI Studio](https://aistudio.google.com/apikey) | |
-| `GEMINI_MODEL` | `gemini-2.0-flash` | |
+| `GEMINI_MODEL` | `gemini-flash-latest` | |
 | `GEMINI_TIMEOUT_MS` | `15000` | VPS always-on, không cold-start — có thể để thấp hơn Render (`25000`) |
 | `FITME_AI_MODE` | `api` (khuyến nghị, FASHN) hoặc `hf` | Gọi service `ai-vton`. `api` = FASHN hosted API (`FASHN_API_KEY` đặt **trên `ai-vton`**, KHÔNG đặt ở backend). Xem [mục 7](#7-fashn-try-on-trên-hetzner-ai-vton) |
 | `AI_VTON_URL` | `http://ai-vton:8001` (tự host cùng VPS) hoặc `https://fitme-ai-vton.onrender.com` (giữ trên Render) | Xem [mục 7.1](#71-lựa-chọn-1--giữ-ai-vton-trên-render-đơn-giản-nhất) |

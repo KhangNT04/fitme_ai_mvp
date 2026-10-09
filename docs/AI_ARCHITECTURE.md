@@ -150,7 +150,7 @@ Services: `postgres`, `backend`, `frontend`, `ai-vton`, `ai-embeddings`.
 | `FITME_PUBLIC_BASE_URL` | backend | URL public cho ảnh `/uploads` |
 | `FITME_AI_STYLIST_MODE` | backend | `rule` (mặc định) hoặc `gemini` |
 | `GEMINI_API_KEY` | backend | API key Google AI Studio (khi bật gemini) |
-| `GEMINI_MODEL` | backend | Mặc định `gemini-2.0-flash` |
+| `GEMINI_MODEL` | backend | Mặc định `gemini-flash-latest` |
 
 ---
 

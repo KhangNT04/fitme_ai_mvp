@@ -3,13 +3,16 @@ package com.fitme.preview.service;
 import com.fitme.analytics.service.AnalyticsService;
 import com.fitme.common.enums.PreviewStatus;
 import com.fitme.common.enums.PreviewType;
+import com.fitme.common.exception.BusinessException;
 import com.fitme.common.exception.NotFoundException;
 import com.fitme.common.security.OwnershipChecker;
 import com.fitme.common.security.RequestContext;
 import com.fitme.preview.dto.CreatePreviewRequest;
 import com.fitme.preview.dto.PreviewResponse;
 import com.fitme.preview.entity.PreviewGeneration;
+import com.fitme.preview.entity.UserPhotoUpload;
 import com.fitme.preview.repository.PreviewGenerationRepository;
+import com.fitme.preview.repository.UserPhotoUploadRepository;
 import com.fitme.recommendation.entity.Recommendation;
 import com.fitme.recommendation.repository.RecommendationRepository;
 import com.fitme.tryon.entity.TryOnRequest;
@@ -29,10 +32,26 @@ public class PreviewService {
     private final AnalyticsService analyticsService;
     private final RecommendationRepository recommendationRepository;
     private final TryOnRequestRepository tryOnRequestRepository;
+    private final UserPhotoUploadRepository photoUploadRepository;
 
     @Transactional
     public PreviewResponse create(CreatePreviewRequest request) {
-        verifyLinkedResourceOwnership(request.getRecommendationId(), request.getTryOnRequestId());
+        if (request.getRecommendationId() == null && request.getTryOnRequestId() == null
+                && request.getPhotoUploadId() == null) {
+            throw new BusinessException("Cần chọn outfit, lượt thử đồ hoặc ảnh để tạo preview");
+        }
+        if (request.getRecommendationId() != null) {
+            verifyRecommendationOwnership(request.getRecommendationId());
+        }
+        if (request.getTryOnRequestId() != null) {
+            verifyTryOnOwnership(request.getTryOnRequestId());
+        }
+        if (request.getPhotoUploadId() != null) {
+            UserPhotoUpload upload = photoUploadRepository.findById(request.getPhotoUploadId())
+                    .filter(u -> u.getDeletedAt() == null)
+                    .orElseThrow(() -> new NotFoundException("Ảnh không tồn tại"));
+            OwnershipChecker.verify(upload.getUserId(), upload.getSessionId());
+        }
         PreviewType type = request.getPreviewType() != null ? request.getPreviewType() : PreviewType.OUTFIT_BOARD;
         PreviewGeneration preview = PreviewGeneration.builder()
                 .recommendationId(request.getRecommendationId())
@@ -78,22 +97,35 @@ public class PreviewService {
         previewRepository.delete(preview);
     }
 
+    /**
+     * Previews carry no owner columns, so the owner is that of the linked recommendation, else try-on
+     * (both follow the guest's session to the account on login), else photo upload.
+     * A preview linked to nothing has no provable owner and is never accessible.
+     */
     private void verifyPreviewOwnership(PreviewGeneration preview) {
-        verifyLinkedResourceOwnership(preview.getRecommendationId(), preview.getTryOnRequestId());
+        if (preview.getRecommendationId() != null) {
+            verifyRecommendationOwnership(preview.getRecommendationId());
+        } else if (preview.getTryOnRequestId() != null) {
+            verifyTryOnOwnership(preview.getTryOnRequestId());
+        } else if (preview.getPhotoUploadId() != null) {
+            UserPhotoUpload upload = photoUploadRepository.findById(preview.getPhotoUploadId())
+                    .orElseThrow(() -> new NotFoundException("Preview không tồn tại"));
+            OwnershipChecker.verify(upload.getUserId(), upload.getSessionId());
+        } else {
+            OwnershipChecker.verify(null, null);
+        }
     }
 
-    private void verifyLinkedResourceOwnership(UUID recommendationId, UUID tryOnRequestId) {
-        if (recommendationId != null) {
-            Recommendation rec = recommendationRepository.findById(recommendationId)
-                    .orElseThrow(() -> new NotFoundException("Recommendation không tồn tại"));
-            OwnershipChecker.verify(rec.getUserId(), rec.getSessionId());
-            return;
-        }
-        if (tryOnRequestId != null) {
-            TryOnRequest tryOn = tryOnRequestRepository.findById(tryOnRequestId)
-                    .orElseThrow(() -> new NotFoundException("Try-on không tồn tại"));
-            OwnershipChecker.verify(tryOn.getUserId(), tryOn.getSessionId());
-        }
+    private void verifyRecommendationOwnership(UUID recommendationId) {
+        Recommendation rec = recommendationRepository.findById(recommendationId)
+                .orElseThrow(() -> new NotFoundException("Recommendation không tồn tại"));
+        OwnershipChecker.verify(rec.getUserId(), rec.getSessionId());
+    }
+
+    private void verifyTryOnOwnership(UUID tryOnRequestId) {
+        TryOnRequest tryOn = tryOnRequestRepository.findById(tryOnRequestId)
+                .orElseThrow(() -> new NotFoundException("Try-on không tồn tại"));
+        OwnershipChecker.verify(tryOn.getUserId(), tryOn.getSessionId());
     }
 
     private PreviewResponse toResponse(PreviewGeneration p) {

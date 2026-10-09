@@ -11,6 +11,8 @@ import java.util.UUID;
 public class RecommendationOptionsResponse {
     private UUID requestId;
     private List<StyleOptionDto> options;
+    /** Shown to the user when FAVORITES_ONLY left the outfit partial or empty; null otherwise. */
+    private String notice;
 
     @Data
     @Builder

@@ -26,6 +26,7 @@ public class GeminiStylistClient {
 
     private static final String BASE_URL = "https://generativelanguage.googleapis.com";
     private static final long PRIMARY_COOLDOWN_MS = 60_000;
+    private static final long PRIMARY_UNAVAILABLE_COOLDOWN_MS = 30 * 60_000;
 
     private final FitMeProperties properties;
     private final ObjectMapper objectMapper;
@@ -116,8 +117,9 @@ public class GeminiStylistClient {
     }
 
     /**
-     * Calls the primary model; when Google reports it overloaded, retries once on the fallback model
-     * and keeps using the fallback for a short cool-down so multi-style chats don't pay the failed call again.
+     * Calls the primary model; when Google reports it overloaded or no longer available (retired model → 404),
+     * retries once on the fallback model and keeps using the fallback for a cool-down so multi-style chats
+     * don't pay the failed call again.
      */
     GeminiApiResponse generate(Map<String, Object> body) {
         String primary = properties.getAi().getGeminiModel();
@@ -129,12 +131,18 @@ public class GeminiStylistClient {
         try {
             return callModel(primary, body);
         } catch (RestClientResponseException ex) {
-            if (!hasFallback || !isOverloaded(ex.getStatusCode().value())) {
+            int status = ex.getStatusCode().value();
+            if (!hasFallback || !(isOverloaded(status) || isModelUnavailable(status))) {
                 throw ex;
             }
-            primaryOverloadedUntil.set(System.currentTimeMillis() + PRIMARY_COOLDOWN_MS);
-            log.info("Gemini model {} overloaded (HTTP {}), retrying with {}",
-                    primary, ex.getStatusCode().value(), fallback);
+            long cooldown = isModelUnavailable(status) ? PRIMARY_UNAVAILABLE_COOLDOWN_MS : PRIMARY_COOLDOWN_MS;
+            primaryOverloadedUntil.set(System.currentTimeMillis() + cooldown);
+            if (isModelUnavailable(status)) {
+                log.warn("Gemini model {} not available (HTTP {}), using {} for the next {} min — check GEMINI_MODEL",
+                        primary, status, fallback, cooldown / 60_000);
+            } else {
+                log.info("Gemini model {} overloaded (HTTP {}), retrying with {}", primary, status, fallback);
+            }
             return callModel(fallback, body);
         }
     }
@@ -143,9 +151,14 @@ public class GeminiStylistClient {
         return status == 503 || status == 429;
     }
 
+    static boolean isModelUnavailable(int status) {
+        return status == 404;
+    }
+
     private GeminiApiResponse callModel(String model, Map<String, Object> body) {
         return restClient().post()
-                .uri("/v1beta/models/{model}:generateContent?key={key}", model, properties.getAi().getGeminiApiKey())
+                .uri("/v1beta/models/{model}:generateContent", model)
+                .header("x-goog-api-key", properties.getAi().getGeminiApiKey())
                 .body(body)
                 .retrieve()
                 .body(GeminiApiResponse.class);

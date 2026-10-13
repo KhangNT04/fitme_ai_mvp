@@ -100,6 +100,25 @@ def health() -> dict[str, str | bool]:
     }
 
 
+@app.get("/v1/provider/credits")
+def provider_credits() -> JSONResponse:
+    from app.providers.fashn_api import FashnCreditsError, fetch_credits
+
+    try:
+        return JSONResponse({"provider": "fashn", "configured": True, **fetch_credits()})
+    except FashnCreditsError as exc:
+        status_code = 200 if exc.code == "NOT_CONFIGURED" else 502
+        return JSONResponse(
+            status_code=status_code,
+            content={
+                "provider": "fashn",
+                "configured": exc.code != "NOT_CONFIGURED",
+                "error_code": exc.code,
+                "error_message": exc.message,
+            },
+        )
+
+
 def _resolve_garments(body: TryOnRequest) -> list[GarmentInput]:
     if body.garments:
         return body.garments

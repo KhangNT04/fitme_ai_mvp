@@ -29,6 +29,8 @@ public class AiVtonClient {
 
     private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
     static final String INTERNAL_TOKEN_HEADER = "X-Internal-Token";
+    private static final int CREDITS_CONNECT_TIMEOUT_MS = 5_000;
+    private static final int CREDITS_READ_TIMEOUT_MS = 15_000;
 
     private final FitMeProperties properties;
     private final AtomicLong lastWakePingAt = new AtomicLong();
@@ -225,6 +227,31 @@ public class AiVtonClient {
         }
     }
 
+    /** Balance of the paid try-on provider as reported by ai-vton; never throws. */
+    public ProviderCredits fetchProviderCredits() {
+        try {
+            ProviderCredits credits = restClient(CREDITS_CONNECT_TIMEOUT_MS, CREDITS_READ_TIMEOUT_MS).get()
+                    .uri("/v1/provider/credits")
+                    .retrieve()
+                    .body(ProviderCredits.class);
+            return credits != null ? credits : ProviderCredits.failed("PROVIDER_ERROR", "ai-vton trả về rỗng");
+        } catch (RestClientResponseException ex) {
+            try {
+                ProviderCredits parsed = OBJECT_MAPPER.readValue(ex.getResponseBodyAsString(), ProviderCredits.class);
+                if (parsed.getErrorCode() != null) {
+                    return parsed;
+                }
+            } catch (Exception ignored) {
+                // Not an ai-vton JSON error (older ai-vton without the endpoint, hosting edge page, ...).
+            }
+            String code = ex.getStatusCode().value() == 404 ? "UNSUPPORTED" : "PROVIDER_ERROR";
+            return ProviderCredits.failed(code, "ai-vton HTTP " + ex.getStatusCode().value());
+        } catch (RestClientException ex) {
+            log.warn("VTON credits lookup failed: {}", ex.getMessage());
+            return ProviderCredits.failed("UNREACHABLE", "Không kết nối được ai-vton");
+        }
+    }
+
     public boolean isMockMode() {
         return "mock".equalsIgnoreCase(properties.getAi().getMode());
     }
@@ -247,6 +274,10 @@ public class AiVtonClient {
     }
 
     private RestClient restClient() {
+        return restClient(-1, -1);
+    }
+
+    private RestClient restClient(int connectTimeoutMs, int readTimeoutMs) {
         // Spring's default JdkClientHttpRequestFactory (java.net.http.HttpClient) streams POST
         // bodies with `Transfer-Encoding: chunked`, which uvicorn/httptools in ai-vton fails to
         // parse (request arrives with an empty body → FastAPI 422 "body: Field required").
@@ -254,6 +285,12 @@ public class AiVtonClient {
         // request instead, which ai-vton parses correctly.
         SimpleClientHttpRequestFactory requestFactory = new SimpleClientHttpRequestFactory();
         requestFactory.setBufferRequestBody(true);
+        if (connectTimeoutMs >= 0) {
+            requestFactory.setConnectTimeout(connectTimeoutMs);
+        }
+        if (readTimeoutMs >= 0) {
+            requestFactory.setReadTimeout(readTimeoutMs);
+        }
         RestClient.Builder builder = RestClient.builder()
                 .baseUrl(properties.getAi().getVtonBaseUrl())
                 .requestFactory(requestFactory);
@@ -285,5 +322,33 @@ public class AiVtonClient {
         private Integer totalSteps;
         @JsonProperty("current_category")
         private String currentCategory;
+    }
+
+    @Data
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    public static class ProviderCredits {
+        private String provider;
+        private boolean configured;
+        private Integer total;
+        private Integer subscription;
+        @JsonProperty("on_demand")
+        private Integer onDemand;
+        @JsonProperty("error_code")
+        private String errorCode;
+        @JsonProperty("error_message")
+        private String errorMessage;
+
+        static ProviderCredits failed(String code, String message) {
+            ProviderCredits credits = new ProviderCredits();
+            credits.setProvider("fashn");
+            credits.setConfigured(true);
+            credits.setErrorCode(code);
+            credits.setErrorMessage(message);
+            return credits;
+        }
+
+        public boolean isAvailable() {
+            return errorCode == null && total != null;
+        }
     }
 }

@@ -5,6 +5,7 @@ import com.fitme.admin.audit.AdminAuditService;
 import com.fitme.admin.dto.AdminBrandListItemDto;
 import com.fitme.admin.dto.ConsentRecordDto;
 import com.fitme.admin.dto.DataDeletionRequestDto;
+import com.fitme.admin.dto.FashnCreditStatusDto;
 import com.fitme.admin.dto.OccasionRuleDto;
 import com.fitme.admin.dto.OccasionRuleRequest;
 import com.fitme.admin.dto.PreviewGenerationDto;
@@ -13,6 +14,7 @@ import com.fitme.admin.dto.StyleRuleRequest;
 import com.fitme.admin.service.AdminBrandListService;
 import com.fitme.admin.service.AdminDtoMapper;
 import com.fitme.admin.service.AdminFlaggedLinkService;
+import com.fitme.admin.service.FashnCreditService;
 import com.fitme.admin.service.AdminPreviewMonitoringService;
 import com.fitme.admin.service.AdminRuleService;
 import com.fitme.analytics.dto.AdminDashboardResponse;
@@ -70,6 +72,7 @@ public class AdminController {
     private final AdminMetricsService adminMetricsService;
     private final RetentionMetricsService retentionMetricsService;
     private final AdminAuditService auditService;
+    private final FashnCreditService fashnCreditService;
 
     @GetMapping("/dashboard")
     public ApiResponse<AdminDashboardResponse> dashboard() {
@@ -195,6 +198,11 @@ public class AdminController {
     @GetMapping("/try-on/monitoring")
     public ApiResponse<Map<String, Object>> tryOnMonitoring() {
         return ApiResponse.ok(analyticsService.tryOnMonitoring());
+    }
+
+    @GetMapping("/try-on/fashn-credits")
+    public ApiResponse<FashnCreditStatusDto> fashnCredits() {
+        return ApiResponse.ok(fashnCreditService.status());
     }
 
     @GetMapping("/try-on/failed-previews")

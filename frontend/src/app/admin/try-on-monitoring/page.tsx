@@ -4,6 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Shirt, Sparkles } from "lucide-react";
 import { adminApi } from "@/services/admin-api";
 import { PortalAdminPage } from "@/components/portal/PortalAdminPage";
+import { FashnCreditsCard } from "@/components/admin/FashnCreditsCard";
 import { StatCard, StatCardGrid } from "@/components/common/AnalyticsChart";
 import {
   PortalDataTable,
@@ -39,7 +40,7 @@ export default function AdminTryOnMonitoringPage() {
   return (
     <PortalAdminPage
       title="Giám sát thử mặc"
-      description="Theo dõi lượt try-on và các preview AI bị lỗi trên hệ thống."
+      description="Theo dõi credit FASHN, lượt try-on và các preview AI bị lỗi trên hệ thống."
       isLoading={isLoading}
       error={error}
       onRetry={() => refetch()}
@@ -47,6 +48,8 @@ export default function AdminTryOnMonitoringPage() {
     >
       {monitoring && (
         <div className="space-y-6">
+          <FashnCreditsCard />
+
           <StatCardGrid className="sm:grid-cols-2 lg:grid-cols-2">
             <StatCard
               label="Lượt try-on bắt đầu"

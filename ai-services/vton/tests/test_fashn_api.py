@@ -134,6 +134,56 @@ def test_fashn_inlines_localhost_person_url_as_base64(mock_client_cls, monkeypat
     assert sent_payload["inputs"]["garment_image"] == "https://example.com/shirt.jpg"
 
 
+@patch("app.providers.fashn_api.httpx.Client")
+def test_provider_credits_returns_fashn_balance(mock_client_cls, monkeypatch, client):
+    monkeypatch.setenv("FASHN_API_KEY", "test-key")
+    client_instance = MagicMock()
+    client_instance.get.return_value = _mock_response(
+        200, {"credits": {"total": 234, "subscription": 100, "on_demand": 134}}
+    )
+    client_instance.__enter__.return_value = client_instance
+    client_instance.__exit__.return_value = False
+    mock_client_cls.return_value = client_instance
+
+    response = client.get("/v1/provider/credits")
+
+    assert response.status_code == 200
+    assert response.json() == {
+        "provider": "fashn",
+        "configured": True,
+        "total": 234,
+        "subscription": 100,
+        "on_demand": 134,
+    }
+    assert client_instance.get.call_args.args[0].endswith("/v1/credits")
+    assert client_instance.get.call_args.kwargs["headers"]["Authorization"] == "Bearer test-key"
+
+
+def test_provider_credits_without_key_reports_not_configured(monkeypatch, client):
+    monkeypatch.delenv("FASHN_API_KEY", raising=False)
+
+    response = client.get("/v1/provider/credits")
+
+    assert response.status_code == 200
+    assert response.json()["configured"] is False
+    assert response.json()["error_code"] == "NOT_CONFIGURED"
+
+
+@patch("app.providers.fashn_api.httpx.Client")
+def test_provider_credits_rejected_key_is_bad_gateway(mock_client_cls, monkeypatch, client):
+    monkeypatch.setenv("FASHN_API_KEY", "revoked")
+    client_instance = MagicMock()
+    client_instance.get.return_value = _mock_response(401, {"error": "Unauthorized"})
+    client_instance.__enter__.return_value = client_instance
+    client_instance.__exit__.return_value = False
+    mock_client_cls.return_value = client_instance
+
+    response = client.get("/v1/provider/credits")
+
+    assert response.status_code == 502
+    assert response.json()["error_code"] == "UNAUTHORIZED"
+
+
 def test_sequential_garments_chain_two_mock_steps(monkeypatch):
     monkeypatch.setenv("AI_MODE", "mock")
     monkeypatch.setenv("VTON_SEQUENCE_POLL_INTERVAL_SECONDS", "0.05")

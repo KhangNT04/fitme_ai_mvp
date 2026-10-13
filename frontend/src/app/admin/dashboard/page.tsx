@@ -13,6 +13,7 @@ import {
 import { adminApi } from "@/services/admin-api";
 import { PortalAdminPage } from "@/components/portal/PortalAdminPage";
 import { StatCard, StatCardGrid } from "@/components/common/AnalyticsChart";
+import { FashnLowCreditBanner } from "@/components/admin/FashnCreditsCard";
 
 export default function AdminDashboardPage() {
   const { data, isLoading, error, refetch } = useQuery({
@@ -37,6 +38,8 @@ export default function AdminDashboardPage() {
       onRetry={() => refetch()}
       skeleton="card"
     >
+      <FashnLowCreditBanner className="mb-6" />
+
       {data && (
         <StatCardGrid>
           <StatCard label="Tổng brand" value={data.totalBrands} sub={`${data.pendingBrands} chờ duyệt`} icon={<Building2 className="h-5 w-5" />} tone="violet" />

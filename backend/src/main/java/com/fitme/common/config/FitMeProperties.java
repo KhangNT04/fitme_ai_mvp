@@ -71,6 +71,8 @@ public class FitMeProperties {
         private int jobTimeoutSeconds = 120;
         /** How long a try-on submit keeps retrying while a sleeping VTON host boots. */
         private int vtonWakeRetrySeconds = 40;
+        /** Admins are emailed (at most daily) once the FASHN API balance drops below this; 0 disables the alert. */
+        private int fashnLowCreditThreshold = 100;
         private String stylistMode = "rule";
         private String geminiApiKey;
         private String geminiModel = "gemini-flash-latest";

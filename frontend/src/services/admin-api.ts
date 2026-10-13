@@ -157,6 +157,10 @@ export const adminApi = {
     const res = await apiClient.get("/admin/try-on/monitoring");
     return unwrap(res);
   },
+  getFashnCredits: async (): Promise<FashnCreditStatus> => {
+    const res = await apiClient.get("/admin/try-on/fashn-credits");
+    return unwrap(res);
+  },
   getFailedPreviews: async (): Promise<unknown[]> => {
     const res = await apiClient.get("/admin/try-on/failed-previews");
     return unwrap(res);
@@ -351,6 +355,28 @@ export interface AdminAuditEntry {
   details?: string | null;
   ipAddress?: string | null;
   createdAt: string;
+}
+
+export interface FashnCreditStatus {
+  aiMode?: string | null;
+  configured: boolean;
+  available: boolean;
+  total?: number | null;
+  subscription?: number | null;
+  onDemand?: number | null;
+  errorCode?: string | null;
+  errorMessage?: string | null;
+  lowThreshold: number;
+  low: boolean;
+  consumed7d: number;
+  consumed30d: number;
+  averageDailyUsage?: number | null;
+  estimatedDaysLeft?: number | null;
+  trackedSince?: string | null;
+  aiTryOns7d: number;
+  aiTryOns30d: number;
+  checkedAt: string;
+  topUpUrl: string;
 }
 
 export interface AdminAuditPage {

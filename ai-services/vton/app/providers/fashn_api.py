@@ -30,6 +30,44 @@ def is_fashn_configured() -> bool:
     return bool(key and key.strip())
 
 
+class FashnCreditsError(Exception):
+    def __init__(self, code: str, message: str) -> None:
+        super().__init__(message)
+        self.code = code
+        self.message = message
+
+
+def fetch_credits() -> dict[str, int]:
+    """Current FASHN API balance (https://docs.fashn.ai/utility-endpoints/credits)."""
+    if not is_fashn_configured():
+        raise FashnCreditsError("NOT_CONFIGURED", "FASHN_API_KEY chưa được cấu hình trên ai-vton")
+    try:
+        with httpx.Client(timeout=10.0) as client:
+            response = client.get(
+                f"{_FASHN_BASE_URL}/v1/credits",
+                headers={"Authorization": f"Bearer {_api_key() or ''}"},
+            )
+    except httpx.HTTPError as exc:
+        raise FashnCreditsError("PROVIDER_ERROR", f"FASHN /v1/credits request error: {exc}") from exc
+
+    if response.status_code == 401:
+        raise FashnCreditsError("UNAUTHORIZED", "FASHN từ chối API key (401)")
+    if response.status_code >= 400:
+        body = _safe_json(response)
+        message = body.get("message") or body.get("error") or f"HTTP {response.status_code}"
+        raise FashnCreditsError("PROVIDER_ERROR", str(message))
+
+    credits = _safe_json(response).get("credits") or {}
+    try:
+        return {
+            "total": int(credits["total"]),
+            "subscription": int(credits.get("subscription") or 0),
+            "on_demand": int(credits.get("on_demand") or 0),
+        }
+    except (KeyError, TypeError, ValueError) as exc:
+        raise FashnCreditsError("PROVIDER_ERROR", "FASHN /v1/credits trả về dữ liệu không hợp lệ") from exc
+
+
 class FashnApiProvider:
     """Virtual try-on via the FASHN hosted API (https://api.fashn.ai).
 

@@ -14,10 +14,16 @@ set -euo pipefail
 REPO_URL="${REPO_URL:-https://github.com/KhangNT04/fitme_ai_mvp.git}"
 APP_DIR="${APP_DIR:-/opt/fitme}"
 
+# A fresh VM runs cloud-init and unattended-upgrades first, which hold the apt locks.
+echo "==> Waiting for cloud-init / apt locks"
+command -v cloud-init >/dev/null 2>&1 && sudo cloud-init status --wait >/dev/null || true
+while sudo fuser /var/lib/dpkg/lock-frontend /var/lib/apt/lists/lock >/dev/null 2>&1; do sleep 5; done
+
+APT=(sudo DEBIAN_FRONTEND=noninteractive apt-get -o DPkg::Lock::Timeout=600)
 echo "==> apt update/upgrade"
-sudo DEBIAN_FRONTEND=noninteractive apt-get update -y
-sudo DEBIAN_FRONTEND=noninteractive apt-get upgrade -y
-sudo DEBIAN_FRONTEND=noninteractive apt-get install -y git curl ca-certificates iptables-persistent
+"${APT[@]}" update -y
+"${APT[@]}" upgrade -y
+"${APT[@]}" install -y git curl ca-certificates iptables-persistent psmisc
 
 # Must run before Docker is installed: saving afterwards would persist Docker's own chains.
 echo "==> Opening 80/443 in iptables"

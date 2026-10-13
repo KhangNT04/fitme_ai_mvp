@@ -118,6 +118,26 @@ class AdminAccountSecurityIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
+    void suspendingAnAccountEndsItsSessionsForGood() throws Exception {
+        FitMeUserPrincipal admin = new FitMeUserPrincipal(testDataHelper.createAdmin().user());
+        String email = "lock-" + UUID.randomUUID().toString().substring(0, 8) + "@test.fitme.ai";
+        JsonNode session = registerVerifiedUser(email, PASSWORD, "Khách");
+        String userId = session.get("userId").asText();
+        Thread.sleep(1100);
+
+        setStatus(admin, userId, "SUSPENDED").andExpect(status().isOk());
+        setStatus(admin, userId, "ACTIVE").andExpect(status().isOk());
+
+        mockMvc.perform(get("/api/v1/me/fitken").header("Authorization", "Bearer " + session.get("accessToken").asText()))
+                .andExpect(status().is4xxClientError());
+        mockMvc.perform(post("/api/v1/auth/refresh-token")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"refreshToken\":\"" + session.get("refreshToken").asText() + "\"}"))
+                .andExpect(status().isBadRequest());
+        login(email, PASSWORD).andExpect(status().isOk());
+    }
+
+    @Test
     void passwordResetAndChangeNotifyTheOwnerAndNeedEightCharacters() throws Exception {
         String email = "notify-" + UUID.randomUUID().toString().substring(0, 8) + "@test.fitme.ai";
         String access = registerVerifiedUser(email, PASSWORD, "Khách").get("accessToken").asText();
@@ -157,6 +177,13 @@ class AdminAccountSecurityIntegrationTest extends AbstractIntegrationTest {
                 .with(user(actor))
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(body));
+    }
+
+    private ResultActions setStatus(FitMeUserPrincipal actor, String userId, String status) throws Exception {
+        return mockMvc.perform(patch("/api/v1/admin/users/{id}/status", userId)
+                .with(user(actor))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"status\":\"%s\"}".formatted(status)));
     }
 
     private ResultActions resetPassword(String token, String password) throws Exception {

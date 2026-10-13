@@ -108,6 +108,10 @@ public class AdminUserService {
         }
         if (user.getStatus() != status) {
             user.setStatus(status);
+            if (status == UserStatus.SUSPENDED) {
+                // Sessions from before the lock must not come back when the account is reactivated.
+                user.setPasswordChangedAt(Instant.now());
+            }
             userAccountRepository.saveAndFlush(user);
             audit.record(adminId, status == UserStatus.SUSPENDED
                     ? AdminAuditAction.USER_SUSPENDED : AdminAuditAction.USER_REACTIVATED, userId, null);

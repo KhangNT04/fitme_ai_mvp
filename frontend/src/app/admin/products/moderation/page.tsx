@@ -302,7 +302,7 @@ function AdminProductModerationContent() {
           {flaggedQuery.error && (
             <ErrorState
               title="Không tải được sản phẩm gắn cờ"
-              message="Backend có thể chưa cập nhật. Hãy khởi động lại server API rồi thử lại."
+              message="Vui lòng thử lại sau ít phút."
               onRetry={() => flaggedQuery.refetch()}
             />
           )}

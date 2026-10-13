@@ -45,8 +45,10 @@ export function resolveTryOnFormValues(
   profileDefaults: Partial<TryOnInputForm>,
   persistedInput: Partial<TryOnInput> = {},
 ): TryOnInputForm {
+  const persistedMode = persistedInput.inputMode;
   return {
-    inputMode: persistedInput.inputMode ?? "OUTFIT_BOARD_ONLY",
+    // "OUTFIT_BOARD_ONLY" is not available yet, so never preselect it.
+    inputMode: persistedMode && persistedMode !== "OUTFIT_BOARD_ONLY" ? persistedMode : "USER_PHOTO",
     fitPreference: profileDefaults.fitPreference ?? "REGULAR",
     skinTone: profileDefaults.skinTone ?? "MEDIUM",
     heightCm: profileDefaults.heightCm ?? 0,
@@ -60,11 +62,13 @@ export function resolveTryOnFormValues(
   };
 }
 
-export function tryOnFormToBodyProfile(data: TryOnInputForm): BodyProfile {
+/** The try-on form has no gender/age fields, so they are carried over from the existing profile. */
+export function tryOnFormToBodyProfile(data: TryOnInputForm, existing?: BodyProfile | null): BodyProfile {
   return {
+    ...existing,
     heightCm: data.heightCm,
     weightKg: normalizeKgWeight(data.weightKg),
-    gender: "OTHER",
+    gender: existing?.gender ?? "OTHER",
     fitPreference: data.fitPreference as BodyProfile["fitPreference"],
     skinTone: data.skinTone as BodyProfile["skinTone"],
   };

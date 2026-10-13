@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import { Plus, Check } from "lucide-react";
@@ -26,6 +27,8 @@ import {
   wardrobeToOutfitItem,
 } from "@/lib/outfit-item-utils";
 import { cn } from "@/lib/utils";
+import { PREMIUM_PLAN_NAME } from "@/lib/premium";
+import { isPremiumRequiredError } from "@/lib/user-error-message";
 
 export default function PreviewOutfitPage() {
   return (
@@ -70,7 +73,9 @@ function PreviewOutfitContent() {
   const wardrobeQuery = useQuery({
     queryKey: ["wardrobe-items"],
     queryFn: () => wardrobeApi.list(),
+    retry: (failureCount, err) => !isPremiumRequiredError(err) && failureCount < 2,
   });
+  const wardrobeLocked = isPremiumRequiredError(wardrobeQuery.error);
 
   useEffect(() => {
       if (recommendationQuery.data && recommendationId) {
@@ -224,6 +229,13 @@ function PreviewOutfitContent() {
           <TabsContent value="wardrobe">
             {wardrobeQuery.isLoading ? (
               <LoadingSkeleton count={3} />
+            ) : wardrobeLocked ? (
+              <p className="text-sm text-muted-foreground">
+                Phối với đồ trong tủ là tính năng {PREMIUM_PLAN_NAME}.{" "}
+                <Link href="/pricing" className="font-medium text-primary underline-offset-4 hover:underline">
+                  Xem gói Premium
+                </Link>
+              </p>
             ) : wardrobeQuery.data && wardrobeQuery.data.length > 0 ? (
               <div className="space-y-2">
                 {wardrobeQuery.data.map((item) => {

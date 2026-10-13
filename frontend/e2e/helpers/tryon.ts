@@ -49,7 +49,7 @@ export async function waitForTryOnResult(page: Page) {
 }
 
 /**
- * "Chỉ xem outfit board" (the try-on form's default input mode) is locked behind a
+ * "Chỉ xem outfit board" is locked behind a
  * "feature not available" toast — only "Dùng ảnh cá nhân" is demo-ready end-to-end.
  * Switches to that mode, gives consent, and uploads a fixture photo so the CTA is
  * unlocked. Must run before fillTryOnInputMetrics, since uploading resets the

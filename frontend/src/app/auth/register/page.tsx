@@ -154,7 +154,7 @@ function RegisterForm() {
         </Button>
         {isSubmitting && (
           <p className="text-xs text-muted-foreground">
-            Đang tạo tài khoản và gửi mã tới email… Nếu quá lâu, kiểm tra cấu hình SMTP trên server.
+            Đang tạo tài khoản và gửi mã tới email…
           </p>
         )}
         <p className="text-xs text-muted-foreground">

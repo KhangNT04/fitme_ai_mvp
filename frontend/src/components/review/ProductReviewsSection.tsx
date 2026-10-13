@@ -151,7 +151,7 @@ export function ProductReviewsSection({ productId }: { productId: string }) {
         <div className="mb-8 p-5 bg-card rounded-xl border border-border shadow-sm space-y-4">
           <div className="flex justify-between items-center">
             <h3 className="font-semibold">Viết đánh giá của bạn</h3>
-            <Button variant="ghost" size="icon" onClick={() => setShowForm(false)} className="h-8 w-8 rounded-full">
+            <Button variant="ghost" size="icon" onClick={() => setShowForm(false)} className="h-8 w-8 rounded-full" aria-label="Đóng">
               <X className="h-4 w-4" />
             </Button>
           </div>
@@ -164,6 +164,8 @@ export function ProductReviewsSection({ productId }: { productId: string }) {
                   key={star}
                   type="button"
                   onClick={() => setRating(star)}
+                  aria-label={`${star} sao`}
+                  aria-pressed={star <= rating}
                   className="p-1 transition-transform hover:scale-110"
                 >
                   <Star className={cn("h-8 w-8", star <= rating ? "fill-amber-400 text-amber-400" : "text-muted")} />
@@ -195,6 +197,7 @@ export function ProductReviewsSection({ productId }: { productId: string }) {
                   <button
                     type="button"
                     onClick={() => setImages(images.filter((_, i) => i !== idx))}
+                    aria-label="Xóa ảnh"
                     className="absolute top-1 right-1 bg-black/50 text-white rounded-full p-0.5 hover:bg-black"
                   >
                     <X className="h-3 w-3" />

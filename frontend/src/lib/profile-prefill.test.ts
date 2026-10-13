@@ -6,6 +6,7 @@ import {
   resolveTryOnFormInitial,
   resolveTryOnFormValues,
   resolveStyleProfileInitial,
+  tryOnFormToBodyProfile,
 } from "./profile-prefill";
 
 describe("profile-prefill", () => {
@@ -76,12 +77,36 @@ describe("profile-prefill", () => {
         skinTone: "MEDIUM",
       }),
     ).toEqual({
-      inputMode: "OUTFIT_BOARD_ONLY",
+      inputMode: "USER_PHOTO",
       heightCm: 170,
       weightKg: 60,
       fitPreference: "RELAXED",
       skinTone: "MEDIUM",
     });
+  });
+
+  it("keeps gender, age and measurements when saving try-on metrics", () => {
+    const form = {
+      heightCm: 172, weightKg: 63, fitPreference: "RELAXED", skinTone: "TAN", inputMode: "AVATAR",
+    } as const;
+    expect(
+      tryOnFormToBodyProfile(form, { ...savedBody, gender: "MALE", age: 24, measurements: { chestCm: 90 } }),
+    ).toEqual({
+      heightCm: 172,
+      weightKg: 63,
+      gender: "MALE",
+      age: 24,
+      measurements: { chestCm: 90 },
+      fitPreference: "RELAXED",
+      skinTone: "TAN",
+    });
+    expect(tryOnFormToBodyProfile(form).gender).toBe("OTHER");
+  });
+
+  it("never preselects the locked outfit-board mode", () => {
+    expect(
+      resolveTryOnFormValues({ heightCm: 170, weightKg: 60 }, { inputMode: "OUTFIT_BOARD_ONLY" }).inputMode,
+    ).toBe("USER_PHOTO");
   });
 
   it("keeps flow-only fields from try-on store", () => {

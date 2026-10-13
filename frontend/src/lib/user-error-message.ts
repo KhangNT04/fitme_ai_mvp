@@ -131,7 +131,7 @@ export function formatUserErrorMessage(
 
   if (!trimmed || isTechnicalMessage(trimmed)) {
     if (status === undefined && trimmed && /timeout|econnaborted/i.test(trimmed)) {
-      return "Gửi mã xác nhận quá chậm hoặc SMTP lỗi. Kiểm tra SMTP trên Render rồi thử lại.";
+      return "Máy chủ phản hồi quá chậm. Vui lòng thử lại sau ít phút.";
     }
     if (status === undefined && trimmed && /network/i.test(trimmed)) {
       return "Không thể kết nối máy chủ. Vui lòng kiểm tra mạng và thử lại.";

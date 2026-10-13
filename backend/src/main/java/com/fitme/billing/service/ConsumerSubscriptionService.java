@@ -115,7 +115,7 @@ public class ConsumerSubscriptionService {
                 .build());
 
         PayOsPaymentLink link = payOsClient.createPaymentLink(orderCode, plan.getPriceVnd(),
-                "FitMe " + plan.getName(),
+                paymentDescription(plan.getName()),
                 properties.getPayos().getSubscriptionReturnUrl(),
                 properties.getPayos().getSubscriptionCancelUrl());
         order.setPayosPaymentLinkId(link.paymentLinkId());
@@ -286,6 +286,11 @@ public class ConsumerSubscriptionService {
     private UserAccount requireUser(UUID userId) {
         return userAccountRepository.findById(userId)
                 .orElseThrow(() -> new NotFoundException("User không tồn tại"));
+    }
+
+    static String paymentDescription(String planName) {
+        String name = planName == null ? "" : planName.trim();
+        return name.regionMatches(true, 0, "FitMe", 0, 5) ? name : ("FitMe " + name).trim();
     }
 
 }

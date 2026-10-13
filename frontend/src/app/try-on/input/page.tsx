@@ -24,6 +24,7 @@ import { useEnsureSession } from "@/hooks/use-ensure-session";
 import { useConsumerStoresReady } from "@/hooks/use-consumer-stores-ready";
 import { useHydrateConsultationProfiles } from "@/hooks/use-hydrate-consultation-profiles";
 import {
+  resolveBodyProfileInitial,
   resolveTryOnFormInitial,
   resolveTryOnFormValues,
   tryOnFormToBodyProfile,
@@ -65,7 +66,7 @@ export default function TryOnInputPage() {
   const blobPreviewRef = useRef<string | null>(null);
   const avatarPickerSyncedRef = useRef(false);
   const uploadGenerationRef = useRef(0);
-  const inputModeRef = useRef<TryOnInputForm["inputMode"]>("OUTFIT_BOARD_ONLY");
+  const inputModeRef = useRef<TryOnInputForm["inputMode"]>("USER_PHOTO");
   const [consented, setConsented] = useState(false);
   const [uploadError, setUploadError] = useState("");
   const [showAvatarPicker, setShowAvatarPicker] = useState(true);
@@ -332,7 +333,9 @@ export default function TryOnInputPage() {
           throw e;
         }
       }
-      await profileApi.saveBodyProfile(tryOnFormToBodyProfile(data));
+      await profileApi.saveBodyProfile(
+        tryOnFormToBodyProfile(data, resolveBodyProfileInitial(draftBodyProfile, savedBodyProfile)),
+      );
       await queryClient.invalidateQueries({ queryKey: ["body-profile"] });
       await queryClient.invalidateQueries({ queryKey: ["fitken-wallet"] });
       await queryClient.invalidateQueries({ queryKey: ["tryon-quote"] });

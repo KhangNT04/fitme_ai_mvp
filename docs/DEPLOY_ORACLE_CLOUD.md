@@ -19,7 +19,7 @@ File trong repo: [`docker-compose.oracle.yml`](../docker-compose.oracle.yml), [`
 1. Đăng ký tại [cloud.oracle.com](https://signup.cloud.oracle.com) — cần thẻ Visa/Master quốc tế (chỉ xác minh, không trừ tiền).
 2. **Home Region: chọn `Singapore`** — không đổi được sau này, và tài nguyên free chỉ tạo được ở home region. Singapore cùng khu vực với Neon nên truy vấn DB nhanh.
 3. **Nâng lên Pay As You Go (khuyến nghị mạnh):** *Billing & Cost Management → Upgrade and Manage Payment → Pay As You Go*. Vẫn **$0** nếu chỉ dùng tài nguyên Always Free, nhưng VM **không bị Oracle thu hồi** khi nhàn rỗi (tài khoản free thuần bị thu hồi VM nếu CPU/RAM/mạng < 20% suốt 7 ngày — app ít traffic rất dễ dính).
-4. Tạo cảnh báo ngân sách: *Billing → Budgets → Create Budget* — $1/tháng, alert 100% về email, để biết ngay nếu lỡ tạo tài nguyên tính phí.
+4. Tạo cảnh báo ngân sách: *Billing → Budgets → Create Budget* — $1/tháng, alert 100% về email, để biết ngay nếu lỡ tạo tài nguyên tính phí. Cấu hình đang dùng cho production + báo cáo chi phí: [`ORACLE_COST_BUDGET.md`](./ORACLE_COST_BUDGET.md).
 
 ## 2. Tạo SSH key (trên máy Windows)
 

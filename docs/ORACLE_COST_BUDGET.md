@@ -1,6 +1,6 @@
 # Báo cáo chi phí & ngân sách — Oracle Cloud (FitMe production)
 
-**Ngày lập:** 2026-10-14 · **Tenancy:** `khangnt04` · **Home region:** Singapore (`ap-singapore-1`) · **Loại tài khoản:** Free Trial (chưa lên Pay As You Go)
+**Ngày lập:** 2026-10-14 · **Tenancy:** `khangnt04` · **Home region:** Singapore (`ap-singapore-1`) · **Loại tài khoản:** Pay As You Go (nâng cấp 2026-10-14) — tài nguyên Always Free vẫn $0, VM không bị thu hồi khi nhàn rỗi
 
 ## 1. Chi phí hiện tại
 
@@ -33,7 +33,7 @@ Budget **`fitme-monthly-budget`** — **$1/tháng**, áp dụng cho **toàn bộ
 
 Xem/sửa trên web: *Billing & Cost Management → Budgets → fitme-monthly-budget*.
 
-> **Lưu ý quan trọng:** Budget của Oracle chỉ **gửi cảnh báo**, **không tự chặn** chi tiêu. Trong Free Trial, Oracle không trừ tiền thẻ (chỉ dùng $300 credit, hết credit thì tài nguyên trả phí bị dừng). Sau khi nâng lên **Pay As You Go**, tài nguyên trả phí sẽ bị tính tiền thật — khi nhận email cảnh báo cần xoá tài nguyên gây phí ngay.
+> **Lưu ý quan trọng:** Budget của Oracle chỉ **gửi cảnh báo**, **không tự chặn** chi tiêu. Tài khoản đã ở **Pay As You Go**: mọi tài nguyên ngoài hạn mức Always Free đều bị tính tiền thật vào thẻ — khi nhận email cảnh báo cần xoá tài nguyên gây phí ngay.
 
 ## 4. Việc nên làm khi nhận email cảnh báo
 

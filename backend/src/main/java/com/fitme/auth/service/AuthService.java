@@ -414,7 +414,7 @@ public class AuthService {
                 throw new BusinessException("Tài khoản chưa xác nhận email");
             }
             if (jwtService.issuedBeforePasswordChange(token, user.getPasswordChangedAt())) {
-                throw new BusinessException("Mật khẩu đã được đổi. Vui lòng đăng nhập lại");
+                throw new BusinessException("Phiên đăng nhập đã hết hiệu lực. Vui lòng đăng nhập lại");
             }
             AuthResponse response = buildAuthResponse(user,
                     user.isTotpEnabled() && jwtService.isMfaVerified(token));

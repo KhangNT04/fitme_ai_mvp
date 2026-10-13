@@ -24,6 +24,7 @@ backend/uploads/
 .env.test
 .env.*.local
 .env.hetzner
+.env.oracle
 
 # Logs
 *.log

@@ -1,0 +1,17 @@
+# FitMe AI — Caddy (container in docker-compose.oracle.yml).
+# FITME_API_DOMAIN comes from .env.oracle, e.g. api.yourdomain.com or 140-238-1-2.sslip.io.
+# The domain must already resolve to the VM's public IP, and ports 80/443 must be open
+# (OCI Security List + VM iptables) or Let's Encrypt issuance fails.
+
+{$FITME_API_DOMAIN} {
+	reverse_proxy backend:8080
+
+	encode gzip
+
+	header {
+		Strict-Transport-Security "max-age=31536000; includeSubDomains"
+		X-Content-Type-Options "nosniff"
+		X-Frame-Options "DENY"
+		-Server
+	}
+}

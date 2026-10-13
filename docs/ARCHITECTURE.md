@@ -125,7 +125,7 @@ Các package thương mại `cart`, `address`, `order`, `settlement`, `logistics
 | `BrandPlusService` | 00:10 hằng ngày | Hết hạn Brand Plus |
 | `BrandVoucherService` | 00:15 hằng ngày | Chuyển voucher quá hạn sang `EXPIRED` |
 | `BillingOrderExpiryJob` | Mỗi 15 phút (chạy lần đầu sau 1 phút) | Đơn gói `PENDING` quá `fitme.billing.pending-expiry-hours` (24h) → `EXPIRED` |
-| `TryOnJobPoller` | Mỗi `fitme.ai.poll-interval-ms` (3s) | Poll job VTON |
+| `TryOnJobPoller` | Mỗi `fitme.ai.poll-interval-ms` (3s) | Poll job VTON — bỏ qua truy vấn DB khi không còn job `PROCESSING` và không có job mới trong 2 phút (để Neon được scale-to-zero) |
 
 ### Recommendation pipeline
 

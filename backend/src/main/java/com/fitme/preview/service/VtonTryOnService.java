@@ -50,6 +50,8 @@ public class VtonTryOnService {
      */
     private final Map<UUID, String> vtonProgressLabels = new ConcurrentHashMap<>();
 
+    private volatile Instant lastAsyncDispatchAt = Instant.EPOCH;
+
     private final TryOnRequestRepository tryOnRequestRepository;
     private final TryOnItemRepository tryOnItemRepository;
     private final PreviewGenerationRepository previewRepository;
@@ -110,8 +112,9 @@ public class VtonTryOnService {
         return charge;
     }
 
+    /** @return how many previews were still PROCESSING when the scan started */
     @Transactional
-    public void pollProcessingJobs() {
+    public int pollProcessingJobs() {
         List<PreviewGeneration> processing = previewRepository.findByStatus(PreviewStatus.PROCESSING);
         for (PreviewGeneration preview : processing) {
             if (preview.getVtonJobId() == null || preview.getVtonJobId().isBlank()) {
@@ -119,6 +122,11 @@ public class VtonTryOnService {
             }
             pollSingleJob(preview);
         }
+        return processing.size();
+    }
+
+    public Instant lastAsyncDispatchAt() {
+        return lastAsyncDispatchAt;
     }
 
     @Transactional
@@ -202,6 +210,7 @@ public class VtonTryOnService {
                 return false;
             }
             preview.setVtonJobId(job.getJobId());
+            lastAsyncDispatchAt = Instant.now();
             preview.setDisclaimer(VTON_DISCLAIMER);
             preview.setPreviewSource(PreviewSource.VTON);
             tryOn.setStatus(TryOnStatus.PROCESSING);

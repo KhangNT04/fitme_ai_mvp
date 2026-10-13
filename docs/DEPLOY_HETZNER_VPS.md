@@ -320,7 +320,7 @@ docker compose -f docker-compose.hetzner.yml up -d --build
 curl -s http://127.0.0.1:8080/actuator/health
 ```
 
-Ở bước này, VPS **đã kết nối cùng Neon DB** với Render nhưng **chưa có traffic user** (chưa domain, chưa Vercel trỏ tới) — an toàn vì Spring Boot chỉ đọc/ghi khi có request thật, không có tiến trình nền nào tự ghi DB định kỳ (trừ `FITME_SEED_FASHION_REFRESH` chạy 1 lần lúc khởi động — không xung đột với Render).
+Ở bước này, VPS **đã kết nối cùng Neon DB** với Render nhưng **chưa có traffic user** (chưa domain, chưa Vercel trỏ tới). Lưu ý backend **có** job nền tự ghi DB (hết hạn đơn PayOS mỗi 15 phút, hết hạn gói Premium/Brand Plus/voucher lúc 0h, poll try-on) — nên giữ giai đoạn chạy song song ngắn và đảm bảo Render đang ngủ (không ai gọi URL Render) để job không chạy trùng.
 
 ### 6.3. Trỏ domain + SSL
 

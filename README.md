@@ -97,18 +97,19 @@ cp .env.test.example .env.test   # chỉnh PUBLIC_APP_URL + secrets
 
 Chi tiết: [`docs/DEPLOY_TEST.md`](docs/DEPLOY_TEST.md) · Hướng dẫn user truy cập URL deploy: [`docs/USER_GUIDE.md`](docs/USER_GUIDE.md#1-truy-cập-app--đường-dẫn-deploy)
 
-## Deploy production (Vercel + Hetzner VPS + Neon) — backend chính
+## Deploy production (Vercel + Oracle Cloud + Neon) — backend chính
 
-Backend Spring Boot chạy **always-on** trên Hetzner Cloud VPS (Docker), không sleep — dùng cho production/demo:
+Backend Spring Boot + `ai-vton` + Caddy chạy **always-on** trên 1 VM Oracle Cloud Always Free (ARM Ampere A1, Singapore, Docker) — $0, không sleep, cùng khu vực với Neon:
 
 | Dịch vụ | Vai trò |
 |---------|---------|
 | [Vercel](https://vercel.com) | Frontend Next.js |
-| **Hetzner Cloud VPS** (Docker) | **Backend Spring Boot — chính, always-on** |
+| **Oracle Cloud VM** (Docker) | **Backend Spring Boot + ai-vton — chính, always-on** |
 | [Neon](https://neon.tech) | PostgreSQL |
-| [Render](https://render.com) free | Backend — **backup lạnh** khi VPS gặp sự cố |
+| [Cloudflare R2](https://developers.cloudflare.com/r2/) | Ảnh user / try-on / catalog |
+| [Render](https://render.com) free | Backend — **backup lạnh** (suspend) khi VM gặp sự cố |
 
-Hướng dẫn đầy đủ (kiến trúc, cutover từ Render, FASHN try-on, ops): [`docs/DEPLOY_HETZNER_VPS.md`](docs/DEPLOY_HETZNER_VPS.md)
+Hướng dẫn đầy đủ (tạo VM, firewall, env, cutover, rollback): [`docs/DEPLOY_ORACLE_CLOUD.md`](docs/DEPLOY_ORACLE_CLOUD.md) · Phương án VPS trả phí: [`docs/DEPLOY_HETZNER_VPS.md`](docs/DEPLOY_HETZNER_VPS.md)
 
 ## Deploy free cloud (Vercel + Render + Neon) — backup / dev nhanh
 

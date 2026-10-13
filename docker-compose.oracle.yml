@@ -1,0 +1,91 @@
+# FitMe AI — Oracle Cloud Always Free (Ampere A1, ARM64) production compose
+# Docs: docs/DEPLOY_ORACLE_CLOUD.md · Env template: deploy/oracle/.env.oracle.example
+# Usage (on the VM, from repo root /opt/fitme):
+#   cp deploy/oracle/.env.oracle.example .env.oracle   # fill in real values, do NOT commit
+#   ./deploy/oracle/scripts/deploy-oracle.sh
+#
+# Always run compose with `--env-file .env.oracle` (the deploy script does) so
+# FITME_API_DOMAIN below is interpolated for Caddy.
+#
+# Only Caddy is public (80/443). backend/ai-vton bind 127.0.0.1 for on-box health checks.
+
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    image: fitme-backend:oracle
+    container_name: fitme-backend
+    restart: unless-stopped
+    env_file:
+      - .env.oracle
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
+      JAVA_TOOL_OPTIONS: ${JAVA_TOOL_OPTIONS:--XX:MaxRAMPercentage=75}
+    mem_limit: 3g
+    ports:
+      - "127.0.0.1:8080:8080"
+    volumes:
+      - backend_uploads:/app/uploads
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://localhost:8080/actuator/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 120s
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  ai-vton:
+    build:
+      context: ./ai-services/vton
+      dockerfile: Dockerfile
+    image: fitme-ai-vton:oracle
+    container_name: fitme-ai-vton
+    restart: unless-stopped
+    env_file:
+      - .env.oracle
+    mem_limit: 1g
+    ports:
+      - "127.0.0.1:8001:8001"
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8001/health', timeout=4)"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  caddy:
+    image: caddy:2-alpine
+    container_name: fitme-caddy
+    restart: unless-stopped
+    depends_on:
+      - backend
+    environment:
+      FITME_API_DOMAIN: ${FITME_API_DOMAIN:?set FITME_API_DOMAIN in .env.oracle}
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"
+    volumes:
+      - ./deploy/oracle/Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+volumes:
+  backend_uploads:
+  caddy_data:
+  caddy_config:

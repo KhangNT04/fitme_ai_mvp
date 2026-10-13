@@ -50,7 +50,6 @@ export function Footer({ showOnMobile = false }: { showOnMobile?: boolean }) {
             <h4 className="text-xs font-semibold uppercase tracking-[0.2em] text-white/40">Đối tác</h4>
             <ul className="mt-4 space-y-3 text-sm text-white/70">
               <li><Link href="/brand/dashboard" className={linkClass}>Brand Portal</Link></li>
-              <li><Link href="/admin/dashboard" className={linkClass}>Admin</Link></li>
             </ul>
           </div>
         </div>

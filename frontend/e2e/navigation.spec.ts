@@ -32,10 +32,7 @@ test.describe("Header navigation", () => {
     await expect(page).toHaveURL(/\/brand\/login/, { timeout: 10_000 });
 
     await page.goto("/");
-    const adminLink = footer.getByRole("link", { name: "Admin", exact: true });
-    await adminLink.scrollIntoViewIfNeeded();
-    await adminLink.click();
-    await expect(page).toHaveURL(/\/admin\/login/, { timeout: 10_000 });
+    await expect(footer.locator('a[href^="/admin"]')).toHaveCount(0);
   });
 
   test("logo returns to home", async ({ page }) => {

@@ -47,10 +47,13 @@ public class ProductService {
 
     public List<ProductResponse> listPublicProducts(ProductFilter filter) {
         Set<UUID> plusBrandIds = brandPlusService.activePlusBrandIds();
-        return productRepository.findByStatus(ProductStatus.ACTIVE).stream()
-                .filter(p -> isBrandApproved(p.getBrandId()))
-                .filter(p -> matchesFilter(p, filter))
-                .map(p -> toResponse(p, plusBrandIds.contains(p.getBrandId())))
+        List<Product> active = productRepository.findByStatus(ProductStatus.ACTIVE);
+        Map<UUID, Brand> brands = brandsOf(active);
+        List<Product> listed = active.stream().filter(p -> isApproved(brands.get(p.getBrandId()))).toList();
+        Related related = loadRelated(listed, brands);
+        return listed.stream()
+                .filter(p -> matchesFilter(p, filter, related))
+                .map(p -> toResponse(p, plusBrandIds.contains(p.getBrandId()), related))
                 .toList();
     }
 
@@ -76,22 +79,22 @@ public class ProductService {
                 (Product p) -> prioritizePlus && plusBrandIds.contains(p.getBrandId()));
         BrandPreferenceService.ScoringPreference favorites =
                 brandPreferenceService.forScoring(RequestContext.getCurrentUserId().orElse(null));
-        return productRepository.findByStatus(ProductStatus.ACTIVE).stream()
+        List<Product> active = productRepository.findByStatus(ProductStatus.ACTIVE);
+        Map<UUID, Brand> brands = brandsOf(active);
+        List<Product> similar = active.stream()
                 .filter(p -> !p.getId().equals(id))
                 .filter(p -> favorites.allows(p.getBrandId()))
-                .filter(p -> isBrandApproved(p.getBrandId()))
+                .filter(p -> isApproved(brands.get(p.getBrandId())))
                 .filter(p -> ProductCategoryGroups.sameGroup(p.getCategory(), product.getCategory()))
                 .sorted(plusFirst.reversed())
                 .limit(8)
-                .map(p -> toResponse(p, plusBrandIds.contains(p.getBrandId())))
                 .toList();
+        return toResponses(similar, plusBrandIds);
     }
 
     public List<ProductResponse> listBrandProducts(UUID brandId) {
-        boolean plusBrand = brandPlusService.isPlusActive(brandId);
-        return productRepository.findByBrandId(brandId).stream()
-                .map(p -> toResponse(p, plusBrand))
-                .toList();
+        Set<UUID> plusBrandIds = brandPlusService.isPlusActive(brandId) ? Set.of(brandId) : Set.of();
+        return toResponses(productRepository.findByBrandId(brandId), plusBrandIds);
     }
 
     public ProductResponse getBrandProduct(UUID brandId, UUID productId) {
@@ -324,9 +327,13 @@ public class ProductService {
     }
 
     private List<ProductResponse> toResponses(List<Product> products) {
-        Set<UUID> plusBrandIds = brandPlusService.activePlusBrandIds();
+        return toResponses(products, brandPlusService.activePlusBrandIds());
+    }
+
+    private List<ProductResponse> toResponses(List<Product> products, Set<UUID> plusBrandIds) {
+        Related related = loadRelated(products, brandsOf(products));
         return products.stream()
-                .map(p -> toResponse(p, plusBrandIds.contains(p.getBrandId())))
+                .map(p -> toResponse(p, plusBrandIds.contains(p.getBrandId()), related))
                 .toList();
     }
 
@@ -521,7 +528,44 @@ public class ProductService {
                 .orElse(false);
     }
 
-    private boolean matchesFilter(Product p, ProductFilter filter) {
+    private static boolean isApproved(Brand brand) {
+        return brand != null && brand.getStatus() == BrandStatus.APPROVED;
+    }
+
+    private Map<UUID, Brand> brandsOf(Collection<Product> products) {
+        Set<UUID> ids = products.stream().map(Product::getBrandId).filter(Objects::nonNull).collect(Collectors.toSet());
+        return ids.isEmpty() ? Map.of() : brandRepository.findAllById(ids).stream()
+                .collect(Collectors.toMap(Brand::getId, b -> b));
+    }
+
+    /** Child rows of a product page, loaded with one query per table instead of per product. */
+    private record Related(Map<UUID, Brand> brands,
+                           Map<UUID, List<ProductImage>> images,
+                           Map<UUID, List<ProductVariant>> variants,
+                           Map<UUID, List<ProductTag>> tags,
+                           Map<UUID, List<SizeChart>> sizeCharts) {
+        <T> List<T> of(Map<UUID, List<T>> rows, UUID productId) {
+            return rows.getOrDefault(productId, List.of());
+        }
+    }
+
+    private Related loadRelated(Collection<Product> products, Map<UUID, Brand> brands) {
+        List<UUID> ids = products.stream().map(Product::getId).toList();
+        if (ids.isEmpty()) {
+            return new Related(brands, Map.of(), Map.of(), Map.of(), Map.of());
+        }
+        return new Related(brands,
+                imageRepository.findByProductIdInOrderBySortOrderAsc(ids).stream()
+                        .collect(Collectors.groupingBy(ProductImage::getProductId)),
+                variantRepository.findByProductIdIn(ids).stream()
+                        .collect(Collectors.groupingBy(ProductVariant::getProductId)),
+                tagRepository.findByProductIdIn(ids).stream()
+                        .collect(Collectors.groupingBy(ProductTag::getProductId)),
+                sizeChartRepository.findByProductIdIn(ids).stream()
+                        .collect(Collectors.groupingBy(SizeChart::getProductId)));
+    }
+
+    private boolean matchesFilter(Product p, ProductFilter filter, Related related) {
         if (filter == null) return true;
         if (filter.getBrandId() != null && !filter.getBrandId().equals(p.getBrandId())) return false;
         if (filter.getCategory() != null && !ProductCategoryGroups.matchesGroup(p.getCategory(), filter.getCategory())) {
@@ -532,15 +576,17 @@ public class ProductService {
         if (filter.getFitType() != null && p.getFitType() != filter.getFitType()) return false;
         if (filter.isAiTryOnEligible() && !p.isAiTryOnEligible()) return false;
         if (filter.getStyle() != null || filter.getOccasion() != null || filter.getColor() != null || filter.getSize() != null) {
-            List<ProductTag> tags = tagRepository.findByProductId(p.getId());
+            List<ProductTag> tags = related.of(related.tags(), p.getId());
+            List<ProductVariant> variants = related.of(related.variants(), p.getId());
             if (filter.getStyle() != null && tags.stream().noneMatch(t -> "STYLE".equals(t.getTagType()) && t.getTagValue().equalsIgnoreCase(filter.getStyle()))) return false;
             if (filter.getOccasion() != null && tags.stream().noneMatch(t -> "OCCASION".equals(t.getTagType()) && t.getTagValue().equalsIgnoreCase(filter.getOccasion()))) return false;
-            if (filter.getColor() != null && variantRepository.findByProductId(p.getId()).stream().noneMatch(v -> filter.getColor().equalsIgnoreCase(v.getColorName()))) return false;
-            if (filter.getSize() != null && variantRepository.findByProductId(p.getId()).stream().noneMatch(v -> filter.getSize().equalsIgnoreCase(v.getSizeLabel()))) return false;
+            if (filter.getColor() != null && variants.stream().noneMatch(v -> filter.getColor().equalsIgnoreCase(v.getColorName()))) return false;
+            if (filter.getSize() != null && variants.stream().noneMatch(v -> filter.getSize().equalsIgnoreCase(v.getSizeLabel()))) return false;
         }
         if (filter.getSearch() != null && !filter.getSearch().isBlank()) {
             String q = filter.getSearch().trim().toLowerCase();
-            String brandName = brandRepository.findById(p.getBrandId()).map(Brand::getName).orElse("");
+            Brand brand = related.brands().get(p.getBrandId());
+            String brandName = brand != null && brand.getName() != null ? brand.getName() : "";
             boolean brandMatch = brandName.toLowerCase().contains(q);
             boolean productMatch =
                     (p.getName() != null && p.getName().toLowerCase().contains(q))
@@ -556,8 +602,14 @@ public class ProductService {
     }
 
     private ProductResponse toResponse(Product product, boolean plusBrand) {
+        return toResponse(product, plusBrand, loadRelated(List.of(product), brandsOf(List.of(product))));
+    }
+
+    private ProductResponse toResponse(Product product, boolean plusBrand, Related related) {
         UUID productId = product.getId();
-        String brandName = brandRepository.findById(product.getBrandId()).map(Brand::getName).orElse(null);
+        Brand brand = related.brands().get(product.getBrandId());
+        String brandName = brand != null ? brand.getName() : null;
+        List<ProductImage> images = related.of(related.images(), productId);
         return ProductResponse.builder()
                 .id(productId)
                 .brandId(product.getBrandId())
@@ -576,19 +628,19 @@ public class ProductService {
                 .status(product.getStatus())
                 .sponsored(product.isSponsored())
                 .aiTryOnEligible(product.isAiTryOnEligible())
-                .canShowBuyButton(eligibilityService.canShowBuyButton(product))
-                .images(imageRepository.findByProductIdOrderBySortOrderAsc(productId).stream()
+                .canShowBuyButton(eligibilityService.canShowBuyButton(product, !images.isEmpty()))
+                .images(images.stream()
                         .map(i -> ProductImageDto.builder().imageUrl(i.getImageUrl()).imageType(i.getImageType()).sortOrder(i.getSortOrder()).build())
                         .toList())
-                .variants(variantRepository.findByProductId(productId).stream()
+                .variants(related.of(related.variants(), productId).stream()
                         .map(v -> ProductVariantDto.builder().id(v.getId()).colorName(v.getColorName()).colorHex(v.getColorHex())
                                 .sizeLabel(v.getSizeLabel()).sku(v.getSku()).stockStatus(v.getStockStatus())
                                 .build())
                         .toList())
-                .tags(tagRepository.findByProductId(productId).stream()
+                .tags(related.of(related.tags(), productId).stream()
                         .map(t -> ProductTagDto.builder().tagType(t.getTagType()).tagValue(t.getTagValue()).build())
                         .toList())
-                .sizeCharts(sizeChartRepository.findByProductId(productId).stream()
+                .sizeCharts(related.of(related.sizeCharts(), productId).stream()
                         .map(sc -> SizeChartDto.builder()
                                 .sizeLabel(sc.getSizeLabel())
                                 .chestCm(sc.getChestCm())

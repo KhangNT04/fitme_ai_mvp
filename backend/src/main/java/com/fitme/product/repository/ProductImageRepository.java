@@ -6,12 +6,15 @@ import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.UUID;
 
 public interface ProductImageRepository extends JpaRepository<ProductImage, UUID> {
 
     List<ProductImage> findByProductIdOrderBySortOrderAsc(UUID productId);
+
+    List<ProductImage> findByProductIdInOrderBySortOrderAsc(Collection<UUID> productIds);
 
     @Query("SELECT DISTINCT i.imageUrl FROM ProductImage i WHERE i.imageUrl LIKE 'http%'")
     List<String> findDistinctAbsoluteImageUrls();

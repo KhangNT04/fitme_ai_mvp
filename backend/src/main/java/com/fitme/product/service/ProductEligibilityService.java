@@ -37,16 +37,16 @@ public class ProductEligibilityService {
     }
 
     public boolean canShowBuyButton(Product product) {
-        if (!canBeListed(product)) {
-            return false;
-        }
-        if (product.getStockStatus() == StockStatus.OUT_OF_STOCK) {
-            return false;
-        }
-        if (imageRepository.findByProductIdOrderBySortOrderAsc(product.getId()).isEmpty()) {
-            return false;
-        }
-        return UrlValidator.isValidHttpUrl(product.getPurchaseUrl());
+        return canBeListed(product)
+                && canShowBuyButton(product, !imageRepository.findByProductIdOrderBySortOrderAsc(product.getId()).isEmpty());
+    }
+
+    /** For callers that already loaded the product's images. */
+    public boolean canShowBuyButton(Product product, boolean hasImages) {
+        return canBeListed(product)
+                && product.getStockStatus() != StockStatus.OUT_OF_STOCK
+                && hasImages
+                && UrlValidator.isValidHttpUrl(product.getPurchaseUrl());
     }
 
     public boolean meetsProductMetadataForTryOn(Product product) {

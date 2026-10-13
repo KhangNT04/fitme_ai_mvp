@@ -8,6 +8,7 @@ export function Chip({ selected, className, children, ...props }: ChipProps) {
   return (
     <button
       type="button"
+      aria-pressed={selected ?? undefined}
       className={cn(
         "rounded-full border px-4 py-2 text-sm font-medium transition-all",
         selected

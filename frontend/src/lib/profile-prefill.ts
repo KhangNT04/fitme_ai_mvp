@@ -45,10 +45,8 @@ export function resolveTryOnFormValues(
   profileDefaults: Partial<TryOnInputForm>,
   persistedInput: Partial<TryOnInput> = {},
 ): TryOnInputForm {
-  const persistedMode = persistedInput.inputMode;
   return {
-    // "OUTFIT_BOARD_ONLY" is not available yet, so never preselect it.
-    inputMode: persistedMode && persistedMode !== "OUTFIT_BOARD_ONLY" ? persistedMode : "USER_PHOTO",
+    inputMode: persistedInput.inputMode ?? "USER_PHOTO",
     fitPreference: profileDefaults.fitPreference ?? "REGULAR",
     skinTone: profileDefaults.skinTone ?? "MEDIUM",
     heightCm: profileDefaults.heightCm ?? 0,

@@ -143,6 +143,15 @@ export default function TryOnInputPage() {
     void tryonApi.warmUp();
   }, []);
 
+  const lockedModeResetRef = useRef(false);
+  useEffect(() => {
+    if (!storesReady || lockedModeResetRef.current) return;
+    lockedModeResetRef.current = true;
+    if (savedTryOnInput.inputMode && LOCKED_INPUT_MODES.has(savedTryOnInput.inputMode)) {
+      setInput({ inputMode: "USER_PHOTO" });
+    }
+  }, [storesReady, savedTryOnInput.inputMode, setInput]);
+
   useEffect(() => {
     if (photoUploadId) setValue("photoUploadId", photoUploadId, { shouldValidate: true });
   }, [photoUploadId, setValue]);

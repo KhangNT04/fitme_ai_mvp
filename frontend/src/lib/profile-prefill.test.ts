@@ -103,10 +103,8 @@ describe("profile-prefill", () => {
     expect(tryOnFormToBodyProfile(form).gender).toBe("OTHER");
   });
 
-  it("never preselects the locked outfit-board mode", () => {
-    expect(
-      resolveTryOnFormValues({ heightCm: 170, weightKg: 60 }, { inputMode: "OUTFIT_BOARD_ONLY" }).inputMode,
-    ).toBe("USER_PHOTO");
+  it("defaults to the user-photo mode", () => {
+    expect(resolveTryOnFormValues({ heightCm: 170, weightKg: 60 }).inputMode).toBe("USER_PHOTO");
   });
 
   it("keeps flow-only fields from try-on store", () => {

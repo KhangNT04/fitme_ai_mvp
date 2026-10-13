@@ -19,17 +19,10 @@ test.describe("Try-on flow", () => {
 
     await fillTryOnInputMetrics(page);
 
-    // Default preview mode ("Chỉ xem outfit board") is locked — CTA shows a toast, no navigation.
-    await page.getByRole("button", { name: "Tạo preview thử mặc" }).click();
-    await expect(
-      page.getByRole("status").filter({
-        hasText: "Tính năng đang được phát triển, hiện tại chưa thể sử dụng.",
-      }),
-    ).toBeVisible();
-    await expect(page).toHaveURL(/\/try-on\/input/);
+    // The locked outfit-board mode is never preselected; user photo is the default.
+    await expect(page.getByRole("button", { name: "Dùng ảnh cá nhân" })).toHaveAttribute("aria-pressed", "true");
+    await expect(page.getByRole("button", { name: "Chỉ xem outfit board" })).toHaveAttribute("aria-pressed", "false");
 
-    // Switching to "Dùng ảnh cá nhân" unlocks the flow.
-    await page.getByRole("button", { name: "Dùng ảnh cá nhân" }).click();
     await page.getByRole("checkbox").click();
     await page.locator('input[type="file"]').setInputFiles({
       name: "tryon-fixture.jpg",
@@ -38,7 +31,7 @@ test.describe("Try-on flow", () => {
     });
     await expect(page.getByText(/Ảnh đạt chất lượng tốt/i)).toBeVisible({ timeout: 30_000 });
 
-    // Metrics typed before switching mode and uploading must survive.
+    // Metrics typed before uploading must survive.
     await expect(page.getByRole("spinbutton").nth(0)).toHaveValue("168");
     await expect(page.getByRole("spinbutton").nth(1)).toHaveValue("58");
     await page.getByRole("button", { name: "Tạo preview thử mặc" }).click();

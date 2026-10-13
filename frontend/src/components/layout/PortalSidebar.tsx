@@ -25,6 +25,7 @@ import {
   LineChart,
   PersonStanding,
   Repeat,
+  ScrollText,
   Sparkles as SparklesIcon,
   Ticket,
   UserCheck,
@@ -33,7 +34,7 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import type { PortalNavItem } from "@/lib/portal-nav";
 
-const brandIcons: Record<string, React.ComponentType<{ className?: string }>> = {
+export const brandIcons: Record<string, React.ComponentType<{ className?: string }>> = {
   "/brand/dashboard": LayoutDashboard,
   "/brand/products": Package,
   "/brand/leads": UserCheck,
@@ -43,9 +44,10 @@ const brandIcons: Record<string, React.ComponentType<{ className?: string }>> = 
   "/brand/settings": Settings,
 };
 
-const adminIcons: Record<string, React.ComponentType<{ className?: string }>> = {
+export const adminIcons: Record<string, React.ComponentType<{ className?: string }>> = {
   "/admin/dashboard": LayoutDashboard,
   "/admin/users": UserCog,
+  "/admin/audit-log": ScrollText,
   "/admin/traffic": LineChart,
   "/admin/brands": Users,
   "/admin/partnerships": Users,
@@ -63,6 +65,7 @@ const adminIcons: Record<string, React.ComponentType<{ className?: string }>> = 
   "/admin/privacy": Shield,
   "/admin/try-on-monitoring": Eye,
   "/admin/tryon-avatars": PersonStanding,
+  "/admin/settings": Settings,
   "/admin/account": KeyRound,
 };
 

@@ -146,7 +146,7 @@ Phạm vi: đăng ký, xác minh email, đăng nhập, token & phiên, quên / �
 | AUTH-CHP-07 | E | P1 | Chưa đăng nhập | Mở `/profile/password`; gọi `POST /me/password` | — | Trang yêu cầu đăng nhập; API bị chặn (403) | ✅ | — | ❌ | ❌ | `changePassword_requiresAuthentication` |
 | AUTH-CHP-08 | H | P2 | — | Bấm biểu tượng ẩn/hiện mật khẩu | — | Chuyển đổi hiển thị ký tự | — | ❌ | ❌ | ❌ | |
 | AUTH-CHP-09 | H | P1 | Đăng nhập admin / brand | Đổi mật khẩu ở `/admin/account` và `/brand/settings` | — | Hoạt động như người dùng; đăng nhập lại portal bằng mật khẩu mới | ✅ | — | ❌ | ❌ | Prod chỉ mở trang |
-| AUTH-CHP-10 | W | P1 | Thiết bị B còn refresh token cũ | Sau khi đổi mật khẩu ở A, B gọi refresh | — | "Mật khẩu đã được đổi. Vui lòng đăng nhập lại" | ✅ | — | — | ❌ | |
+| AUTH-CHP-10 | W | P1 | Thiết bị B còn refresh token cũ | Sau khi đổi mật khẩu ở A, B gọi refresh | — | "Phiên đăng nhập đã hết hiệu lực. Vui lòng đăng nhập lại" | ✅ | — | — | ❌ | |
 
 ## 1.7 Đăng nhập portal Admin / Brand (AUTH-POR)
 

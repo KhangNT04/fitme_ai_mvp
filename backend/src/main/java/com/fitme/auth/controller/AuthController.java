@@ -31,6 +31,11 @@ public class AuthController {
         return ApiResponse.ok(authService.login(request));
     }
 
+    @PostMapping("/login/2fa")
+    public ApiResponse<AuthResponse> loginTwoFactor(@Valid @RequestBody TwoFactorLoginRequest request) {
+        return ApiResponse.ok(authService.completeTwoFactorLogin(request));
+    }
+
     @PostMapping("/verify-email")
     public ApiResponse<AuthResponse> verifyEmail(@Valid @RequestBody TokenRequest request) {
         return ApiResponse.ok(authService.verifyEmail(request));

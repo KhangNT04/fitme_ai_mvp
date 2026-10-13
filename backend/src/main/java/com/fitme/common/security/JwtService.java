@@ -30,7 +30,11 @@ public class JwtService {
     public static final String TYPE_ACCESS = "access";
     public static final String TYPE_REFRESH = "refresh";
     public static final String TYPE_PASSWORD_RESET = "password_reset";
+    public static final String TYPE_MFA_CHALLENGE = "mfa_challenge";
+    /** Present (true) on access/refresh tokens of sessions that signed in with a second factor. */
+    public static final String CLAIM_MFA = "mfa";
     private static final String CLAIM_PASSWORD_FINGERPRINT = "pwd";
+    private static final long MFA_CHALLENGE_TTL_MS = 5 * 60 * 1000;
 
     private final FitMeProperties properties;
     private final SecretKey secretKey;
@@ -43,28 +47,44 @@ public class JwtService {
     }
 
     public String generateAccessToken(UUID userId, String email, String role) {
-        return buildToken(userId, email, role, TYPE_ACCESS, properties.getJwt().getAccessExpiration());
+        return generateAccessToken(userId, email, role, false);
+    }
+
+    public String generateAccessToken(UUID userId, String email, String role, boolean mfa) {
+        return buildToken(userId, email, role, TYPE_ACCESS, properties.getJwt().getAccessExpiration(), mfa);
     }
 
     public String generateRefreshToken(UUID userId, String email, String role) {
-        return buildToken(userId, email, role, TYPE_REFRESH, properties.getJwt().getRefreshExpiration());
+        return generateRefreshToken(userId, email, role, false);
     }
 
-    private String buildToken(UUID userId, String email, String role, String type, long expirationMs) {
+    public String generateRefreshToken(UUID userId, String email, String role, boolean mfa) {
+        return buildToken(userId, email, role, TYPE_REFRESH, properties.getJwt().getRefreshExpiration(), mfa);
+    }
+
+    private String buildToken(UUID userId, String email, String role, String type, long expirationMs, boolean mfa) {
         Date now = new Date();
         Date expiry = new Date(now.getTime() + expirationMs);
-        return Jwts.builder()
+        var builder = Jwts.builder()
                 .id(UUID.randomUUID().toString())
                 .subject(email)
                 .claims(Map.of(
                         CLAIM_USER_ID, userId.toString(),
                         CLAIM_TOKEN_TYPE, type,
                         "role", role
-                ))
+                ));
+        if (mfa) {
+            builder.claim(CLAIM_MFA, true);
+        }
+        return builder
                 .issuedAt(now)
                 .expiration(expiry)
                 .signWith(secretKey)
                 .compact();
+    }
+
+    public boolean isMfaVerified(String token) {
+        return Boolean.TRUE.equals(parseClaims(token).get(CLAIM_MFA, Boolean.class));
     }
 
     public Claims parseClaims(String token) {
@@ -119,12 +139,30 @@ public class JwtService {
      * embeds a fingerprint of the password hash it was issued against.
      */
     public String generatePasswordResetToken(UUID userId, String email, String passwordHash, long ttlMs) {
+        return fingerprintedToken(userId, email, passwordHash, TYPE_PASSWORD_RESET, ttlMs);
+    }
+
+    /** User id of a valid, unexpired reset token whose fingerprint still matches {@code currentPasswordHash}. */
+    public Optional<UUID> resolvePasswordResetUser(String token, Function<UUID, String> currentPasswordHash) {
+        return resolveFingerprinted(token, TYPE_PASSWORD_RESET, currentPasswordHash);
+    }
+
+    /** Proof that the password step of a two-factor sign-in passed; only redeemable together with a TOTP code. */
+    public String generateMfaChallengeToken(UUID userId, String email, String passwordHash) {
+        return fingerprintedToken(userId, email, passwordHash, TYPE_MFA_CHALLENGE, MFA_CHALLENGE_TTL_MS);
+    }
+
+    public Optional<UUID> resolveMfaChallengeUser(String token, Function<UUID, String> currentPasswordHash) {
+        return resolveFingerprinted(token, TYPE_MFA_CHALLENGE, currentPasswordHash);
+    }
+
+    private String fingerprintedToken(UUID userId, String email, String passwordHash, String type, long ttlMs) {
         Date now = new Date();
         return Jwts.builder()
                 .subject(email)
                 .claims(Map.of(
                         CLAIM_USER_ID, userId.toString(),
-                        CLAIM_TOKEN_TYPE, TYPE_PASSWORD_RESET,
+                        CLAIM_TOKEN_TYPE, type,
                         CLAIM_PASSWORD_FINGERPRINT, passwordFingerprint(passwordHash)
                 ))
                 .issuedAt(now)
@@ -133,15 +171,14 @@ public class JwtService {
                 .compact();
     }
 
-    /** User id of a valid, unexpired reset token whose fingerprint still matches {@code currentPasswordHash}. */
-    public Optional<UUID> resolvePasswordResetUser(String token, Function<UUID, String> currentPasswordHash) {
+    private Optional<UUID> resolveFingerprinted(String token, String type, Function<UUID, String> currentPasswordHash) {
         Claims claims;
         try {
             claims = parseClaims(token);
         } catch (JwtException | IllegalArgumentException ex) {
             return Optional.empty();
         }
-        if (!TYPE_PASSWORD_RESET.equals(claims.get(CLAIM_TOKEN_TYPE, String.class))) {
+        if (!type.equals(claims.get(CLAIM_TOKEN_TYPE, String.class))) {
             return Optional.empty();
         }
         UUID userId;

@@ -55,6 +55,12 @@ public class AdminUserController {
         return ApiResponse.ok(adminUserService.updateCredentials(RequestContext.requireUserId(), id, body));
     }
 
+    @PostMapping("/{id}/password-reset-link")
+    public ApiResponse<Map<String, String>> sendPasswordResetLink(@PathVariable UUID id) {
+        adminUserService.sendPasswordResetLink(RequestContext.requireUserId(), id);
+        return ApiResponse.ok(Map.of("message", "Đã gửi link đặt lại mật khẩu tới email của tài khoản"));
+    }
+
     private static <E extends Enum<E>> E parse(Class<E> type, String raw) {
         if (raw == null || raw.isBlank()) {
             return null;

@@ -8,6 +8,8 @@ import type {
   VerifyEmailRequest,
   ForgotPasswordRequest,
   ResetPasswordRequest,
+  TwoFactorSetup,
+  TwoFactorStatus,
 } from "@/types/auth";
 import { AUTH_TOKEN_KEY, AUTH_REFRESH_KEY, SESSION_STORAGE_KEY } from "@/utils/constants";
 import { getSignupAttribution } from "@/lib/attribution";
@@ -24,6 +26,8 @@ interface BackendAuthResponse {
   requiresEmailVerification?: boolean;
   verificationCode?: string | null;
   message?: string | null;
+  requiresTwoFactor?: boolean;
+  twoFactorToken?: string | null;
 }
 
 function mapRole(role: string): AuthUser["role"] {
@@ -39,6 +43,8 @@ function mapAuthResponse(data: BackendAuthResponse): AuthResponse {
     requiresEmailVerification: Boolean(data.requiresEmailVerification),
     verificationCode: data.verificationCode || undefined,
     message: data.message || undefined,
+    requiresTwoFactor: Boolean(data.requiresTwoFactor),
+    twoFactorToken: data.twoFactorToken || undefined,
     user: {
       id: data.userId,
       email: data.email,
@@ -78,10 +84,41 @@ export const authApi = {
   login: async (data: LoginRequest, options: { persist?: boolean } = {}): Promise<AuthResponse> => {
     const res = await apiClient.post("/auth/login", data);
     const auth = mapAuthResponse(unwrap(res));
-    if (options.persist === false) return auth;
+    if (options.persist === false || auth.requiresTwoFactor) return auth;
     storeTokens(auth.accessToken, auth.refreshToken);
     await linkAnonymousSession();
     return auth;
+  },
+  /** Second step of a 2FA sign-in; `code` is the 6-digit authenticator code or a recovery code. */
+  loginTwoFactor: async (twoFactorToken: string, code: string): Promise<AuthResponse> => {
+    const res = await apiClient.post("/auth/login/2fa", { twoFactorToken, code });
+    return mapAuthResponse(unwrap(res));
+  },
+  getTwoFactorStatus: async (): Promise<TwoFactorStatus> => {
+    const res = await apiClient.get("/me/2fa");
+    return unwrap(res) as TwoFactorStatus;
+  },
+  setupTwoFactor: async (): Promise<TwoFactorSetup> => {
+    const res = await apiClient.post("/me/2fa/setup");
+    return unwrap(res) as TwoFactorSetup;
+  },
+  /** Other sessions are signed out; the returned session (2FA-verified) replaces the caller's. */
+  enableTwoFactor: async (
+    password: string,
+    code: string,
+  ): Promise<{ recoveryCodes: string[]; session: AuthResponse }> => {
+    const refreshToken =
+      typeof window !== "undefined" ? localStorage.getItem(AUTH_REFRESH_KEY) : null;
+    const res = await apiClient.post("/me/2fa/enable", { password, code, refreshToken });
+    const data = unwrap(res) as { recoveryCodes: string[]; session: BackendAuthResponse };
+    return { recoveryCodes: data.recoveryCodes, session: mapAuthResponse(data.session) };
+  },
+  disableTwoFactor: async (password: string, code: string): Promise<void> => {
+    await apiClient.post("/me/2fa/disable", { password, code });
+  },
+  regenerateRecoveryCodes: async (password: string, code: string): Promise<string[]> => {
+    const res = await apiClient.post("/me/2fa/recovery-codes", { password, code });
+    return (unwrap(res) as { recoveryCodes: string[] }).recoveryCodes;
   },
   revokeRefreshToken: async (refreshToken: string): Promise<void> => {
     try {

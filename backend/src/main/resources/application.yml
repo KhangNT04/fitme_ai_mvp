@@ -82,6 +82,8 @@ fitme:
     # HTTPS mail relay (frontend /api/mail-relay on Vercel, or deploy/gmail-relay Apps Script). Used first when both are set.
     mail-relay-url: ${MAIL_RELAY_URL:}
     mail-relay-secret: ${MAIL_RELAY_SECRET:}
+    # Admin portal requires a TOTP-verified session (on by default under the prod profile).
+    admin-mfa-required: ${FITME_ADMIN_MFA_REQUIRED:false}
   payos:
     mock: ${PAYOS_MOCK:true}
     client-id: ${PAYOS_CLIENT_ID:}

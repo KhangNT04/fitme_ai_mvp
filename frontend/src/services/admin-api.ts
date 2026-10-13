@@ -213,9 +213,25 @@ export const adminApi = {
     const res = await apiClient.patch(`/admin/users/${userId}/status`, { status });
     return unwrap(res);
   },
-  /** Hands an account over to its real owner: new sign-in email and/or password (omitted fields are kept). */
+  /**
+   * New sign-in email (any non-admin account) and/or password (brand handover only); omitted fields are kept.
+   * The owner is signed out everywhere and emailed.
+   */
   setUserCredentials: async (userId: string, data: { email?: string; password?: string }): Promise<AdminUser> => {
     const res = await apiClient.patch(`/admin/users/${userId}/credentials`, data);
+    return unwrap(res);
+  },
+  sendPasswordResetLink: async (userId: string): Promise<void> => {
+    await apiClient.post(`/admin/users/${userId}/password-reset-link`);
+  },
+  listAuditLog: async (params: {
+    q?: string;
+    action?: AdminAuditAction;
+    targetUserId?: string;
+    page?: number;
+    size?: number;
+  }): Promise<AdminAuditPage> => {
+    const res = await apiClient.get("/admin/audit-log", { params });
     return unwrap(res);
   },
   setUserConsumerPlan: async (userId: string, plan: "FREE" | "PREMIUM"): Promise<void> => {
@@ -310,6 +326,38 @@ export interface AdminUser {
   lastActiveDate?: string | null;
   brandName?: string | null;
   signupSource?: string | null;
+}
+
+export type AdminAuditAction =
+  | "ADMIN_SIGN_IN"
+  | "USER_SUSPENDED"
+  | "USER_REACTIVATED"
+  | "USER_EMAIL_CHANGED"
+  | "USER_PASSWORD_SET"
+  | "USER_PASSWORD_RESET_LINK_SENT"
+  | "CONSUMER_PLAN_CHANGED"
+  | "FITKEN_ADJUSTED"
+  | "MFA_ENABLED"
+  | "MFA_DISABLED"
+  | "MFA_RECOVERY_CODE_USED";
+
+export interface AdminAuditEntry {
+  id: string;
+  action: AdminAuditAction;
+  actorId?: string | null;
+  actorEmail?: string | null;
+  targetId?: string | null;
+  targetEmail?: string | null;
+  details?: string | null;
+  ipAddress?: string | null;
+  createdAt: string;
+}
+
+export interface AdminAuditPage {
+  items: AdminAuditEntry[];
+  total: number;
+  page: number;
+  size: number;
 }
 
 export interface AdminUserPage {

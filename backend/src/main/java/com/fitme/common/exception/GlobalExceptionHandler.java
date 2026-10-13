@@ -62,6 +62,12 @@ public class GlobalExceptionHandler {
                 .body(ApiResponse.fail(ex.getMessage(), PlusRequiredException.CODE));
     }
 
+    @ExceptionHandler(MfaRequiredException.class)
+    public ResponseEntity<ApiResponse<Void>> handleMfaRequired(MfaRequiredException ex) {
+        return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                .body(ApiResponse.fail(ex.getMessage(), MfaRequiredException.CODE));
+    }
+
     @ExceptionHandler(ConflictException.class)
     public ResponseEntity<ApiResponse<Void>> handleConflict(ConflictException ex) {
         return ResponseEntity.status(HttpStatus.CONFLICT).body(ApiResponse.fail(ex.getMessage(), ex.getCode()));

@@ -6,6 +6,7 @@ import { PortalPageHeader } from "@/components/portal/PortalPageHeader";
 import { LoadingSkeleton } from "@/components/common/LoadingSkeleton";
 import { ErrorState } from "@/components/common/ErrorState";
 import { EmptyState } from "@/components/common/EmptyState";
+import { AdminTwoFactorGate } from "@/components/portal/AdminTwoFactorGate";
 
 type SkeletonType = "list" | "card" | "detail";
 
@@ -53,20 +54,22 @@ export function PortalAdminPage({
         {headerActions}
       </PortalPageHeader>
 
-      {isLoading && (
-        <LoadingSkeleton
-          type={skeleton === "card" ? "card" : skeleton === "detail" ? "detail" : "list"}
-          count={skeleton === "card" ? 4 : undefined}
-        />
-      )}
-      {!!error && onRetry && <ErrorState onRetry={onRetry} />}
-      {!isLoading && !error && empty && (
-        <EmptyState
-          title={emptyTitle ?? "Chưa có dữ liệu"}
-          description={emptyDescription}
-        />
-      )}
-      {showContent && children}
+      <AdminTwoFactorGate>
+        {isLoading && (
+          <LoadingSkeleton
+            type={skeleton === "card" ? "card" : skeleton === "detail" ? "detail" : "list"}
+            count={skeleton === "card" ? 4 : undefined}
+          />
+        )}
+        {!!error && onRetry && <ErrorState onRetry={onRetry} />}
+        {!isLoading && !error && empty && (
+          <EmptyState
+            title={emptyTitle ?? "Chưa có dữ liệu"}
+            description={emptyDescription}
+          />
+        )}
+        {showContent && children}
+      </AdminTwoFactorGate>
     </PortalLayout>
   );
 }

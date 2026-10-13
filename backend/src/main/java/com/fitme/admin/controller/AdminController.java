@@ -1,5 +1,7 @@
 package com.fitme.admin.controller;
 
+import com.fitme.admin.audit.AdminAuditAction;
+import com.fitme.admin.audit.AdminAuditService;
 import com.fitme.admin.dto.AdminBrandListItemDto;
 import com.fitme.admin.dto.ConsentRecordDto;
 import com.fitme.admin.dto.DataDeletionRequestDto;
@@ -28,6 +30,7 @@ import com.fitme.brand.service.BrandService;
 import com.fitme.common.dto.ApiResponse;
 import com.fitme.common.enums.ConsumerPlan;
 import com.fitme.common.exception.BusinessException;
+import com.fitme.common.security.RequestContext;
 import com.fitme.entitlement.dto.ConsumerEntitlementResponse;
 import com.fitme.entitlement.service.ConsumerEntitlementService;
 import com.fitme.privacy.service.PrivacyService;
@@ -66,6 +69,7 @@ public class AdminController {
     private final ConsumerEntitlementService consumerEntitlementService;
     private final AdminMetricsService adminMetricsService;
     private final RetentionMetricsService retentionMetricsService;
+    private final AdminAuditService auditService;
 
     @GetMapping("/dashboard")
     public ApiResponse<AdminDashboardResponse> dashboard() {
@@ -220,6 +224,9 @@ public class AdminController {
         } catch (IllegalArgumentException ex) {
             throw new BusinessException("Gói không hợp lệ (FREE hoặc PREMIUM)");
         }
-        return ApiResponse.ok(consumerEntitlementService.setPlan(id, plan));
+        ConsumerEntitlementResponse response = consumerEntitlementService.setPlan(id, plan);
+        auditService.record(RequestContext.requireUserId(), AdminAuditAction.CONSUMER_PLAN_CHANGED, id,
+                "Chuyển sang " + plan.name());
+        return ApiResponse.ok(response);
     }
 }

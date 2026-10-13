@@ -25,4 +25,7 @@ public class AuthResponse {
     private String message;
     /** FREE | PREMIUM — synced from the consumer's FitMe Premium subscription. */
     private String consumerPlan;
+    /** Password was right but the account has 2FA: no tokens yet, send {@link #twoFactorToken} with a code. */
+    private boolean requiresTwoFactor;
+    private String twoFactorToken;
 }

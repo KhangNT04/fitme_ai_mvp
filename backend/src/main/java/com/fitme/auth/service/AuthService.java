@@ -1,5 +1,7 @@
 package com.fitme.auth.service;
 
+import com.fitme.admin.audit.AdminAuditAction;
+import com.fitme.admin.audit.AdminAuditService;
 import com.fitme.auth.dto.*;
 import com.fitme.auth.entity.UserAccount;
 import com.fitme.auth.repository.UserAccountRepository;
@@ -9,9 +11,12 @@ import com.fitme.common.enums.UserStatus;
 import com.fitme.common.exception.BusinessException;
 import com.fitme.common.exception.TooManyRequestsException;
 import com.fitme.common.security.JwtService;
+import com.fitme.common.security.RequestContext;
+import com.fitme.notification.AccountSecurityEvent;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.security.authentication.AccountStatusException;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -52,6 +57,9 @@ public class AuthService {
     private final AuthenticationManager authenticationManager;
     private final FitMeProperties fitMeProperties;
     private final AuthEmailService authEmailService;
+    private final TwoFactorService twoFactorService;
+    private final AdminAuditService adminAudit;
+    private final ApplicationEventPublisher events;
     private final SecureRandom secureRandom = new SecureRandom();
 
     private final ConcurrentHashMap<String, CaptchaEntry> captchaChallenges = new ConcurrentHashMap<>();
@@ -158,7 +166,61 @@ public class AuthService {
             throw new BusinessException(
                     "Tài khoản chưa xác nhận email. Vui lòng nhập mã xác minh trước khi đăng nhập.");
         }
-        return buildAuthResponse(user);
+        if (user.isTotpEnabled()) {
+            return AuthResponse.builder()
+                    .email(user.getEmail())
+                    .role(user.getRole().name())
+                    .emailVerified(true)
+                    .requiresTwoFactor(true)
+                    .twoFactorToken(jwtService.generateMfaChallengeToken(
+                            user.getId(), user.getEmail(), user.getPasswordHash()))
+                    .message("Nhập mã 6 số từ ứng dụng xác thực để hoàn tất đăng nhập.")
+                    .build();
+        }
+        AuthResponse response = buildAuthResponse(user, false);
+        if (user.getRole() == UserRole.ADMIN) {
+            adminAudit.record(user.getId(), AdminAuditAction.ADMIN_SIGN_IN, user.getId(), "Mật khẩu (chưa bật 2FA)");
+        }
+        return response;
+    }
+
+    /** Second step of a 2FA sign-in: the challenge from {@link #login} plus an authenticator or recovery code. */
+    @Transactional(noRollbackFor = {BusinessException.class, TooManyRequestsException.class})
+    public AuthResponse completeTwoFactorLogin(TwoFactorLoginRequest request) {
+        UUID userId = jwtService.resolveMfaChallengeUser(request.twoFactorToken().trim(),
+                        id -> userAccountRepository.findById(id).map(UserAccount::getPasswordHash).orElse(null))
+                .orElseThrow(() -> new BusinessException(
+                        "Phiên đăng nhập đã hết hạn. Vui lòng nhập lại mật khẩu.", "MFA_CHALLENGE_EXPIRED"));
+        UserAccount user = userAccountRepository.findById(userId)
+                .orElseThrow(() -> new BusinessException("Tài khoản không tồn tại"));
+        rejectWhileLoginLocked(user.getEmail());
+        TwoFactorService.Method method = twoFactorService.verifyAndConsume(user, request.code()).orElse(null);
+        if (method == null) {
+            recordLoginFailure(user.getEmail());
+            throw new BusinessException("Mã xác thực không đúng hoặc đã được dùng", "MFA_CODE_INVALID");
+        }
+        loginFailuresByEmail.remove(user.getEmail());
+        userAccountRepository.save(user);
+        AuthResponse response = buildAuthResponse(user, true);
+        if (user.getRole() == UserRole.ADMIN) {
+            adminAudit.record(user.getId(), AdminAuditAction.ADMIN_SIGN_IN, user.getId(),
+                    method == TwoFactorService.Method.TOTP ? "Mật khẩu + mã Authenticator" : "Mật khẩu + mã khôi phục");
+            if (method == TwoFactorService.Method.RECOVERY_CODE) {
+                adminAudit.record(user.getId(), AdminAuditAction.MFA_RECOVERY_CODE_USED, user.getId(), null);
+            }
+        }
+        return response;
+    }
+
+    /** Fresh tokens for an already authenticated caller (e.g. after turning 2FA on). */
+    @Transactional
+    public AuthResponse issueSession(UUID userId, boolean mfa, String refreshTokenToRevoke) {
+        UserAccount user = userAccountRepository.findById(userId)
+                .orElseThrow(() -> new BusinessException("Tài khoản không tồn tại"));
+        if (refreshTokenToRevoke != null && !refreshTokenToRevoke.isBlank()) {
+            jwtService.revokeRefreshToken(refreshTokenToRevoke);
+        }
+        return buildAuthResponse(user, mfa);
     }
 
     @Transactional(noRollbackFor = BusinessException.class)
@@ -243,6 +305,22 @@ public class AuthService {
         user.setPasswordHash(passwordEncoder.encode(request.getNewPassword()));
         user.setPasswordChangedAt(Instant.now());
         userAccountRepository.save(user);
+        loginFailuresByEmail.remove(user.getEmail());
+        events.publishEvent(AccountSecurityEvent.of(AccountSecurityEvent.Kind.PASSWORD_RESET,
+                user.getEmail(), user.getDisplayName()));
+    }
+
+    /**
+     * Admin support action: emails the owner a reset link so the admin never learns or sets the password.
+     * Unlike {@link #forgotPassword}, delivery failures are reported to the admin.
+     */
+    public void sendPasswordResetLinkFor(UserAccount user) {
+        if (inCooldown(resetCooldownByEmail, user.getEmail())) {
+            throw new BusinessException("Vừa gửi link đặt lại mật khẩu cho tài khoản này. Vui lòng đợi 1 phút.");
+        }
+        String token = issuePasswordResetToken(user);
+        authEmailService.sendPasswordResetLink(user.getEmail(), token, (int) (PASSWORD_RESET_TTL_SECONDS / 60));
+        resetCooldownByEmail.put(user.getEmail(), Instant.now().plusSeconds(EMAIL_SEND_COOLDOWN_SECONDS));
     }
 
     /** Changes the password, signs out every other session and returns fresh tokens for the caller. */
@@ -263,7 +341,9 @@ public class AuthService {
             jwtService.revokeRefreshToken(request.getRefreshToken());
         }
         log.info("[AUTH] Password changed for user {}", userId);
-        return buildAuthResponse(user);
+        events.publishEvent(AccountSecurityEvent.of(AccountSecurityEvent.Kind.PASSWORD_CHANGED,
+                user.getEmail(), user.getDisplayName()));
+        return buildAuthResponse(user, RequestContext.isMfaVerified());
     }
 
     private String issuePasswordResetToken(UserAccount user) {
@@ -336,7 +416,8 @@ public class AuthService {
             if (jwtService.issuedBeforePasswordChange(token, user.getPasswordChangedAt())) {
                 throw new BusinessException("Mật khẩu đã được đổi. Vui lòng đăng nhập lại");
             }
-            AuthResponse response = buildAuthResponse(user);
+            AuthResponse response = buildAuthResponse(user,
+                    user.isTotpEnabled() && jwtService.isMfaVerified(token));
             jwtService.revokeRefreshToken(token);
             return response;
         } catch (io.jsonwebtoken.JwtException ex) {
@@ -439,11 +520,15 @@ public class AuthService {
     }
 
     private AuthResponse buildAuthResponse(UserAccount user) {
+        return buildAuthResponse(user, false);
+    }
+
+    private AuthResponse buildAuthResponse(UserAccount user, boolean mfa) {
         if (user.getStatus() != UserStatus.ACTIVE) {
             throw new BusinessException(ACCOUNT_LOCKED_MESSAGE, "ACCOUNT_LOCKED");
         }
-        String access = jwtService.generateAccessToken(user.getId(), user.getEmail(), user.getRole().name());
-        String refresh = jwtService.generateRefreshToken(user.getId(), user.getEmail(), user.getRole().name());
+        String access = jwtService.generateAccessToken(user.getId(), user.getEmail(), user.getRole().name(), mfa);
+        String refresh = jwtService.generateRefreshToken(user.getId(), user.getEmail(), user.getRole().name(), mfa);
         return AuthResponse.builder()
                 .userId(user.getId())
                 .email(user.getEmail())

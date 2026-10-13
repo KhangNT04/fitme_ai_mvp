@@ -90,6 +90,20 @@ public class UserAccount {
     @Column(name = "password_changed_at")
     private Instant passwordChangedAt;
 
+    /** Base32 TOTP secret; set while enrolling, trusted only once {@link #totpEnabled} is true. */
+    @Column(name = "totp_secret", length = 64)
+    private String totpSecret;
+
+    @Column(name = "totp_enabled", nullable = false)
+    @Builder.Default
+    private boolean totpEnabled = false;
+
+    @Column(name = "totp_last_step")
+    private Long totpLastStep;
+
+    @Column(name = "totp_recovery_codes")
+    private String totpRecoveryCodes;
+
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;

@@ -144,6 +144,12 @@ curl https://140-238-1-2.sslip.io/api/v1/products
 
 Giám sát: [UptimeRobot](https://uptimerobot.com) ping `https://<FITME_API_DOMAIN>/actuator/health` mỗi 5 phút để nhận email khi VM/container chết.
 
+**Bảo mật tài khoản quản trị (profile `prod`):**
+
+- Trang admin bắt buộc xác thực 2 bước (TOTP). Lần đầu đăng nhập sau khi deploy, admin vào *Tài khoản & bảo mật*, quét QR bằng Google Authenticator / Authy / 1Password, rồi cất 10 mã khôi phục vào trình quản lý mật khẩu.
+- Mất cả điện thoại lẫn mã khôi phục: đặt `FITME_ADMIN_MFA_REQUIRED=false` trong `.env.oracle` → `./deploy/oracle/scripts/deploy-oracle.sh --no-pull` → đăng nhập, tắt rồi bật lại 2FA → xóa dòng đó và deploy lại.
+- Không bao giờ đặt `FITME_SEED_PASSWORD` trên production. Mọi thao tác của admin lên tài khoản người dùng (khóa, đổi email, đặt mật khẩu brand, gửi link đặt lại, đổi gói, Fitken) đều ghi ở *Nhật ký quản trị*.
+
 ## 9. Troubleshooting
 
 | Triệu chứng | Cách xử lý |

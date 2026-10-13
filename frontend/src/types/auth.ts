@@ -30,6 +30,25 @@ export interface AuthResponse {
   requiresEmailVerification?: boolean;
   verificationCode?: string;
   message?: string;
+  /** Password accepted but the account has 2FA: no tokens yet, finish with `twoFactorToken` + a code. */
+  requiresTwoFactor?: boolean;
+  twoFactorToken?: string;
+}
+
+export interface TwoFactorStatus {
+  enabled: boolean;
+  /** The account may enroll (admins only for now). */
+  available: boolean;
+  /** The admin portal refuses this account's sessions without 2FA. */
+  required: boolean;
+  /** The current session signed in with a code. */
+  sessionVerified: boolean;
+  recoveryCodesRemaining: number;
+}
+
+export interface TwoFactorSetup {
+  secret: string;
+  otpauthUri: string;
 }
 
 export interface CaptchaChallenge {

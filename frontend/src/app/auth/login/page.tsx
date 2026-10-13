@@ -34,6 +34,10 @@ function LoginForm() {
     setError("");
     try {
       const res = await authApi.login(data);
+      if (res.requiresTwoFactor) {
+        setError("Tài khoản này bật xác thực 2 bước. Vui lòng đăng nhập tại trang Admin (/admin/login).");
+        return;
+      }
       await setAuth(res.user, res.accessToken, res.refreshToken);
       await goAfterAuth();
     } catch (e: unknown) {

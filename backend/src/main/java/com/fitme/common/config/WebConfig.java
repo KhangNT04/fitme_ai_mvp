@@ -1,11 +1,20 @@
 package com.fitme.common.config;
 
+import com.fitme.common.security.AdminMfaInterceptor;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 @Configuration
 @RequiredArgsConstructor
 public class WebConfig implements WebMvcConfigurer {
     // Upload files are served by UploadResourceController (/uploads/**).
+
+    private final AdminMfaInterceptor adminMfaInterceptor;
+
+    @Override
+    public void addInterceptors(InterceptorRegistry registry) {
+        registry.addInterceptor(adminMfaInterceptor).addPathPatterns("/api/v1/admin/**");
+    }
 }

@@ -7,6 +7,7 @@ fitme:
     expose-reset-tokens: false
   auth:
     expose-verification-code: false
+    admin-mfa-required: ${FITME_ADMIN_MFA_REQUIRED:true}
   ai:
     public-base-url: ${FITME_PUBLIC_BASE_URL:https://fitme-ai-mvp.onrender.com}
   frontend:

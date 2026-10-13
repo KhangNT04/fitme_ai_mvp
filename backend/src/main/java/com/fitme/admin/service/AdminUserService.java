@@ -1,9 +1,13 @@
 package com.fitme.admin.service;
 
+import com.fitme.admin.audit.AdminAuditAction;
+import com.fitme.admin.audit.AdminAuditService;
 import com.fitme.admin.dto.AdminCredentialsRequest;
 import com.fitme.admin.dto.AdminUserDto;
 import com.fitme.auth.entity.UserAccount;
 import com.fitme.auth.repository.UserAccountRepository;
+import com.fitme.auth.service.AuthService;
+import com.fitme.notification.AccountSecurityEvent;
 import com.fitme.common.enums.ConsumerPlan;
 import com.fitme.common.enums.UserRole;
 import com.fitme.common.enums.UserStatus;
@@ -12,6 +16,7 @@ import com.fitme.common.exception.NotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -21,6 +26,7 @@ import java.sql.Date;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
+import java.time.Instant;
 import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.List;
@@ -48,6 +54,9 @@ public class AdminUserService {
     private final JdbcTemplate jdbc;
     private final UserAccountRepository userAccountRepository;
     private final PasswordEncoder passwordEncoder;
+    private final AdminAuditService audit;
+    private final AuthService authService;
+    private final ApplicationEventPublisher events;
 
     @Transactional(readOnly = true)
     public AdminUserDto.Page list(String query, UserRole role, UserStatus status, int page, int size) {
@@ -100,14 +109,18 @@ public class AdminUserService {
         if (user.getStatus() != status) {
             user.setStatus(status);
             userAccountRepository.saveAndFlush(user);
+            audit.record(adminId, status == UserStatus.SUSPENDED
+                    ? AdminAuditAction.USER_SUSPENDED : AdminAuditAction.USER_REACTIVATED, userId, null);
             log.info("Admin {} set account {} to {}", adminId, userId, status);
         }
         return get(userId);
     }
 
     /**
-     * Sets a new sign-in email and/or password, e.g. to hand a seeded brand account over to the real brand.
-     * Admin accounts are excluded; the new email counts as verified because an admin vouches for it.
+     * Changes the sign-in email (any non-admin account, after the admin has verified the owner's identity)
+     * and/or sets a password (brand accounts only, to hand a seeded brand over to the real brand).
+     * Every existing session is signed out and the owner is emailed; consumers recover access through
+     * {@link #sendPasswordResetLink} instead, so admins never know a consumer's password.
      */
     @Transactional
     public AdminUserDto updateCredentials(UUID adminId, UUID userId, AdminCredentialsRequest request) {
@@ -118,13 +131,15 @@ public class AdminUserService {
         if (email == null && password == null) {
             throw new BusinessException("Nhập email mới hoặc mật khẩu mới");
         }
-        UserAccount user = userAccountRepository.findById(userId)
-                .filter(u -> u.getStatus() != UserStatus.DELETED)
-                .orElseThrow(() -> new NotFoundException("Không tìm thấy tài khoản"));
-        if (user.getRole() == UserRole.ADMIN) {
-            throw new BusinessException("Không thể đổi thông tin đăng nhập của quản trị viên tại đây");
+        UserAccount user = requireManageable(userId);
+        if (password != null && user.getRole() != UserRole.BRAND_OWNER) {
+            throw new BusinessException(
+                    "Chỉ đặt mật khẩu trực tiếp khi bàn giao tài khoản brand. Với người dùng, hãy gửi link đặt lại mật khẩu.",
+                    "PASSWORD_SET_NOT_ALLOWED");
         }
-        if (email != null && !email.equals(user.getEmail())) {
+        String previousEmail = user.getEmail();
+        boolean emailChanged = email != null && !email.equals(previousEmail);
+        if (emailChanged) {
             if (userAccountRepository.existsByEmail(email)) {
                 throw new BusinessException("Email đã được sử dụng bởi tài khoản khác", "EMAIL_TAKEN");
             }
@@ -134,10 +149,44 @@ public class AdminUserService {
         if (password != null) {
             user.setPasswordHash(passwordEncoder.encode(password));
         }
+        if (!emailChanged && password == null) {
+            return get(userId);
+        }
+        user.setPasswordChangedAt(Instant.now());
         userAccountRepository.saveAndFlush(user);
+
+        if (emailChanged) {
+            audit.record(adminId, AdminAuditAction.USER_EMAIL_CHANGED, userId, previousEmail + " → " + email);
+            events.publishEvent(new AccountSecurityEvent(AccountSecurityEvent.Kind.EMAIL_CHANGED_BY_ADMIN,
+                    email, previousEmail, user.getDisplayName(), Instant.now()));
+        }
+        if (password != null) {
+            audit.record(adminId, AdminAuditAction.USER_PASSWORD_SET, userId, "Bàn giao tài khoản brand");
+            events.publishEvent(AccountSecurityEvent.of(AccountSecurityEvent.Kind.PASSWORD_SET_BY_ADMIN,
+                    user.getEmail(), user.getDisplayName()));
+        }
         log.info("Admin {} updated sign-in credentials of account {} (email changed: {}, password changed: {})",
-                adminId, userId, email != null, password != null);
+                adminId, userId, emailChanged, password != null);
         return get(userId);
+    }
+
+    /** Emails the owner a one-time reset link (the normal way to help someone who forgot their password). */
+    @Transactional
+    public void sendPasswordResetLink(UUID adminId, UUID userId) {
+        UserAccount user = requireManageable(userId);
+        authService.sendPasswordResetLinkFor(user);
+        audit.record(adminId, AdminAuditAction.USER_PASSWORD_RESET_LINK_SENT, userId, "Gửi tới " + user.getEmail());
+        log.info("Admin {} sent a password reset link to account {}", adminId, userId);
+    }
+
+    private UserAccount requireManageable(UUID userId) {
+        UserAccount user = userAccountRepository.findById(userId)
+                .filter(u -> u.getStatus() != UserStatus.DELETED)
+                .orElseThrow(() -> new NotFoundException("Không tìm thấy tài khoản"));
+        if (user.getRole() == UserRole.ADMIN) {
+            throw new BusinessException("Không thể đổi thông tin đăng nhập của quản trị viên tại đây");
+        }
+        return user;
     }
 
     @Transactional(readOnly = true)

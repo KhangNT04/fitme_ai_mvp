@@ -10,6 +10,6 @@ public class ResetPasswordRequest {
     private String token;
 
     @NotBlank
-    @Size(min = 6, max = 100)
+    @Size(min = 8, max = 100, message = "Mật khẩu mới cần từ 8 đến 100 ký tự")
     private String newPassword;
 }

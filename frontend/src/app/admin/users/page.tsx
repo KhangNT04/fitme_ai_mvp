@@ -75,6 +75,8 @@ export default function AdminUsersPage() {
   const [credentialsTarget, setCredentialsTarget] = useState<AdminUser | null>(null);
   const [newEmail, setNewEmail] = useState("");
   const [newPassword, setNewPassword] = useState("");
+  // Admins only set passwords when handing a brand account over; consumers get a reset link instead.
+  const canSetPassword = credentialsTarget?.role === "BRAND_OWNER";
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -140,7 +142,7 @@ export default function AdminUsersPage() {
       const email = newEmail.trim();
       return adminApi.setUserCredentials(credentialsTarget!.id, {
         email: email && email !== credentialsTarget!.email ? email : undefined,
-        password: newPassword || undefined,
+        password: canSetPassword ? newPassword || undefined : undefined,
       });
     },
     onSuccess: (user) => {
@@ -152,6 +154,14 @@ export default function AdminUsersPage() {
     onError: actionFeedback({ errorMessage: "Không thể cập nhật thông tin đăng nhập" }).onError,
   });
 
+  const resetLinkMutation = useMutation({
+    mutationFn: (user: AdminUser) => adminApi.sendPasswordResetLink(user.id),
+    onSuccess: (_, user) => {
+      actionFeedback({ successMessage: `Đã gửi link đặt lại mật khẩu tới ${user.email}` }).onSuccess();
+    },
+    onError: actionFeedback({ errorMessage: "Không thể gửi link đặt lại mật khẩu" }).onError,
+  });
+
   const openCredentials = (user: AdminUser) => {
     setCredentialsTarget(user);
     setNewEmail(user.email);
@@ -159,7 +169,8 @@ export default function AdminUsersPage() {
   };
 
   const credentialsChanged =
-    newPassword.length > 0 || (newEmail.trim() !== "" && newEmail.trim() !== credentialsTarget?.email);
+    (canSetPassword && newPassword.length > 0) ||
+    (newEmail.trim() !== "" && newEmail.trim() !== credentialsTarget?.email);
 
   const openFitken = (user: AdminUser) => {
     setFitkenTarget(user);
@@ -173,7 +184,7 @@ export default function AdminUsersPage() {
   return (
     <PortalAdminPage
       title="Quản lý tài khoản"
-      description="Tìm kiếm mọi tài khoản (người dùng, brand, quản trị viên), khóa/mở khóa đăng nhập, đổi gói và điều chỉnh Fitken."
+      description="Tìm kiếm mọi tài khoản (người dùng, brand, quản trị viên), khóa/mở khóa đăng nhập, đổi gói và điều chỉnh Fitken. Mọi thao tác được ghi vào nhật ký quản trị."
       isLoading={isLoading}
       error={error}
       onRetry={() => refetch()}
@@ -448,8 +459,11 @@ export default function AdminUsersPage() {
           <DialogHeader>
             <DialogTitle>Thông tin đăng nhập</DialogTitle>
             <DialogDescription>
-              Bàn giao tài khoản {credentialsTarget?.brandName ?? credentialsTarget?.email} cho chủ sở hữu thật: đổi
-              email đăng nhập và/hoặc đặt mật khẩu mới. Để trống mật khẩu nếu chỉ đổi email.
+              {canSetPassword
+                ? `Bàn giao tài khoản ${credentialsTarget?.brandName ?? credentialsTarget?.email} cho chủ sở hữu thật: đổi email đăng nhập và/hoặc đặt mật khẩu mới. Để trống mật khẩu nếu chỉ đổi email.`
+                : "Chỉ đổi email khi đã xác minh chính chủ (ví dụ họ mất quyền truy cập email cũ). Quản trị viên không đặt mật khẩu cho người dùng: hãy gửi link đặt lại mật khẩu để họ tự đặt."}{" "}
+              Mọi thiết bị đang đăng nhập sẽ bị đăng xuất, chủ tài khoản nhận email thông báo và thao tác được ghi
+              vào nhật ký quản trị.
             </DialogDescription>
           </DialogHeader>
           <form
@@ -469,18 +483,35 @@ export default function AdminUsersPage() {
                 onChange={(e) => setNewEmail(e.target.value)}
               />
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="credentials-password">Mật khẩu mới</Label>
-              <Input
-                id="credentials-password"
-                type="password"
-                autoComplete="new-password"
-                minLength={8}
-                maxLength={100}
-                value={newPassword}
-                onChange={(e) => setNewPassword(e.target.value)}
-                placeholder="Tối thiểu 8 ký tự"
-              />
+            {canSetPassword && (
+              <div className="space-y-2">
+                <Label htmlFor="credentials-password">Mật khẩu mới</Label>
+                <Input
+                  id="credentials-password"
+                  type="password"
+                  autoComplete="new-password"
+                  minLength={8}
+                  maxLength={100}
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                  placeholder="Tối thiểu 8 ký tự"
+                />
+              </div>
+            )}
+            <div className="rounded-lg border border-dashed border-border p-3 text-sm">
+              <p className="text-muted-foreground">
+                Người dùng quên mật khẩu? Gửi link đặt lại (hiệu lực 60 phút) tới {credentialsTarget?.email}.
+              </p>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                className="mt-2"
+                disabled={resetLinkMutation.isPending}
+                onClick={() => credentialsTarget && resetLinkMutation.mutate(credentialsTarget)}
+              >
+                {resetLinkMutation.isPending ? "Đang gửi..." : "Gửi link đặt lại mật khẩu"}
+              </Button>
             </div>
             <div className="flex justify-end gap-2">
               <Button type="button" variant="outline" onClick={() => setCredentialsTarget(null)}>

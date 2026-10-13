@@ -22,6 +22,9 @@ public class FitMeUserPrincipal implements UserDetails {
     private final UserRole role;
     private final boolean active;
     private final Instant passwordChangedAt;
+    private final boolean totpEnabled;
+    /** True when the bearer token of this request was issued after a TOTP check and 2FA is still on. */
+    private final boolean mfaVerified;
 
     public FitMeUserPrincipal(UserAccount user) {
         this.userId = user.getId();
@@ -30,6 +33,25 @@ public class FitMeUserPrincipal implements UserDetails {
         this.role = user.getRole();
         this.active = user.getStatus() == UserStatus.ACTIVE;
         this.passwordChangedAt = user.getPasswordChangedAt();
+        this.totpEnabled = user.isTotpEnabled();
+        this.mfaVerified = false;
+    }
+
+    private FitMeUserPrincipal(FitMeUserPrincipal source, boolean mfaVerified) {
+        this.userId = source.userId;
+        this.email = source.email;
+        this.passwordHash = source.passwordHash;
+        this.role = source.role;
+        this.active = source.active;
+        this.passwordChangedAt = source.passwordChangedAt;
+        this.totpEnabled = source.totpEnabled;
+        this.mfaVerified = mfaVerified;
+    }
+
+    /** Applies the token's {@code mfa} claim; it stops counting once 2FA is turned off for the account. */
+    public FitMeUserPrincipal withMfaVerified(boolean tokenClaim) {
+        boolean verified = tokenClaim && totpEnabled;
+        return verified == mfaVerified ? this : new FitMeUserPrincipal(this, verified);
     }
 
     @Override

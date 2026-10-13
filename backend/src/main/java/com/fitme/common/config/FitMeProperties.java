@@ -44,6 +44,8 @@ public class FitMeProperties {
         private String mailRelayUrl = "";
         /** Shared secret checked by the relay script (RELAY_SECRET script property). */
         private String mailRelaySecret = "";
+        /** When true, /api/v1/admin/** only accepts sessions that signed in with a TOTP code. */
+        private boolean adminMfaRequired = false;
     }
 
     @Data

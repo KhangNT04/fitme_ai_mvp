@@ -16,6 +16,7 @@ export const brandNav: PortalNavItem[] = [
 export const adminNav: PortalNavItem[] = [
   { href: "/admin/dashboard", label: "Tổng quan" },
   { href: "/admin/users", label: "Quản lý tài khoản" },
+  { href: "/admin/audit-log", label: "Nhật ký quản trị" },
   { href: "/admin/traffic", label: "Thống kê truy cập" },
   { href: "/admin/brands", label: "Thương hiệu" },
   { href: "/admin/partnerships", label: "Partnerships" },
@@ -32,7 +33,7 @@ export const adminNav: PortalNavItem[] = [
   { href: "/admin/try-on-monitoring", label: "Giám sát thử mặc" },
   { href: "/admin/tryon-avatars", label: "Avatar mẫu thử đồ" },
   { href: "/admin/settings", label: "Cài đặt hệ thống" },
-  { href: "/admin/account", label: "Đổi mật khẩu" },
+  { href: "/admin/account", label: "Tài khoản & bảo mật" },
 ];
 
 const PORTAL_AUTH_ROUTES = [

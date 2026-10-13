@@ -130,6 +130,8 @@ public class UserDataEraser {
         }
         // Brands keep the lead counts but can no longer see who the customer was.
         jdbc.update("UPDATE brand_leads SET user_id = NULL, anonymized_at = NOW() WHERE user_id = :u", p);
+        // The admin audit trail stays (who acted, when), minus details that may quote the person's emails.
+        jdbc.update("UPDATE admin_audit_log SET details = NULL WHERE target_user_id = :u", p);
         p.addValue("hash", passwordEncoder.encode(UUID.randomUUID().toString()));
         jdbc.update("""
                 UPDATE user_accounts SET

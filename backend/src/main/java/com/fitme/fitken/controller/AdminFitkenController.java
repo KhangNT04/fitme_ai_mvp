@@ -1,6 +1,9 @@
 package com.fitme.fitken.controller;
 
+import com.fitme.admin.audit.AdminAuditAction;
+import com.fitme.admin.audit.AdminAuditService;
 import com.fitme.common.dto.ApiResponse;
+import com.fitme.common.security.RequestContext;
 import com.fitme.fitken.dto.AdminFitkenDetailDto;
 import com.fitme.fitken.dto.FitkenAdjustRequest;
 import com.fitme.fitken.service.FitkenSummaryService;
@@ -18,6 +21,7 @@ import java.util.UUID;
 public class AdminFitkenController {
 
     private final FitkenSummaryService summaryService;
+    private final AdminAuditService auditService;
 
     @GetMapping
     public ApiResponse<AdminFitkenDetailDto> detail(@PathVariable UUID userId) {
@@ -27,6 +31,10 @@ public class AdminFitkenController {
     @PostMapping("/adjust")
     public ApiResponse<AdminFitkenDetailDto> adjust(@PathVariable UUID userId,
                                                     @Valid @RequestBody FitkenAdjustRequest request) {
-        return ApiResponse.ok(summaryService.adminAdjust(userId, request.getDelta(), request.getNote()));
+        AdminFitkenDetailDto detail = summaryService.adminAdjust(userId, request.getDelta(), request.getNote());
+        String delta = (request.getDelta() > 0 ? "+" : "") + request.getDelta() + " Fitken";
+        auditService.record(RequestContext.requireUserId(), AdminAuditAction.FITKEN_ADJUSTED, userId,
+                request.getNote() == null || request.getNote().isBlank() ? delta : delta + " · " + request.getNote().trim());
+        return ApiResponse.ok(detail);
     }
 }

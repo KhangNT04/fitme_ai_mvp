@@ -148,7 +148,7 @@ class ConsumerSubscriptionIntegrationTest extends AbstractIntegrationTest {
                 .andExpect(jsonPath("$.data.plan").value("FREE"));
 
         mockMvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders
-                        .put("/api/v1/me/entitlement/users/{userId}", principal.getUserId())
+                        .patch("/api/v1/admin/users/{userId}/consumer-plan", principal.getUserId())
                         .with(user(admin))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"plan\": \"PREMIUM\"}"))

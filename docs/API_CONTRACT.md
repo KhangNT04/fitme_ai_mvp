@@ -123,8 +123,7 @@ Gói người dùng **FitMe Premium** (`PREMIUM_MONTHLY`, mặc định 49.000đ
 | `POST` | `/me/subscription/return` | User | Xác nhận PayOS trả về: Body `{ orderCode }` → `ConsumerBillingOrderDto` (đánh dấu PAID khi PayOS mock). Đơn của người khác bị từ chối |
 | `GET` | `/me/subscription/orders` | User | 10 đơn gói gần nhất: `[{ orderId, payosOrderCode, planId, planName, amountVnd, status, checkoutUrl, createdAt, paidAt }]` |
 | `GET` | `/me/entitlement` | Public | `{ plan: FREE\|PREMIUM, coherenceMode, premium, pro (deprecated, = premium), label, mixPolicy, upsellMessage, premiumPriceVnd, premiumMonthlyFitken }` |
-| `PUT` | `/me/entitlement/users/{userId}` | Admin | Admin gán / huỷ Premium: Body `{ plan: FREE\|PREMIUM, coherenceMode? }` |
-| `PATCH` | `/admin/users/{id}/consumer-plan` | Admin | Như trên, dùng ở trang Quản lý tài khoản ("Lên Premium" / "Về Free"). Lên Premium tạo kỳ 30 ngày và cộng Fitken của gói |
+| `PATCH` | `/admin/users/{id}/consumer-plan` | Admin | Admin gán / huỷ Premium: Body `{ plan: FREE\|PREMIUM }`, dùng ở trang Quản lý tài khoản ("Lên Premium" / "Về Free"). Lên Premium tạo kỳ 30 ngày và cộng Fitken của gói; ghi nhật ký quản trị |
 | `GET` | `/admin/consumers/{userId}/fitken` | Admin | Chi tiết ví Fitken và 50 ledger gần nhất của user |
 | `POST` | `/admin/consumers/{userId}/fitken/adjust` | Admin | Điều chỉnh số dư: Body `{ delta, note }` (−10.000..10.000, khác 0). Không bị áp trần |
 

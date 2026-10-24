@@ -135,27 +135,23 @@ export function DeleteAccountSection() {
 
   return (
     <>
+      {/* Không có tiêu đề riêng: host (tab "Tài khoản" ở /profile, trang /profile/privacy) đã
+          render header "Xoá tài khoản" cho section này. Thêm ở đây sẽ chồng hai tiêu đề. */}
       <div className="rounded-xl border border-destructive/25 bg-destructive/5 p-3 sm:p-4">
-        <div className="flex items-start gap-2.5">
-          <Trash2 className="mt-0.5 h-4 w-4 shrink-0 text-destructive sm:h-5 sm:w-5" aria-hidden="true" />
-          <div className="min-w-0 flex-1">
-            <p className="text-sm font-semibold text-foreground">Xoá tài khoản</p>
-            <p className="mt-1 text-xs leading-relaxed text-muted-foreground sm:text-sm">
-              Xoá vĩnh viễn hồ sơ, ảnh, tủ đồ và lịch sử tư vấn. Bạn có thể chọn khoảng thời gian chờ để
-              huỷ nếu đổi ý. Lịch sử thanh toán được giữ ở dạng ẩn danh cho mục đích kế toán.
-            </p>
-            <Button
-              type="button"
-              variant="destructive"
-              size="sm"
-              className="mt-3 w-full rounded-full sm:w-auto"
-              onClick={() => setOpen(true)}
-            >
-              <Trash2 className="mr-1.5 h-4 w-4" aria-hidden="true" />
-              Xoá tài khoản của tôi
-            </Button>
-          </div>
-        </div>
+        <p className="text-xs leading-relaxed text-muted-foreground sm:text-sm">
+          Xoá vĩnh viễn hồ sơ, ảnh, tủ đồ và lịch sử tư vấn. Bạn có thể chọn khoảng thời gian chờ để
+          huỷ nếu đổi ý. Lịch sử thanh toán được giữ ở dạng ẩn danh cho mục đích kế toán.
+        </p>
+        <Button
+          type="button"
+          variant="destructive"
+          size="sm"
+          className="mt-3 w-full rounded-full sm:w-auto"
+          onClick={() => setOpen(true)}
+        >
+          <Trash2 className="mr-1.5 h-4 w-4" aria-hidden="true" />
+          Xoá tài khoản của tôi
+        </Button>
       </div>
 
       <Dialog open={open} onOpenChange={(next) => setOpen(next)}>

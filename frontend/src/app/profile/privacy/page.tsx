@@ -272,10 +272,10 @@ export default function ProfilePrivacyPage() {
               <Trash2 className="h-3.5 w-3.5 sm:h-4 sm:w-4" aria-hidden="true" />
             </span>
             <h2 className="font-display text-sm font-semibold text-foreground sm:text-base">
-              Xoá tài khoản của tôi
+              Xoá tài khoản
             </h2>
           </div>
-          <div className="px-3 py-3 sm:px-5 sm:py-4">
+          <div className="p-3 sm:p-5">
             <DeleteAccountSection />
           </div>
         </section>

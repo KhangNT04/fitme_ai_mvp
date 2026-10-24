@@ -164,8 +164,8 @@ export function ProfileAccountTab() {
         </section>
       )}
 
-      <section className="surface-card rounded-xl p-3 sm:rounded-2xl sm:p-5">
-        <div className="mb-3 flex items-center gap-2">
+      <section className="surface-card overflow-hidden rounded-xl sm:rounded-2xl">
+        <div className="flex items-center gap-2 border-b border-border/40 px-3 py-2.5 sm:gap-3 sm:px-5 sm:py-3">
           <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-destructive/10 text-destructive sm:h-8 sm:w-8">
             <Trash2 className="h-3.5 w-3.5 sm:h-4 sm:w-4" aria-hidden="true" />
           </span>
@@ -173,7 +173,9 @@ export function ProfileAccountTab() {
             Xoá tài khoản
           </h2>
         </div>
-        <DeleteAccountSection />
+        <div className="p-3 sm:p-5">
+          <DeleteAccountSection />
+        </div>
       </section>
     </div>
   );

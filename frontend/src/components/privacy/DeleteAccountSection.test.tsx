@@ -48,6 +48,15 @@ describe("DeleteAccountSection", () => {
     vi.restoreAllMocks();
   });
 
+  it("does not render its own heading, so the host section header is not duplicated", async () => {
+    renderSection();
+
+    // Host (tab "Tài khoản" ở /profile, trang /profile/privacy) đã render header "Xoá tài khoản".
+    // Nếu component tự render thêm tiêu đề, người dùng thấy hai tiêu đề chồng lên nhau.
+    await screen.findByRole("button", { name: /Xoá tài khoản của tôi/i });
+    expect(screen.queryByText("Xoá tài khoản")).not.toBeInTheDocument();
+  });
+
   it("shows the delete button and opens a confirmation dialog", async () => {
     renderSection();
 

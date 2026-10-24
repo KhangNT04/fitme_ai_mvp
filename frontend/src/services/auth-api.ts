@@ -15,7 +15,7 @@ import { AUTH_TOKEN_KEY, AUTH_REFRESH_KEY, SESSION_STORAGE_KEY } from "@/utils/c
 import { getSignupAttribution } from "@/lib/attribution";
 import { trackEvent } from "@/lib/gtag";
 
-interface BackendAuthResponse {
+export interface BackendAuthResponse {
   userId: string;
   email: string;
   displayName: string;
@@ -36,7 +36,7 @@ function mapRole(role: string): AuthUser["role"] {
   return "USER";
 }
 
-function mapAuthResponse(data: BackendAuthResponse): AuthResponse {
+export function mapAuthResponse(data: BackendAuthResponse): AuthResponse {
   return {
     accessToken: data.accessToken || "",
     refreshToken: data.refreshToken || "",
@@ -97,6 +97,11 @@ export const authApi = {
   getTwoFactorStatus: async (): Promise<TwoFactorStatus> => {
     const res = await apiClient.get("/me/2fa");
     return unwrap(res) as TwoFactorStatus;
+  },
+  /** Renames the account; returns the refreshed session data. */
+  updateDisplayName: async (displayName: string): Promise<AuthResponse> => {
+    const res = await apiClient.put("/me/display-name", { displayName });
+    return mapAuthResponse(unwrap(res));
   },
   setupTwoFactor: async (): Promise<TwoFactorSetup> => {
     const res = await apiClient.post("/me/2fa/setup");

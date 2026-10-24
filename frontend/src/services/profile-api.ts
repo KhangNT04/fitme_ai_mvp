@@ -1,5 +1,6 @@
 import apiClient, { unwrap, type ApiError } from "./api-client";
 import type { BodyProfile, StyleProfile } from "@/types/user";
+import type { ProfileSummary } from "@/types/profile";
 import { normalizeKgWeight } from "@/lib/form-number";
 import {
   bodyProfileToPayload,
@@ -7,6 +8,8 @@ import {
   mergeStyleProfiles,
   styleProfileToPayload,
 } from "@/lib/profile-merge";
+
+export const PROFILE_SUMMARY_QUERY_KEY = ["profile-summary"] as const;
 
 async function fetchProfileOrNull<T>(request: () => Promise<T>): Promise<T | null> {
   try {
@@ -100,6 +103,12 @@ export const profileApi = {
     const merged = mergeStyleProfiles(existing, data);
     const res = await apiClient.post("/me/style-profile", styleProfileToPayload(merged));
     return unwrap(res);
+  },
+
+  /** One request for the whole profile hub: completion checklist, counters and Fitken. */
+  getSummary: async (): Promise<ProfileSummary> => {
+    const res = await apiClient.get("/me/profile-summary");
+    return unwrap(res) as ProfileSummary;
   },
 };
 

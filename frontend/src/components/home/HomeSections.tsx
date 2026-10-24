@@ -9,6 +9,7 @@ import { subscriptionApi } from "@/services/subscription-api";
 import { premiumFitkenPerk, premiumPriceLabel } from "@/lib/premium";
 import { consumerShellHorizontalClass, consumerShellMaxWidthClass } from "@/lib/design-tokens";
 import { cn } from "@/lib/utils";
+import { PricingLink } from "@/components/layout/PricingLink";
 
 const sectionClass = cn("py-16 sm:py-20", consumerShellHorizontalClass, consumerShellMaxWidthClass);
 
@@ -182,9 +183,9 @@ export function PricingTeaserSection() {
             </p>
           </div>
           <Button asChild variant="outline" className="rounded-full sm:col-span-2">
-            <Link href="/pricing">
+            <PricingLink href="/pricing">
               Xem chi tiết gói <ArrowRight className="ml-1.5 h-4 w-4" />
-            </Link>
+            </PricingLink>
           </Button>
         </div>
       </div>

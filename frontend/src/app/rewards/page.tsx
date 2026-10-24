@@ -24,6 +24,7 @@ import { cn } from "@/lib/utils";
 import { DEFAULT_SHARE_REWARD_FITKEN } from "@/utils/constants";
 import { shareClaimSuccessMessage } from "@/lib/share-reward";
 import { fitkenCapMessage, fitkenCapProgressLabel, isAtFreeFitkenCap } from "@/lib/fitken-cap";
+import { PricingLink } from "@/components/layout/PricingLink";
 
 const REWARD_TABS = ["tasks", "history"];
 
@@ -148,7 +149,7 @@ function RewardsContent() {
           <div className="bg-primary-foreground/10 rounded-xl p-3 text-sm flex items-center justify-between">
             <span className="text-left">Nâng cấp FitMe Premium để nhận Fitken hàng tháng</span>
             <Button asChild size="sm" variant="secondary" className="rounded-full shrink-0">
-              <Link href="/pricing">Nâng cấp</Link>
+              <PricingLink href="/pricing">Nâng cấp</PricingLink>
             </Button>
           </div>
         )}

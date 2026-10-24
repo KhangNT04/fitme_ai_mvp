@@ -20,6 +20,7 @@ describe("billingPlanFormSchema", () => {
     fitkenAmount: 0,
     billingPeriodDays: 30,
     active: true,
+    visible: true,
     sortOrder: 100,
     discountPercent: 20,
     discountStartsLocal: "2026-10-01T00:00",

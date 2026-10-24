@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Sparkles } from "lucide-react";
 import { consumerShellHorizontalClass, consumerShellMaxWidthClass } from "@/lib/design-tokens";
+import { PricingFooterLink } from "@/components/layout/PricingFooterLink";
 import { cn } from "@/lib/utils";
 
 const linkClass = "transition-colors hover:text-white";
@@ -34,7 +35,7 @@ export function Footer({ showOnMobile = false }: { showOnMobile?: boolean }) {
               <li><Link href="/discover" className={linkClass}>Sản phẩm</Link></li>
               <li><Link href="/ai/start" className={linkClass}>Tư vấn AI</Link></li>
               <li><Link href="/try-on" className={linkClass}>Thử mặc AI</Link></li>
-              <li><Link href="/pricing" className={linkClass}>Bảng giá FitMe Premium</Link></li>
+              <li><PricingFooterLink className={linkClass} /></li>
             </ul>
           </div>
           <div>

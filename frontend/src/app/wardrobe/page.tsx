@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import Link from "next/link";
 import { AppImage } from "@/components/common/AppImage";
 import { validateImageFile } from "@/lib/upload-file";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -28,6 +27,7 @@ import { catalogProductGridClass, consumerPageShellClass } from "@/lib/design-to
 import { getUserErrorMessage, isPremiumRequiredError } from "@/lib/user-error-message";
 import { toast } from "@/stores/toast-store";
 import type { WardrobeItem } from "@/types/user";
+import { PricingLink } from "@/components/layout/PricingLink";
 
 const EMPTY_FORM = {
   itemType: "",
@@ -389,7 +389,7 @@ function WardrobePremiumUpsell({ priceVnd }: { priceVnd?: number | null }) {
           ))}
         </ul>
         <Button asChild className="rounded-full">
-          <Link href="/pricing">{premiumUpgradeCta(priceVnd)}</Link>
+          <PricingLink href="/pricing">{premiumUpgradeCta(priceVnd)}</PricingLink>
         </Button>
       </CardContent>
     </Card>

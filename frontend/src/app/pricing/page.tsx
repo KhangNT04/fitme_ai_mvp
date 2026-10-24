@@ -17,6 +17,7 @@ import { toast } from "@/stores/toast-store";
 import { cn } from "@/lib/utils";
 import { formatPrice } from "@/utils/format-price";
 import { useShareRewardAmount } from "@/hooks/use-share-reward-amount";
+import { usePricingVisibility } from "@/hooks/use-pricing-visibility";
 import { PREMIUM_PERKS, PREMIUM_PLAN_NAME, premiumFitkenPerk } from "@/lib/premium";
 import { fitkenCapProgressLabel } from "@/lib/fitken-cap";
 
@@ -34,6 +35,7 @@ const FREE_PERKS = [
 
 export default function PricingPage() {
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated());
+  const { showPaid } = usePricingVisibility();
   const { data: wallet, isLoading } = useQuery({
     queryKey: ["fitken-wallet"],
     queryFn: () => fitkenApi.getWallet(),
@@ -90,66 +92,88 @@ export default function PricingPage() {
   return (
     <PageShell width="full" className={consumerPageShellClass}>
       <CollapsingPageHeader
-        title="FitMe Free & Premium"
-        subtitle="Nâng cấp Premium để phối đồ theo brand yêu thích, dùng tủ đồ và nhận Fitken mỗi tháng"
+        title={showPaid ? "FitMe Free & Premium" : "FitMe Free"}
+        subtitle={
+          showPaid
+            ? "Nâng cấp Premium để phối đồ theo brand yêu thích, dùng tủ đồ và nhận Fitken mỗi tháng"
+            : "FitMe Free đang sử dụng miễn phí. Bạn vẫn phối đồ, thử mặc AI và nhận Fitken miễn phí mỗi ngày."
+        }
         backHref="/ai/chat"
         backLabel="Tư vấn"
       />
 
       <div className="mx-auto max-w-3xl space-y-6">
-        <div className="grid gap-4 sm:grid-cols-2">
-          <PlanCard
-            eyebrow="Free"
-            title="Miễn phí"
-            active={isAuthenticated && !walletPending && !isPremium}
-            perks={FREE_PERKS}
-            footer={
-              isPremium || walletPending ? null : (
-                <p className="mt-4 text-sm font-medium text-foreground text-center">
-                  {isAuthenticated ? "Đang dùng" : "Mặc định cho tài khoản mới"}
-                </p>
-              )
-            }
-          />
+        {showPaid ? (
+          <div className="grid gap-4 sm:grid-cols-2">
+            <PlanCard
+              eyebrow="Free"
+              title="Miễn phí"
+              active={isAuthenticated && !walletPending && !isPremium}
+              perks={FREE_PERKS}
+              footer={
+                isPremium || walletPending ? null : (
+                  <p className="mt-4 text-sm font-medium text-foreground text-center">
+                    {isAuthenticated ? "Đang dùng" : "Mặc định cho tài khoản mới"}
+                  </p>
+                )
+              }
+            />
 
-          <PlanCard
-            eyebrow={PREMIUM_PLAN_NAME}
-            title={
-              premiumPlan
-                ? `${formatPrice(premiumPlan.priceVnd)} / tháng`
-                : plansLoading
-                  ? "Đang tải giá…"
-                  : "Sắp mở bán"
-            }
-            highlighted
-            active={isPremium}
-            perks={premiumPerks}
-            footer={
-              <>
-                {isPremium ? (
-                  <div className="mt-4 space-y-2">
-                    <p className="text-sm font-medium text-primary text-center">Bạn đang dùng Premium</p>
-                    {subscription?.expiresAt && (
-                      <p className="text-xs text-center text-muted-foreground">
-                        Hết hạn: {formatDate(subscription.expiresAt)}
-                      </p>
-                    )}
-                  </div>
-                ) : (
-                  <Button
-                    type="button"
-                    className="mt-4 w-full rounded-full"
-                    disabled={checkoutMutation.isPending || isLoading || walletPending || plansLoading || !premiumPlan}
-                    onClick={handleCheckout}
-                  >
-                    <Sparkles className="mr-1.5 h-4 w-4" />
-                    Nâng cấp Premium ngay
-                  </Button>
-                )}
-              </>
-            }
-          />
-        </div>
+            <PlanCard
+              eyebrow={PREMIUM_PLAN_NAME}
+              title={
+                premiumPlan
+                  ? `${formatPrice(premiumPlan.priceVnd)} / tháng`
+                  : plansLoading
+                    ? "Đang tải giá…"
+                    : "Sắp mở bán"
+              }
+              highlighted
+              active={isPremium}
+              perks={premiumPerks}
+              footer={
+                <>
+                  {isPremium ? (
+                    <div className="mt-4 space-y-2">
+                      <p className="text-sm font-medium text-primary text-center">Bạn đang dùng Premium</p>
+                      {subscription?.expiresAt && (
+                        <p className="text-xs text-center text-muted-foreground">
+                          Hết hạn: {formatDate(subscription.expiresAt)}
+                        </p>
+                      )}
+                    </div>
+                  ) : (
+                    <Button
+                      type="button"
+                      className="mt-4 w-full rounded-full"
+                      disabled={checkoutMutation.isPending || isLoading || walletPending || plansLoading || !premiumPlan}
+                      onClick={handleCheckout}
+                    >
+                      <Sparkles className="mr-1.5 h-4 w-4" />
+                      Nâng cấp Premium ngay
+                    </Button>
+                  )}
+                </>
+              }
+            />
+          </div>
+        ) : (
+          <div className="rounded-2xl border border-border/60 bg-card p-5 sm:p-6">
+            <PlanCard
+              eyebrow="Free"
+              title="Miễn phí"
+              active={isAuthenticated && !walletPending && !isPremium}
+              perks={FREE_PERKS}
+              footer={
+                isPremium || walletPending ? null : (
+                  <p className="mt-4 text-sm font-medium text-foreground text-center">
+                    {isAuthenticated ? "Đang dùng" : "Mặc định cho tài khoản mới"}
+                  </p>
+                )
+              }
+            />
+          </div>
+        )}
 
         {!isAuthenticated && (
           <p className="text-center text-xs text-muted-foreground">

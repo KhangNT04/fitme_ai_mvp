@@ -30,6 +30,7 @@ export function emptyBillingPlanForm(audience: PlanAudience = "CONSUMER"): Billi
     fitkenAmount: brand ? 0 : 15,
     billingPeriodDays: 30,
     active: true,
+    visible: true,
     sortOrder: 0,
     discountPercent: null,
     discountStartsLocal: "",
@@ -38,6 +39,7 @@ export function emptyBillingPlanForm(audience: PlanAudience = "CONSUMER"): Billi
 }
 
 export function planToFormValues(plan: BillingPlan): BillingPlanFormValues {
+  const brand = plan.audience === "BRAND";
   return {
     code: plan.code,
     name: plan.name,
@@ -45,8 +47,9 @@ export function planToFormValues(plan: BillingPlan): BillingPlanFormValues {
     planType: plan.planType ?? "SUBSCRIPTION",
     priceVnd: plan.priceVnd,
     fitkenAmount: plan.fitkenAmount,
-    billingPeriodDays: plan.planType === "TOPUP" ? null : (plan.billingPeriodDays ?? 30),
+    billingPeriodDays: brand ? null : (plan.billingPeriodDays ?? 30),
     active: plan.active,
+    visible: plan.visible ?? true,
     sortOrder: plan.sortOrder,
     discountPercent: plan.discountPercent ?? null,
     discountStartsLocal: toDateTimeLocalValue(plan.discountStartsAt),
@@ -66,6 +69,7 @@ export function formValuesToWrite(form: BillingPlanFormValues): BillingPlanWrite
     fitkenAmount: brand ? 0 : form.fitkenAmount,
     billingPeriodDays: form.planType === "TOPUP" ? null : form.billingPeriodDays,
     active: form.active,
+    visible: form.visible,
     sortOrder: form.sortOrder,
     discountPercent: brand ? form.discountPercent : null,
     discountStartsAt: brand ? fromDateTimeLocalValue(form.discountStartsLocal) : null,
@@ -327,13 +331,26 @@ export function BillingPlanForm({
         </fieldset>
       )}
 
-      <label className="flex items-center gap-2 text-sm">
-        <Checkbox
-          checked={form.active}
-          onCheckedChange={(checked) => update({ active: checked === true })}
-        />
-        Đang bán
-      </label>
+      <div className="flex flex-wrap gap-4">
+        <label className="flex items-center gap-2 text-sm">
+          <Checkbox
+            checked={form.active}
+            onCheckedChange={(checked) => update({ active: checked === true })}
+          />
+          Đang bán
+        </label>
+        <label className="flex items-center gap-2 text-sm">
+          <Checkbox
+            checked={form.visible}
+            onCheckedChange={(checked) => update({ visible: checked === true })}
+          />
+          Hiển thị với người dùng
+        </label>
+      </div>
+      <p className="text-xs text-muted-foreground">
+        &quot;Đang bán&quot; quyết định gói có thể mua; &quot;Hiển thị với người dùng&quot; quyết định gói có xuất
+        hiện trên trang bảng giá. Ẩn gói không ảnh hưởng người đã mua.
+      </p>
 
       <div className="flex flex-wrap gap-3">
         <Button type="submit" disabled={loading || !form.code || !form.name}>

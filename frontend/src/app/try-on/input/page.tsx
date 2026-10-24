@@ -48,6 +48,7 @@ import { getUserErrorMessage, isTryOnUnavailableError } from "@/lib/user-error-m
 import { isServerPreviewUrl, resolveImageSrc } from "@/lib/media-url";
 import { toast } from "@/stores/toast-store";
 import { needsFitkenTopUp, tryOnCostLabel } from "@/lib/tryon-cost";
+import { PricingLink } from "@/components/layout/PricingLink";
 
 const INPUT_MODES = [
   { value: "USER_PHOTO", label: "Dùng ảnh cá nhân" },
@@ -670,7 +671,7 @@ export default function TryOnInputPage() {
               <Link href="/rewards">Nhận Fitken miễn phí</Link>
             </Button>
             <Button asChild>
-              <Link href="/pricing">Nâng cấp Premium</Link>
+              <PricingLink href="/pricing">Nâng cấp Premium</PricingLink>
             </Button>
           </div>
         </DialogContent>

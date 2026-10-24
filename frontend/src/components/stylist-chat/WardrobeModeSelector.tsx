@@ -1,10 +1,10 @@
 "use client";
 
-import Link from "next/link";
 import { Lock } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { effectiveWardrobeMode, wardrobeModeOptions } from "@/lib/wardrobe-mode";
 import type { WardrobeMode } from "@/types/user";
+import { PricingLink } from "@/components/layout/PricingLink";
 
 interface WardrobeModeSelectorProps {
   value: WardrobeMode;
@@ -52,9 +52,12 @@ export function WardrobeModeSelector({ value, premium, onChange, disabled }: War
       {hasLocked && (
         <p className="text-[11px] text-muted-foreground">
           Phối kèm đồ trong tủ đồ là tính năng của FitMe Premium.{" "}
-          <Link href="/pricing" className="font-medium text-primary underline-offset-2 hover:underline">
+          <PricingLink
+            href="/pricing"
+            className="font-medium text-primary underline-offset-2 hover:underline"
+          >
             Xem gói Premium
-          </Link>
+          </PricingLink>
         </p>
       )}
     </div>

@@ -5,16 +5,18 @@ import { useQuery } from "@tanstack/react-query";
 import { Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { entitlementApi } from "@/services/entitlement-api";
+import { usePricingVisibility } from "@/hooks/use-pricing-visibility";
 import { premiumUpgradeCta } from "@/lib/premium";
 
 export function PremiumUpsellCard() {
+  const { showPaid } = usePricingVisibility();
   const { data, isLoading } = useQuery({
     queryKey: ["consumer-entitlement"],
     queryFn: () => entitlementApi.getCurrent(),
     staleTime: 60_000,
   });
 
-  if (isLoading || !data || data.premium) {
+  if (!showPaid || isLoading || !data || data.premium) {
     return null;
   }
 

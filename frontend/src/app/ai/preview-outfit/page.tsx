@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import { Plus, Check } from "lucide-react";
@@ -29,6 +28,7 @@ import {
 import { cn } from "@/lib/utils";
 import { PREMIUM_PLAN_NAME } from "@/lib/premium";
 import { isPremiumRequiredError } from "@/lib/user-error-message";
+import { PricingLink } from "@/components/layout/PricingLink";
 
 export default function PreviewOutfitPage() {
   return (
@@ -232,9 +232,12 @@ function PreviewOutfitContent() {
             ) : wardrobeLocked ? (
               <p className="text-sm text-muted-foreground">
                 Phối với đồ trong tủ là tính năng {PREMIUM_PLAN_NAME}.{" "}
-                <Link href="/pricing" className="font-medium text-primary underline-offset-4 hover:underline">
+                <PricingLink
+                  href="/pricing"
+                  className="font-medium text-primary underline-offset-4 hover:underline"
+                >
                   Xem gói Premium
-                </Link>
+                </PricingLink>
               </p>
             ) : wardrobeQuery.data && wardrobeQuery.data.length > 0 ? (
               <div className="space-y-2">

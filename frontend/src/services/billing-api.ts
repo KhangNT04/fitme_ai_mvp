@@ -40,4 +40,13 @@ export const adminBillingApi = {
     const data = unwrap<AdminBrandSubscription[]>(res);
     return Array.isArray(data) ? data : [];
   },
+  /** Global switch: show or hide every paid consumer plan for users. */
+  getPaidVisibility: async (): Promise<boolean> => {
+    const res = await apiClient.get("/admin/pricing/visibility");
+    return Boolean((unwrap(res) as { showPaid: boolean }).showPaid);
+  },
+  setPaidVisibility: async (showPaid: boolean): Promise<boolean> => {
+    const res = await apiClient.put("/admin/pricing/visibility", { showPaid });
+    return Boolean((unwrap(res) as { showPaid: boolean }).showPaid);
+  },
 };

@@ -16,6 +16,8 @@ export interface BillingPlan {
   fitkenAmount: number;
   billingPeriodDays?: number | null;
   active: boolean;
+  /** Shown on the public pricing page (admin toggle); buying is governed by `active`. */
+  visible: boolean;
   sortOrder: number;
   discountPercent?: number | null;
   discountStartsAt?: string | null;
@@ -26,7 +28,10 @@ export interface BillingPlan {
   effectivePriceVnd?: number;
 }
 
-export type BillingPlanWrite = Omit<BillingPlan, "id" | "discountActive" | "effectivePriceVnd">;
+export type BillingPlanWrite = Omit<BillingPlan, "id" | "discountActive" | "effectivePriceVnd"> & {
+  /** Optional on write: an older admin client that omits it keeps the current visibility. */
+  visible?: boolean;
+};
 
 export type BrandVoucherStatus = "ISSUED" | "RESERVED" | "USED" | "REVOKED" | "EXPIRED";
 

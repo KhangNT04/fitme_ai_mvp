@@ -3,15 +3,17 @@
 import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
 import { entitlementApi } from "@/services/entitlement-api";
+import { usePricingVisibility } from "@/hooks/use-pricing-visibility";
 
 export function PremiumUpsellBanner() {
+  const { showPaid } = usePricingVisibility();
   const { data } = useQuery({
     queryKey: ["consumer-entitlement"],
     queryFn: () => entitlementApi.get(),
     staleTime: 60_000,
   });
 
-  if (!data || data.premium) return null;
+  if (!showPaid || !data || data.premium) return null;
 
   return (
     <div className="mb-2 rounded-xl border border-border/60 bg-muted/40 px-3 py-2.5 text-xs leading-relaxed text-muted-foreground sm:text-sm">

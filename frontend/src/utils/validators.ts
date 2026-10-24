@@ -199,6 +199,7 @@ export const billingPlanFormSchema = z
     fitkenAmount: z.number({ error: "Nhập số Fitken" }).int("Số Fitken phải là số nguyên").min(0, "Số Fitken không được âm"),
     billingPeriodDays: z.number().int("Chu kỳ phải là số nguyên").nullable(),
     active: z.boolean(),
+    visible: z.boolean(),
     sortOrder: z.number({ error: "Nhập thứ tự hiển thị" }).int("Thứ tự phải là số nguyên"),
     discountPercent: z
       .number({ error: DISCOUNT_PERCENT_MESSAGE })

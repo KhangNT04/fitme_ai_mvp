@@ -17,6 +17,7 @@ import {
 } from "@/components/portal/PortalActionButton";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { formatPrice } from "@/utils/format-price";
 import {
@@ -79,7 +80,10 @@ function AdminBillingPlansContent() {
           <TabsTrigger value="brand">Gói brand</TabsTrigger>
         </TabsList>
         <TabsContent value="consumer">
-          <PlanList audience="CONSUMER" />
+          <div className="space-y-4">
+            <PaidVisibilitySwitch />
+            <PlanList audience="CONSUMER" />
+          </div>
         </TabsContent>
         <TabsContent value="brand" className="space-y-8">
           <PlanList audience="BRAND" />
@@ -113,6 +117,51 @@ function discountNote(plan: BillingPlan): string | null {
 
 function periodLabel(plan: BillingPlan): string {
   return plan.planType === "TOPUP" ? "Top-up một lần" : `${plan.billingPeriodDays ?? 30} ngày`;
+}
+
+function PaidVisibilitySwitch() {
+  const queryClient = useQueryClient();
+  const { data: showPaid } = useQuery({
+    queryKey: ["admin-paid-visibility"],
+    queryFn: adminBillingApi.getPaidVisibility,
+  });
+
+  const toggle = useMutation({
+    mutationFn: (next: boolean) => adminBillingApi.setPaidVisibility(next),
+    onSuccess: (next) => {
+      void queryClient.invalidateQueries({ queryKey: ["admin-paid-visibility"] });
+      void queryClient.invalidateQueries({ queryKey: ["admin-billing-plans"] });
+      void queryClient.invalidateQueries({ queryKey: ["pricing-visibility"] });
+      actionFeedback({
+        successMessage: next
+          ? "Đã hiển thị gói trả phí cho người dùng"
+          : "Đã ẩn gói trả phí khỏi người dùng",
+      }).onSuccess();
+    },
+    onError: actionFeedback({ errorMessage: "Không lưu được trạng thái hiển thị" }).onError,
+  });
+
+  const visible = showPaid ?? true;
+
+  return (
+    <div className={`${portalCardClass} flex flex-wrap items-center justify-between gap-3 p-4`}>
+      <div className="min-w-0">
+        <p className="font-medium text-foreground">Hiển thị gói trả phí cho người dùng</p>
+        <p className="mt-1 text-sm text-muted-foreground">
+          Tắt để ẩn toàn bộ gói Premium và top-up Fitken: trang bảng giá, nút nâng cấp và lời mời nâng cấp
+          sẽ không hiển thị. Người đã mua vẫn dùng Premium bình thường.
+        </p>
+      </div>
+      <label className="flex shrink-0 cursor-pointer items-center gap-2 text-sm">
+        <Checkbox
+          checked={visible}
+          disabled={toggle.isPending}
+          onCheckedChange={(checked) => toggle.mutate(checked === true)}
+        />
+        {visible ? "Đang hiển thị" : "Đang ẩn"}
+      </label>
+    </div>
+  );
 }
 
 function PlanList({ audience }: { audience: PlanAudience }) {
@@ -170,9 +219,14 @@ function PlanList({ audience }: { audience: PlanAudience }) {
                 {discountNote(plan) && (
                   <p className="mt-1 text-xs text-muted-foreground">{discountNote(plan)}</p>
                 )}
-                <Badge variant="outline" className="mt-2">
-                  {plan.active ? "Đang bán" : "Tắt"}
-                </Badge>
+                <div className="mt-2 flex flex-wrap gap-1.5">
+                  <Badge variant="outline">{plan.active ? "Đang bán" : "Tắt"}</Badge>
+                  {plan.visible ? (
+                    <Badge variant="outline">Hiển thị</Badge>
+                  ) : (
+                    <Badge variant="secondary">Đang ẩn</Badge>
+                  )}
+                </div>
               </div>
             </div>
             <PortalActionGroup className={portalCardActionsClass}>
@@ -213,7 +267,14 @@ function PlanList({ audience }: { audience: PlanAudience }) {
               {!isBrand && <td className={portalTableTdClass}>{plan.fitkenAmount}</td>}
               <td className={portalTableTdClass}>{periodLabel(plan)}</td>
               <td className={portalTableTdClass}>
-                <Badge variant="outline">{plan.active ? "Đang bán" : "Tắt"}</Badge>
+                <div className="flex flex-wrap gap-1.5">
+                  <Badge variant="outline">{plan.active ? "Đang bán" : "Tắt"}</Badge>
+                  {plan.visible ? (
+                    <Badge variant="outline">Hiển thị</Badge>
+                  ) : (
+                    <Badge variant="secondary">Đang ẩn</Badge>
+                  )}
+                </div>
               </td>
               <td className={portalTableTdClass}>
                 <PortalActionGroup className={portalTableActionsClass}>

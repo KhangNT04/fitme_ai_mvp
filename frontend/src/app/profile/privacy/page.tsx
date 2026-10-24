@@ -209,11 +209,11 @@ export default function ProfilePrivacyPage() {
         <ConsentSection />
 
         <section className="surface-card overflow-hidden rounded-xl sm:rounded-2xl">
-          <div className="flex items-center gap-2 border-b border-border/40 px-3 py-2.5 sm:gap-3 sm:px-5 sm:py-3">
+          <div className="flex items-center gap-2 border-b border-border/40 px-3 py-2.5 sm:px-5 sm:py-3">
             <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-destructive/10 text-destructive sm:h-8 sm:w-8">
               <Trash2 className="h-3.5 w-3.5 sm:h-4 sm:w-4" aria-hidden="true" />
             </span>
-            <h2 className="font-display text-sm font-semibold text-foreground sm:text-base">
+            <h2 className="truncate font-display text-sm font-semibold text-foreground sm:text-base">
               Yêu cầu xóa dữ liệu
             </h2>
           </div>
@@ -267,11 +267,11 @@ export default function ProfilePrivacyPage() {
         </section>
 
         <section className="surface-card overflow-hidden rounded-xl sm:rounded-2xl">
-          <div className="flex items-center gap-2 border-b border-border/40 px-3 py-2.5 sm:gap-3 sm:px-5 sm:py-3">
+          <div className="flex items-center gap-2 border-b border-border/40 px-3 py-2.5 sm:px-5 sm:py-3">
             <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-destructive/10 text-destructive sm:h-8 sm:w-8">
               <Trash2 className="h-3.5 w-3.5 sm:h-4 sm:w-4" aria-hidden="true" />
             </span>
-            <h2 className="font-display text-sm font-semibold text-foreground sm:text-base">
+            <h2 className="truncate font-display text-sm font-semibold text-foreground sm:text-base">
               Xoá tài khoản
             </h2>
           </div>

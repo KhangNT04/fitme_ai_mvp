@@ -11,6 +11,8 @@
   --primary-foreground: #ffffff;
   --accent: #fce7f3;
   --accent-foreground: #9d174d;
+  --destructive: #dc2626;
+  --destructive-foreground: #ffffff;
   --ring: #c4b5fd;
   --radius: 1rem;
   --fashion-ink: #0f0e14;
@@ -32,6 +34,8 @@
   --color-primary-foreground: var(--primary-foreground);
   --color-accent: var(--accent);
   --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
   --color-ring: var(--ring);
   --font-sans: var(--font-geist-sans);
   --font-display: var(--font-display);

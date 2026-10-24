@@ -16,6 +16,7 @@ import { Badge } from "@/components/ui/badge";
 import { consumerPageShellClass } from "@/lib/design-tokens";
 import { communityShareCaption, communityShareUrl, shareCommunityPost } from "@/lib/community-share";
 import { getUserErrorMessage } from "@/lib/user-error-message";
+import { DEMO_COMMUNITY_POSTS } from "@/lib/demo-community-data";
 import { cn } from "@/lib/utils";
 import type { CommunityPost } from "@/types";
 
@@ -41,6 +42,7 @@ export default function CommunityOutfitPage() {
   const liked = data?.likedByMe ?? false;
   const saved = data?.savedByMe ?? false;
   const likeCount = data?.likeCount ?? 0;
+  const isDemoPost = DEMO_COMMUNITY_POSTS.some((post) => post.shareCode === shareCode);
 
   const likeMutation = useMutation({
     mutationFn: (next: boolean) => communityApi.setLike(data!.id, next),
@@ -115,6 +117,11 @@ export default function CommunityOutfitPage() {
                 <p className="truncate text-sm font-semibold text-foreground">{data.authorDisplayName}</p>
                 <p className="text-xs text-muted-foreground">{formatDateTime(data.createdAt)}</p>
               </div>
+              {isDemoPost && (
+                <Badge variant="outline" className="shrink-0 border-amber-500/40 text-amber-700 dark:text-amber-400">
+                  Dữ liệu demo
+                </Badge>
+              )}
             </div>
 
             {data.title && <h1 className="font-display text-lg font-bold text-foreground">{data.title}</h1>}

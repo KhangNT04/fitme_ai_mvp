@@ -8,11 +8,20 @@ export interface PricingVisibility {
 
 export const PRICING_VISIBILITY_QUERY_KEY = ["pricing-visibility"] as const;
 
-/** Admin-controlled visibility of the paid consumer plans. */
+/** The paid plans are shown by default, so a failing flag never hides the pricing page. */
+const DEFAULT_VISIBILITY: PricingVisibility = { showPaid: true };
+
 export const pricingApi = {
   getVisibility: async (): Promise<PricingVisibility> => {
-    const res = await apiClient.get("/pricing/visibility");
-    return unwrap(res);
+    try {
+      const res = await apiClient.get("/pricing/visibility");
+      const data = unwrap(res) as Partial<PricingVisibility> | null;
+      return { showPaid: data?.showPaid ?? DEFAULT_VISIBILITY.showPaid };
+    } catch {
+      // The flag endpoint can be missing on an older backend. Showing the plans is the safer
+      // default: the admin switch still hides them once the backend supports it.
+      return DEFAULT_VISIBILITY;
+    }
   },
 };
 
@@ -25,6 +34,7 @@ export function usePricingVisibility(): { showPaid: boolean; isLoading: boolean 
     queryKey: PRICING_VISIBILITY_QUERY_KEY,
     queryFn: pricingApi.getVisibility,
     staleTime: 60_000,
+    retry: false,
   });
-  return { showPaid: data?.showPaid ?? true, isLoading };
+  return { showPaid: data?.showPaid ?? DEFAULT_VISIBILITY.showPaid, isLoading };
 }

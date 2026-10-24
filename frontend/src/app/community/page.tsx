@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useInfiniteQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Heart, Bookmark, Users, Sparkles, TrendingUp, Clock } from "lucide-react";
+import { Heart, Bookmark, Users, Sparkles, TrendingUp, Clock, FlaskConical } from "lucide-react";
 import { communityApi, nextCommunityPage } from "@/services/community-api";
 import { useAuthStore } from "@/stores/auth-store";
 import { toast } from "@/stores/toast-store";
@@ -17,6 +17,8 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { consumerPageShellClass, catalogProductGridClass } from "@/lib/design-tokens";
 import { getUserErrorMessage } from "@/lib/user-error-message";
+import { DEMO_DATA_ENABLED } from "@/lib/demo-data";
+import { useDemoCommunityEnabled, useToggleDemoCommunity } from "@/hooks/use-demo-community";
 import { cn } from "@/lib/utils";
 import type { CommunityPost } from "@/types";
 
@@ -29,9 +31,11 @@ export default function CommunityPage() {
   const queryClient = useQueryClient();
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated());
   const [sort, setSort] = useState<"latest" | "popular">("latest");
+  const demoOn = useDemoCommunityEnabled();
+  const toggleDemo = useToggleDemoCommunity();
 
   const { data, isLoading, isError, hasNextPage, fetchNextPage, isFetchingNextPage } = useInfiniteQuery({
-    queryKey: ["community-feed", sort],
+    queryKey: ["community-feed", sort, demoOn ? "demo" : "live"],
     queryFn: ({ pageParam }) => communityApi.getFeed(pageParam, 24, { sort }),
     initialPageParam: 0,
     getNextPageParam: nextCommunityPage,
@@ -87,8 +91,29 @@ export default function CommunityPage() {
             </button>
           );
         })}
-        <span className="ml-auto text-xs text-muted-foreground">
-          {total > 0 ? `${total} outfit` : ""}
+        <span className="ml-auto flex items-center gap-3">
+          {DEMO_DATA_ENABLED && (
+            <button
+              type="button"
+              onClick={() => {
+                toggleDemo(!demoOn);
+                void queryClient.invalidateQueries({ queryKey: ["community-feed"] });
+              }}
+              aria-pressed={demoOn}
+              className={cn(
+                "inline-flex min-h-9 items-center gap-1.5 rounded-full border px-3 text-xs font-medium transition-colors",
+                demoOn
+                  ? "border-amber-500/40 bg-amber-500/10 text-amber-700 dark:text-amber-400"
+                  : "border-border text-muted-foreground",
+              )}
+            >
+              <FlaskConical className="h-3.5 w-3.5" aria-hidden="true" />
+              {demoOn ? "Dữ liệu demo" : "Dữ liệu thật"}
+            </button>
+          )}
+          <span className="text-xs text-muted-foreground">
+            {total > 0 ? `${total} outfit` : ""}
+          </span>
         </span>
       </div>
 
@@ -115,6 +140,7 @@ export default function CommunityPage() {
                 key={post.id}
                 post={post}
                 canInteract={isAuthenticated}
+                isDemo={post.id.startsWith("demo-post-")}
                 onLike={(liked) => likeMutation.mutate({ postId: post.id, liked })}
                 onSave={(saved) => saveMutation.mutate({ postId: post.id, saved })}
               />
@@ -156,11 +182,13 @@ export default function CommunityPage() {
 function CommunityPostCard({
   post,
   canInteract,
+  isDemo,
   onLike,
   onSave,
 }: {
   post: CommunityPost;
   canInteract: boolean;
+  isDemo?: boolean;
   onLike: (liked: boolean) => void;
   onSave: (saved: boolean) => void;
 }) {
@@ -212,6 +240,12 @@ function CommunityPostCard({
       {post.likeCount > 0 && (
         <span className="absolute right-2 top-2 rounded-full bg-black/50 px-2 py-0.5 text-[10px] font-medium text-white">
           {post.likeCount}
+        </span>
+      )}
+
+      {isDemo && (
+        <span className="absolute left-2 top-2 rounded-full bg-amber-500/90 px-2 py-0.5 text-[10px] font-medium text-white">
+          Demo
         </span>
       )}
     </article>

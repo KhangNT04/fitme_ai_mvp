@@ -1,0 +1,366 @@
+{
+ "generatedAt": "2026-10-24T15:30:11.392Z",
+ "source": "GET https://fitme-ai-mvp.onrender.com/api/v1/products",
+ "items": [
+  {
+   "i": 0,
+   "id": "660691fc-d6a8-4ea0-ba3a-67ce77781b30",
+   "name": "Áo thun Teelab Alter Essentials Oversized TS379",
+   "brand": "Teelab",
+   "cat": "Áo",
+   "price": 240000,
+   "img": "https://pub-e5533a27e48843939533158fe4fbb1a3.r2.dev/catalog-media/vn-11134207-81ztc-mr8ilxdq00ea95.jpg"
+  },
+  {
+   "i": 3,
+   "id": "b80d1f67-45f6-4187-8cb1-e6c6a0c9ab70",
+   "name": "Cardigan len Teelab Alter Simple Love AK125",
+   "brand": "Teelab",
+   "cat": "Áo khoác",
+   "price": 530000,
+   "img": "https://pub-e5533a27e48843939533158fe4fbb1a3.r2.dev/catalog-media/sg-11134201-81zvs-mmv8av8qjsao9a.jpg"
+  },
+  {
+   "i": 4,
+   "id": "7f947fbc-3c90-43b8-af87-d8503c853219",
+   "name": "Áo khoác gió Teelab Alter Windbreaker Legacy AK074",
+   "brand": "Teelab",
+   "cat": "Áo khoác",
+   "price": 440000,
+   "img": "https://pub-e5533a27e48843939533158fe4fbb1a3.r2.dev/catalog-media/sg-11134201-81zuf-mmv86bm4lcsic8.jpg"
+  },
+  {
+   "i": 5,
+   "id": "a0858871-8062-4c05-90a0-5efb39ae8df0",
+   "name": "Quần nỉ Teelab Alter Oversized Classic Pants PS125",
+   "brand": "Teelab",
+   "cat": "Quần",
+   "price": 336000,
+   "img": "https://pub-e5533a27e48843939533158fe4fbb1a3.r2.dev/catalog-media/sg-11134201-81zvj-mmv89tdncufaf0.jpg"
+  },
+  {
+   "i": 6,
+   "id": "92619a20-01e2-41d5-aaa8-836aa7e5a35e",
+   "name": "Quần jeans form rộng Teelab Alter PS116",
+   "brand": "Teelab",
+   "cat": "Quần",
+   "price": 336000,
+   "img": "https://pub-e5533a27e48843939533158fe4fbb1a3.r2.dev/catalog-media/sg-11134201-81zvb-mmv8dmuiyvwl92.jpg"
+  },
+  {
+   "i": 7,
+   "id": "dc031c29-951f-46fc-81d0-6a99ee87211f",
+   "name": "Balo Teelab Alter Racer Backpack AC077",
+   "brand": "Teelab",
+   "cat": "Phụ kiện",
+   "price": 420000,
+   "img": "https://pub-e5533a27e48843939533158fe4fbb1a3.r2.dev/catalog-media/sg-11134201-81zv4-mmv85afm9ds492.jpg"
+  },
+  {
+   "i": 8,
+   "id": "9b1149dd-19bd-47f8-a07e-8caab095c8b2",
+   "name": "Quần shorts nỉ Teelab Alter World Tour SH002",
+   "brand": "Teelab",
+   "cat": "Quần",
+   "price": 300000,
+   "img": "https://pub-e5533a27e48843939533158fe4fbb1a3.r2.dev/catalog-media/sg-11134201-81zw9-mmv8mf8qjsat05.jpg"
+  },
+  {
+   "i": 11,
+   "id": "3946e848-6876-408d-8277-c19ad3ee6b36",
+   "name": "Áo DirtyCoins Soccer Jersey Sparkle",
+   "brand": "DirtyCoins",
+   "cat": "Áo",
+   "price": 603000,
+   "img": "https://pub-e5533a27e48843939533158fe4fbb1a3.r2.dev/catalog-media/vn-11134207-81ztc-mpc0yligj3eofd.jpg"
+  },
+  {
+   "i": 14,
+   "id": "d7cc245c-be1e-4b67-8a47-2f770e452dc6",
+   "name": "Hoodie zip DirtyCoins x Rolling Stones US Tongue",
+   "brand": "DirtyCoins",
+   "cat": "Áo khoác",
+   "price": 927000,
+   "img": "https://pub-e5533a27e48843939533158fe4fbb1a3.r2.dev/catalog-media/vn-11134207-820l4-mhn05v3pihvl40.jpg"
+  },
+  {
+   "i": 16,
+   "id": "4c43c079-1110-4acd-a3d7-eefabcab4816",
+   "name": "Quần jeans baggy DirtyCoins Destroy",
+   "brand": "DirtyCoins",
+   "cat": "Quần",
+   "price": 711000,
+   "img": "https://pub-e5533a27e48843939533158fe4fbb1a3.r2.dev/catalog-media/vn-11134207-7ras8-m408r8hpighz12.jpg"
+  },
+  {
+   "i": 17,
+   "id": "c00f56e5-53ad-421e-8407-7cf85b9fb070",
+   "name": "Quần sweatpants DirtyCoins Star",
+   "brand": "DirtyCoins",
+   "cat": "Quần",
+   "price": 298000,
+   "img": "https://pub-e5533a27e48843939533158fe4fbb1a3.r2.dev/catalog-media/vn-11134207-7ras8-m4ipzrqbb85j45.jpg"
+  },
+  {
+   "i": 18,
+   "id": "b63fd8fb-f102-48c9-b22f-9bc6dde51b4f",
+   "name": "Nón DirtyCoins Y Logo Cap",
+   "brand": "DirtyCoins",
+   "cat": "Phụ kiện",
+   "price": 378000,
+   "img": "https://pub-e5533a27e48843939533158fe4fbb1a3.r2.dev/catalog-media/vn-11134207-7r98o-lwdzbn4ja9jv9b.jpg"
+  },
+  {
+   "i": 20,
+   "id": "8f51f0d3-7573-4f89-87e9-c927936d98e3",
+   "name": "Hoodie zip Regods Ribbon nỉ chân cua",
+   "brand": "Regods",
+   "cat": "Áo khoác",
+   "price": 532000,
+   "img": "https://pub-e5533a27e48843939533158fe4fbb1a3.r2.dev/catalog-media/vn-11134207-81ztc-ms7f9bjunyf848.jpg"
+  },
+  {
+   "i": 22,
+   "id": "48fa8773-6155-4d08-9dc5-9c439a5b7d8f",
+   "name": "Áo thun Regods Militia Tee 280gsm",
+   "brand": "Regods",
+   "cat": "Áo",
+   "price": 324000,
+   "img": "https://pub-e5533a27e48843939533158fe4fbb1a3.r2.dev/catalog-media/vn-11134207-81ztc-mpc3fc0zolxp7d.jpg"
+  },
+  {
+   "i": 24,
+   "id": "843b9467-5fc0-4f64-ae06-ebe4c669e1f4",
+   "name": "Baby tee Regods đính đá chữ R",
+   "brand": "Regods",
+   "cat": "Áo",
+   "price": 210000,
+   "img": "https://pub-e5533a27e48843939533158fe4fbb1a3.r2.dev/catalog-media/vn-11134207-820l4-mgp3ir19g64r1c.jpg"
+  },
+  {
+   "i": 25,
+   "id": "2b09dbc6-ff7c-48c5-8678-758c4008d66c",
+   "name": "Áo thun dài tay Regods Longsleeve Sculpted",
+   "brand": "Regods",
+   "cat": "Áo",
+   "price": 475000,
+   "img": "https://pub-e5533a27e48843939533158fe4fbb1a3.r2.dev/catalog-media/vn-11134201-81ztc-mstcpfthrg915c.jpg"
+  },
+  {
+   "i": 26,
+   "id": "6b6ea469-c9ec-42ce-8085-0dcddb31047e",
+   "name": "Quần ống loe Regods Homeroom Flare Pants",
+   "brand": "Regods",
+   "cat": "Quần",
+   "price": 759000,
+   "img": "https://pub-e5533a27e48843939533158fe4fbb1a3.r2.dev/catalog-media/vn-11134201-81ztc-mt22vi6a70g542.jpg"
+  },
+  {
+   "i": 27,
+   "id": "823b1884-fc3a-4cad-85fb-d8ac1804cf1b",
+   "name": "Quần shorts bí Regods Armor Shorts",
+   "brand": "Regods",
+   "cat": "Quần",
+   "price": 420000,
+   "img": "https://pub-e5533a27e48843939533158fe4fbb1a3.r2.dev/catalog-media/vn-11134207-81ztc-mm951qe2nqitbb.jpg"
+  },
+  {
+   "i": 29,
+   "id": "e3fb09ff-7bd1-4ef2-a29d-9b77c587f352",
+   "name": "Balo chần bông Regods NOIR",
+   "brand": "Regods",
+   "cat": "Phụ kiện",
+   "price": 846000,
+   "img": "https://pub-e5533a27e48843939533158fe4fbb1a3.r2.dev/catalog-media/vn-11134207-820l4-mgnjkclf0jyjaf.jpg"
+  },
+  {
+   "i": 31,
+   "id": "1794b0e9-be7d-41eb-8915-0acb80bf70fb",
+   "name": "Chân váy tennis xếp ly có quần trong",
+   "brand": "ULZZANG",
+   "cat": "Váy",
+   "price": 59000,
+   "img": "https://pub-e5533a27e48843939533158fe4fbb1a3.r2.dev/catalog-media/9d84e372003b416b65eb782de919aa37.jpg"
+  },
+  {
+   "i": 37,
+   "id": "dd58f853-e84d-4567-b917-1661897539d2",
+   "name": "Đầm cổ vuông tay ngắn dáng A",
+   "brand": "ULZZANG",
+   "cat": "Váy",
+   "price": 50000,
+   "img": "https://pub-e5533a27e48843939533158fe4fbb1a3.r2.dev/catalog-media/vn-11134207-7qukw-ljr5lmk83kea6c.jpg"
+  },
+  {
+   "i": 38,
+   "id": "c6b8ad5a-7c52-421b-b353-388f1f05add8",
+   "name": "Áo khoác cardigan ren hoa nổi",
+   "brand": "ULZZANG",
+   "cat": "Áo khoác",
+   "price": 70000,
+   "img": "https://pub-e5533a27e48843939533158fe4fbb1a3.r2.dev/catalog-media/vn-11134207-7r98o-lntz5vasayul7f.jpg"
+  },
+  {
+   "i": 39,
+   "id": "834d8283-dafe-456d-b39b-50fc366cae22",
+   "name": "Áo sơ mi trắng cổ sen buộc nơ",
+   "brand": "ULZZANG",
+   "cat": "Áo",
+   "price": 85000,
+   "img": "https://pub-e5533a27e48843939533158fe4fbb1a3.r2.dev/catalog-media/vn-11134207-81ztc-mk7g768jgmbke4.jpg"
+  },
+  {
+   "i": 41,
+   "id": "08367493-bf8a-49e2-89eb-8bff34b070c3",
+   "name": "Áo len ngắn tay Len Clothing nút màu A2364",
+   "brand": "Len Clothing",
+   "cat": "Áo",
+   "price": 432000,
+   "img": "https://pub-e5533a27e48843939533158fe4fbb1a3.r2.dev/catalog-media/vn-11134207-81ztc-msi4xl2j4jrb04.jpg"
+  },
+  {
+   "i": 42,
+   "id": "583f48f1-ab32-4201-b7dd-d882110ee9cc",
+   "name": "Áo thun dài tay Len Clothing kẻ sọc A2517",
+   "brand": "Len Clothing",
+   "cat": "Áo",
+   "price": 348000,
+   "img": "https://pub-e5533a27e48843939533158fe4fbb1a3.r2.dev/catalog-media/vn-11134207-81ztc-mtj9x8fgoowafa.jpg"
+  },
+  {
+   "i": 43,
+   "id": "d91aceac-8a28-490b-ace3-f6599bbddfa3",
+   "name": "Quần short jeans Len Clothing ống rộng Q841236",
+   "brand": "Len Clothing",
+   "cat": "Quần",
+   "price": 456000,
+   "img": "https://pub-e5533a27e48843939533158fe4fbb1a3.r2.dev/catalog-media/vn-11134207-81ztc-msqs1en59vcw93.jpg"
+  },
+  {
+   "i": 44,
+   "id": "84e1459e-3a77-4468-a05f-0f854afe210a",
+   "name": "Quần jeans ống loe Len Clothing Basic Q2101",
+   "brand": "Len Clothing",
+   "cat": "Quần",
+   "price": 480000,
+   "img": "https://pub-e5533a27e48843939533158fe4fbb1a3.r2.dev/catalog-media/vn-11134207-81ztc-msnp3n04r5e292.jpg"
+  },
+  {
+   "i": 46,
+   "id": "d261c5a8-a76f-43ae-a694-e62a53f57fae",
+   "name": "Chân váy mini xếp li Len Clothing CV2365",
+   "brand": "Len Clothing",
+   "cat": "Váy",
+   "price": 396000,
+   "img": "https://pub-e5533a27e48843939533158fe4fbb1a3.r2.dev/catalog-media/vn-11134207-81ztc-mt3d4ttwwzk5b3.jpg"
+  },
+  {
+   "i": 48,
+   "id": "6fcb3dde-9618-4da0-bcd5-d78a84cc42bb",
+   "name": "Sweater Len Clothing thêu ngôi sao A2501",
+   "brand": "Len Clothing",
+   "cat": "Áo",
+   "price": 396000,
+   "img": "https://pub-e5533a27e48843939533158fe4fbb1a3.r2.dev/catalog-media/vn-11134207-81ztc-mtja5py1ds010b.jpg"
+  },
+  {
+   "i": 51,
+   "id": "dfebd268-b612-4a8e-b581-c14f3afcf495",
+   "name": "Quần âu ống đứng hai ly HAGOO Q361",
+   "brand": "HAGOO",
+   "cat": "Quần",
+   "price": 810000,
+   "img": "https://pub-e5533a27e48843939533158fe4fbb1a3.r2.dev/catalog-media/vn-11134207-81ztc-mqh326aa7mki36.jpg"
+  },
+  {
+   "i": 53,
+   "id": "47ab6518-fd8c-4603-8d3f-4bebf31b6f6e",
+   "name": "Blazer không ve dáng dài HAGOO B459",
+   "brand": "HAGOO",
+   "cat": "Áo khoác",
+   "price": 1460000,
+   "img": "https://pub-e5533a27e48843939533158fe4fbb1a3.r2.dev/catalog-media/vn-11134207-7ras8-mbs164226mb613.jpg"
+  },
+  {
+   "i": 54,
+   "id": "4695d872-129d-4943-87fc-cc0414778600",
+   "name": "Sơ mi trắng dài tay HAGOO Bamboo A929",
+   "brand": "HAGOO",
+   "cat": "Áo",
+   "price": 575000,
+   "img": "https://pub-e5533a27e48843939533158fe4fbb1a3.r2.dev/catalog-media/vn-11134207-81ztc-mqr79ban5vyb11.jpg"
+  },
+  {
+   "i": 57,
+   "id": "92b39828-1407-48c8-8140-facfa5f85890",
+   "name": "Chân váy dài xẻ trước HAGOO CV167",
+   "brand": "HAGOO",
+   "cat": "Váy",
+   "price": 810000,
+   "img": "https://pub-e5533a27e48843939533158fe4fbb1a3.r2.dev/catalog-media/vn-11134207-7r98o-lxxi2scfx78b62.jpg"
+  },
+  {
+   "i": 58,
+   "id": "b7b41253-6510-4ebd-8a38-df2cf424f5cc",
+   "name": "Áo thun dài tay cổ lệch HAGOO A8029",
+   "brand": "HAGOO",
+   "cat": "Áo",
+   "price": 720000,
+   "img": "https://pub-e5533a27e48843939533158fe4fbb1a3.r2.dev/catalog-media/vn-11134207-820l4-mfz2fyhy172i67.jpg"
+  },
+  {
+   "i": 60,
+   "id": "5a72f399-5fc4-4bc4-94d9-24e1d0cff4f6",
+   "name": "Sơ mi lụa tay dài GUMAC nẹp giấu nút",
+   "brand": "GUMAC",
+   "cat": "Áo",
+   "price": 375000,
+   "img": "https://pub-e5533a27e48843939533158fe4fbb1a3.r2.dev/catalog-media/sg-11134201-82588-mu0drtb49p8l11.jpg"
+  },
+  {
+   "i": 62,
+   "id": "05dfee36-d628-4eef-8ed7-76aabdb315fb",
+   "name": "Chân váy chữ A công sở GUMAC",
+   "brand": "GUMAC",
+   "cat": "Váy",
+   "price": 330000,
+   "img": "https://pub-e5533a27e48843939533158fe4fbb1a3.r2.dev/catalog-media/sg-11134201-825ad-mu0ds24r7hmu8f.jpg"
+  },
+  {
+   "i": 63,
+   "id": "9f1ad661-42a9-440b-890d-c9a3d05104be",
+   "name": "Đầm chữ A phối nơ cổ GUMAC",
+   "brand": "GUMAC",
+   "cat": "Váy",
+   "price": 499000,
+   "img": "https://pub-e5533a27e48843939533158fe4fbb1a3.r2.dev/catalog-media/sg-11134201-825aq-mu0ds2rs5koz66.jpg"
+  },
+  {
+   "i": 64,
+   "id": "b802a845-826f-4003-a7d0-bf89b2281ff6",
+   "name": "Áo polo nữ GUMAC cotton TICI",
+   "brand": "GUMAC",
+   "cat": "Áo",
+   "price": 198000,
+   "img": "https://pub-e5533a27e48843939533158fe4fbb1a3.r2.dev/catalog-media/sg-11134201-825ar-mu0dq9u2eqkh13.jpg"
+  },
+  {
+   "i": 66,
+   "id": "a2b2d99f-5bc1-4f2a-a33c-8313f806a22e",
+   "name": "Quần jeans dáng suông GUMAC",
+   "brand": "GUMAC",
+   "cat": "Quần",
+   "price": 524000,
+   "img": "https://pub-e5533a27e48843939533158fe4fbb1a3.r2.dev/catalog-media/sg-11134201-8258o-mu0dr8135z40d5.jpg"
+  },
+  {
+   "i": 68,
+   "id": "3121ad8a-9ead-415a-a58c-d6c303255817",
+   "name": "Giày cao gót mũi nhọn GUMAC",
+   "brand": "GUMAC",
+   "cat": "Giày",
+   "price": 495000,
+   "img": "https://pub-e5533a27e48843939533158fe4fbb1a3.r2.dev/catalog-media/sg-11134201-8259i-mu0dpzen318h44.jpg"
+  }
+ ]
+}

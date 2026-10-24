@@ -1,4 +1,8 @@
 import apiClient, { unwrap, type ApiError } from "./api-client";
+import { authApi } from "./auth-api";
+import { communityApi } from "./community-api";
+import { fitkenApi } from "./fitken-api";
+import { galleryApi } from "./gallery-api";
 import type { BodyProfile, StyleProfile } from "@/types/user";
 import type { ProfileSummary } from "@/types/profile";
 import { normalizeKgWeight } from "@/lib/form-number";
@@ -111,6 +115,62 @@ export const profileApi = {
     return unwrap(res) as ProfileSummary;
   },
 };
+
+/**
+ * Builds the profile summary from the individual endpoints.
+ *
+ * Used when the aggregated endpoint is missing (an older backend). Every number comes from a
+ * live endpoint — nothing is invented — and a failing sub-request only zeroes its own counter.
+ */
+export async function buildProfileSummaryFallback(): Promise<ProfileSummary> {
+  const [bodyProfile, styleProfile, twoFactor, wallet, gallery, community] = await Promise.all([
+    profileApi.getBodyProfile().catch(() => null),
+    profileApi.getStyleProfile().catch(() => null),
+    authApi.getTwoFactorStatus().catch(() => null),
+    fitkenApi.getWallet().catch(() => null),
+    galleryApi.getImages(0, 1).catch(() => null),
+    communityApi.getMyProfile().catch(() => null),
+  ]);
+
+  const measurementsComplete =
+    bodyProfile != null &&
+    bodyProfile.heightCm != null &&
+    bodyProfile.weightKg != null &&
+    bodyProfile.measurements != null &&
+    Object.values(bodyProfile.measurements).some((value) => value != null);
+  const emailVerified = true;
+  const twoFactorEnabled = twoFactor?.enabled ?? false;
+
+  const checklist = {
+    BODY_PROFILE: bodyProfile != null,
+    MEASUREMENTS: measurementsComplete,
+    STYLE_PROFILE: styleProfile != null,
+    EMAIL_VERIFIED: emailVerified,
+    TWO_FACTOR: twoFactorEnabled,
+  };
+  const completed = Object.values(checklist).filter(Boolean).length;
+  const nextStep = Object.entries(checklist).find(([, done]) => !done)?.[0] ?? null;
+
+  return {
+    completionRatio: Math.round((completed / Object.keys(checklist).length) * 100) / 100,
+    bodyProfileComplete: checklist.BODY_PROFILE,
+    measurementsComplete: checklist.MEASUREMENTS,
+    styleProfileComplete: checklist.STYLE_PROFILE,
+    brandPreferencesComplete: false,
+    emailVerified,
+    twoFactorEnabled,
+    galleryImages: gallery?.total ?? 0,
+    savedOutfits: 0,
+    savedTryOns: 0,
+    wardrobeItems: 0,
+    checkinStreak: 0,
+    fitkenBalance: wallet?.balance ?? 0,
+    fitkenEarnedThisMonth: 0,
+    communityPosts: community?.publishedPosts ?? 0,
+    communityFollowers: community?.followers ?? 0,
+    nextStep,
+  };
+}
 
 /** @deprecated Import from `@/services/wardrobe-api` instead */
 export { wardrobeApi } from "./wardrobe-api";

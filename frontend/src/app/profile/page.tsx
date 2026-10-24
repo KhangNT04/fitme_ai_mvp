@@ -4,7 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
 import { LogOut, UserRound, Sparkles, Gift } from "lucide-react";
-import { profileApi, PROFILE_SUMMARY_QUERY_KEY } from "@/services/profile-api";
+import { profileApi, buildProfileSummaryFallback, PROFILE_SUMMARY_QUERY_KEY } from "@/services/profile-api";
 import { useAuthStore } from "@/stores/auth-store";
 import { useSavedProfiles } from "@/hooks/use-saved-profiles";
 import { Button } from "@/components/ui/button";
@@ -57,9 +57,18 @@ export default function ProfilePage() {
 
   const { data: summary, isLoading: summaryLoading } = useQuery({
     queryKey: PROFILE_SUMMARY_QUERY_KEY,
-    queryFn: profileApi.getSummary,
+    queryFn: async () => {
+      try {
+        return await profileApi.getSummary();
+      } catch {
+        // The aggregated endpoint may be missing on an older backend; rebuild it from the
+        // individual endpoints so the profile hub still renders real numbers.
+        return buildProfileSummaryFallback();
+      }
+    },
     enabled: isAuthenticated(),
     staleTime: 30_000,
+    retry: false,
   });
 
   if (!isAuthenticated()) {

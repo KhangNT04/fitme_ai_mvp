@@ -1,4 +1,6 @@
 import apiClient, { unwrap } from "./api-client";
+import { demoCommunity } from "@/lib/demo-community-store";
+import { shouldUseDemoCommunity } from "@/lib/demo-data";
 import type {
   CommunityPost,
   CommunityPostInteraction,
@@ -24,21 +26,58 @@ function toPage(data: Partial<CommunityPostPage> | null, page: number, size: num
   };
 }
 
+/**
+ * Runs the real request, and falls back to the local demo dataset when the API is unavailable.
+ *
+ * The fallback only ever replaces a *failed* read: a live backend always wins, so a deployed
+ * build shows real data as soon as the backend is available again.
+ */
+async function withDemoFallback<T>(
+  request: () => Promise<T>,
+  fallback: () => T,
+): Promise<T> {
+  try {
+    return await request();
+  } catch (error) {
+    if (!shouldUseDemoCommunity()) throw error;
+    return fallback();
+  }
+}
+
 export const communityApi = {
   getFeed: async (
     page = 0,
     size = COMMUNITY_PAGE_SIZE,
     filters?: { brandId?: string; styleLabel?: string; sort?: "latest" | "popular" },
   ): Promise<CommunityPostPage> => {
-    const res = await apiClient.get("/community/posts", {
-      params: { page, size, ...(filters ?? {}) },
-    });
-    return toPage(unwrap(res) as Partial<CommunityPostPage> | null, page, size);
+    return withDemoFallback(
+      async () => {
+        const res = await apiClient.get("/community/posts", {
+          params: { page, size, ...(filters ?? {}) },
+        });
+        return toPage(unwrap(res) as Partial<CommunityPostPage> | null, page, size);
+      },
+      () => {
+        const sorted = filters?.sort === "popular" ? "popular" : "latest";
+        return sorted === "popular"
+          ? demoCommunity.popularFeed(page, size)
+          : demoCommunity.feed(page, size);
+      },
+    );
   },
 
   getByShareCode: async (shareCode: string): Promise<CommunityPost> => {
-    const res = await apiClient.get(`/community/posts/${shareCode}`);
-    return unwrap(res) as CommunityPost;
+    return withDemoFallback(
+      async () => {
+        const res = await apiClient.get(`/community/posts/${shareCode}`);
+        return unwrap(res) as CommunityPost;
+      },
+      () => {
+        const post = demoCommunity.byShareCode(shareCode);
+        if (!post) throw new Error("Outfit không tồn tại");
+        return post;
+      },
+    );
   },
 
   getAuthorPosts: async (
@@ -46,16 +85,27 @@ export const communityApi = {
     page = 0,
     size = COMMUNITY_PAGE_SIZE,
   ): Promise<CommunityPostPage> => {
-    const res = await apiClient.get(`/community/authors/${authorId}/posts`, { params: { page, size } });
-    return toPage(unwrap(res) as Partial<CommunityPostPage> | null, page, size);
+    return withDemoFallback(
+      async () => {
+        const res = await apiClient.get(`/community/authors/${authorId}/posts`, { params: { page, size } });
+        return toPage(unwrap(res) as Partial<CommunityPostPage> | null, page, size);
+      },
+      () => demoCommunity.feed(page, size),
+    );
   },
 
   getSavedPosts: async (page = 0, size = COMMUNITY_PAGE_SIZE): Promise<CommunityPostPage> => {
-    const res = await apiClient.get("/me/community/saves", { params: { page, size } });
-    return toPage(unwrap(res) as Partial<CommunityPostPage> | null, page, size);
+    return withDemoFallback(
+      async () => {
+        const res = await apiClient.get("/me/community/saves", { params: { page, size } });
+        return toPage(unwrap(res) as Partial<CommunityPostPage> | null, page, size);
+      },
+      () => demoCommunity.saved(page, size),
+    );
   },
 
   createPost: async (payload: CreateCommunityPostRequest): Promise<CreateCommunityPostResult> => {
+    // Publishing is never faked: a demo build must not claim a post went live.
     const res = await apiClient.post("/community/posts", payload);
     return unwrap(res) as CreateCommunityPostResult;
   },
@@ -66,17 +116,35 @@ export const communityApi = {
   },
 
   setLike: async (postId: string, liked: boolean): Promise<CommunityPostInteraction> => {
-    const res = liked
-      ? await apiClient.post(`/community/posts/${postId}/like`)
-      : await apiClient.delete(`/community/posts/${postId}/like`);
-    return unwrap(res) as CommunityPostInteraction;
+    return withDemoFallback(
+      async () => {
+        const res = liked
+          ? await apiClient.post(`/community/posts/${postId}/like`)
+          : await apiClient.delete(`/community/posts/${postId}/like`);
+        return unwrap(res) as CommunityPostInteraction;
+      },
+      () => {
+        const result = demoCommunity.toggleLike(postId, liked);
+        if (!result) throw new Error("Không tìm thấy bài đăng");
+        return result;
+      },
+    );
   },
 
   setSave: async (postId: string, saved: boolean): Promise<CommunityPostInteraction> => {
-    const res = saved
-      ? await apiClient.post(`/community/posts/${postId}/save`)
-      : await apiClient.delete(`/community/posts/${postId}/save`);
-    return unwrap(res) as CommunityPostInteraction;
+    return withDemoFallback(
+      async () => {
+        const res = saved
+          ? await apiClient.post(`/community/posts/${postId}/save`)
+          : await apiClient.delete(`/community/posts/${postId}/save`);
+        return unwrap(res) as CommunityPostInteraction;
+      },
+      () => {
+        const result = demoCommunity.toggleSave(postId, saved);
+        if (!result) throw new Error("Không tìm thấy bài đăng");
+        return result;
+      },
+    );
   },
 
   follow: async (userId: string): Promise<boolean> => {
@@ -90,7 +158,12 @@ export const communityApi = {
   },
 
   getMyProfile: async (): Promise<CommunityProfile> => {
-    const res = await apiClient.get("/community/me");
-    return unwrap(res) as CommunityProfile;
+    return withDemoFallback(
+      async () => {
+        const res = await apiClient.get("/community/me");
+        return unwrap(res) as CommunityProfile;
+      },
+      () => demoCommunity.profile(),
+    );
   },
 };

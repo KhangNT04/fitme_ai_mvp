@@ -79,6 +79,7 @@ Các `errorCode` thường gặp:
 |------------------|-------------------|--------|----------------|
 | `session-api.ts` | `SessionController` | `/sessions` | Public |
 | `auth-api.ts` | `AuthController` | `/auth` | Public |
+| `account-email-api.ts` | `AccountEmailController` | `/me/email` | User auth (đổi email đăng nhập) |
 | `entitlement-api.ts` | `ConsumerEntitlementController` | `/me/entitlement` | Public / Admin |
 | `brand-preference-api.ts` | `BrandPreferenceController` | `/me/brand-preferences` | User auth (lưu cần Premium) |
 | `profile-api.ts` | `ProfileController` | `/me` | User auth / Session |
@@ -95,12 +96,14 @@ Các `errorCode` thường gặp:
 | `rewards-api.ts` | `RewardController` | `/rewards` | User auth |
 | `review-api.ts` | `ReviewController` | `/products/{id}/reviews`, `/reviews` | Public / User auth |
 | `gallery-api.ts` | `GalleryController` | `/me/gallery` | User auth |
+| `community-api.ts` | `CommunityController`, `CommunityInteractionController`, `CommunitySavedController` | `/community`, `/me/community` | Public (feed / permalink) / User auth (đăng, thích, lưu, theo dõi) |
 | `brand-api.ts` | `BrandDashboardController`, `BrandProductController`, `BrandPublicController` | `/brand`, `/brands` | `BRAND_OWNER` / Public |
 | `brand-plus-api.ts` | `BrandPlusController`, `BrandVoucherController` | `/brand/plan`, `/brand/vouchers` | `BRAND_OWNER` |
 | `brand-lead-api.ts` | `BrandLeadController` | `/brand/leads` | `BRAND_OWNER` (chi tiết cần Plus) |
 | `billing-api.ts` | `AdminBillingController`, `AdminBrandPlusController` | `/admin/billing/plans`, `/admin/brand-subscriptions` | `ADMIN` |
 | `voucher-api.ts` | `AdminVoucherCampaignController` | `/admin/voucher-campaigns`, `/admin/brand-vouchers` | `ADMIN` |
 | `settings-api.ts` | `AdminSystemSettingsController` | `/admin/settings` | `ADMIN` |
+| `use-pricing-visibility.ts` | `PricingVisibilityController`, `AdminPricingVisibilityController` | `/pricing/visibility`, `/admin/pricing/visibility` | Public / `ADMIN` |
 | `traffic-api.ts` | `SiteTrafficController` | `/analytics/visit`, `/admin/traffic` | Public / `ADMIN` |
 | `admin-api.ts` | `AdminController`, `AdminUserController`, `AdminProductController`, `AdminFitkenController`, `AdminRewardController`, `AdminReviewController`, `AdminGalleryController` | `/admin` | `ADMIN` |
 
@@ -127,7 +130,32 @@ Gói người dùng **FitMe Premium** (`PREMIUM_MONTHLY`, mặc định 49.000đ
 | `GET` | `/admin/consumers/{userId}/fitken` | Admin | Chi tiết ví Fitken và 50 ledger gần nhất của user |
 | `POST` | `/admin/consumers/{userId}/fitken/adjust` | Admin | Điều chỉnh số dư: Body `{ delta, note }` (−10.000..10.000, khác 0). Không bị áp trần |
 
-`BillingPlanDto`: `{ id, code, name, planType: SUBSCRIPTION\|TOPUP, audience: CONSUMER\|BRAND, priceVnd, fitkenAmount, billingPeriodDays, active, sortOrder, discountPercent, discountStartsAt, discountEndsAt, discountActive, effectivePriceVnd }`.
+`BillingPlanDto`: `{ id, code, name, planType: SUBSCRIPTION\|TOPUP, audience: CONSUMER\|BRAND, priceVnd, fitkenAmount, billingPeriodDays, active, visible, sortOrder, discountPercent, discountStartsAt, discountEndsAt, discountActive, effectivePriceVnd }`.
+
+`visible` (mặc định `true`) cho biết gói có được hiện với người dùng hay không. Admin ẩn gói ở
+trang **Quản trị → Gói dịch vụ** hoặc tắt cờ "Hiển thị với người dùng" trong form tạo/sửa gói.
+Gói bị ẩn không xuất hiện trong `GET /plans`, không hiện trên trang `/pricing`, và
+`POST /me/subscription/checkout` từ chối với `errorCode = PLAN_HIDDEN`.
+Người dùng **đã mua** gói bị ẩn vẫn giữ nguyên quyền lợi Premium — cờ `visible` chỉ ảnh hưởng
+tín hiệu bán hàng, không thu hồi entitlement.
+
+### 1c. Hiển thị gói trả phí (pricing visibility)
+
+Admin có thể ẩn toàn bộ gói trả phí (cờ toàn cục) và từng gói (cờ per-plan). Khi cờ toàn cục tắt,
+mọi gói trả phí bị ẩn với người dùng kể cả gói admin bật `visible = true`.
+
+| Method | Path | Auth | Mô tả & Body / Query |
+|---|---|---|---|
+| `GET` | `/pricing/visibility` | Public | `{ showPaid: boolean }` — cờ toàn cục do admin điều chỉnh (system setting `pricing.show_paid`) |
+| `GET` | `/admin/pricing/visibility` | Admin | `{ showPaid: boolean }` — trạng thái hiện tại |
+| `PUT` | `/admin/pricing/visibility` | Admin | Body `{ showPaid: boolean }` → `{ showPaid }`. Tắt cờ sẽ ẩn mọi gói trả phí; bật lại khôi phục các gói có `visible = true` |
+
+Khi `showPaid = false`:
+- Trang `/pricing` ẩn thẻ gói Premium và khối nạp thêm Fitken; hero đổi nội dung sang bản miễn phí.
+- Mọi CTA "Nâng cấp Premium" trên web (`PricingLink`, `PricingFooterLink`, hồ sơ cá nhân) bị ẩn.
+- `/me/entitlement` không trả `upsellMessage` / `premiumPriceVnd` (không còn thuyết phục mua).
+- Người dùng đã mua Premium vẫn dùng đầy đủ tính năng Premium, không bị mất quyền.
+
 
 `BillingOrderStatus`: `PENDING` | `PAID` | `FAILED` | `CANCELLED` | `EXPIRED`. Đơn `PENDING` quá 24 giờ (`fitme.billing.pending-expiry-hours`) chuyển `EXPIRED`, quét mỗi 15 phút.
 
@@ -180,6 +208,27 @@ Múi giờ tính toán: `Asia/Ho_Chi_Minh`. Thưởng bị giới hạn bởi tr
 | `DELETE` | `/me/gallery/{id}` | User | Xóa mềm ảnh khỏi thư viện cá nhân |
 | `GET` | `/admin/gallery/stats` | Admin | Thống kê: `{ totalImages, imagesLast7Days, usersWithImages }` |
 
+### 4b. Cộng đồng thời trang (Community)
+
+Người dùng đăng ảnh thử mặc trong thư viện lên cộng đồng công khai. Mọi response **không bao giờ** chứa `userId` hay `email` của tác giả — chỉ có `authorDisplayName` và `authorInitials`.
+
+| Method | Path | Auth | Mô tả & Body / Query |
+|---|---|---|---|
+| `GET` | `/community/posts?page=0&size=24&sort=latest\|popular&brandId=&styleLabel=` | Public | Feed cộng đồng: `{ items: [CommunityPostDto], page, size, total }`. `CommunityPostDto`: `{ id, shareCode, shareUrl, title, caption, styleLabel, occasion, imageUrl, authorDisplayName, authorInitials, brandNames, products: [{ productId, name, imageUrl, price }], likeCount, commentCount, viewCount, likedByMe, savedByMe, mine, createdAt }`. `likedByMe`/`savedByMe` = false với khách |
+| `GET` | `/community/posts/{shareCode}` | Public | Permalink công khai của 1 outfit (`shareCode` 10 ký tự, ví dụ `/outfit/a1b2c3d4`). Mỗi lượt xem của người khác tăng `viewCount` |
+| `GET` | `/community/authors/{authorId}/posts?page=0&size=24` | Public | Bài đăng công khai của 1 tác giả |
+| `POST` | `/community/posts` | User | Đăng bài: Body `{ galleryImageId, title?, caption? }` → `{ post, shareUrl }`. Ảnh phải thuộc thư viện của người đăng nhập |
+| `DELETE` | `/community/posts/{postId}` | User | Gỡ bài của chính mình (chuyển `visibility = REMOVED`, bài biến mất khỏi feed) |
+| `POST` / `DELETE` | `/community/posts/{postId}/like` | User | Thích / bỏ thích → `{ postId, likeCount, likedByMe, savedByMe }`. Không thích bài của chính mình |
+| `POST` / `DELETE` | `/community/posts/{postId}/save` | User | Lưu / bỏ lưu → `{ postId, likeCount, likedByMe, savedByMe }` |
+| `POST` / `DELETE` | `/community/users/{followedId}/follow` | User | Theo dõi / bỏ theo dõi tác giả → `boolean` (đang theo dõi hay không). Không theo dõi chính mình |
+| `GET` | `/community/me` | User | Số liệu cộng đồng của tôi: `{ publishedPosts, savedPosts, followers, following, totalLikesReceived }` |
+| `GET` | `/me/community/saves?page=0&size=24` | User | Bài đăng đã lưu: `{ items, page, size, total }` |
+| `GET` | `/admin/community/stats` | Admin | `{ totalPosts, postsLast7Days, authorsWithPosts, totalLikes, totalViews }` |
+| `DELETE` | `/admin/community/posts/{postId}` | Admin | Ẩn bài vi phạm (`visibility = HIDDEN`) |
+
+**Consent `COMMUNITY_SHARE`**: đăng bài công khai cần người dùng đồng ý trước, nếu chưa có consent hoặc đã rút lại → `400 CONSENT_REQUIRED` ("Bạn cần đồng ý chia sẻ ảnh công khai trước khi đăng"). Xoá dữ liệu cá nhân (`PHOTO_UPLOAD` / `ALL`) sẽ gỡ toàn bộ bài đăng, lượt thích, lượt lưu và quan hệ theo dõi của người dùng.
+
 ### 5. Mua tại cửa hàng gốc & chia sẻ thông tin với brand
 
 FitMe không bán hàng. Nút mua tạo sự kiện bấm mua rồi chuyển khách tới `purchaseUrl` của sản phẩm.
@@ -190,7 +239,7 @@ FitMe không bán hàng. Nút mua tạo sự kiện bấm mua rồi chuyển kh�
 | `GET` | `/redirects/{eventId}` | Public | Lấy lại sự kiện (trang `/redirect/loading` dùng URL của sự kiện, bỏ qua `?url=`) |
 | `GET` | `/redirects/history` | User | Lịch sử bấm mua: `{ items: [{ eventId, productId, productName, brandName, price, currency, purchaseUrl, channel, selectedSize, selectedColor, purchasedConfirmed, purchasedConfirmedAt, clickedAt }] }` |
 | `POST` | `/redirects/{eventId}/purchased` | User | Tự xác nhận đã mua (dùng cho nhãn "Đã mua hàng" của đánh giá) |
-| `POST` | `/privacy/consent` | User / Session | Body `{ consentType: PRIVACY_NOTICE\|PHOTO_UPLOAD\|WARDROBE_IMAGE_UPLOAD\|AI_PREVIEW\|BRAND_LEAD_SHARING, accepted }`. Bản ghi mới nhất có hiệu lực; `accepted=false` là rút lại |
+| `POST` | `/privacy/consent` | User / Session | Body `{ consentType: PRIVACY_NOTICE\|PHOTO_UPLOAD\|WARDROBE_IMAGE_UPLOAD\|AI_PREVIEW\|BRAND_LEAD_SHARING\|COMMUNITY_SHARE, accepted }`. Bản ghi mới nhất có hiệu lực; `accepted=false` là rút lại |
 | `GET` | `/privacy/consent` | User / Session | `{ [consentType]: boolean }` theo bản ghi mới nhất |
 | `POST` | `/privacy/deletion-requests` | User | Yêu cầu xoá dữ liệu. Xoá "Toàn bộ tài khoản" ẩn danh hoá khách quan tâm (`brand_leads.user_id = NULL`), xoá brand yêu thích |
 
@@ -247,7 +296,7 @@ Webhook PayOS (`/webhooks/payos`) dùng chung cho đơn người dùng và đơn
 |---|---|---|---|
 | `GET` | `/admin/billing/plans?audience=CONSUMER\|BRAND` | Admin | Danh sách gói (bỏ `audience` = tất cả): `[BillingPlanDto]` |
 | `GET` | `/admin/billing/plans/{id}` | Admin | Chi tiết gói |
-| `POST` | `/admin/billing/plans` | Admin | Tạo gói: Body `{ code, name, planType, audience, priceVnd, fitkenAmount, billingPeriodDays, active, sortOrder, discountPercent?, discountStartsAt?, discountEndsAt? }` |
+| `POST` | `/admin/billing/plans` | Admin | Tạo gói: Body `{ code, name, planType, audience, priceVnd, fitkenAmount, billingPeriodDays, active, visible, sortOrder, discountPercent?, discountStartsAt?, discountEndsAt? }` |
 | `PUT` | `/admin/billing/plans/{id}` | Admin | Cập nhật gói (không đổi được `code`, `audience`) |
 | `DELETE` | `/admin/billing/plans/{id}` | Admin | Xoá gói chưa có người mua |
 | `GET` | `/admin/brand-subscriptions` | Admin | Brand đã mua Plus: `[{ brandId, brandName, status, active, startsAt, endsAt }]` |
@@ -301,6 +350,7 @@ Lỗi voucher (admin):
 | `fitken.max_balance` | Trần Fitken miễn phí | 50 | 0–100000 |
 | `tryon.plus_free_daily` | Lượt thử đồ miễn phí mỗi ngày (brand Plus) | 3 | 0–100 |
 | `recommendation.plus_boost` | Điểm ưu tiên gợi ý (brand Plus) | 15 | 0–100 (0 = tắt) |
+| `pricing.show_paid` | Hiển thị gói trả phí với người dùng | 1 | 0–1 (0 = ẩn toàn bộ gói trả phí) |
 
 Lỗi: 404 "Cài đặt không tồn tại"; 400 `SETTING_INVALID` với một trong các thông điệp:
 
@@ -342,9 +392,56 @@ Lỗi: 404 "Cài đặt không tồn tại"; 400 `SETTING_INVALID` với một t
 - `POST /auth/verify-email`, `/auth/resend-code`
 - `POST /auth/forgot-password`, `/auth/reset-password`
 
+### Đổi email đăng nhập (self-service)
+
+Người dùng tự đổi email đăng nhập của tài khoản: **xác nhận mật khẩu → xác minh email mới**.
+Email cũ vẫn đăng nhập được cho tới khi mã xác minh được xác nhận.
+
+| Method | Path | Auth | Mô tả & Body / Query |
+|---|---|---|---|
+| `GET` | `/me/email` | User | Trạng thái yêu cầu đổi email đang chờ: `{ pending, pendingEmail, requestedAt, expiresAt }`. Không có yêu cầu → `pending = false`, các trường còn lại `null` |
+| `POST` | `/me/email/request` | User | Bước 1. Body `{ currentPassword, newEmail }` → `EmailChangeStatusDto`. Kiểm tra mật khẩu (sai → 400 "Mật khẩu hiện tại không đúng"); email mới phải hợp lệ và chưa dùng (trùng email hiện tại → 400 `EMAIL_UNCHANGED`, trùng tài khoản khác → 400 `EMAIL_TAKEN`); sinh mã 6 chữ số và gửi về email mới (hết hạn sau `auth.verification-ttl-seconds`) |
+| `POST` | `/me/email/confirm` | User | Bước 2. Body `{ code }` → `AuthResponse` (session mới, email mới + `emailVerified = true`). Mã sai → 400 `EMAIL_CHANGE_CODE_INVALID`; mã hết hạn → 400 `EMAIL_CHANGE_CODE_EXPIRED`; không có yêu cầu đang chờ → 400 `NO_PENDING_EMAIL_CHANGE` |
+| `DELETE` | `/me/email/pending` | User | Huỷ yêu cầu đang chờ → `EmailChangeStatusDto` (`pending = false`) |
+
+Ghi chú:
+- Mỗi tài khoản chỉ có một yêu cầu đổi email đang chờ; yêu cầu mới ghi đè yêu cầu cũ.
+- Khi đổi thành công, hệ thống gửi thông báo `EMAIL_CHANGED_BY_USER` tới **cả** email cũ và email mới.
+- Email mới được đánh dấu đã xác minh ngay khi xác nhận mã, không cần bước xác minh riêng.
+- Việc đổi email không ảnh hưởng Fitken, tủ đồ, gallery hay gói đang mua.
+
+
 ### Profile & Wardrobe
 - `GET|POST /me/body-profile`, `GET|POST /me/style-profile`
-- `GET|POST|PUT|DELETE /wardrobe/items`, `POST /wardrobe/items/{id}/image` — chỉ Premium; Free / khách nhận 403 `PREMIUM_REQUIRED` "Tủ đồ là tính năng của FitMe Premium". Món đã có được giữ khi hết Premium
+- `GET /me/profile-summary` — **một request** cho toàn bộ trang hồ sơ: `{ completionRatio, bodyProfileComplete, measurementsComplete, styleProfileComplete, brandPreferencesComplete, emailVerified, twoFactorEnabled, galleryImages, savedOutfits, savedTryOns, wardrobeItems, checkinStreak, fitkenBalance, fitkenEarnedThisMonth, communityPosts, communityFollowers, nextStep }`. `completionRatio` là tỉ lệ 0..1 của checklist 5 bước (`BODY_PROFILE`, `MEASUREMENTS`, `STYLE_PROFILE`, `EMAIL_VERIFIED`, `TWO_FACTOR`); `nextStep` là bước chưa hoàn thiện đầu tiên, `null` khi đã xong hết
+- `PUT /me/display-name` — đổi tên hiển thị tại chỗ: Body `{ displayName }` → session mới. Tên tối đa 80 ký tự, không được để trống. Tên hiển thị là thông tin công khai trong bài đăng cộng đồng
+- `GET|POST /wardrobe/items`, `POST /wardrobe/items/{id}/image` — chỉ Premium; Free / khách nhận 403 `PREMIUM_REQUIRED` "Tủ đồ là tính năng của FitMe Premium". Món đã có được giữ khi hết Premium
+
+### Tự xoá tài khoản (self-service account deletion)
+
+Người dùng tự xoá tài khoản của chính mình, **không cần admin duyệt**. Yêu cầu được đặt lịch sau
+một khoảng chờ (grace period) để kịp huỷ; khi hết hạn, job nền xoá dữ liệu và vô hiệu hoá đăng nhập.
+
+| Method | Path | Auth | Mô tả & Body / Query |
+|---|---|---|---|
+| `POST` | `/me/account-deletion` | User | Đặt lịch xoá. Body `{ currentPassword, confirmationText, reason?, gracePeriodDays? }` → `{ requestId, status, requestedAt, scheduledFor, daysRemaining, reason }`. `currentPassword` phải đúng (sai → 400 `PASSWORD_INCORRECT`); `confirmationText` phải đúng cụm `XOA TAI KHOAN`; `gracePeriodDays` mặc định **7**, khoảng `0..90` (`0` = xoá ngay, không huỷ được). Chỉ role `USER` — brand/admin nhận 400 `DELETION_MANUAL_REVIEW`. Đã có yêu cầu đang chờ → 400 `ACCOUNT_DELETION_ALREADY_PENDING` |
+| `POST` | `/me/account-deletion/cancel` | User | Huỷ yêu cầu đang chờ. Body tuỳ chọn `{ reason? }` → `{ requestId, status: "CANCELLED", ... }`. Không có yêu cầu đang chờ → 404 |
+| `GET` | `/me/account-deletion` | User | Trạng thái yêu cầu hiện tại. Chưa từng yêu cầu → `{ requestId: null, status: null, scheduledFor: null, daysRemaining: null }` |
+
+Hệ thống tự xử lý:
+- Job `AccountDeletionJob` chạy mỗi giờ (`0 25 * * * *`, Asia/Ho_Chi_Minh), quét yêu cầu `ACCOUNT_DELETION`
+  còn `PENDING` và đã hết hạn, rồi gọi `UserDataEraser.eraseAll()` — xoá ảnh, tủ đồ, hồ sơ cơ thể,
+  gu thời trang, lịch sử tư vấn, đánh giá, bài đăng cộng đồng; ẩn danh hoá `brand_leads`;
+  chuyển `user_accounts.status = 'DELETED'` và đổi email thành `deleted-<id>@deleted.fitme.invalid`.
+  Lịch sử thanh toán gói được giữ ở dạng ẩn danh cho mục đích kế toán.
+- Admin **không** xử lý sớm yêu cầu tự xoá: `POST /admin/privacy/deletion-requests/{id}/process`
+  trả 400 `DELETION_SELF_SERVICE`.
+- Email xác nhận gửi tới chủ tài khoản khi đặt lịch (`ACCOUNT_DELETION_SCHEDULED`) và khi huỷ
+  (`ACCOUNT_DELETION_CANCELLED`).
+
+Yêu cầu xoá dữ liệu thường (`POST /privacy/deletion-requests`) vẫn dùng cho các loại dữ liệu lẻ;
+`requestType = ALL` xoá dữ liệu + ẩn danh hoá nhưng **không** vô hiệu hoá đăng nhập — dùng luồng
+`/me/account-deletion` khi muốn xoá hẳn tài khoản.
 
 ### Catalog & Gợi ý phối đồ
 - `GET /products`, `GET /products/{id}`, `GET /products/{id}/similar` — sản phẩm và brand có `plusBrand` (brand đang Plus); gợi ý cộng điểm ưu tiên `recommendation.plus_boost` cho sản phẩm brand Plus

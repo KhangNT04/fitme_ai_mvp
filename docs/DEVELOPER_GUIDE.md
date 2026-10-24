@@ -96,6 +96,7 @@ Package gốc: `com.fitme`
 | `rewards` | Điểm danh nhận thưởng chuỗi 3 ngày, gửi duyệt bài đăng chia sẻ |
 | `review` | Đánh giá sản phẩm có ảnh, nhãn "Đã mua hàng" (tự xác nhận mua hoặc lead brand Plus đã bán) |
 | `gallery` | Thư viện ảnh outfit cá nhân (`outfit_gallery_images`) |
+| `community` | Cộng đồng thời trang: bài đăng công khai, permalink `/outfit/{shareCode}`, like / lưu / theo dõi (chỉ đọc `gallery` / `product` / `brand`, không phụ thuộc ngược lại) |
 | `session` | Anonymous session, link-to-user |
 | `auth` | Register, login, refresh, reset password, email verification |
 | `userprofile` | Body/style profile (`/me`) |
@@ -108,7 +109,7 @@ Package gốc: `com.fitme`
 | `preview` | Photo upload + preview generation (FASHN / IDM-VTON) |
 | `redirect` | Buy-click, chuyển sang cửa hàng gốc, lịch sử mua, tự xác nhận đã mua, tạo lead |
 | `feedback` | User feedback on recommendations |
-| `privacy` | Consent (kể cả `BRAND_LEAD_SHARING`), deletion requests |
+| `privacy` | Consent (kể cả `BRAND_LEAD_SHARING`), deletion requests, tự xoá tài khoản (`/me/account-deletion`) |
 | `analytics` | Dashboard brand / admin, tăng trưởng, retention, khách trả tiền, truy cập |
 | `admin` | Rules, flagged links, privacy admin, monitoring, quản lý tài khoản, avatar thử đồ |
 | `storage` | Local file storage (`./uploads`) / Cloudflare R2 |
@@ -126,6 +127,10 @@ Package gốc: `com.fitme`
 | `RewardController` | `/api/v1/rewards` | User auth |
 | `ReviewController` | `/api/v1/products/{id}/reviews`, `/api/v1/reviews` | Public / User auth |
 | `GalleryController` | `/api/v1/me/gallery` | User auth |
+| `CommunityController` | `/api/v1/community/posts`, `/api/v1/community/authors` | Public (GET) / User auth (POST, DELETE) |
+| `CommunityInteractionController` | `/api/v1/community` | User auth |
+| `CommunitySavedController` | `/api/v1/me/community/saves` | User auth |
+| `AdminCommunityController` | `/api/v1/admin/community` | `ADMIN` |
 | `BrandPreferenceController` | `/api/v1/me/brand-preferences` | User auth (PUT cần Premium) |
 | `BrandPlusController` | `/api/v1/brand/plan` | `BRAND_OWNER` |
 | `BrandVoucherController` | `/api/v1/brand/vouchers` | `BRAND_OWNER` |
@@ -155,6 +160,7 @@ Package gốc: `com.fitme`
 | `PreviewController` | `/api/v1/previews` | Session |
 | `RedirectController` | `/api/v1/redirects` | Public |
 | `PrivacyController` | `/api/v1/privacy` | Auth |
+| `AccountDeletionController` | `/api/v1/me/account-deletion` | Auth |
 | `BrandProductController` | `/api/v1/brand/products` | `BRAND_OWNER` |
 | `BrandDashboardController` | `/api/v1/brand` | `BRAND_OWNER` |
 | `BrandApplicationController` | `/api/v1/brand/applications` | Authenticated USER |
@@ -458,6 +464,8 @@ User re-login                → JWT mới có role BRAND_OWNER
 | `FITME_FREE_COHERENCE_MODE` / `FITME_PREMIUM_COHERENCE_MODE` | OFF / PREFER | Coherence mode theo gói (`FITME_PLUS_COHERENCE_MODE` cũ vẫn được đọc làm fallback) |
 | `FITME_FREE_PREFERENCE_SCALE` / `FITME_PREMIUM_PREFERENCE_SCALE` | 1.0 / 1.75 | Trọng số sở thích theo gói (`FITME_PLUS_PREFERENCE_SCALE` cũ là fallback) |
 | `FITME_FITKEN_*` | xem `application.yml` | Trial (5), thưởng điểm danh / chia sẻ / đánh giá, giá 1 lượt thử |
+| `FITME_COMMUNITY_POST_DAILY_LIMIT` | 5 | Số bài cộng đồng tối đa mỗi ngày (Asia/Ho_Chi_Minh); `0` = không giới hạn |
+| `FITME_COMMUNITY_SHARE_BASE_URL` | `/outfit/` | Base URL dựng link chia sẻ công khai; frontend tự ghép `/outfit/{shareCode}` |
 | `fitme.billing.pending-expiry-hours` | 24 | Property (không có trong `application.yml`): đơn gói `PENDING` quá số giờ này bị `EXPIRED` |
 
 Đã bỏ cùng thương mại (V27): `PAYOS_ORDER_*`, `FITME_COMMERCE_*`, `FITME_LOGISTICS_WEBHOOK_TOKEN`.
@@ -497,6 +505,8 @@ mvn test
 - Testcontainers PostgreSQL — cần Docker
 - MockMvc integration tests per controller
 - Service unit tests (recommendation sub-services)
+
+**Lưu ý khi chạy song song:** nếu Testcontainers không kết nối được Docker daemon, `TestDatabaseManager` fallback sang container CLI `fitme-test-postgres` (port `55432`). Mỗi lần chạy sẽ tạo **database riêng** (`fitme_test_<random>`) trong container đó và tự xoá khi JVM kết thúc — nên chạy `mvn test` song song 2 lần vẫn an toàn. Nếu chạy trùng, màn hình sẽ báo `relation "user_accounts" does not exist` vì lần chạy trước đã dọn dữ liệu.
 
 ### 7.3 Frontend unit
 

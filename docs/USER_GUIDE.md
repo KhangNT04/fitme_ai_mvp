@@ -311,6 +311,7 @@ flowchart LR
 | Brand yêu thích | `/profile/style-preferences` | Premium: lưu brand yêu thích & chế độ phối |
 | Tủ đồ | `/wardrobe` | Premium: thêm item cá nhân vào tủ ảo |
 | Hồ sơ | `/profile` | Body/style profile |
+| Đổi email đăng nhập | `/profile` → "Bảo mật tài khoản" | Xác nhận mật khẩu → xác minh mã 6 chữ số gửi về email mới. Email cũ vẫn đăng nhập được tới khi xác nhận mã |
 | Quyền riêng tư | `/profile/privacy` | Consent (kể cả chia sẻ thông tin với brand), yêu cầu xóa dữ liệu |
 | Outfit đã lưu | `/saved-outfits` | Quản lý gợi ý phối đồ đã lưu |
 
@@ -478,6 +479,27 @@ Hai tab:
 
 Quy tắc: không đổi được mã gói hoặc đối tượng (người dùng / brand) sau khi tạo; gói đã có người mua thì tắt (`active=false`) thay vì xóa.
 
+**Ẩn / hiện gói trả phí (mục 5.5b).**
+
+### 5.5b Ẩn gói trả phí cho người dùng
+
+Có hai tầng điều khiển, cùng nằm trong tab **Gói người dùng** của `/admin/billing/plans`:
+
+1. **Từng gói** — cờ "Hiển thị với người dùng" trong form tạo/sửa gói (mặc định bật).
+   Danh sách gói hiển thị badge **Hiển thị** / **Đang ẩn**, và có công tắc bật/tắt nhanh ngay trên bảng.
+2. **Toàn cục** — công tắc **"Hiển thị gói trả phí"** trên đầu tab. Tắt công tắc này sẽ ẩn **mọi**
+   gói trả phí với người dùng, kể cả những gói đang bật cờ per-plan.
+
+Khi gói đang bị ẩn:
+- Trang `/pricing` không hiện thẻ gói Premium và khối nạp thêm Fitken; hero chuyển sang bản miễn phí.
+- Mọi nút "Nâng cấp Premium" trên web và trong hồ sơ bị ẩn.
+- `POST /api/v1/me/subscription/checkout` từ chối với `errorCode = PLAN_HIDDEN`.
+- `/me/entitlement` không còn trả thông điệp thuyết phục mua.
+
+**Người dùng đã mua Premium không bị mất quyền** khi gói bị ẩn — cờ chỉ ảnh hưởng tín hiệu bán hàng,
+không thu hồi entitlement. Bật lại cờ toàn cục sẽ khôi phục các gói có cờ per-plan đang bật.
+
+
 ### 5.6 Voucher brand (`/admin/vouchers`)
 
 1. Tạo **chiến dịch**: tên, % giảm (1–99), số voucher mỗi brand (1–100), số brand tối đa, thời gian hiệu lực, bật/tắt.
@@ -492,6 +514,7 @@ Quy tắc: không đổi được mã gói hoặc đối tượng (người dùn
 | Trần Fitken miễn phí | 50 | Mức tối đa Fitken từ quà dùng thử / nhận thưởng trong ví |
 | Lượt thử đồ miễn phí mỗi ngày (brand Plus) | 3 | Số lượt thử miễn phí / khách / ngày cho sản phẩm brand Plus (0 = tắt) |
 | Điểm ưu tiên gợi ý (brand Plus) | 15 | Mức ưu tiên sản phẩm brand Plus trong gợi ý AI (0 = tắt) |
+| Hiển thị gói trả phí | 1 | Hiển thị gói trả phí cho người dùng (0 = ẩn toàn bộ — xem mục 5.5b) |
 
 Giá trị phải là số nguyên trong khoảng cho phép; thay đổi có hiệu lực trong khoảng 1 phút.
 

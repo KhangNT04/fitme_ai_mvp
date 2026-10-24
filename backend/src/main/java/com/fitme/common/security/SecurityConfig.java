@@ -59,13 +59,22 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST, "/api/v1/products/*/view").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/v1/analytics/visit").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/v1/brands/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/v1/community/posts/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/v1/community/authors/**").permitAll()
+                        .requestMatchers("/api/v1/community/**").authenticated()
                         .requestMatchers(HttpMethod.GET, "/api/v1/recommendations/**").permitAll()
                         .requestMatchers("/api/v1/recommendations/**").permitAll()
                         .requestMatchers("/api/v1/redirects/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/v1/plans", "/api/v1/plans/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/v1/pricing/visibility").permitAll()
                         .requestMatchers("/api/v1/rewards/**", "/api/v1/reviews/**").authenticated()
                         .requestMatchers("/api/v1/me/fitken/**", "/api/v1/me/subscription/**",
-                                "/api/v1/me/gallery/**", "/api/v1/me/password", "/api/v1/me/2fa", "/api/v1/me/2fa/**",
+                                "/api/v1/me/gallery/**", "/api/v1/me/password", "/api/v1/me/password/**",
+                                "/api/v1/me/display-name", "/api/v1/me/profile-summary",
+                                "/api/v1/me/email", "/api/v1/me/email/**",
+                                "/api/v1/me/account-deletion", "/api/v1/me/account-deletion/**",
+                                "/api/v1/me/community/**",
+                                "/api/v1/me/2fa", "/api/v1/me/2fa/**",
                                 "/api/v1/me/brand-preferences", "/api/v1/me/brand-preferences/**").authenticated()
                         .requestMatchers("/api/v1/me/**").permitAll()
                         .requestMatchers("/api/v1/wardrobe/**").permitAll()

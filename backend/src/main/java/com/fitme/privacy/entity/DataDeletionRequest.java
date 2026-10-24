@@ -17,7 +17,6 @@ import java.util.UUID;
 @AllArgsConstructor
 @Builder
 public class DataDeletionRequest {
-
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
@@ -43,4 +42,19 @@ public class DataDeletionRequest {
 
     @Column(name = "completed_at")
     private Instant completedAt;
+
+    /** End of the grace period for {@link DeletionRequestType#ACCOUNT_DELETION}; null for other types. */
+    @Column(name = "grace_period_ends_at")
+    private Instant gracePeriodEndsAt;
+
+    /** Why the user asked to delete their account, kept for product follow-up. */
+    @Column(name = "reason")
+    private String reason;
+
+    /** Why the user cancelled, kept for support follow-up. */
+    @Column(name = "cancellation_reason")
+    private String cancellationReason;
+
+    @Column(name = "cancelled_at")
+    private Instant cancelledAt;
 }

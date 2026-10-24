@@ -849,6 +849,38 @@ PUT /me/style-profile
 DELETE /me/style-profile
 ```
 
+### 8.3.1 Tự xoá tài khoản (self-service account deletion)
+
+Người dùng tự xoá tài khoản của chính mình, **không cần admin duyệt**. Yêu cầu được đặt lịch
+sau một khoảng chờ (grace period) để kịp huỷ; job nền xoá dữ liệu và vô hiệu hoá đăng nhập khi hết hạn.
+
+```http
+POST /me/account-deletion          # Body: { currentPassword, confirmationText, reason?, gracePeriodDays? }
+POST /me/account-deletion/cancel   # Body tuỳ chọn: { reason? }
+GET  /me/account-deletion          # Trạng thái yêu cầu hiện tại
+```
+
+```txt
+currentPassword    : mật khẩu hiện tại (sai → 400 PASSWORD_INCORRECT)
+confirmationText   : phải đúng cụm "XOA TAI KHOAN" (chống xoá nhầm)
+gracePeriodDays    : 0..90, mặc định 7 (0 = xoá ngay, không huỷ được)
+```
+
+Quy tắc:
+
+- Chỉ role `USER` — brand/admin nhận 400 `DELETION_MANUAL_REVIEW` (cần xử lý thủ công).
+- Đã có yêu cầu đang chờ → 400 `ACCOUNT_DELETION_ALREADY_PENDING`.
+- `AccountDeletionJob` (`@Scheduled(cron = "0 25 * * * *")`) quét yêu cầu hết hạn rồi gọi
+  `UserDataEraser.eraseAll()` — xoá ảnh, tủ đồ, hồ sơ cơ thể, gu thời trang, lịch sử tư vấn, đánh giá,
+  bài đăng cộng đồng; ẩn danh hoá `brand_leads`; set `user_accounts.status = 'DELETED'` và đổi email
+  thành `deleted-<id>@deleted.fitme.invalid`. Lịch sử thanh toán gói giữ ở dạng ẩn danh cho kế toán.
+- Admin **không** xử lý sớm yêu cầu tự xoá: `POST /admin/privacy/deletion-requests/{id}/process`
+  trả 400 `DELETION_SELF_SERVICE`.
+- Cột `data_deletion_requests.grace_period_ends_at` là `TIMESTAMPTZ`; deadline được so sánh bằng
+  `now()` của database để không lệch múi giờ với JVM.
+- Yêu cầu xoá dữ liệu lẻ (`POST /privacy/deletion-requests`) vẫn dùng `requestType` khác `ALL`;
+  `ALL` xoá dữ liệu nhưng **không** vô hiệu hoá đăng nhập.
+
 Anonymous version can use session token header:
 
 ```txt

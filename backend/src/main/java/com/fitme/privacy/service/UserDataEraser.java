@@ -1,5 +1,6 @@
 package com.fitme.privacy.service;
 
+import com.fitme.community.service.CommunityService;
 import com.fitme.gallery.service.GalleryService;
 import com.fitme.storage.StorageService;
 import com.fitme.storage.StoredMediaPaths;
@@ -42,6 +43,7 @@ public class UserDataEraser {
 
     private final NamedParameterJdbcTemplate jdbc;
     private final GalleryService galleryService;
+    private final CommunityService communityService;
     private final StorageService storageService;
     private final PasswordEncoder passwordEncoder;
 
@@ -76,6 +78,7 @@ public class UserDataEraser {
         MapSqlParameterSource p = owner(userId, sessionId);
         if (userId != null) {
             galleryService.purgeForUser(userId);
+            communityService.purgeForUser(userId);
         }
         List<String> files = new ArrayList<>();
         files.addAll(jdbc.queryForList("SELECT file_url FROM user_photo_uploads WHERE " + OWNER, p, String.class));

@@ -118,6 +118,10 @@ public class PrivacyService {
                 requireConsumerAccount(userId);
                 userDataEraser.eraseAll(userId, sessionId);
             }
+            // Self-service deletion runs on its own schedule; admins must not trigger it early.
+            case ACCOUNT_DELETION -> throw new BusinessException(
+                    "Yêu cầu xoá tài khoản tự động sẽ được hệ thống xử lý khi hết thời gian chờ.",
+                    "DELETION_SELF_SERVICE");
         }
         req.setStatus(DeletionRequestStatus.COMPLETED);
         req.setCompletedAt(Instant.now());

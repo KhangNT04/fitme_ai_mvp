@@ -12,6 +12,7 @@ import com.fitme.common.enums.BillingPlanType;
 import com.fitme.common.enums.PlanAudience;
 import com.fitme.common.exception.BusinessException;
 import com.fitme.common.exception.NotFoundException;
+import com.fitme.settings.service.SystemSettingsService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -29,6 +30,7 @@ public class BillingPlanService {
     private final BrandBillingOrderRepository brandOrderRepository;
     private final BrandSubscriptionRepository brandSubscriptionRepository;
     private final BillingDtoMapper dtoMapper;
+    private final com.fitme.settings.service.SystemSettingsService settingsService;
 
     public List<BillingPlanDto> listAll(PlanAudience audience) {
         List<BillingPlan> plans = audience == null
@@ -37,13 +39,30 @@ public class BillingPlanService {
         return plans.stream().map(dtoMapper::toDto).toList();
     }
 
+    /** True when the paid consumer plans may be shown to users. */
+    public boolean pricingVisible() {
+        return settingsService.pricingShowPaid();
+    }
+
+    /** Admin switch: show or hide every paid consumer plan for users. */
+    @Transactional
+    public void setPricingVisible(boolean showPaid, UUID adminId) {
+        settingsService.update(SystemSettingsService.PRICING_SHOW_PAID, showPaid ? "1" : "0", adminId);
+    }
+
     public BillingPlanDto get(UUID id) {
         return dtoMapper.toDto(getEntity(id));
     }
 
-    /** Plans consumers can buy (public pricing page). */
+    /**
+     * Plans consumers can buy (public pricing page). Hidden plans and plans hidden by the global
+     * {@code pricing.show_paid} switch are left out; admins still see every plan.
+     */
     public List<BillingPlanDto> listActiveConsumerPlans() {
-        return planRepository.findByAudienceAndActiveTrueOrderBySortOrderAsc(PlanAudience.CONSUMER).stream()
+        if (!settingsService.pricingShowPaid()) {
+            return List.of();
+        }
+        return planRepository.findByAudienceAndActiveTrueAndVisibleTrueOrderBySortOrderAsc(PlanAudience.CONSUMER).stream()
                 .map(dtoMapper::toDto)
                 .toList();
     }
@@ -101,6 +120,10 @@ public class BillingPlanService {
         plan.setQuotaAmount(brandPlan ? 0 : request.getFitkenAmount());
         plan.setBillingPeriodDays(request.getBillingPeriodDays());
         plan.setActive(request.isActive());
+        // Null keeps the current value, so an older admin client cannot silently re-show a hidden plan.
+        if (request.getVisible() != null) {
+            plan.setVisible(request.getVisible());
+        }
         plan.setSortOrder(request.getSortOrder());
         plan.setDiscountPercent(request.getDiscountPercent());
         plan.setDiscountStartsAt(request.getDiscountStartsAt());

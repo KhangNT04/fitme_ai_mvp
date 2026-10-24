@@ -1,4 +1,10 @@
 spring:
+  datasource:
+    # The shared test container allows only 100 connections; several test classes run in
+    # parallel and each needs its own small pool, so keep the per-class pool tiny.
+    hikari:
+      maximum-pool-size: 4
+      minimum-idle: 1
   jpa:
     hibernate:
       ddl-auto: validate

@@ -9,6 +9,9 @@ import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.sql.Connection;
 import java.sql.DriverManager;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -25,6 +28,13 @@ public final class TestDatabaseManager {
     private static final String USERNAME = "fitme";
     private static final String PASSWORD = "fitme123";
 
+    /**
+     * Database actually used by this JVM run. Each run gets its own database inside the shared
+     * container so two concurrent {@code mvn test} invocations cannot drop each other's schema.
+     */
+    private static volatile String activeJdbcUrl;
+    private static volatile String activeDatabaseName;
+
     private TestDatabaseManager() {
     }
 
@@ -38,25 +48,56 @@ public final class TestDatabaseManager {
     }
 
     public static void ensureFallbackDatabase() {
-        if (isReachable(JDBC_URL, USERNAME, PASSWORD)) {
-            return;
+        if (!isReachable(JDBC_URL, USERNAME, PASSWORD)) {
+            log.warn("Testcontainers unavailable; starting fallback PostgreSQL via Docker CLI on port 55432");
+            removeExistingContainer();
+            runDocker(
+                    "run", "-d",
+                    "--name", CONTAINER_NAME,
+                    "-e", "POSTGRES_DB=fitme_test",
+                    "-e", "POSTGRES_USER=" + USERNAME,
+                    "-e", "POSTGRES_PASSWORD=" + PASSWORD,
+                    "-p", "55432:5432",
+                    "postgres:16-alpine"
+            );
+            awaitDatabase(JDBC_URL, USERNAME, PASSWORD);
         }
-        log.warn("Testcontainers unavailable; starting fallback PostgreSQL via Docker CLI on port 55432");
-        removeExistingContainer();
-        runDocker(
-                "run", "-d",
-                "--name", CONTAINER_NAME,
-                "-e", "POSTGRES_DB=fitme_test",
-                "-e", "POSTGRES_USER=" + USERNAME,
-                "-e", "POSTGRES_PASSWORD=" + PASSWORD,
-                "-p", "55432:5432",
-                "postgres:16-alpine"
-        );
-        awaitDatabase(JDBC_URL, USERNAME, PASSWORD);
+        activeJdbcUrl = createRunScopedDatabase();
+    }
+
+    /**
+     * Creates a database dedicated to this run and points the tests at it. Flyway then migrates
+     * that database from scratch, so a concurrent run (or a stale container) can never leave the
+     * schema half-applied.
+     */
+    private static String createRunScopedDatabase() {
+        String database = "fitme_test_" + UUID.randomUUID().toString().replace("-", "").substring(0, 12);
+        try (Connection connection = DriverManager.getConnection(JDBC_URL, USERNAME, PASSWORD);
+             Statement statement = connection.createStatement()) {
+            statement.execute("CREATE DATABASE " + database);
+        } catch (SQLException ex) {
+            log.warn("Could not create run-scoped database {} ({}); falling back to the shared one",
+                    database, ex.getMessage());
+            return JDBC_URL;
+        }
+        activeDatabaseName = database;
+        Runtime.getRuntime().addShutdownHook(new Thread(() -> dropDatabase(database), "fitme-test-db-cleanup"));
+        return "jdbc:postgresql://localhost:55432/" + database;
+    }
+
+    /** Best-effort cleanup so run-scoped databases do not pile up in the shared container. */
+    private static void dropDatabase(String database) {
+        try (Connection connection = DriverManager.getConnection(JDBC_URL, USERNAME, PASSWORD);
+             Statement statement = connection.createStatement()) {
+            statement.execute("DROP DATABASE IF EXISTS " + database + " WITH (FORCE)");
+        } catch (Exception ex) {
+            log.debug("Could not drop run-scoped database {}: {}", database, ex.getMessage());
+        }
     }
 
     public static String getJdbcUrl() {
-        return JDBC_URL;
+        String url = activeJdbcUrl;
+        return url != null ? url : JDBC_URL;
     }
 
     public static String getUsername() {

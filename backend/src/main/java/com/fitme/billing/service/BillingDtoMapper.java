@@ -28,6 +28,7 @@ public class BillingDtoMapper {
                 .fitkenAmount(plan.getQuotaAmount())
                 .billingPeriodDays(plan.getBillingPeriodDays())
                 .active(plan.isActive())
+                .visible(plan.isVisible())
                 .sortOrder(plan.getSortOrder())
                 .discountPercent(plan.getDiscountPercent())
                 .discountStartsAt(plan.getDiscountStartsAt())

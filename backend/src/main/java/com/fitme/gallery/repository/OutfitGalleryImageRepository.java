@@ -40,6 +40,8 @@ public interface OutfitGalleryImageRepository extends JpaRepository<OutfitGaller
 
     long countByDeletedAtIsNull();
 
+    long countByUserIdAndDeletedAtIsNull(UUID userId);
+
     long countByDeletedAtIsNullAndCreatedAtAfter(Instant after);
 
     @Query("select count(distinct g.userId) from OutfitGalleryImage g where g.deletedAt is null")

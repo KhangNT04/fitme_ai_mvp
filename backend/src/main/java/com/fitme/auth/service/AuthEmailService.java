@@ -97,9 +97,27 @@ public class AuthEmailService {
                 verificationHtml(code, ttlMinutes, toEmail), "verification");
     }
 
-    /** Emails a one-time link to the reset-password page. Throws when delivery is not possible. */
-    public void sendPasswordResetLink(String toEmail, String token, int ttlMinutes) {
+    /**
+     * Emails the code that proves the owner controls a new sign-in address.
+     * Throws when delivery is not possible, so the caller never records a pending change without a code.
+     */
+    public void sendEmailChangeVerificationCode(String toEmail, String code, int ttlMinutes) {
         if (!isMailConfigured()) {
+            if (fitMeProperties.getAuth().isExposeVerificationCode()) {
+                log.warn(
+                        "[AUTH] Email delivery not configured — email change code for {} available via expose flag only",
+                        toEmail);
+                return;
+            }
+            throw new BusinessException("Hệ thống chưa cấu hình gửi email. Liên hệ quản trị viên (RESEND_API_KEY / SMTP).");
+        }
+        String subject = "Xác nhận email mới · FitMe AI";
+        deliver(toEmail, subject, emailChangePlainText(code, ttlMinutes),
+                emailChangeHtml(code, ttlMinutes), "email change verification");
+    }
+
+    /** Emails a one-time link to the reset-password page. Throws when delivery is not possible. */
+    public void sendPasswordResetLink(String toEmail, String token, int ttlMinutes) {        if (!isMailConfigured()) {
             throw new BusinessException("Hệ thống chưa cấu hình gửi email.");
         }
         String resetUrl = frontendUrl("/auth/reset-password?token=" + urlEncode(token));
@@ -152,8 +170,52 @@ public class AuthEmailService {
         }
     }
 
-    private String passwordResetPlainText(String resetUrl, int ttlMinutes) {
-        return "FitMe AI — Đặt lại mật khẩu\n\n"
+    private String emailChangePlainText(String code, int ttlMinutes) {
+        return "FitMe AI — Xác nhận email đăng nhập mới\n\n"
+                + "Xin chào,\n\n"
+                + "Bạn đã yêu cầu đổi email đăng nhập của tài khoản FitMe AI sang địa chỉ này.\n"
+                + "Nhập mã xác nhận bên dưới trong trang Hồ sơ để hoàn tất việc đổi email.\n\n"
+                + "Mã xác nhận: " + code + "\n"
+                + "Hiệu lực: " + ttlMinutes + " phút\n\n"
+                + "Vì lý do bảo mật, đừng chia sẻ mã này với người khác.\n"
+                + "Nếu không phải bạn yêu cầu, hãy bỏ qua email này — email đăng nhập của bạn không thay đổi.\n\n"
+                + "Trân trọng,\nĐội ngũ FitMe AI\n";
+    }
+
+    private String emailChangeHtml(String code, int ttlMinutes) {
+        String safeCode = escapeHtml(code);
+        return """
+                <!DOCTYPE html>
+                <html lang="vi">
+                <head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
+                <body style="margin:0;padding:32px 16px;background:#f5ebe0;font-family:Segoe UI,Helvetica,Arial,sans-serif;">
+                  <table role="presentation" width="100%%" cellspacing="0" cellpadding="0"
+                         style="max-width:520px;margin:0 auto;background:#ffffff;border-radius:16px;">
+                    <tr><td style="padding:28px 32px 8px;color:#14121c;font-size:15px;line-height:1.6;">
+                      <h1 style="margin:0 0 14px;font-size:20px;color:#7c3aed;">Xác nhận email đăng nhập mới</h1>
+                      <p style="margin:0 0 14px;">Bạn đã yêu cầu đổi email đăng nhập của tài khoản FitMe AI sang địa chỉ này.
+                         Nhập mã bên dưới trong trang Hồ sơ để hoàn tất.</p>
+                    </td></tr>
+                    <tr><td style="padding:0 32px 20px;text-align:center;">
+                      <p style="margin:0 0 8px;font-size:12px;letter-spacing:0.08em;text-transform:uppercase;
+                                color:#6b6578;font-weight:600;">Mã xác nhận</p>
+                      <p style="margin:0;font-size:32px;letter-spacing:0.28em;font-weight:700;
+                                color:#7c3aed;font-family:Consolas,Monaco,monospace;">%s</p>
+                      <p style="margin:12px 0 0;font-size:13px;color:#6b6578;">
+                        Có hiệu lực trong <strong>%d phút</strong>
+                      </p>
+                    </td></tr>
+                    <tr><td style="padding:0 32px 28px;font-size:13px;line-height:1.55;color:#6b6578;">
+                      Nếu không phải bạn yêu cầu, hãy bỏ qua email này — email đăng nhập của bạn không thay đổi.
+                    </td></tr>
+                  </table>
+                </body>
+                </html>
+                """
+                .formatted(safeCode, ttlMinutes);
+    }
+
+    private String passwordResetPlainText(String resetUrl, int ttlMinutes) {        return "FitMe AI — Đặt lại mật khẩu\n\n"
                 + "Xin chào,\n\n"
                 + "Chúng tôi nhận được yêu cầu đặt lại mật khẩu cho tài khoản FitMe AI của bạn.\n"
                 + "Mở link sau để đặt mật khẩu mới (hiệu lực " + ttlMinutes + " phút):\n"

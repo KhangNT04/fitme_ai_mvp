@@ -3,6 +3,7 @@ package com.fitme.entitlement.service;
 import com.fitme.auth.entity.UserAccount;
 import com.fitme.auth.repository.UserAccountRepository;
 import com.fitme.billing.entity.BillingPlan;
+import com.fitme.billing.service.BillingPlanService;
 import com.fitme.billing.service.ConsumerSubscriptionService;
 import com.fitme.common.config.FitMeProperties;
 import com.fitme.common.enums.ConsumerPlan;
@@ -20,6 +21,7 @@ import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -31,6 +33,9 @@ class ConsumerEntitlementServiceTest {
     @Mock
     private ConsumerSubscriptionService subscriptionService;
 
+    @Mock
+    private BillingPlanService billingPlanService;
+
     private FitMeProperties properties;
     private ConsumerEntitlementService service;
 
@@ -40,7 +45,9 @@ class ConsumerEntitlementServiceTest {
         properties.getConsumer().setFreeCoherenceMode("off");
         properties.getConsumer().setPremiumCoherenceMode("prefer");
         properties.getConsumer().setEntitlementEnabled(true);
-        service = new ConsumerEntitlementService(userAccountRepository, subscriptionService, properties);
+        lenient().when(billingPlanService.pricingVisible()).thenReturn(true);
+        service = new ConsumerEntitlementService(userAccountRepository, subscriptionService, properties,
+                billingPlanService);
     }
 
     @Test

@@ -25,6 +25,11 @@ public class BillingPlanRequest {
     private int fitkenAmount;
     private Integer billingPeriodDays;
     private boolean active = true;
+    /**
+     * Shown on the public pricing page (admin toggle); buying is governed by {@code active}.
+     * Null keeps the current value on update (so an old client cannot silently un-hide a plan).
+     */
+    private Boolean visible;
     private int sortOrder;
     @Min(value = 0, message = "Phần trăm giảm giá phải từ 0 đến 100")
     @Max(value = 100, message = "Phần trăm giảm giá phải từ 0 đến 100")

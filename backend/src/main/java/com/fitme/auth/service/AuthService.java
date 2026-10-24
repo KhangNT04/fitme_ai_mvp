@@ -5,6 +5,7 @@ import com.fitme.admin.audit.AdminAuditService;
 import com.fitme.auth.dto.*;
 import com.fitme.auth.entity.UserAccount;
 import com.fitme.auth.repository.UserAccountRepository;
+import com.fitme.common.enums.UserStatus;
 import com.fitme.common.config.FitMeProperties;
 import com.fitme.common.enums.UserRole;
 import com.fitme.common.enums.UserStatus;
@@ -346,6 +347,20 @@ public class AuthService {
         return buildAuthResponse(user, RequestContext.isMfaVerified());
     }
 
+    /** Renames the account; the display name is public in community posts. */
+    @Transactional
+    public AuthResponse updateDisplayName(UUID userId, UpdateDisplayNameRequest request) {
+        UserAccount user = userAccountRepository.findById(userId)
+                .orElseThrow(() -> new BusinessException("Tài khoản không tồn tại"));
+        String displayName = request.getDisplayName() == null ? "" : request.getDisplayName().trim().replaceAll("\\s+", " ");
+        if (displayName.isEmpty()) {
+            throw new BusinessException("Vui lòng nhập tên hiển thị", "DISPLAY_NAME_INVALID");
+        }
+        user.setDisplayName(displayName.length() > 80 ? displayName.substring(0, 80) : displayName);
+        userAccountRepository.save(user);
+        return buildAuthResponse(user, RequestContext.isMfaVerified());
+    }
+
     private String issuePasswordResetToken(UserAccount user) {
         return jwtService.generatePasswordResetToken(
                 user.getId(), user.getEmail(), user.getPasswordHash(), PASSWORD_RESET_TTL_SECONDS * 1000);
@@ -412,6 +427,11 @@ public class AuthService {
                     .orElseThrow(() -> new BusinessException("Tài khoản không tồn tại"));
             if (!user.isEmailVerified()) {
                 throw new BusinessException("Tài khoản chưa xác nhận email");
+            }
+            // A suspended or deleted account must report the lock, not a generic "session expired".
+            // Suspension also bumps passwordChangedAt, so the status check has to come first.
+            if (user.getStatus() != UserStatus.ACTIVE) {
+                throw new BusinessException(ACCOUNT_LOCKED_MESSAGE, "ACCOUNT_LOCKED");
             }
             if (jwtService.issuedBeforePasswordChange(token, user.getPasswordChangedAt())) {
                 throw new BusinessException("Phiên đăng nhập đã hết hiệu lực. Vui lòng đăng nhập lại");

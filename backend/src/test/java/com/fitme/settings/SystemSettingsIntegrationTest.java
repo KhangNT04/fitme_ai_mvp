@@ -30,6 +30,7 @@ class SystemSettingsIntegrationTest extends AbstractIntegrationTest {
     void restoreDefaults() {
         settingsService.update(SystemSettingsService.FITKEN_MAX_BALANCE, "50", null);
         settingsService.update(SystemSettingsService.TRYON_PLUS_FREE_DAILY, "3", null);
+        settingsService.update(SystemSettingsService.PRICING_SHOW_PAID, "1", null);
     }
 
     @Test
@@ -37,13 +38,15 @@ class SystemSettingsIntegrationTest extends AbstractIntegrationTest {
         FitMeUserPrincipal admin = new FitMeUserPrincipal(testDataHelper.createAdmin().user());
         mockMvc.perform(get(BASE).with(user(admin)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.data.length()").value(3))
+                .andExpect(jsonPath("$.data.length()").value(4))
                 .andExpect(jsonPath("$.data[?(@.key == 'fitken.max_balance')].value").value(50))
                 .andExpect(jsonPath("$.data[?(@.key == 'fitken.max_balance')].label").value("Trần Fitken miễn phí"))
                 .andExpect(jsonPath("$.data[?(@.key == 'fitken.max_balance')].min").value(0))
                 .andExpect(jsonPath("$.data[?(@.key == 'fitken.max_balance')].max").value(100000))
                 .andExpect(jsonPath("$.data[?(@.key == 'tryon.plus_free_daily')].value").value(3))
-                .andExpect(jsonPath("$.data[?(@.key == 'recommendation.plus_boost')].value").value(15));
+                .andExpect(jsonPath("$.data[?(@.key == 'recommendation.plus_boost')].value").value(15))
+                .andExpect(jsonPath("$.data[?(@.key == 'pricing.show_paid')].value").value(1))
+                .andExpect(jsonPath("$.data[?(@.key == 'pricing.show_paid')].label").value("Hiển thị gói trả phí cho người dùng"));
     }
 
     @Test

@@ -32,6 +32,8 @@ public class SystemSettingsService {
     public static final String FITKEN_MAX_BALANCE = "fitken.max_balance";
     public static final String TRYON_PLUS_FREE_DAILY = "tryon.plus_free_daily";
     public static final String RECOMMENDATION_PLUS_BOOST = "recommendation.plus_boost";
+    /** 1 = show the paid consumer plans, 0 = hide them everywhere for users. */
+    public static final String PRICING_SHOW_PAID = "pricing.show_paid";
 
     static final Duration CACHE_TTL = Duration.ofSeconds(60);
 
@@ -53,7 +55,13 @@ public class SystemSettingsService {
                     "Điểm ưu tiên gợi ý (brand Plus)",
                     "Điểm cộng thêm khi xếp hạng sản phẩm của brand gói Plus trong gợi ý outfit, sản phẩm tương tự "
                             + "và gợi ý hoàn thiện set thử đồ. Đặt 0 để tắt ưu tiên.",
-                    0, 100, 15));
+                    0, 100, 15),
+            new Definition(PRICING_SHOW_PAID,
+                    "Hiển thị gói trả phí cho người dùng",
+                    "Đặt 0 để ẩn toàn bộ gói trả phí (Premium, mua thêm Fitken) với người dùng: trang bảng giá, "
+                            + "nút nâng cấp và các lời mời nâng cấp sẽ biến mất. Người đã mua vẫn dùng Premium bình thường. "
+                            + "Từng gói còn có thể ẩn riêng trong trang Gói dịch vụ.",
+                    0, 1, 1));
 
     private final SystemSettingRepository repository;
     private final AppClock clock;
@@ -95,6 +103,11 @@ public class SystemSettingsService {
 
     public int recommendationPlusBoost() {
         return Math.max(0, getInt(RECOMMENDATION_PLUS_BOOST));
+    }
+
+    /** True when the paid consumer plans may be shown to users. */
+    public boolean pricingShowPaid() {
+        return getInt(PRICING_SHOW_PAID) != 0;
     }
 
     public List<SystemSettingDto> list() {

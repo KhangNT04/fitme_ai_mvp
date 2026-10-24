@@ -3,6 +3,7 @@ package com.fitme.entitlement.service;
 import com.fitme.auth.entity.UserAccount;
 import com.fitme.auth.repository.UserAccountRepository;
 import com.fitme.billing.entity.BillingPlan;
+import com.fitme.billing.service.BillingPlanService;
 import com.fitme.billing.service.ConsumerSubscriptionService;
 import com.fitme.common.config.FitMeProperties;
 import com.fitme.common.enums.ConsumerPlan;
@@ -34,6 +35,7 @@ public class ConsumerEntitlementService {
     private final UserAccountRepository userAccountRepository;
     private final ConsumerSubscriptionService subscriptionService;
     private final FitMeProperties properties;
+    private final BillingPlanService billingPlanService;
 
     public ConsumerEntitlementResponse resolveCurrent() {
         UUID userId = RequestContext.getCurrentUserId().orElse(null);
@@ -149,6 +151,9 @@ public class ConsumerEntitlementService {
                 ? "STRICT: chỉ ưu tiên mạnh cùng brand / partner (soft-filter)"
                 : "Ưu tiên outfit cùng brand / brand đối tác";
         Optional<BillingPlan> premiumPlan = subscriptionService.findPremiumPlan();
+        // When the admin hides the paid plans, no upsell copy is produced: the frontend must not
+        // invite users to a plan they cannot buy.
+        boolean showUpsell = billingPlanService.pricingVisible();
         return ConsumerEntitlementResponse.builder()
                 .plan(plan)
                 .coherenceMode(mode)
@@ -156,9 +161,9 @@ public class ConsumerEntitlementService {
                 .pro(premium)
                 .label(premium ? PREMIUM_LABEL : FREE_LABEL)
                 .mixPolicy(mixPolicy)
-                .upsellMessage(premium ? null : upsellMessage(premiumPlan.orElse(null)))
-                .premiumPriceVnd(premiumPlan.map(BillingPlan::getPriceVnd).orElse(null))
-                .premiumMonthlyFitken(premiumPlan.map(BillingPlan::getQuotaAmount).orElse(null))
+                .upsellMessage(!premium && showUpsell ? upsellMessage(premiumPlan.orElse(null)) : null)
+                .premiumPriceVnd(showUpsell ? premiumPlan.map(BillingPlan::getPriceVnd).orElse(null) : null)
+                .premiumMonthlyFitken(showUpsell ? premiumPlan.map(BillingPlan::getQuotaAmount).orElse(null) : null)
                 .build();
     }
 

@@ -50,6 +50,14 @@ public class BillingPlan {
     @Builder.Default
     private boolean active = true;
 
+    /**
+     * Whether the plan is shown on the public pricing page. {@code active} decides whether it can be
+     * bought, {@code visible} decides whether users see it. Hiding a plan never affects buyers.
+     */
+    @Column(nullable = false)
+    @Builder.Default
+    private boolean visible = true;
+
     @Column(name = "sort_order", nullable = false)
     @Builder.Default
     private int sortOrder = 0;

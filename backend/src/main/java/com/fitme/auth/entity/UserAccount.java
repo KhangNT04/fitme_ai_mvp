@@ -50,6 +50,23 @@ public class UserAccount {
     @Column(name = "email_verification_expires_at")
     private Instant emailVerificationExpiresAt;
 
+    /**
+     * Sign-in email the owner asked to switch to. It is only applied once the code sent to this
+     * address is confirmed; until then the account keeps signing in with {@link #email}.
+     */
+    @Column(name = "pending_email")
+    private String pendingEmail;
+
+    /** 6-digit code sent to {@link #pendingEmail}; burned on use or when the change is cancelled. */
+    @Column(name = "pending_email_code", length = 16)
+    private String pendingEmailCode;
+
+    @Column(name = "pending_email_code_expires_at")
+    private Instant pendingEmailCodeExpiresAt;
+
+    @Column(name = "pending_email_requested_at")
+    private Instant pendingEmailRequestedAt;
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     @Builder.Default

@@ -20,6 +20,8 @@ public class BillingPlanDto {
     private int fitkenAmount;
     private Integer billingPeriodDays;
     private boolean active;
+    /** Shown on the public pricing page (admin toggle); buying is governed by {@code active}. */
+    private boolean visible;
     private int sortOrder;
     private Integer discountPercent;
     private Instant discountStartsAt;

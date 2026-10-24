@@ -60,6 +60,7 @@ public class ConsumerSubscriptionService {
     private final BillingDtoMapper dtoMapper;
     private final AppClock clock;
     private final ApplicationEventPublisher events;
+    private final BillingPlanService billingPlanService;
 
     public Optional<ConsumerSubscription> findActive(UUID userId) {
         if (userId == null) {
@@ -103,6 +104,10 @@ public class ConsumerSubscriptionService {
         }
         if (!plan.isActive()) {
             throw new BusinessException("Gói không còn khả dụng");
+        }
+        // A hidden plan is off the menu for users; buyers who already paid keep their subscription.
+        if (!plan.isVisible() || !billingPlanService.pricingVisible()) {
+            throw new BusinessException("Gói này đang tạm ẩn. Vui lòng quay lại sau", "PLAN_HIDDEN");
         }
 
         long orderCode = orderCodes.next();

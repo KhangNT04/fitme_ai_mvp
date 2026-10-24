@@ -52,6 +52,23 @@ public class AccountSecurityEmailService {
                 case MFA_DISABLED -> notify(event, event.email(), "Đã tắt xác thực 2 bước",
                         "Xác thực 2 bước đã bị tắt cho " + event.email() + " lúc " + time(event)
                                 + ". Tài khoản giờ chỉ được bảo vệ bằng mật khẩu.");
+                case ACCOUNT_DELETION_SCHEDULED -> notify(event, event.email(), "Tài khoản FitMe sẽ được xoá",
+                        "Bạn đã yêu cầu xoá tài khoản " + event.email() + " lúc " + time(event)
+                                + ". Tài khoản sẽ bị xoá sau khoảng thời gian chờ. "
+                                + "Bạn vẫn có thể đăng nhập và huỷ yêu cầu trong khoảng thời gian này. "
+                                + "Nếu không phải bạn, hãy huỷ yêu cầu và đổi mật khẩu ngay.");
+                case ACCOUNT_DELETION_CANCELLED -> notify(event, event.email(), "Đã huỷ yêu cầu xoá tài khoản",
+                        "Yêu cầu xoá tài khoản của bạn đã được huỷ lúc " + time(event)
+                                + ". Tài khoản của bạn vẫn hoạt động bình thường.");
+                case EMAIL_CHANGED_BY_USER -> {
+                    notify(event, event.previousEmail(), "Email đăng nhập của bạn vừa được thay đổi",
+                            "Bạn đã đổi email đăng nhập của tài khoản FitMe AI từ " + event.previousEmail()
+                                    + " sang " + maskEmail(event.email()) + " lúc " + time(event)
+                                    + ". Các thiết bị đang đăng nhập đã được đăng xuất.");
+                    notify(event, event.email(), "Email này đã được gắn với tài khoản FitMe AI",
+                            "Từ " + time(event) + ", " + event.email() + " là email đăng nhập của tài khoản FitMe AI"
+                                    + " (trước đây là " + maskEmail(event.previousEmail()) + ").");
+                }
             }
         } catch (RuntimeException ex) {
             log.warn("[MAIL] account security email ({}) skipped: {}", event.kind(), ex.toString());

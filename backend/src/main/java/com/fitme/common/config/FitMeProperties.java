@@ -18,6 +18,15 @@ public class FitMeProperties {
     private Consumer consumer = new Consumer();
     private Auth auth = new Auth();
     private Fitken fitken = new Fitken();
+    private Community community = new Community();
+
+    @Data
+    public static class Community {
+        /** Max community posts a user may publish per day (Asia/Ho_Chi_Minh); 0 = unlimited. */
+        private int postDailyLimit = 5;
+        /** Base URL used to build public share links, e.g. https://fitme.app/outfit/. */
+        private String shareBaseUrl = "/outfit/";
+    }
 
     @Data
     public static class Auth {

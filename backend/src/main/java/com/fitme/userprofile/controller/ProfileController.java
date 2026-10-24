@@ -1,14 +1,18 @@
 package com.fitme.userprofile.controller;
 
 import com.fitme.common.dto.ApiResponse;
+import com.fitme.common.security.FitMeUserPrincipal;
 import com.fitme.userprofile.dto.BodyProfileRequest;
 import com.fitme.userprofile.dto.BodyProfileResponse;
+import com.fitme.userprofile.dto.ProfileSummaryDto;
 import com.fitme.userprofile.dto.StyleProfileRequest;
 import com.fitme.userprofile.dto.StyleProfileResponse;
 import com.fitme.userprofile.service.BodyProfileService;
+import com.fitme.userprofile.service.ProfileSummaryService;
 import com.fitme.userprofile.service.StyleProfileService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -18,6 +22,7 @@ public class ProfileController {
 
     private final BodyProfileService bodyProfileService;
     private final StyleProfileService styleProfileService;
+    private final ProfileSummaryService profileSummaryService;
 
     @PostMapping("/body-profile")
     public ApiResponse<BodyProfileResponse> createBodyProfile(@Valid @RequestBody BodyProfileRequest request) {
@@ -59,5 +64,11 @@ public class ProfileController {
     public ApiResponse<Void> deleteStyleProfile() {
         styleProfileService.delete();
         return ApiResponse.ok(null);
+    }
+
+    /** One request for the whole profile hub: completion checklist, counters and Fitken. */
+    @GetMapping("/profile-summary")
+    public ApiResponse<ProfileSummaryDto> profileSummary(@AuthenticationPrincipal FitMeUserPrincipal principal) {
+        return ApiResponse.ok(profileSummaryService.summary(principal.getUserId()));
     }
 }

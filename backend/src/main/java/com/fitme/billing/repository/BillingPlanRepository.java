@@ -15,6 +15,9 @@ public interface BillingPlanRepository extends JpaRepository<BillingPlan, UUID> 
 
     List<BillingPlan> findByAudienceAndActiveTrueOrderBySortOrderAsc(PlanAudience audience);
 
+    /** Public pricing page: active AND visible plans of an audience. */
+    List<BillingPlan> findByAudienceAndActiveTrueAndVisibleTrueOrderBySortOrderAsc(PlanAudience audience);
+
     List<BillingPlan> findAllByOrderBySortOrderAsc();
 
     List<BillingPlan> findByAudienceOrderBySortOrderAsc(PlanAudience audience);

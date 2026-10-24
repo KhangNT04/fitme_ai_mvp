@@ -9,6 +9,7 @@ import { CollapsingPageHeader } from "@/components/layout/CollapsingPageHeader";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { galleryApi, nextGalleryPage } from "@/services/gallery-api";
+import { CommunityShareButton } from "@/components/community/CommunityShareButton";
 import { useAuthStore } from "@/stores/auth-store";
 import { toast } from "@/stores/toast-store";
 import { consumerPageShellClass } from "@/lib/design-tokens";
@@ -226,6 +227,17 @@ export default function GalleryPage() {
                       </Button>
                     </div>
                   </div>
+                </div>
+
+                <div className="bg-zinc-800/50 rounded-xl p-4 mb-6">
+                  <p className="text-sm font-medium text-zinc-200 mb-1">Chia sẻ lên cộng đồng</p>
+                  <p className="text-xs text-zinc-400 mb-3">
+                    Đăng công khai outfit này để người khác tham khảo.
+                  </p>
+                  <CommunityShareButton
+                    galleryImageId={selectedImage.id}
+                    brandNames={selectedImage.products?.map((prod) => prod.name).slice(0, 3)}
+                  />
                 </div>
 
                 <h3 className="text-sm font-medium text-zinc-300 uppercase tracking-wider mb-4">Sản phẩm trong ảnh</h3>

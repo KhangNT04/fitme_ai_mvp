@@ -2,11 +2,11 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { Shield, Trash2, AlertTriangle } from "lucide-react";
+import { Shield, Trash2 } from "lucide-react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useAuthStore } from "@/stores/auth-store";
 import { PRIVACY_CONSENTS_QUERY_KEY, privacyApi, type ConsentType } from "@/services/privacy-api";
+import { DeleteAccountSection } from "@/components/privacy/DeleteAccountSection";
 import { LEAD_SHARING_CONSENT_TEXT } from "@/lib/brand-leads";
 import { toast } from "@/stores/toast-store";
 import { Button } from "@/components/ui/button";
@@ -43,12 +43,6 @@ const REQUEST_OPTIONS: {
     value: "BODY_PROFILE",
     label: "Số đo cơ thể",
     description: "Chiều cao, cân nặng và số đo đã lưu.",
-  },
-  {
-    value: "ALL",
-    label: "Toàn bộ tài khoản",
-    description:
-      "Xóa hồ sơ, ảnh, tủ đồ, lịch sử tư vấn, đánh giá và vô hiệu hoá tài khoản. Lịch sử thanh toán gói được giữ ở dạng ẩn danh cho mục đích kế toán.",
   },
 ];
 
@@ -157,8 +151,7 @@ function GuestPrivacyPrompt() {
 }
 
 export default function ProfilePrivacyPage() {
-  const router = useRouter();
-  const { isAuthenticated, logout } = useAuthStore();
+  const { isAuthenticated } = useAuthStore();
   const [requestType, setRequestType] = useState<DeletionRequestType>("RECOMMENDATION_HISTORY");
   const [message, setMessage] = useState("");
   const [isError, setIsError] = useState(false);
@@ -178,12 +171,6 @@ export default function ProfilePrivacyPage() {
     try {
       await privacyApi.requestDeletion({ requestType });
       setMessage("Yêu cầu xóa dữ liệu đã được ghi nhận. Admin sẽ xử lý trong thời gian sớm nhất.");
-      if (requestType === "ALL") {
-        setTimeout(async () => {
-          await logout();
-          router.push("/");
-        }, 2000);
-      }
     } catch (e: unknown) {
       setIsError(true);
       setMessage(getUserErrorMessage(e, "Gửi yêu cầu thất bại"));
@@ -255,16 +242,6 @@ export default function ProfilePrivacyPage() {
               )}
             </div>
 
-            {requestType === "ALL" && (
-              <div className="flex gap-2.5 rounded-xl border border-amber-200/80 bg-amber-50/80 p-3 text-xs text-amber-900 sm:text-sm">
-                <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
-                <p>
-                  Yêu cầu xóa toàn bộ tài khoản sẽ đăng xuất bạn sau khi gửi. Admin cần xác nhận
-                  trước khi xóa vĩnh viễn.
-                </p>
-              </div>
-            )}
-
             {message && (
               <p
                 className={cn(
@@ -283,11 +260,24 @@ export default function ProfilePrivacyPage() {
               type="submit"
               disabled={loading}
               className="min-h-11 w-full rounded-full sm:w-auto"
-              variant={requestType === "ALL" ? "destructive" : "default"}
             >
               {loading ? "Đang gửi..." : "Gửi yêu cầu"}
             </Button>
           </form>
+        </section>
+
+        <section className="surface-card overflow-hidden rounded-xl sm:rounded-2xl">
+          <div className="flex items-center gap-2 border-b border-border/40 px-3 py-2.5 sm:gap-3 sm:px-5 sm:py-3">
+            <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-destructive/10 text-destructive sm:h-8 sm:w-8">
+              <Trash2 className="h-3.5 w-3.5 sm:h-4 sm:w-4" aria-hidden="true" />
+            </span>
+            <h2 className="font-display text-sm font-semibold text-foreground sm:text-base">
+              Xoá tài khoản của tôi
+            </h2>
+          </div>
+          <div className="px-3 py-3 sm:px-5 sm:py-4">
+            <DeleteAccountSection />
+          </div>
         </section>
       </div>
     </PageShell>

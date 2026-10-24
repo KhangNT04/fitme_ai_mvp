@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Check, Lock, Sparkles } from "lucide-react";
 import { PageShell } from "@/components/layout/PageShell";
@@ -20,6 +19,7 @@ import { cn } from "@/lib/utils";
 import { toast } from "@/stores/toast-store";
 import { publicBrandApi } from "@/services/brand-api";
 import { entitlementApi } from "@/services/entitlement-api";
+import { PricingLink } from "@/components/layout/PricingLink";
 import {
   BRAND_MIX_MODE_OPTIONS,
   BRAND_PREFERENCES_QUERY_KEY,
@@ -113,7 +113,7 @@ function PremiumLockedCard({ priceVnd }: { priceVnd?: number | null }) {
         ))}
       </ul>
       <Button asChild className="rounded-full">
-        <Link href="/pricing">{premiumUpgradeCta(priceVnd)}</Link>
+        <PricingLink href="/pricing">{premiumUpgradeCta(priceVnd)}</PricingLink>
       </Button>
     </section>
   );

@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState, useEffect, useRef, useCallback } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import { productApi } from "@/services/product-api";
@@ -16,7 +17,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { SlidersHorizontal } from "lucide-react";
+import { SlidersHorizontal, Users } from "lucide-react";
 import { BrandDiscoverSection } from "@/components/discover/BrandDiscoverSection";
 import { LoadingSkeleton } from "@/components/common/LoadingSkeleton";
 import { EmptyState } from "@/components/common/EmptyState";
@@ -287,6 +288,21 @@ export default function DiscoverPage() {
           </Button>
         </div>
       )}
+
+      <div className="mb-4 flex items-center justify-between gap-3 rounded-2xl border border-border/60 bg-card px-4 py-3">
+        <div className="min-w-0">
+          <p className="truncate text-sm font-medium text-foreground">Cộng đồng thời trang</p>
+          <p className="truncate text-xs text-muted-foreground">
+            Xem outfit người khác đã thử và chia sẻ.
+          </p>
+        </div>
+        <Button asChild size="sm" variant="outline" className="shrink-0 rounded-full">
+          <Link href="/community">
+            <Users className="mr-1.5 h-4 w-4" aria-hidden="true" />
+            Xem cộng đồng
+          </Link>
+        </Button>
+      </div>
 
       <div>
         {isLoading && <LoadingSkeleton />}

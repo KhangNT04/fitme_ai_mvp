@@ -1,212 +1,24 @@
 "use client";
 
-import type { ReactNode } from "react";
+import { useState } from "react";
 import Link from "next/link";
-import {
-  Shirt,
-  Bookmark,
-  Shield,
-  ChevronRight,
-  Sparkles,
-  UserRound,
-  Ruler,
-  LogOut,
-  Pencil,
-  Gift,
-  Image as ImageIcon,
-  Package,
-  Coins,
-  KeyRound,
-  Heart,
-} from "lucide-react";
-import type { LucideIcon } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
-import { fitkenApi } from "@/services/fitken-api";
+import { LogOut, UserRound, Sparkles, Gift } from "lucide-react";
+import { profileApi, PROFILE_SUMMARY_QUERY_KEY } from "@/services/profile-api";
 import { useAuthStore } from "@/stores/auth-store";
 import { useSavedProfiles } from "@/hooks/use-saved-profiles";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { LoadingSkeleton } from "@/components/common/LoadingSkeleton";
 import { PageShell } from "@/components/layout/PageShell";
 import { CollapsingPageHeader } from "@/components/layout/CollapsingPageHeader";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { ProfileHero } from "@/components/profile/ProfileHero";
+import { ProfileProgressCard } from "@/components/profile/ProfileProgressCard";
+import { ProfileStatsGrid } from "@/components/profile/ProfileStatsGrid";
+import { ProfilePreferencesTab } from "@/components/profile/ProfilePreferencesTab";
+import { ProfileAccountTab } from "@/components/profile/ProfileAccountTab";
 import { consumerPageShellClass, consumerGuestPromptClass } from "@/lib/design-tokens";
-import { FIT_PREFERENCES, GENDERS, SKIN_TONES } from "@/utils/constants";
 import { hasMinimalBodyProfile } from "@/lib/profile-prefill";
-import { cn } from "@/lib/utils";
-import type { UserRole } from "@/types/auth";
-
-const hubLinks = [
-  {
-    href: "/rewards",
-    label: "Nhận thưởng",
-    description: "Nhiệm vụ & Fitken",
-    icon: Gift,
-    accent: "bg-amber-500/10 text-amber-700",
-  },
-  {
-    href: "/profile/gallery",
-    label: "Thư viện ảnh",
-    description: "Ảnh AI Try-on",
-    icon: ImageIcon,
-    accent: "bg-pink-500/10 text-pink-700",
-  },
-  {
-    href: "/profile/purchases",
-    label: "Tủ chi tiêu",
-    description: "Sản phẩm bạn đã bấm mua",
-    icon: Package,
-    accent: "bg-blue-500/10 text-blue-700",
-  },
-  {
-    href: "/wardrobe",
-    label: "Tủ đồ",
-    description: "Quản lý item cá nhân",
-    icon: Shirt,
-    accent: "bg-violet-500/10 text-violet-700",
-  },
-  {
-    href: "/profile/style-preferences",
-    label: "Brand yêu thích",
-    description: "Tùy biến phối đồ (Premium)",
-    icon: Heart,
-    accent: "bg-rose-500/10 text-rose-700",
-  },
-  {
-    href: "/pricing",
-    label: "FitMe Free & Premium",
-    description: "Quản lý gói cước",
-    icon: Sparkles,
-    accent: "bg-sky-500/10 text-sky-700",
-  },
-  {
-    href: "/saved-outfits",
-    label: "Đã lưu",
-    description: "Outfit tư vấn & thử mặc",
-    icon: Bookmark,
-    accent: "bg-pink-500/10 text-pink-700",
-  },
-  {
-    href: "/profile/privacy",
-    label: "Quyền riêng tư",
-    description: "Consent & xóa dữ liệu",
-    icon: Shield,
-    accent: "bg-emerald-500/10 text-emerald-700",
-  },
-  {
-    href: "/profile/password",
-    label: "Đổi mật khẩu",
-    description: "Bảo mật tài khoản",
-    icon: KeyRound,
-    accent: "bg-slate-500/10 text-slate-700",
-  },
-] as const;
-
-const ROLE_LABELS: Record<UserRole, string> = {
-  USER: "Người dùng",
-  BRAND: "Thương hiệu",
-  ADMIN: "Quản trị",
-};
-
-function getInitials(name?: string | null): string {
-  if (!name?.trim()) return "?";
-  const parts = name.trim().split(/\s+/);
-  if (parts.length === 1) return parts[0].charAt(0).toUpperCase();
-  return (parts[0].charAt(0) + parts[parts.length - 1].charAt(0)).toUpperCase();
-}
-
-function ProfileHubLink({
-  href,
-  label,
-  description,
-  icon: Icon,
-  accent,
-}: {
-  href: string;
-  label: string;
-  description: string;
-  icon: LucideIcon;
-  accent: string;
-}) {
-  return (
-    <Link
-      href={href}
-      className="surface-card group flex min-h-[52px] items-center gap-2.5 rounded-xl p-2.5 transition-all hover:border-primary/20 hover:shadow-md active:scale-[0.99] sm:min-h-[72px] sm:gap-4 sm:rounded-2xl sm:p-4"
-    >
-      <span
-        className={cn(
-          "flex h-9 w-9 shrink-0 items-center justify-center rounded-lg transition-transform group-hover:scale-105 sm:h-11 sm:w-11 sm:rounded-xl",
-          accent,
-        )}
-      >
-        <Icon className="h-4 w-4 sm:h-5 sm:w-5" aria-hidden="true" />
-      </span>
-      <span className="min-w-0 flex-1">
-        <span className="block truncate text-sm font-semibold text-foreground">{label}</span>
-        <span className="block truncate text-[11px] text-muted-foreground sm:text-xs">{description}</span>
-      </span>
-      <ChevronRight
-        className="h-4 w-4 shrink-0 text-muted-foreground transition-transform group-hover:translate-x-0.5"
-        aria-hidden="true"
-      />
-    </Link>
-  );
-}
-
-function ProfileDetail({ label, value }: { label: string; value: ReactNode }) {
-  return (
-    <div className="flex flex-col gap-0.5 border-b border-border/30 py-2.5 last:border-0 sm:flex-row sm:items-start sm:justify-between sm:gap-4 sm:py-2">
-      <dt className="text-xs text-muted-foreground sm:shrink-0 sm:text-sm">{label}</dt>
-      <dd className="text-sm font-medium leading-snug text-foreground sm:min-w-0 sm:max-w-[65%] sm:text-right">
-        {value}
-      </dd>
-    </div>
-  );
-}
-
-function ProfileSection({
-  title,
-  icon: Icon,
-  editHref,
-  editLabel,
-  children,
-  empty,
-  className,
-}: {
-  title: string;
-  icon: LucideIcon;
-  editHref?: string;
-  editLabel?: string;
-  children: ReactNode;
-  empty?: ReactNode;
-  className?: string;
-}) {
-  return (
-    <section className={cn("surface-card overflow-hidden rounded-xl sm:rounded-2xl", className)}>
-      <div className="flex items-center justify-between gap-2 border-b border-border/40 px-3 py-2.5 sm:gap-3 sm:px-5 sm:py-3">
-        <div className="flex min-w-0 items-center gap-2">
-          <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary sm:h-8 sm:w-8">
-            <Icon className="h-3.5 w-3.5 sm:h-4 sm:w-4" aria-hidden="true" />
-          </span>
-          <h2 className="truncate font-display text-sm font-semibold text-foreground sm:text-base">{title}</h2>
-        </div>
-        {editHref && (
-          <Button
-            variant="outline"
-            size="sm"
-            className="h-8 shrink-0 rounded-full px-2.5 text-xs sm:px-3"
-            asChild
-          >
-            <Link href={editHref} aria-label={editLabel ?? "Chỉnh sửa"}>
-              <Pencil className="h-3.5 w-3.5 sm:mr-1.5" aria-hidden="true" />
-              <span className="hidden sm:inline">{editLabel ?? "Chỉnh sửa"}</span>
-            </Link>
-          </Button>
-        )}
-      </div>
-      <div className="px-3 py-2.5 sm:px-5 sm:py-4">{empty ?? children}</div>
-    </section>
-  );
-}
 
 function GuestProfilePrompt() {
   return (
@@ -238,13 +50,16 @@ function GuestProfilePrompt() {
 
 export default function ProfilePage() {
   const { user, isAuthenticated, logout } = useAuthStore();
-  const { bodyProfile, isLoading: profilesLoading } =
-    useSavedProfiles({ enabled: isAuthenticated() });
-  
-  const { data: wallet } = useQuery({
-    queryKey: ["fitken-wallet"],
-    queryFn: () => fitkenApi.getWallet(),
+  const { bodyProfile, isLoading: profilesLoading } = useSavedProfiles({
     enabled: isAuthenticated(),
+  });
+  const [tab, setTab] = useState("overview");
+
+  const { data: summary, isLoading: summaryLoading } = useQuery({
+    queryKey: PROFILE_SUMMARY_QUERY_KEY,
+    queryFn: profileApi.getSummary,
+    enabled: isAuthenticated(),
+    staleTime: 30_000,
   });
 
   if (!isAuthenticated()) {
@@ -252,146 +67,115 @@ export default function ProfilePage() {
   }
 
   const hasBody = hasMinimalBodyProfile(bodyProfile);
-
-  const fitLabel = FIT_PREFERENCES.find((f) => f.value === bodyProfile?.fitPreference)?.label;
-  const skinLabel = SKIN_TONES.find((s) => s.value === bodyProfile?.skinTone)?.label;
-  const genderLabel = GENDERS.find((g) => g.value === bodyProfile?.gender)?.label;
-  const roleLabel = user?.role ? ROLE_LABELS[user.role] : "—";
+  const bodyBadge = hasBody && bodyProfile ? `${bodyProfile.heightCm} cm · ${bodyProfile.weightKg} kg` : null;
 
   return (
     <PageShell width="full" className={consumerPageShellClass}>
       <CollapsingPageHeader
         title="Hồ sơ của tôi"
-        subtitle="Quản lý tài khoản, profile AI và tiện ích cá nhân"
+        subtitle="Số liệu, sở thích và bảo mật tài khoản"
         backHref="/"
         backLabel="Trang chủ"
       />
 
       <div className="space-y-3 sm:space-y-4">
-        <section className="surface-card relative overflow-hidden rounded-xl p-3 sm:rounded-2xl sm:p-5">
-          <div className="pointer-events-none absolute -right-8 -top-8 h-28 w-28 rounded-full bg-primary/10 blur-2xl sm:h-32 sm:w-32" />
-          <div className="relative flex items-center gap-3 sm:gap-4">
-            <div className="gradient-ai flex h-12 w-12 shrink-0 items-center justify-center rounded-xl text-base font-bold text-white shadow-md sm:h-16 sm:w-16 sm:rounded-2xl sm:text-xl">
-              {getInitials(user?.fullName)}
-            </div>
-            <div className="min-w-0 flex-1">
-              <h2 className="truncate font-display text-base font-bold text-foreground sm:text-xl">
-                {user?.fullName ?? "Người dùng FitMe"}
-              </h2>
-              <p className="mt-0.5 truncate text-xs text-muted-foreground sm:text-sm">{user?.email}</p>
-              <div className="mt-1.5 flex flex-wrap gap-1 sm:mt-2 sm:gap-1.5">
-                <Badge variant="secondary" className="px-2 py-0 text-[10px] sm:text-xs">
-                  {roleLabel}
-                </Badge>
-                {wallet && (
-                  <Badge variant="default" className="px-2 py-0 text-[10px] sm:text-xs bg-amber-500 hover:bg-amber-600 text-white">
-                    <Coins className="mr-1 h-3 w-3" /> {wallet.balance} Fitken
-                  </Badge>
-                )}
-                {wallet && (
-                  <Badge variant="outline" className="px-2 py-0 text-[10px] sm:text-xs border-primary text-primary">
-                    Gói {wallet.plan === "PREMIUM" ? "Premium" : "Free"}
-                  </Badge>
-                )}
-                {hasBody && bodyProfile && (
-                  <Badge variant="outline" className="px-2 py-0 text-[10px] sm:text-xs">
-                    {bodyProfile.heightCm} cm · {bodyProfile.weightKg} kg
-                  </Badge>
-                )}
-              </div>
-            </div>
-          </div>
-        </section>
+        <ProfileHero
+          email={user?.email}
+          displayName={user?.fullName}
+          role={user?.role}
+          fitkenBalance={summary?.fitkenBalance}
+          bodyBadge={bodyBadge}
+        />
 
-        <nav aria-label="Tiện ích hồ sơ" className="grid gap-2 sm:grid-cols-3 sm:gap-3">
-          {hubLinks.map((item) => (
-            <ProfileHubLink key={item.href} {...item} />
-          ))}
-        </nav>
-
-        {profilesLoading ? (
+        {summaryLoading || !summary ? (
           <LoadingSkeleton type="card" />
         ) : (
-          <ProfileSection
-            title="Hồ sơ cơ thể"
-            icon={Ruler}
-            editHref="/profile/body"
-          >
-            {hasBody && bodyProfile ? (
-              <dl>
-                <ProfileDetail label="Chiều cao" value={`${bodyProfile.heightCm} cm`} />
-                <ProfileDetail label="Cân nặng" value={`${bodyProfile.weightKg} kg`} />
-                {bodyProfile.age != null && (
-                  <ProfileDetail label="Tuổi" value={`${bodyProfile.age}`} />
-                )}
-                <ProfileDetail label="Giới tính" value={genderLabel ?? bodyProfile.gender} />
-                {bodyProfile.fitPreference && (
-                  <ProfileDetail label="Form ưa thích" value={fitLabel ?? bodyProfile.fitPreference} />
-                )}
-                {bodyProfile.skinTone && (
-                  <ProfileDetail label="Tông da" value={skinLabel ?? bodyProfile.skinTone} />
-                )}
-                {bodyProfile.goals && bodyProfile.goals.length > 0 && (
-                  <ProfileDetail label="Mục tiêu" value={bodyProfile.goals.join(", ")} />
-                )}
-              </dl>
-            ) : (
-              <div className="py-1 text-center sm:py-2">
-                <p className="text-xs leading-relaxed text-muted-foreground sm:text-sm">
-                  Chưa có số đo — hoàn thành tư vấn AI để gợi ý size chính xác hơn.
-                </p>
-                <Button variant="ai" size="sm" className="mt-3 h-9 w-full rounded-full sm:w-auto" asChild>
-                  <Link href="/profile/body">
-                    <Sparkles className="mr-1.5 h-4 w-4" aria-hidden="true" />
-                    Thiết lập hồ sơ cơ thể
-                  </Link>
-                </Button>
-              </div>
-            )}
-          </ProfileSection>
+          <>
+            <ProfileStatsGrid summary={summary} />
+            <ProfileProgressCard summary={summary} />
+          </>
         )}
 
-        {bodyProfile?.measurements &&
-          Object.values(bodyProfile.measurements).some((v) => v != null) && (
-            <section className="surface-card rounded-xl p-3 sm:rounded-2xl sm:p-5">
-              <h2 className="font-display text-sm font-semibold text-foreground">Số đo chi tiết</h2>
-              <div className="mt-2 flex flex-wrap gap-1.5 sm:mt-3 sm:gap-2">
-                {bodyProfile.measurements.chestCm != null && (
-                  <Badge variant="outline" className="text-[10px] sm:text-xs">
-                    Ngực {bodyProfile.measurements.chestCm} cm
-                  </Badge>
-                )}
-                {bodyProfile.measurements.waistCm != null && (
-                  <Badge variant="outline" className="text-[10px] sm:text-xs">
-                    Eo {bodyProfile.measurements.waistCm} cm
-                  </Badge>
-                )}
-                {bodyProfile.measurements.hipCm != null && (
-                  <Badge variant="outline" className="text-[10px] sm:text-xs">
-                    Hông {bodyProfile.measurements.hipCm} cm
-                  </Badge>
-                )}
-                {bodyProfile.measurements.shoulderWidthCm != null && (
-                  <Badge variant="outline" className="text-[10px] sm:text-xs">
-                    Vai {bodyProfile.measurements.shoulderWidthCm} cm
-                  </Badge>
-                )}
-                {bodyProfile.measurements.inseamCm != null && (
-                  <Badge variant="outline" className="text-[10px] sm:text-xs">
-                    Sườn trong {bodyProfile.measurements.inseamCm} cm
-                  </Badge>
-                )}
-              </div>
-            </section>
-          )}
+        <Tabs value={tab} onValueChange={setTab} className="w-full">
+          <TabsList className="grid h-auto w-full grid-cols-3 rounded-full p-1">
+            <TabsTrigger value="overview" className="rounded-full text-xs sm:text-sm">
+              Tổng quan
+            </TabsTrigger>
+            <TabsTrigger value="preferences" className="rounded-full text-xs sm:text-sm">
+              Sở thích
+            </TabsTrigger>
+            <TabsTrigger value="account" className="rounded-full text-xs sm:text-sm">
+              Tài khoản
+            </TabsTrigger>
+          </TabsList>
 
-        <ProfileSection title="Thông tin tài khoản" icon={UserRound}>
-          <dl>
-            <ProfileDetail label="Họ tên" value={user?.fullName ?? "—"} />
-            <ProfileDetail label="Email" value={user?.email ?? "—"} />
-            <ProfileDetail label="Vai trò" value={roleLabel} />
-          </dl>
-        </ProfileSection>
+          <TabsContent value="overview" className="mt-3 sm:mt-4">
+            <div className="space-y-3 sm:space-y-4">
+              <section className="surface-card rounded-xl p-3 sm:rounded-2xl sm:p-5">
+                <div className="flex items-center gap-2">
+                  <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary sm:h-8 sm:w-8">
+                    <Gift className="h-3.5 w-3.5 sm:h-4 sm:w-4" aria-hidden="true" />
+                  </span>
+                  <h2 className="truncate font-display text-sm font-semibold text-foreground sm:text-base">
+                    Nhiệm vụ & Fitken
+                  </h2>
+                </div>
+                <p className="mt-2 text-xs text-muted-foreground">
+                  Điểm danh hằng ngày, chia sẻ outfit và viết đánh giá để nhận thưởng Fitken.
+                </p>
+                <Button asChild size="sm" variant="ai" className="mt-3 w-full rounded-full">
+                  <Link href="/rewards">
+                    <Sparkles className="mr-1.5 h-4 w-4" aria-hidden="true" />
+                    Nhận thưởng
+                  </Link>
+                </Button>
+              </section>
+
+              <section className="surface-card rounded-xl p-3 sm:rounded-2xl sm:p-5">
+                <div className="flex items-center gap-2">
+                  <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary sm:h-8 sm:w-8">
+                    <UserRound className="h-3.5 w-3.5 sm:h-4 sm:w-4" aria-hidden="true" />
+                  </span>
+                  <h2 className="truncate font-display text-sm font-semibold text-foreground sm:text-base">
+                    Hoạt động gần đây
+                  </h2>
+                </div>
+                <dl className="mt-2 space-y-1.5 text-sm">
+                  <div className="flex items-center justify-between gap-3">
+                    <dt className="text-muted-foreground">Ảnh thử mặc</dt>
+                    <dd className="font-medium text-foreground">{summary?.galleryImages ?? 0}</dd>
+                  </div>
+                  <div className="flex items-center justify-between gap-3">
+                    <dt className="text-muted-foreground">Outfit đã lưu</dt>
+                    <dd className="font-medium text-foreground">{summary?.savedOutfits ?? 0}</dd>
+                  </div>
+                  <div className="flex items-center justify-between gap-3">
+                    <dt className="text-muted-foreground">Outfit đã chia sẻ</dt>
+                    <dd className="font-medium text-foreground">{summary?.communityPosts ?? 0}</dd>
+                  </div>
+                  <div className="flex items-center justify-between gap-3">
+                    <dt className="text-muted-foreground">Fitken tháng này</dt>
+                    <dd className="font-medium text-foreground">
+                      +{summary?.fitkenEarnedThisMonth ?? 0}
+                    </dd>
+                  </div>
+                </dl>
+              </section>
+            </div>
+          </TabsContent>
+
+          <TabsContent value="preferences" className="mt-3 sm:mt-4">
+            {profilesLoading ? (
+              <LoadingSkeleton type="card" />
+            ) : (
+              <ProfilePreferencesTab bodyProfile={bodyProfile} summary={summary!} />
+            )}
+          </TabsContent>
+
+          <TabsContent value="account" className="mt-3 sm:mt-4">
+            <ProfileAccountTab />
+          </TabsContent>
+        </Tabs>
 
         <div className="pb-1 pt-0.5">
           <Button

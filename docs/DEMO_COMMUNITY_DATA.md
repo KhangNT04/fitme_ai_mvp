@@ -2,9 +2,10 @@
 
 ## Vì sao cần
 
-Backend production chỉ mới có API community ở commit `b36a419`
+Backend production đã có API community kể từ commit `b36a419`
 ("community posts, self-service account deletion, email change and pricing visibility").
-Nếu frontend được deploy **trước khi** Render/Hetzner deploy lại backend, các trang sau sẽ lỗi:
+Backend chính chạy trên **Oracle Cloud** (xem [`DEPLOY_ORACLE_CLOUD.md`](./DEPLOY_ORACLE_CLOUD.md)).
+Nếu frontend được deploy **trước khi** Oracle deploy lại backend, các trang sau sẽ lỗi:
 
 | Trang | Lỗi | Nguyên nhân |
 |---|---|---|
@@ -50,12 +51,25 @@ Trạng thái lưu ở `localStorage` key `fitme_demo_data`, nên có thể đ�
 | `frontend/src/services/community-api.ts` | Bọc `withDemoFallback` cho các lệnh đọc |
 | `scripts/gen-demo-community.cjs` | Sinh lại dataset từ snapshot catalog |
 | `scripts/demo-community-catalog.json` | Snapshot 40 sản phẩm lấy từ production |
+| `scripts/seed-community-posts.cjs` | Ghi 18 bài demo vào DB production (tài khoản demo riêng) |
+
+## Nạp dữ liệu demo vào database
+
+`/community` có dữ liệu thật ngay khi DB có bài đăng. Script dưới đây ghi 18 bài demo (sản phẩm thật, ảnh R2 thật) vào `community_posts`:
+
+```bash
+DB_URL="jdbc:postgresql://<neon-host>/neondb?sslmode=require" \
+DB_USERNAME=<user> DB_PASSWORD=<password> \
+node scripts/seed-community-posts.cjs
+```
+
+Tác giả là các tài khoản demo riêng (`demo.*@fitme.ai`, mật khẩu `FitMeDemo@2026`), **không** gán bài cho tài khoản người dùng thật. Chạy lại script là an toàn — bài đã có share code sẽ được bỏ qua.
 
 ## Sinh lại dataset
 
 ```bash
 # 1. cập nhật snapshot catalog từ production
-curl -s https://fitme-ai-mvp.onrender.com/api/v1/products -o /tmp/products.json
+curl -s https://213-35-112-238.sslip.io/api/v1/products -o /tmp/products.json
 
 # 2. chỉnh mảng `specs` trong scripts/gen-demo-community.cjs
 #    (mỗi mục: tên tác giả, tiêu đề, caption, style, occasion, index sản phẩm,

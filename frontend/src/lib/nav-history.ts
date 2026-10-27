@@ -71,6 +71,7 @@ export function labelForHref(href: string): string {
     "/wardrobe": "Tủ đồ cá nhân",
     "/saved-outfits": "Đã lưu",
     "/similar-products": "Sản phẩm tương tự",
+    "/community": "Cộng đồng thời trang",
     "/auth/login": "Đăng nhập",
     "/auth/register": "Đăng ký",
     "/auth/forgot-password": "Quên mật khẩu",
@@ -83,6 +84,7 @@ export function labelForHref(href: string): string {
 
   if (exact[path]) return exact[path];
   if (path.startsWith("/discover/brand/")) return "Thương hiệu";
+  if (path.startsWith("/outfit/")) return "Outfit cộng đồng";
   if (path.startsWith("/try-on/brand/")) return "Thử mặc theo thương hiệu";
   if (path.startsWith("/products/")) return "Thông tin sản phẩm";
   if (path.startsWith("/try-on/result/")) return "Kết quả thử mặc AI";

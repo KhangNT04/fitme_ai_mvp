@@ -11,6 +11,7 @@ import { AppImage } from "@/components/common/AppImage";
 import { LoadingSkeleton } from "@/components/common/LoadingSkeleton";
 import { ErrorState } from "@/components/common/ErrorState";
 import { PageShell } from "@/components/layout/PageShell";
+import { PinnedBackLink } from "@/components/layout/PinnedBackLink";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { consumerPageShellClass } from "@/lib/design-tokens";
@@ -18,7 +19,6 @@ import { communityShareCaption, communityShareUrl, shareCommunityPost } from "@/
 import { getUserErrorMessage } from "@/lib/user-error-message";
 import { DEMO_COMMUNITY_POSTS } from "@/lib/demo-community-data";
 import { cn } from "@/lib/utils";
-import type { CommunityPost } from "@/types";
 
 function formatDateTime(value: string): string {
   const date = new Date(value);
@@ -82,6 +82,7 @@ export default function CommunityOutfitPage() {
   if (isLoading) {
     return (
       <PageShell width="full" className={consumerPageShellClass}>
+        <PinnedBackLink href="/community" label="Cộng đồng" className="mb-3 sm:mb-4" />
         <LoadingSkeleton type="detail" />
       </PageShell>
     );
@@ -90,6 +91,7 @@ export default function CommunityOutfitPage() {
   if (error || !data) {
     return (
       <PageShell width="full" className={consumerPageShellClass}>
+        <PinnedBackLink href="/community" label="Cộng đồng" className="mb-3 sm:mb-4" />
         <ErrorState onRetry={() => void refetch()} />
         <div className="mt-4 text-center">
           <Button asChild variant="outline" className="rounded-full">
@@ -102,6 +104,7 @@ export default function CommunityOutfitPage() {
 
   return (
     <PageShell width="full" className={consumerPageShellClass}>
+      <PinnedBackLink href="/community" label="Cộng đồng" className="mb-3 sm:mb-4" />
       <div className="mx-auto grid max-w-4xl gap-5 lg:grid-cols-[minmax(0,20rem)_1fr] lg:items-start">
         <div className="relative aspect-[3/4] w-full overflow-hidden rounded-2xl border border-border bg-muted">
           <AppImage src={data.imageUrl} alt="Outfit chia sẻ" fill className="object-cover" unoptimized />

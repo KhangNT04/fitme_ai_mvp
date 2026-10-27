@@ -43,6 +43,18 @@ export interface CommunityPostInteraction {
   savedByMe: boolean;
 }
 
+export interface CommunityCommentNotification {
+  id: string;
+  postId: string;
+  postShareCode: string;
+  postTitle?: string | null;
+  actorDisplayName: string;
+  actorInitials: string;
+  content: string;
+  reply: boolean;
+  createdAt: string;
+}
+
 /** A comment on a post. `replies` holds the single level of answers to this comment. */
 export interface CommunityComment {
   id: string;

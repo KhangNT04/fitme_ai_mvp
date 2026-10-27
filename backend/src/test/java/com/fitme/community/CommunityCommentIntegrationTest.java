@@ -208,6 +208,74 @@ class CommunityCommentIntegrationTest extends AbstractIntegrationTest {
                 .andExpect(status().is4xxClientError());
     }
 
+    @Test
+    void theAuthorGetsANotificationWhenSomebodyComments() throws Exception {
+        FitMeUserPrincipal owner = new FitMeUserPrincipal(testDataHelper.createUser().user());
+        FitMeUserPrincipal stranger = new FitMeUserPrincipal(testDataHelper.createUser().user());
+        String postId = publishPost(owner);
+
+        mockMvc.perform(post("/api/v1/community/posts/{id}/comments", postId)
+                        .with(user(stranger))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"content": "Bình luận cần thông báo"}
+                                """))
+                .andExpect(status().isOk());
+
+        // The post author sees it in their notification list.
+        mockMvc.perform(get("/api/v1/me/community/notifications").with(user(owner)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.length()").value(1))
+                .andExpect(jsonPath("$.data[0].content").value("Bình luận cần thông báo"))
+                .andExpect(jsonPath("$.data[0].reply").value(false))
+                .andExpect(jsonPath("$.data[0].actorDisplayName").value("Test User"));
+    }
+
+    @Test
+    void notificationsNeedALogin() throws Exception {
+        mockMvc.perform(get("/api/v1/me/community/notifications"))
+                .andExpect(status().is4xxClientError());
+    }
+
+    @Test
+    void bothThePostOwnerAndTheAnsweredAuthorAreNotified() throws Exception {
+        FitMeUserPrincipal owner = new FitMeUserPrincipal(testDataHelper.createUser().user());
+        FitMeUserPrincipal stranger = new FitMeUserPrincipal(testDataHelper.createUser().user());
+        FitMeUserPrincipal third = new FitMeUserPrincipal(testDataHelper.createUser().user());
+        String postId = publishPost(owner);
+
+        // The stranger comments; the owner is notified.
+        String body = mockMvc.perform(post("/api/v1/community/posts/{id}/comments", postId)
+                        .with(user(stranger))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"content": "Bình luận đầu tiên"}
+                                """))
+                .andExpect(status().isOk())
+                .andReturn().getResponse().getContentAsString();
+        String commentId = objectMapper.readTree(body).get("data").get("id").asText();
+
+        // A third party answers that comment: the commenter and the post owner both hear about it.
+        mockMvc.perform(post("/api/v1/community/posts/{id}/comments", postId)
+                        .with(user(third))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"content": "Trả lời bình luận của bạn", "parentId": "%s"}
+                                """.formatted(commentId)))
+                .andExpect(status().isOk());
+
+        mockMvc.perform(get("/api/v1/me/community/notifications").with(user(stranger)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.length()").value(1))
+                .andExpect(jsonPath("$.data[0].reply").value(true))
+                .andExpect(jsonPath("$.data[0].content").value("Trả lời bình luận của bạn"));
+
+        // The post owner hears about both the first comment and the reply.
+        mockMvc.perform(get("/api/v1/me/community/notifications").with(user(owner)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.length()").value(2));
+    }
+
     // ── Helpers ────────────────────────────────────────────────────────────────────────────────
 
     private String publishPost(FitMeUserPrincipal principal) throws Exception {

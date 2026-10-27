@@ -7,6 +7,7 @@ import { useQuery } from "@tanstack/react-query";
 import { fitkenApi } from "@/services/fitken-api";
 import { Button } from "@/components/ui/button";
 import { NavScrollLink } from "@/components/layout/NavScrollLink";
+import { NotificationBell } from "@/components/community/NotificationBell";
 import { PortalMenuButton } from "@/components/layout/PortalSidebar";
 import { openDiscoverSearch } from "@/lib/discover-search";
 import { normalizeNavPath } from "@/lib/scroll-to-top";
@@ -179,6 +180,7 @@ export function Header() {
           <NavQuickSearch />
           {isAuthed ? (
             <>
+              <NotificationBell />
               <Link href="/rewards" className="flex items-center gap-1.5 rounded-full bg-amber-100 px-3 py-1.5 text-sm font-medium text-amber-700 hover:bg-amber-200 transition-colors">
                 <Coins className="h-4 w-4" />
                 <span>{wallet?.balance ?? "–"}</span>
@@ -204,8 +206,7 @@ export function Header() {
             <NavQuickSaved />
             <NavQuickSearch />
           </div>
-        ) : null}
-      </div>
+        ) : null}      </div>
     </header>
   );
 }

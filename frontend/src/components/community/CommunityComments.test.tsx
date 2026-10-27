@@ -31,7 +31,7 @@ function signIn() {
   useAuthStore.setState({
     accessToken: VALID_TOKEN,
     refreshToken: VALID_TOKEN,
-    user: { id: "me", email: "me@fitme.ai", fullName: "Me", role: "USER" },
+    user: { id: "me", email: "me@fitme.ai", fullName: "Me", role: "USER", emailVerified: true },
   });
 }
 

@@ -3,6 +3,7 @@ import { demoCommunity } from "@/lib/demo-community-store";
 import { shouldUseDemoCommunity } from "@/lib/demo-data";
 import type {
   CommunityComment,
+  CommunityCommentNotification,
   CommunityPost,
   CommunityPostInteraction,
   CommunityPostPage,
@@ -191,5 +192,10 @@ export const communityApi = {
   deleteComment: async (postId: string, commentId: string): Promise<void> => {
     const res = await apiClient.delete(`/community/posts/${postId}/comments/${commentId}`);
     return unwrap(res);
+  },
+
+  getNotifications: async (limit = 20): Promise<CommunityCommentNotification[]> => {
+    const res = await apiClient.get("/me/community/notifications", { params: { limit } });
+    return (unwrap(res) as CommunityCommentNotification[] | null) ?? [];
   },
 };

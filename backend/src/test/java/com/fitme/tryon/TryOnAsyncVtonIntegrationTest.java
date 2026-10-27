@@ -21,6 +21,7 @@ import org.springframework.test.context.TestPropertySource;
 
 import java.util.ArrayDeque;
 import java.util.Deque;
+import java.util.UUID;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
@@ -84,7 +85,7 @@ class TryOnAsyncVtonIntegrationTest extends AbstractIntegrationTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.status").value("PROCESSING"));
 
-        vtonTryOnService.pollProcessingJobs();
+        vtonTryOnService.pollForTryOn(UUID.fromString(requestId));
 
         mockMvc.perform(get("/api/v1/try-on/requests/{id}/result", requestId)
                         .header(SESSION_HEADER, sessionToken))
@@ -134,8 +135,8 @@ class TryOnAsyncVtonIntegrationTest extends AbstractIntegrationTest {
                 .andExpect(jsonPath("$.data.status").value("PROCESSING"))
                 .andExpect(jsonPath("$.data.previewImageUrl").doesNotExist());
 
-        vtonTryOnService.pollProcessingJobs();
-        vtonTryOnService.pollProcessingJobs();
+        vtonTryOnService.pollForTryOn(UUID.fromString(requestId));
+        vtonTryOnService.pollForTryOn(UUID.fromString(requestId));
 
         mockMvc.perform(get("/api/v1/try-on/requests/{id}/result", requestId)
                         .header(SESSION_HEADER, sessionToken))

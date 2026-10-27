@@ -44,6 +44,10 @@ public interface OutfitGalleryImageRepository extends JpaRepository<OutfitGaller
 
     long countByDeletedAtIsNullAndCreatedAtAfter(Instant after);
 
+    @Query("select g from OutfitGalleryImage g "
+            + "where g.imageUrl like concat(:prefix, '%') and g.deletedAt is null")
+    List<OutfitGalleryImage> findByImageUrlPrefix(@Param("prefix") String prefix);
+
     @Query("select count(distinct g.userId) from OutfitGalleryImage g where g.deletedAt is null")
     long countDistinctUsers();
 }

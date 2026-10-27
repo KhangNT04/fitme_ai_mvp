@@ -8,7 +8,7 @@ import { communityApi, nextCommunityPage } from "@/services/community-api";
 import { useAuthStore } from "@/stores/auth-store";
 import { toast } from "@/stores/toast-store";
 import { AppImage } from "@/components/common/AppImage";
-import { CommunityComments } from "@/components/community/CommunityComments";
+import { CommunityCommentsModal } from "@/components/community/CommunityCommentsModal";
 import { EmptyState } from "@/components/common/EmptyState";
 import { ErrorState } from "@/components/common/ErrorState";
 import { PageShell } from "@/components/layout/PageShell";
@@ -184,7 +184,7 @@ export default function CommunityPage() {
  * A post in the feed, laid out like a social-network card: author header, photo, then an
  * action bar with like / comment / share and a live comment count.
  */
-function CommunityPostCard({
+export function CommunityPostCard({
   post,
   canInteract,
   isDemo,
@@ -199,7 +199,6 @@ function CommunityPostCard({
 }) {
   const [commentsOpen, setCommentsOpen] = useState(false);
   const [shareState, setShareState] = useState<"idle" | "copied" | "failed">("idle");
-
   const handleShare = async () => {
     const url = communityShareUrl(post.shareCode);
     const result = await shareCommunityPost({
@@ -305,8 +304,8 @@ function CommunityPostCard({
         <button
           type="button"
           aria-label="Bình luận"
-          aria-expanded={commentsOpen}
-          onClick={() => setCommentsOpen((open) => !open)}
+          aria-haspopup="dialog"
+          onClick={() => setCommentsOpen(true)}
           className="inline-flex min-h-9 flex-1 items-center justify-center gap-1.5 rounded-full text-xs font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
         >
           <MessageCircle className="h-4 w-4" aria-hidden="true" />
@@ -341,9 +340,7 @@ function CommunityPostCard({
       </div>
 
       {commentsOpen && (
-        <div className="border-t border-border/40 px-3 py-3 sm:px-4">
-          <CommunityComments postId={post.id} />
-        </div>
+        <CommunityCommentsModal post={post} open={commentsOpen} onOpenChange={setCommentsOpen} />
       )}
     </article>
   );

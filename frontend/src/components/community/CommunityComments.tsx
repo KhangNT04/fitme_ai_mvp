@@ -51,20 +51,25 @@ function relativeTime(value: string): string {
 /**
  * The comment thread of a post, laid out like a social feed: comments in chronological order,
  * one level of replies underneath, and a composer pinned to the bottom.
+ *
+ * `variant="modal"` turns it into a Facebook-style thread: the header is dropped (the modal
+ * owns the title), the list scrolls on its own and the composer stays pinned to the bottom.
  */
 export function CommunityComments({
   postId,
   className,
+  variant = "inline",
 }: {
   postId: string;
   className?: string;
+  variant?: "inline" | "modal";
 }) {
   const queryClient = useQueryClient();
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated());
   const [draft, setDraft] = useState("");
   const [replyTo, setReplyTo] = useState<{ id: string; name: string } | null>(null);
 
-  const { data: comments, isLoading } = useQuery({
+  const { data: comments, isLoading, isError } = useQuery({
     queryKey: ["community-comments", postId],
     queryFn: () => communityApi.getComments(postId),
     enabled: Boolean(postId),
@@ -102,17 +107,12 @@ export function CommunityComments({
   const list = comments ?? [];
   const totalCount = list.reduce((sum, comment) => sum + 1 + comment.replies.length, 0);
 
-  return (
-    <section className={cn("space-y-3", className)} aria-label="Bình luận">
-      <div className="flex items-center gap-2">
-        <MessageCircle className="h-4 w-4 text-muted-foreground" aria-hidden="true" />
-        <h3 className="font-display text-sm font-semibold text-foreground">
-          Bình luận{totalCount > 0 ? ` (${totalCount})` : ""}
-        </h3>
-      </div>
-
+  const thread = (
+    <div className={cn(variant === "modal" && "flex-1 overflow-y-auto overscroll-contain px-3 sm:px-4 py-3")}>
       {isLoading ? (
         <p className="text-xs text-muted-foreground">Đang tải bình luận...</p>
+      ) : isError ? (
+        <p className="text-xs text-muted-foreground">Không tải được bình luận. Hãy thử lại.</p>
       ) : list.length === 0 ? (
         <p className="text-xs text-muted-foreground">
           Chưa có bình luận nào. Hãy là người đầu tiên bình luận!
@@ -131,61 +131,93 @@ export function CommunityComments({
           ))}
         </ul>
       )}
+    </div>
+  );
 
-      {isAuthenticated ? (
-        <form onSubmit={handleSubmit} className="space-y-2 pt-1">
-          {replyTo && (
-            <div className="flex items-center justify-between gap-2 rounded-lg bg-muted/60 px-2.5 py-1.5 text-xs text-muted-foreground">
-              <span>
-                Đang trả lời <strong className="text-foreground">{replyTo.name}</strong>
-              </span>
-              <button
-                type="button"
-                onClick={() => setReplyTo(null)}
-                className="rounded-full px-1.5 py-0.5 font-medium text-muted-foreground hover:text-foreground"
-              >
-                Huỷ
-              </button>
-            </div>
-          )}
-          <div className="flex items-end gap-2">
-            <textarea
-              value={draft}
-              onChange={(event) => setDraft(event.target.value.slice(0, 1000))}
-              onKeyDown={(event) => {
-                if (event.key === "Enter" && (event.metaKey || event.ctrlKey)) {
-                  event.preventDefault();
-                  handleSubmit(event);
-                }
-              }}
-              rows={1}
-              maxLength={1000}
-              placeholder={replyTo ? `Trả lời ${replyTo.name}...` : "Viết bình luận..."}
-              aria-label="Nội dung bình luận"
-              className="min-h-10 flex-1 resize-none rounded-xl border border-border bg-card px-3 py-2 text-sm placeholder:text-muted-foreground/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-            />
-            <button
-              type="submit"
-              disabled={!draft.trim() || addMutation.isPending}
-              aria-label="Gửi bình luận"
-              className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground transition-opacity disabled:opacity-50"
-            >
-              {addMutation.isPending ? (
-                <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
-              ) : (
-                <Send className="h-4 w-4" aria-hidden="true" />
-              )}
-            </button>
-          </div>
-        </form>
-      ) : (
-        <p className="text-xs text-muted-foreground">
-          <Link href="/auth/login" className="underline">
-            Đăng nhập
-          </Link>{" "}
-          để bình luận bài đăng này.
-        </p>
+  const composer = isAuthenticated ? (
+    <form
+      onSubmit={handleSubmit}
+      className={cn(
+        "space-y-2",
+        variant === "modal"
+          ? "shrink-0 border-t border-border/60 bg-card px-3 pb-3 pt-2 sm:px-4"
+          : "pt-1",
       )}
+    >
+      {replyTo && (
+        <div className="flex items-center justify-between gap-2 rounded-lg bg-muted/60 px-2.5 py-1.5 text-xs text-muted-foreground">
+          <span>
+            Đang trả lời <strong className="text-foreground">{replyTo.name}</strong>
+          </span>
+          <button
+            type="button"
+            onClick={() => setReplyTo(null)}
+            className="rounded-full px-1.5 py-0.5 font-medium text-muted-foreground hover:text-foreground"
+          >
+            Huỷ
+          </button>
+        </div>
+      )}
+      <div className="flex items-end gap-2">
+        <textarea
+          value={draft}
+          onChange={(event) => setDraft(event.target.value.slice(0, 1000))}
+          onKeyDown={(event) => {
+            if (event.key === "Enter" && (event.metaKey || event.ctrlKey)) {
+              event.preventDefault();
+              handleSubmit(event);
+            }
+          }}
+          rows={1}
+          maxLength={1000}
+          placeholder={replyTo ? `Trả lời ${replyTo.name}...` : "Viết bình luận..."}
+          aria-label="Nội dung bình luận"
+          className="min-h-10 flex-1 resize-none rounded-xl border border-border bg-card px-3 py-2 text-sm placeholder:text-muted-foreground/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+        />
+        <button
+          type="submit"
+          disabled={!draft.trim() || addMutation.isPending}
+          aria-label="Gửi bình luận"
+          className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground transition-opacity disabled:opacity-50"
+        >
+          {addMutation.isPending ? (
+            <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
+          ) : (
+            <Send className="h-4 w-4" aria-hidden="true" />
+          )}
+        </button>
+      </div>
+    </form>
+  ) : (
+    <p className={cn("text-xs text-muted-foreground", variant === "modal" && "shrink-0 border-t border-border/60 px-3 pb-3 sm:px-4")}>
+      <Link href="/auth/login" className="underline">
+        Đăng nhập
+      </Link>{" "}
+      để bình luận bài đăng này.
+    </p>
+  );
+
+  if (variant === "modal") {
+    return (
+      <section className={cn("flex min-h-0 flex-1 flex-col", className)} aria-label="Bình luận">
+        {thread}
+        {composer}
+      </section>
+    );
+  }
+
+  return (
+    <section className={cn("space-y-3", className)} aria-label="Bình luận">
+      <div className="flex items-center gap-2">
+        <MessageCircle className="h-4 w-4 text-muted-foreground" aria-hidden="true" />
+        <h3 className="font-display text-sm font-semibold text-foreground">
+          Bình luận{totalCount > 0 ? ` (${totalCount})` : ""}
+        </h3>
+      </div>
+
+      {thread}
+
+      {composer}
     </section>
   );
 }

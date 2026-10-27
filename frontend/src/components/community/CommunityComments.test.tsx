@@ -56,13 +56,13 @@ function comment(overrides: Partial<CommunityComment> = {}): CommunityComment {
   };
 }
 
-function renderComments() {
+function renderComments(variant: "inline" | "modal" = "inline") {
   const queryClient = new QueryClient({
     defaultOptions: { queries: { retry: false }, mutations: { retry: false } },
   });
   return render(
     <QueryClientProvider client={queryClient}>
-      <CommunityComments postId="post-1" />
+      <CommunityComments postId="post-1" variant={variant} />
     </QueryClientProvider>,
   );
 }
@@ -143,5 +143,27 @@ describe("CommunityComments", () => {
     await screen.findByText("Outfit này hợp quá");
     // Exactly one delete button, for the viewer's own comment.
     expect(screen.getAllByRole("button", { name: /Xoá/i })).toHaveLength(1);
+  });
+
+  describe("modal variant", () => {
+    it("drops the inline heading so the modal owns the title", async () => {
+      mockedApi.getComments.mockResolvedValue([comment()]);
+      renderComments("modal");
+
+      await screen.findByText("Outfit này hợp quá");
+      expect(screen.queryByRole("heading", { name: /Bình luận/i })).not.toBeInTheDocument();
+    });
+
+    it("still offers the composer and can post a comment", async () => {
+      mockedApi.addComment.mockResolvedValue(comment({ mine: true, canDelete: true }));
+      renderComments("modal");
+
+      const composer = await screen.findByLabelText(/Nội dung bình luận/i);
+      fireEvent.change(composer, { target: { value: "Outfit đẹp quá" } });
+      fireEvent.click(screen.getByRole("button", { name: /Gửi bình luận/i }));
+
+      await waitFor(() => expect(mockedApi.addComment).toHaveBeenCalledTimes(1));
+      expect(mockedApi.addComment).toHaveBeenCalledWith("post-1", "Outfit đẹp quá", undefined);
+    });
   });
 });

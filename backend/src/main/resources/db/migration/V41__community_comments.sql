@@ -43,15 +43,12 @@ CREATE TRIGGER trg_community_comments_count
 -- để việc gửi mail (ngoài transaction) không khóa bảng bình luận.
 CREATE TABLE community_comment_notifications (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    comment_id UUID NOT NULL REFERENCES community_comments(id) ON DELETE CASCADE,
+    comment_id UUID NOT NULL UNIQUE REFERENCES community_comments(id) ON DELETE CASCADE,
     post_id UUID NOT NULL REFERENCES community_posts(id) ON DELETE CASCADE,
     recipient_id UUID NOT NULL REFERENCES user_accounts(id) ON DELETE CASCADE,
     actor_id UUID NOT NULL REFERENCES user_accounts(id) ON DELETE CASCADE,
     delivered_at TIMESTAMP,
-    created_at TIMESTAMP NOT NULL DEFAULT NOW(),
-    -- Một bình luận có thể báo cho hai người (chủ bài và tác giả bình luận được trả lời),
-    -- nên khoá theo cặp (bình luận, người nhận) chứ không theo riêng bình luận.
-    CONSTRAINT uq_community_comment_notification UNIQUE (comment_id, recipient_id)
+    created_at TIMESTAMP NOT NULL DEFAULT NOW()
 );
 
 CREATE INDEX idx_community_comment_notifications_pending

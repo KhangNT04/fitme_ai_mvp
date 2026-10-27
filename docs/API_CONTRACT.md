@@ -96,7 +96,7 @@ Các `errorCode` thường gặp:
 | `rewards-api.ts` | `RewardController` | `/rewards` | User auth |
 | `review-api.ts` | `ReviewController` | `/products/{id}/reviews`, `/reviews` | Public / User auth |
 | `gallery-api.ts` | `GalleryController` | `/me/gallery` | User auth |
-| `community-api.ts` | `CommunityController`, `CommunityInteractionController`, `CommunitySavedController` | `/community`, `/me/community` | Public (feed / permalink) / User auth (đăng, thích, lưu, theo dõi) |
+| `community-api.ts` | `CommunityController`, `CommunityInteractionController`, `CommunityCommentController`, `CommunitySavedController` | `/community`, `/me/community` | Public (feed / permalink / bình luận) / User auth (đăng, thích, lưu, bình luận, theo dõi) |
 | `brand-api.ts` | `BrandDashboardController`, `BrandProductController`, `BrandPublicController` | `/brand`, `/brands` | `BRAND_OWNER` / Public |
 | `brand-plus-api.ts` | `BrandPlusController`, `BrandVoucherController` | `/brand/plan`, `/brand/vouchers` | `BRAND_OWNER` |
 | `brand-lead-api.ts` | `BrandLeadController` | `/brand/leads` | `BRAND_OWNER` (chi tiết cần Plus) |
@@ -219,8 +219,11 @@ Người dùng đăng ảnh thử mặc trong thư viện lên cộng đồng c�
 | `GET` | `/community/authors/{authorId}/posts?page=0&size=24` | Public | Bài đăng công khai của 1 tác giả |
 | `POST` | `/community/posts` | User | Đăng bài: Body `{ galleryImageId, title?, caption? }` → `{ post, shareUrl }`. Ảnh phải thuộc thư viện của người đăng nhập |
 | `DELETE` | `/community/posts/{postId}` | User | Gỡ bài của chính mình (chuyển `visibility = REMOVED`, bài biến mất khỏi feed) |
-| `POST` / `DELETE` | `/community/posts/{postId}/like` | User | Thích / bỏ thích → `{ postId, likeCount, likedByMe, savedByMe }`. Không thích bài của chính mình |
-| `POST` / `DELETE` | `/community/posts/{postId}/save` | User | Lưu / bỏ lưu → `{ postId, likeCount, likedByMe, savedByMe }` |
+| `POST` / `DELETE` | `/community/posts/{postId}/like` | User | Thích / bỏ thích → `{ postId, likeCount, commentCount, likedByMe, savedByMe }`. Không thích bài của chính mình |
+| `POST` / `DELETE` | `/community/posts/{postId}/save` | User | Lưu / bỏ lưu → `{ postId, likeCount, commentCount, likedByMe, savedByMe }` |
+| `GET` | `/community/posts/{postId}/comments` | Public | Chuỗi bình luận của bài: `[CommunityCommentDto]`. Bình luận cấp 1 theo thứ tự thời gian, mỗi bình luận mang `replies` (cấp 2) |
+| `POST` | `/community/posts/{postId}/comments` | User | Bình luận / trả lời: Body `{ content, parentId? }` → `CommunityCommentDto`. `content` 1..1000 ký tự. `parentId` = bình luận cần trả lời; trả lời một reply sẽ gắn vào bình luận cấp 1 (chỉ 1 cấp) |
+| `DELETE` | `/community/posts/{postId}/comments/{commentId}` | User | Xoá bình luận. Chỉ tác giả bình luận hoặc chủ bài đăng được xoá |
 | `POST` / `DELETE` | `/community/users/{followedId}/follow` | User | Theo dõi / bỏ theo dõi tác giả → `boolean` (đang theo dõi hay không). Không theo dõi chính mình |
 | `GET` | `/community/me` | User | Số liệu cộng đồng của tôi: `{ publishedPosts, savedPosts, followers, following, totalLikesReceived }` |
 | `GET` | `/me/community/saves?page=0&size=24` | User | Bài đăng đã lưu: `{ items, page, size, total }` |
@@ -228,6 +231,8 @@ Người dùng đăng ảnh thử mặc trong thư viện lên cộng đồng c�
 | `DELETE` | `/admin/community/posts/{postId}` | Admin | Ẩn bài vi phạm (`visibility = HIDDEN`) |
 
 **Consent `COMMUNITY_SHARE`**: đăng bài công khai cần người dùng đồng ý trước, nếu chưa có consent hoặc đã rút lại → `400 CONSENT_REQUIRED` ("Bạn cần đồng ý chia sẻ ảnh công khai trước khi đăng"). Xoá dữ liệu cá nhân (`PHOTO_UPLOAD` / `ALL`) sẽ gỡ toàn bộ bài đăng, lượt thích, lượt lưu và quan hệ theo dõi của người dùng.
+
+**Bình luận cộng đồng**: `CommunityCommentDto` = `{ id, postId, content, authorDisplayName, authorInitials, mine, canDelete, parentId, parentAuthorDisplayName, createdAt, replies: [CommunityCommentDto] }`. Cũng không bao giờ chứa `userId`/`email`. `comment_count` trên bài đăng được trigger cập nhật nên tự điều chỉnh khi thêm/xoá bình luận. Chủ bài và tác giả bình luận được trả lời nhận email thông báo (gửi bất đồng bộ sau khi commit).
 
 ### 5. Mua tại cửa hàng gốc & chia sẻ thông tin với brand
 

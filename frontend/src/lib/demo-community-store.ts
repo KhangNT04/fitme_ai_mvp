@@ -5,7 +5,13 @@
  * behaves like the real one during a demo, and nothing is ever written to the backend.
  */
 import { DEMO_COMMUNITY_POSTS } from "./demo-community-data";
-import type { CommunityPost, CommunityPostInteraction, CommunityPostPage, CommunityProfile } from "@/types";
+import type {
+  CommunityComment,
+  CommunityPost,
+  CommunityPostInteraction,
+  CommunityPostPage,
+  CommunityProfile,
+} from "@/types";
 
 const SAVED_KEY = "fitme_demo_saved_posts";
 
@@ -33,6 +39,8 @@ function writeSavedIds(ids: string[]): void {
 /** Post id -> number of extra likes the demo user gave it. */
 let extraLikes = new Map<string, number>();
 let savedIds = new Set<string>();
+/** Post id -> the comment thread the demo user wrote. */
+let demoComments = new Map<string, CommunityComment[]>();
 
 function hydrate(): void {
   if (typeof window === "undefined") return;
@@ -111,6 +119,7 @@ export const demoCommunity = {
     return {
       postId,
       likeCount: post.likeCount + next,
+      commentCount: post.commentCount,
       likedByMe: next > 0,
       savedByMe: savedIds.has(postId),
     };
@@ -129,9 +138,47 @@ export const demoCommunity = {
     return {
       postId,
       likeCount: post.likeCount + extra,
+      commentCount: post.commentCount,
       likedByMe: extra > 0,
       savedByMe: saved,
     };
+  },
+
+  /** Demo comment thread for a post. Empty for posts the demo user never commented on. */
+  comments(postId: string): CommunityComment[] {
+    hydrate();
+    return demoComments.get(postId) ?? [];
+  },
+
+  /** Records a demo comment so the thread grows like a real one. */
+  addComment(postId: string, content: string, parentId?: string): CommunityComment {
+    const now = new Date().toISOString();
+    const comment: CommunityComment = {
+      id: `demo-comment-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+      postId,
+      content,
+      authorDisplayName: "Bạn",
+      authorInitials: "BN",
+      mine: true,
+      canDelete: true,
+      parentId: parentId ?? null,
+      parentAuthorDisplayName: null,
+      createdAt: now,
+      replies: [],
+    };
+    const thread = [...(demoComments.get(postId) ?? [])];
+    if (!parentId) {
+      thread.push(comment);
+    } else {
+      const parent = thread.find((item) => item.id === parentId);
+      if (parent) {
+        parent.replies = [...parent.replies, comment];
+      } else {
+        thread.push(comment);
+      }
+    }
+    demoComments.set(postId, thread);
+    return comment;
   },
 
   profile(): CommunityProfile {
@@ -154,6 +201,7 @@ export const demoCommunity = {
   reset(): void {
     extraLikes = new Map();
     savedIds = new Set();
+    demoComments = new Map();
     writeSavedIds([]);
   },
 };

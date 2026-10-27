@@ -38,8 +38,24 @@ export interface CommunityPostPage {
 export interface CommunityPostInteraction {
   postId: string;
   likeCount: number;
+  commentCount: number;
   likedByMe: boolean;
   savedByMe: boolean;
+}
+
+/** A comment on a post. `replies` holds the single level of answers to this comment. */
+export interface CommunityComment {
+  id: string;
+  postId: string;
+  content: string;
+  authorDisplayName: string;
+  authorInitials: string;
+  mine: boolean;
+  canDelete: boolean;
+  parentId?: string | null;
+  parentAuthorDisplayName?: string | null;
+  createdAt: string;
+  replies: CommunityComment[];
 }
 
 export interface CommunityProfile {

@@ -3,19 +3,20 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useInfiniteQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Heart, Bookmark, Users, Sparkles, TrendingUp, Clock, FlaskConical } from "lucide-react";
+import { Heart, Bookmark, Users, Sparkles, TrendingUp, Clock, FlaskConical, MessageCircle, Share2, Check } from "lucide-react";
 import { communityApi, nextCommunityPage } from "@/services/community-api";
 import { useAuthStore } from "@/stores/auth-store";
 import { toast } from "@/stores/toast-store";
 import { AppImage } from "@/components/common/AppImage";
+import { CommunityComments } from "@/components/community/CommunityComments";
 import { EmptyState } from "@/components/common/EmptyState";
 import { ErrorState } from "@/components/common/ErrorState";
-import { LoadingSkeleton } from "@/components/common/LoadingSkeleton";
 import { PageShell } from "@/components/layout/PageShell";
 import { CollapsingPageHeader } from "@/components/layout/CollapsingPageHeader";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { consumerPageShellClass, catalogProductGridClass } from "@/lib/design-tokens";
+import { consumerPageShellClass } from "@/lib/design-tokens";
+import { communityShareCaption, communityShareUrl, shareCommunityPost } from "@/lib/community-share";
 import { getUserErrorMessage } from "@/lib/user-error-message";
 import { DEMO_DATA_ENABLED } from "@/lib/demo-data";
 import { useDemoCommunityEnabled, useToggleDemoCommunity } from "@/hooks/use-demo-community";
@@ -118,9 +119,9 @@ export default function CommunityPage() {
       </div>
 
       {isLoading ? (
-        <div className={cn(catalogProductGridClass, "mt-4")}>
-          {[1, 2, 3, 4].map((item) => (
-            <div key={item} className="aspect-[3/4] animate-pulse rounded-xl bg-muted" />
+        <div className="mx-auto mt-4 flex max-w-2xl flex-col gap-4">
+          {[1, 2].map((item) => (
+            <div key={item} className="aspect-[4/5] animate-pulse rounded-2xl bg-muted sm:aspect-[3/2]" />
           ))}
         </div>
       ) : isError ? (
@@ -134,7 +135,7 @@ export default function CommunityPage() {
         />
       ) : (
         <>
-          <div className={cn(catalogProductGridClass, "mt-4")}>
+          <div className="mx-auto mt-4 flex max-w-2xl flex-col gap-4">
             {posts.map((post) => (
               <CommunityPostCard
                 key={post.id}
@@ -179,6 +180,10 @@ export default function CommunityPage() {
   );
 }
 
+/**
+ * A post in the feed, laid out like a social-network card: author header, photo, then an
+ * action bar with like / comment / share and a live comment count.
+ */
 function CommunityPostCard({
   post,
   canInteract,
@@ -192,62 +197,160 @@ function CommunityPostCard({
   onLike: (liked: boolean) => void;
   onSave: (saved: boolean) => void;
 }) {
+  const [commentsOpen, setCommentsOpen] = useState(false);
+  const [shareState, setShareState] = useState<"idle" | "copied" | "failed">("idle");
+
+  const handleShare = async () => {
+    const url = communityShareUrl(post.shareCode);
+    const result = await shareCommunityPost({
+      url,
+      title: post.title ?? "Outfit trên FitMe",
+      text: communityShareCaption({ brandNames: post.brandNames, styleLabel: post.styleLabel }),
+    });
+    if (result === "copied") {
+      setShareState("copied");
+      toast.success("Đã sao chép link. Dán vào bài đăng của bạn nhé!");
+    } else if (result === "failed") {
+      setShareState("failed");
+      toast.error("Không thể chia sẻ. Hãy copy link thủ công.");
+    }
+    window.setTimeout(() => setShareState("idle"), 2000);
+  };
+
   return (
-    <article className="group relative overflow-hidden rounded-xl border border-border bg-card">
+    <article className="overflow-hidden rounded-2xl border border-border bg-card">
+      <header className="flex items-center gap-2.5 p-3 sm:p-4">
+        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary/10 text-sm font-semibold text-primary">
+          {post.authorInitials}
+        </span>
+        <div className="min-w-0 flex-1">
+          <p className="truncate text-sm font-semibold text-foreground">{post.authorDisplayName}</p>
+          <p className="truncate text-[11px] text-muted-foreground">
+            {post.styleLabel ?? "Outfit"} · {formatDateTime(post.createdAt)}
+          </p>
+        </div>
+        {isDemo && (
+          <Badge variant="outline" className="shrink-0 border-amber-500/40 text-amber-700 dark:text-amber-400">
+            Demo
+          </Badge>
+        )}
+      </header>
+
       <Link href={`/outfit/${post.shareCode}`} className="block">
-        <span className="relative block aspect-[3/4] w-full overflow-hidden bg-muted">
+        <span className="relative block aspect-[4/5] w-full overflow-hidden bg-muted sm:aspect-[3/2]">
           <AppImage
             src={post.imageUrl}
             alt={post.title ?? "Outfit cộng đồng"}
             fill
-            className="object-cover transition-transform duration-300 group-hover:scale-105"
+            className="object-cover"
             unoptimized
           />
         </span>
       </Link>
 
-      <div className="absolute inset-x-0 bottom-0 flex items-end justify-between gap-2 bg-gradient-to-t from-black/70 to-transparent p-2">
-        <div className="min-w-0 text-white">
-          <p className="truncate text-xs font-medium">{post.authorDisplayName}</p>
-          {post.brandNames.length > 0 && (
-            <p className="truncate text-[10px] opacity-85">{post.brandNames.slice(0, 2).join(" · ")}</p>
+      {(post.title || post.caption) && (
+        <div className="space-y-1 px-3 pt-3 sm:px-4">
+          {post.title && (
+            <p className="text-sm font-semibold text-foreground">{post.title}</p>
+          )}
+          {post.caption && (
+            <p className="line-clamp-2 text-sm text-muted-foreground">{post.caption}</p>
           )}
         </div>
-        <div className="flex shrink-0 gap-1">
-          <button
-            type="button"
-            aria-label={post.likedByMe ? "Bỏ thích" : "Thích"}
-            aria-pressed={post.likedByMe}
-            disabled={!canInteract}
-            onClick={() => onLike(!post.likedByMe)}
-            className="flex min-h-8 min-w-8 items-center justify-center rounded-full bg-black/40 text-white disabled:opacity-50"
-          >
-            <Heart className={cn("h-4 w-4", post.likedByMe && "fill-red-400 text-red-400")} aria-hidden="true" />
-          </button>
-          <button
-            type="button"
-            aria-label={post.savedByMe ? "Bỏ lưu" : "Lưu"}
-            aria-pressed={post.savedByMe}
-            disabled={!canInteract}
-            onClick={() => onSave(!post.savedByMe)}
-            className="flex min-h-8 min-w-8 items-center justify-center rounded-full bg-black/40 text-white disabled:opacity-50"
-          >
-            <Bookmark className={cn("h-4 w-4", post.savedByMe && "fill-white")} aria-hidden="true" />
-          </button>
-        </div>
-      </div>
-
-      {post.likeCount > 0 && (
-        <span className="absolute right-2 top-2 rounded-full bg-black/50 px-2 py-0.5 text-[10px] font-medium text-white">
-          {post.likeCount}
-        </span>
       )}
 
-      {isDemo && (
-        <span className="absolute left-2 top-2 rounded-full bg-amber-500/90 px-2 py-0.5 text-[10px] font-medium text-white">
-          Demo
-        </span>
+      <div className="mt-2 flex flex-wrap items-center gap-1.5 px-3 sm:px-4">
+        {post.brandNames.slice(0, 3).map((name) => (
+          <Badge key={name} variant="secondary" className="text-[10px]">
+            {name}
+          </Badge>
+        ))}
+        {post.occasion && (
+          <Badge variant="outline" className="text-[10px]">
+            {post.occasion}
+          </Badge>
+        )}
+      </div>
+
+      <div className="mt-2 flex items-center gap-3 border-b border-border/40 px-3 py-1.5 text-[11px] text-muted-foreground sm:px-4">
+        {post.likeCount > 0 && (
+          <span className="inline-flex items-center gap-1">
+            <Heart className="h-3 w-3 fill-red-400 text-red-400" aria-hidden="true" />
+            {post.likeCount}
+          </span>
+        )}
+        {post.commentCount > 0 && (
+          <span>
+            {post.commentCount} bình luận
+          </span>
+        )}
+        <span className="ml-auto">{post.viewCount} lượt xem</span>
+      </div>
+
+      <div className="flex items-center gap-1 px-2 py-1.5 sm:px-3">
+        <button
+          type="button"
+          aria-label={post.likedByMe ? "Bỏ thích" : "Thích"}
+          aria-pressed={post.likedByMe}
+          disabled={!canInteract}
+          onClick={() => onLike(!post.likedByMe)}
+          className={cn(
+            "inline-flex min-h-9 flex-1 items-center justify-center gap-1.5 rounded-full text-xs font-medium transition-colors disabled:opacity-50",
+            post.likedByMe ? "text-red-600" : "text-muted-foreground hover:bg-muted hover:text-foreground",
+          )}
+        >
+          <Heart className={cn("h-4 w-4", post.likedByMe && "fill-red-400 text-red-400")} aria-hidden="true" />
+          Thích
+        </button>
+        <button
+          type="button"
+          aria-label="Bình luận"
+          aria-expanded={commentsOpen}
+          onClick={() => setCommentsOpen((open) => !open)}
+          className="inline-flex min-h-9 flex-1 items-center justify-center gap-1.5 rounded-full text-xs font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+        >
+          <MessageCircle className="h-4 w-4" aria-hidden="true" />
+          Bình luận
+        </button>
+        <button
+          type="button"
+          aria-label="Chia sẻ"
+          onClick={() => void handleShare()}
+          className="inline-flex min-h-9 flex-1 items-center justify-center gap-1.5 rounded-full text-xs font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+        >
+          {shareState === "copied" ? (
+            <Check className="h-4 w-4 text-emerald-600" aria-hidden="true" />
+          ) : (
+            <Share2 className="h-4 w-4" aria-hidden="true" />
+          )}
+          Chia sẻ
+        </button>
+        <button
+          type="button"
+          aria-label={post.savedByMe ? "Bỏ lưu" : "Lưu"}
+          aria-pressed={post.savedByMe}
+          disabled={!canInteract}
+          onClick={() => onSave(!post.savedByMe)}
+          className={cn(
+            "inline-flex min-h-9 w-9 items-center justify-center rounded-full transition-colors disabled:opacity-50",
+            post.savedByMe ? "text-primary" : "text-muted-foreground hover:bg-muted hover:text-foreground",
+          )}
+        >
+          <Bookmark className={cn("h-4 w-4", post.savedByMe && "fill-current")} aria-hidden="true" />
+        </button>
+      </div>
+
+      {commentsOpen && (
+        <div className="border-t border-border/40 px-3 py-3 sm:px-4">
+          <CommunityComments postId={post.id} />
+        </div>
       )}
     </article>
   );
+}
+
+function formatDateTime(value: string): string {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "";
+  return date.toLocaleString("vi-VN", { dateStyle: "medium", timeStyle: "short" });
 }

@@ -97,7 +97,7 @@ public class CustomerEmailService {
         return user.getDisplayName() == null || user.getDisplayName().isBlank() ? "bạn" : user.getDisplayName();
     }
 
-    static String layout(String heading, String body, String link, String cta) {
+    public static String layout(String heading, String body, String link, String cta) {
         String button = link == null ? "" : """
                 <tr><td style="padding:0 32px 24px;text-align:center;">
                   <a href="%s" style="display:inline-block;padding:12px 28px;background:#7c3aed;color:#ffffff;
@@ -129,7 +129,7 @@ public class CustomerEmailService {
         return NumberFormat.getIntegerInstance(Locale.forLanguageTag("vi-VN")).format(amount) + " ₫";
     }
 
-    static String escape(String value) {
+    public static String escape(String value) {
         if (value == null) {
             return "";
         }

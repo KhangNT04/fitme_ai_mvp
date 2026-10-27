@@ -236,6 +236,7 @@ public class CommunityService {
         return CommunityPostInteractionDto.builder()
                 .postId(postId)
                 .likeCount(count == null ? 0 : count)
+                .commentCount(commentCount(postId))
                 .likedByMe(liked)
                 .savedByMe(isSaved(userId, postId))
                 .build();
@@ -256,6 +257,7 @@ public class CommunityService {
         return CommunityPostInteractionDto.builder()
                 .postId(postId)
                 .likeCount(count == null ? 0 : count)
+                .commentCount(commentCount(postId))
                 .likedByMe(hasLiked(userId, postId))
                 .savedByMe(saved)
                 .build();
@@ -321,6 +323,10 @@ public class CommunityService {
         jdbcTemplate.update("DELETE FROM community_post_saves WHERE user_id = ?", userId);
         jdbcTemplate.update("DELETE FROM community_post_likes WHERE user_id = ?", userId);
         jdbcTemplate.update("DELETE FROM community_follows WHERE follower_id = ? OR followed_id = ?",
+                userId, userId);
+        // Comments live in their own table with a cascade from the post, so they need an explicit delete.
+        jdbcTemplate.update("DELETE FROM community_comments WHERE user_id = ?", userId);
+        jdbcTemplate.update("DELETE FROM community_comment_notifications WHERE recipient_id = ? OR actor_id = ?",
                 userId, userId);
         postRepository.deleteAll(posts);
         return posts.size();
@@ -391,8 +397,14 @@ public class CommunityService {
         return count != null && count > 0;
     }
 
-    private int countSaved(UUID userId) {
+    /** Current comment count, maintained by the database trigger. */
+    private int commentCount(UUID postId) {
         Integer count = jdbcTemplate.queryForObject(
+                "SELECT comment_count FROM community_posts WHERE id = ?", Integer.class, postId);
+        return count == null ? 0 : count;
+    }
+
+    private int countSaved(UUID userId) {        Integer count = jdbcTemplate.queryForObject(
                 "SELECT COUNT(*) FROM community_post_saves WHERE user_id = ?", Integer.class, userId);
         return count == null ? 0 : count;
     }

@@ -8,6 +8,7 @@ import { communityApi } from "@/services/community-api";
 import { useAuthStore } from "@/stores/auth-store";
 import { toast } from "@/stores/toast-store";
 import { AppImage } from "@/components/common/AppImage";
+import { CommunityComments } from "@/components/community/CommunityComments";
 import { LoadingSkeleton } from "@/components/common/LoadingSkeleton";
 import { ErrorState } from "@/components/common/ErrorState";
 import { PageShell } from "@/components/layout/PageShell";
@@ -212,6 +213,10 @@ export default function CommunityOutfitPage() {
               </ul>
             </div>
           )}
+
+          <div className="surface-card rounded-2xl p-4 sm:p-5">
+            <CommunityComments postId={data.id} />
+          </div>
 
           <div className="surface-card flex flex-col gap-3 rounded-2xl p-4 sm:flex-row sm:items-center sm:justify-between sm:p-5">
             <div className="flex items-start gap-2">

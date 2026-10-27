@@ -2,6 +2,7 @@ import apiClient, { unwrap } from "./api-client";
 import { demoCommunity } from "@/lib/demo-community-store";
 import { shouldUseDemoCommunity } from "@/lib/demo-data";
 import type {
+  CommunityComment,
   CommunityPost,
   CommunityPostInteraction,
   CommunityPostPage,
@@ -165,5 +166,30 @@ export const communityApi = {
       },
       () => demoCommunity.profile(),
     );
+  },
+
+  // ── Comments ───────────────────────────────────────────────────────────────────────────────
+
+  getComments: async (postId: string): Promise<CommunityComment[]> => {
+    return withDemoFallback(
+      async () => {
+        const res = await apiClient.get(`/community/posts/${postId}/comments`);
+        return (unwrap(res) as CommunityComment[] | null) ?? [];
+      },
+      () => demoCommunity.comments(postId),
+    );
+  },
+
+  addComment: async (postId: string, content: string, parentId?: string): Promise<CommunityComment> => {
+    const res = await apiClient.post(`/community/posts/${postId}/comments`, {
+      content,
+      ...(parentId ? { parentId } : {}),
+    });
+    return unwrap(res) as CommunityComment;
+  },
+
+  deleteComment: async (postId: string, commentId: string): Promise<void> => {
+    const res = await apiClient.delete(`/community/posts/${postId}/comments/${commentId}`);
+    return unwrap(res);
   },
 };

@@ -3,7 +3,6 @@
 import Link from "next/link";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { CommunityComments } from "@/components/community/CommunityComments";
-import { AppImage } from "@/components/common/AppImage";
 import { cn } from "@/lib/utils";
 import type { CommunityPost } from "@/types";
 
@@ -41,7 +40,13 @@ export function CommunityCommentsModal({
           <div className="min-w-0 flex-1">
             <p className="truncate text-sm font-semibold text-foreground">{post.authorDisplayName}</p>
             <p className="truncate text-[11px] text-muted-foreground">
-              <span>{post.title ?? "Outfit"}</span>
+              <Link
+                href={`/outfit/${post.shareCode}`}
+                onClick={() => onOpenChange(false)}
+                className="underline-offset-2 hover:underline"
+              >
+                {post.title ?? "Xem bài đăng"}
+              </Link>
               {commentCount > 0 && (
                 <>
                   {" · "}
@@ -51,23 +56,6 @@ export function CommunityCommentsModal({
             </p>
           </div>
         </div>
-
-        {post.imageUrl && (
-          <Link
-            href={`/outfit/${post.shareCode}`}
-            onClick={() => onOpenChange(false)}
-            className="relative block h-28 w-full shrink-0 overflow-hidden bg-muted sm:h-36"
-            aria-label="Xem trang bài đăng"
-          >
-            <AppImage
-              src={post.imageUrl}
-              alt={post.title ?? "Outfit cộng đồng"}
-              fill
-              className="object-cover"
-              unoptimized
-            />
-          </Link>
-        )}
 
         <CommunityComments postId={post.id} variant="modal" />
       </DialogContent>

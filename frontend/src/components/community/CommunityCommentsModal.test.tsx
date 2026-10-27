@@ -17,6 +17,7 @@ vi.mock("@/components/common/AppImage", () => ({
   AppImage: ({ alt }: { alt: string }) => <span role="img" aria-label={alt} />,
 }));
 
+
 const mockedApi = vi.mocked(communityApi);
 
 function post(overrides: Partial<CommunityPost> = {}): CommunityPost {
@@ -74,11 +75,18 @@ describe("CommunityCommentsModal", () => {
     expect(screen.getByText("12 bình luận")).toBeInTheDocument();
   });
 
-  it("links the summary image to the public post page", () => {
+  it("links the post title to the public post page", () => {
     renderModal(post());
 
-    const link = screen.getByRole("link", { name: /Xem trang bài đăng/i });
+    const link = screen.getByRole("link", { name: "Áo thun oversize" });
     expect(link).toHaveAttribute("href", "/outfit/a1b2c3d4");
+  });
+
+  it("does not render the post image, which was cropping badly", () => {
+    renderModal(post());
+
+    expect(screen.queryByRole("img")).not.toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: /Xem trang bài đăng/i })).not.toBeInTheDocument();
   });
 
   it("loads the comment thread for the post", async () => {

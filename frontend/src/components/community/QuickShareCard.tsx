@@ -17,10 +17,18 @@ import { cn } from "@/lib/utils";
  * Quick-share card for the community page.
  *
  * It lists the reader's own try-on photos and publishes the picked one straight to the
- * community, so sharing does not require a trip through the gallery. The card lives in
- * the right-hand column of the community layout.
+ * community, so sharing does not require a trip through the gallery. The card can be
+ * rendered on its own or inside the quick-share dialog — in the dialog the surrounding
+ * title already names the flow, so the card header can be hidden to avoid saying it twice.
  */
-export function QuickShareCard({ className }: { className?: string }) {
+export function QuickShareCard({
+  className,
+  hideHeader = false,
+}: {
+  className?: string;
+  /** Hide the "Chia sẻ nhanh" heading and hint when an outer element already shows them. */
+  hideHeader?: boolean;
+}) {
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated());
   const queryClient = useQueryClient();
   const [selectedId, setSelectedId] = useState<string | null>(null);
@@ -44,11 +52,23 @@ export function QuickShareCard({ className }: { className?: string }) {
     onError: (err) => toast.error(getUserErrorMessage(err, "Không thể chia sẻ outfit.")),
   });
 
+  const header = hideHeader ? null : (
+    <>
+      <p className="flex items-center gap-1.5 font-display text-sm font-semibold text-foreground">
+        <Sparkles className="h-4 w-4 text-primary" aria-hidden="true" />
+        Chia sẻ nhanh
+      </p>
+      <p className="mt-1 text-xs text-muted-foreground">
+        Chọn ảnh thử mặc để đăng ngay lên cộng đồng.
+      </p>
+    </>
+  );
+
   if (!isAuthenticated) {
     return (
       <aside className={cn("surface-card rounded-2xl p-4", className)} aria-label="Chia sẻ nhanh">
-        <p className="font-display text-sm font-semibold text-foreground">Chia sẻ nhanh</p>
-        <p className="mt-1 text-xs text-muted-foreground">
+        {header}
+        <p className={cn("text-xs text-muted-foreground", !hideHeader && "mt-1")}>
           <Link href="/auth/login?redirect=/community" className="underline">
             Đăng nhập
           </Link>{" "}
@@ -63,13 +83,7 @@ export function QuickShareCard({ className }: { className?: string }) {
 
   return (
     <aside className={cn("surface-card rounded-2xl p-4", className)} aria-label="Chia sẻ nhanh">
-      <p className="flex items-center gap-1.5 font-display text-sm font-semibold text-foreground">
-        <Sparkles className="h-4 w-4 text-primary" aria-hidden="true" />
-        Chia sẻ nhanh
-      </p>
-      <p className="mt-1 text-xs text-muted-foreground">
-        Chọn ảnh thử mặc để đăng ngay lên cộng đồng.
-      </p>
+      {header}
 
       {isLoading ? (
         <div className="mt-3 grid grid-cols-3 gap-2">

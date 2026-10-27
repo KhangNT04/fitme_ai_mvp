@@ -3,12 +3,12 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useInfiniteQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Heart, Bookmark, Users, Sparkles, TrendingUp, Clock, FlaskConical, MessageCircle, Share2, Check } from "lucide-react";
+import { Heart, Bookmark, TrendingUp, Clock, FlaskConical, MessageCircle, Share2, Check } from "lucide-react";
 import { communityApi, nextCommunityPage } from "@/services/community-api";
 import { useAuthStore } from "@/stores/auth-store";
 import { toast } from "@/stores/toast-store";
 import { IntrinsicImage } from "@/components/common/IntrinsicImage";
-import { QuickShareCard } from "@/components/community/QuickShareCard";
+import { QuickShareDialog } from "@/components/community/QuickShareDialog";
 import { CommunityCommentsModal } from "@/components/community/CommunityCommentsModal";
 import { EmptyState } from "@/components/common/EmptyState";
 import { ErrorState } from "@/components/common/ErrorState";
@@ -71,6 +71,7 @@ export default function CommunityPage() {
         subtitle="Outfit của người thật, phối bằng AI trên FitMe"
         backHref="/discover"
         backLabel="Khám phá"
+        trailing={<QuickShareDialog triggerClassName="rounded-full" />}
       />
 
       <div className="mb-4 flex flex-wrap items-center gap-2">
@@ -119,72 +120,51 @@ export default function CommunityPage() {
         </span>
       </div>
 
-      <div className="mx-auto mt-4 flex max-w-5xl flex-col gap-5 lg:flex-row lg:items-start">
-        <div className="min-w-0 flex-1 lg:max-w-2xl">
-          {isLoading ? (
+      <div className="mx-auto mt-4 flex max-w-2xl flex-col gap-5">
+        {isLoading ? (
+          <div className="flex flex-col gap-4">
+            {[1, 2].map((item) => (
+              <div key={item} className="aspect-[4/5] animate-pulse rounded-2xl bg-muted sm:aspect-[3/2]" />
+            ))}
+          </div>
+        ) : isError ? (
+          <ErrorState onRetry={() => void queryClient.invalidateQueries({ queryKey: ["community-feed"] })} />
+        ) : posts.length === 0 ? (
+          <EmptyState
+            title="Chưa có outfit nào được chia sẻ"
+            description="Hãy thử đồ và chia sẻ outfit đầu tiên của bạn — bài đăng sẽ xuất hiện ở đây."
+            actionLabel="Thử đồ AI"
+            actionHref="/try-on"
+          />
+        ) : (
+          <>
             <div className="flex flex-col gap-4">
-              {[1, 2].map((item) => (
-                <div key={item} className="aspect-[4/5] animate-pulse rounded-2xl bg-muted sm:aspect-[3/2]" />
+              {posts.map((post) => (
+                <CommunityPostCard
+                  key={post.id}
+                  post={post}
+                  canInteract={isAuthenticated}
+                  isDemo={post.id.startsWith("demo-post-")}
+                  onLike={(liked) => likeMutation.mutate({ postId: post.id, liked })}
+                  onSave={(saved) => saveMutation.mutate({ postId: post.id, saved })}
+                />
               ))}
             </div>
-          ) : isError ? (
-            <ErrorState onRetry={() => void queryClient.invalidateQueries({ queryKey: ["community-feed"] })} />
-          ) : posts.length === 0 ? (
-            <EmptyState
-              title="Chưa có outfit nào được chia sẻ"
-              description="Hãy thử đồ và chia sẻ outfit đầu tiên của bạn — bài đăng sẽ xuất hiện ở đây."
-              actionLabel="Thử đồ AI"
-              actionHref="/try-on"
-            />
-          ) : (
-            <>
-              <div className="flex flex-col gap-4">
-                {posts.map((post) => (
-                  <CommunityPostCard
-                    key={post.id}
-                    post={post}
-                    canInteract={isAuthenticated}
-                    isDemo={post.id.startsWith("demo-post-")}
-                    onLike={(liked) => likeMutation.mutate({ postId: post.id, liked })}
-                    onSave={(saved) => saveMutation.mutate({ postId: post.id, saved })}
-                  />
-                ))}
+
+            {hasNextPage && (
+              <div className="mt-6 flex flex-col items-center gap-2">
+                <Button
+                  variant="outline"
+                  className="rounded-full"
+                  disabled={isFetchingNextPage}
+                  onClick={() => void fetchNextPage()}
+                >
+                  {isFetchingNextPage ? "Đang tải..." : "Xem thêm"}
+                </Button>
               </div>
-
-              {hasNextPage && (
-                <div className="mt-6 flex flex-col items-center gap-2">
-                  <Button
-                    variant="outline"
-                    className="rounded-full"
-                    disabled={isFetchingNextPage}
-                    onClick={() => void fetchNextPage()}
-                  >
-                    {isFetchingNextPage ? "Đang tải..." : "Xem thêm"}
-                  </Button>
-                </div>
-              )}
-            </>
-          )}
-        </div>
-
-        {/* Right-hand column — quick share stays next to the feed. */}
-        <div className="lg:sticky lg:top-24 lg:w-72 lg:shrink-0">
-          <QuickShareCard />
-        </div>
-      </div>
-
-      <div className="mt-8 rounded-2xl bg-primary p-5 text-center text-primary-foreground">
-        <Users className="mx-auto mb-2 h-6 w-6" aria-hidden="true" />
-        <p className="font-display text-base font-semibold">Chia sẻ outfit của bạn</p>
-        <p className="mt-1 text-sm text-primary-foreground/85">
-          Lưu ảnh thử mặc vào thư viện rồi đăng công khai từ đó.
-        </p>
-        <Button asChild variant="secondary" size="sm" className="mt-3 rounded-full">
-          <Link href="/profile/gallery">
-            <Sparkles className="mr-1.5 h-4 w-4" aria-hidden="true" />
-            Mở thư viện ảnh
-          </Link>
-        </Button>
+            )}
+          </>
+        )}
       </div>
     </PageShell>
   );

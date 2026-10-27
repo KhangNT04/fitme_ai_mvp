@@ -19,13 +19,18 @@ export async function middleware(request: NextRequest) {
 
   if (pathname.startsWith("/admin") && !PUBLIC_ADMIN_PATHS.includes(pathname)) {
     if (role !== "ADMIN") {
-      return NextResponse.redirect(new URL("/admin/login", request.url));
+      // Remember where the admin was headed so the sign-in can send them back.
+      const target = new URL("/admin/login", request.url);
+      target.searchParams.set("redirect", pathname);
+      return NextResponse.redirect(target);
     }
   }
 
   if (pathname.startsWith("/brand") && !PUBLIC_BRAND_PATHS.some((p) => pathname.startsWith(p))) {
     if (role !== "BRAND") {
-      return NextResponse.redirect(new URL("/brand/login", request.url));
+      const target = new URL("/brand/login", request.url);
+      target.searchParams.set("redirect", pathname);
+      return NextResponse.redirect(target);
     }
   }
 

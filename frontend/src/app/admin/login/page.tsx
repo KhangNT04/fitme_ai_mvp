@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useState, Suspense } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { authApi } from "@/services/auth-api";
@@ -13,16 +13,30 @@ import { PortalLoginShell } from "@/components/layout/PortalLoginShell";
 import { getUserErrorMessage } from "@/lib/user-error-message";
 import { loginSchema, type LoginForm } from "@/utils/validators";
 import { usePortalSessionRedirect } from "@/hooks/use-portal-session-redirect";
+import { safeInternalPath } from "@/lib/safe-redirect";
 import type { AuthResponse } from "@/types/auth";
 
 export default function AdminLoginPage() {
+  return (
+    <Suspense fallback={<div className="flex min-h-[80vh] items-center justify-center px-4 text-muted-foreground">Đang tải...</div>}>
+      <AdminLoginForm />
+    </Suspense>
+  );
+}
+
+function AdminLoginForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { setAuth } = useAuthStore();
   usePortalSessionRedirect("admin");
   const [error, setError] = useState("");
   const [twoFactorToken, setTwoFactorToken] = useState<string | null>(null);
   const [code, setCode] = useState("");
   const [verifying, setVerifying] = useState(false);
+  // Where the admin was headed before the session ended, so a new sign-in resumes the work.
+  const redirectTo = safeInternalPath(searchParams.get("redirect")) ?? "/admin/dashboard";
+  // Set by the session-expiry guard so the admin knows why they landed back here.
+  const sessionExpired = searchParams.get("expired") === "1";
   const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm<LoginForm>({
     resolver: zodResolver(loginSchema),
   });
@@ -34,7 +48,7 @@ export default function AdminLoginPage() {
       return;
     }
     await setAuth(res.user, res.accessToken, res.refreshToken);
-    router.push("/admin/dashboard");
+    router.push(redirectTo);
     router.refresh();
   };
 
@@ -114,6 +128,11 @@ export default function AdminLoginPage() {
 
   return (
     <PortalLoginShell title="Admin — Đăng nhập">
+      {sessionExpired && (
+        <p className="mb-4 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-800" role="status">
+          Phiên làm việc đã kết thúc do không hoạt động quá lâu. Vui lòng đăng nhập lại để tiếp tục.
+        </p>
+      )}
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4" noValidate>
         <div>
           <Label htmlFor="email">Email</Label>

@@ -1,7 +1,7 @@
 import axios, { type AxiosError, type InternalAxiosRequestConfig } from "axios";
 import { formatUserErrorMessage } from "@/lib/user-error-message";
 import { isJwtExpired } from "@/lib/jwt-expiry";
-import { emitAuthClear, emitAuthDropAccess, emitAuthTokensRefreshed } from "@/lib/auth-events";
+import { emitAuthClear, emitAuthDropAccess, emitAuthSessionExpired, emitAuthTokensRefreshed } from "@/lib/auth-events";
 import { API_URL, SESSION_STORAGE_KEY, AUTH_TOKEN_KEY, AUTH_REFRESH_KEY } from "@/utils/constants";
 
 export interface ApiError {
@@ -48,6 +48,7 @@ async function refreshAccessToken(): Promise<string | null> {
   const refreshToken = localStorage.getItem(AUTH_REFRESH_KEY);
   if (!refreshToken || isJwtExpired(refreshToken)) {
     clearAuthTokens();
+    emitAuthSessionExpired();
     return null;
   }
 
@@ -74,6 +75,7 @@ async function refreshAccessToken(): Promise<string | null> {
     // Network errors, timeouts and 5xx (e.g. backend cold start) must not log the user out.
     if (isRefreshTokenRejected(error)) {
       clearAuthTokens();
+      emitAuthSessionExpired();
     }
   }
   return null;

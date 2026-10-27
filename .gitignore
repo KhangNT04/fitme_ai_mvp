@@ -47,3 +47,10 @@ __pycache__/
 *.egg-info/
 .pytest_cache/
 .venv/
+
+# Local scratch assets (dataset dumps, manual crops) — never part of the repo
+crop-*.png
+drive-*.html
+drive-*.json
+drive-*.xlsx
+drive-*.md

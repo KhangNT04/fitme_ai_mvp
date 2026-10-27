@@ -145,6 +145,63 @@ describe("CommunityComments", () => {
     expect(screen.getAllByRole("button", { name: /Xoá/i })).toHaveLength(1);
   });
 
+  it("asks for confirmation before deleting a comment", async () => {
+    mockedApi.getComments.mockResolvedValue([
+      comment({ id: "comment-2", content: "Bình luận của tôi", mine: true, canDelete: true }),
+    ]);
+    renderComments();
+
+    fireEvent.click(await screen.findByRole("button", { name: /^Xoá$/i }));
+
+    // The confirmation shows up and nothing is deleted yet.
+    expect(await screen.findByText(/Xoá bình luận\?/i)).toBeInTheDocument();
+    expect(mockedApi.deleteComment).not.toHaveBeenCalled();
+  });
+
+  it("deletes the comment once the confirmation is accepted", async () => {
+    mockedApi.getComments.mockResolvedValue([
+      comment({ id: "comment-2", content: "Bình luận của tôi", mine: true, canDelete: true }),
+    ]);
+    mockedApi.deleteComment.mockResolvedValue(undefined);
+    renderComments();
+
+    fireEvent.click(await screen.findByRole("button", { name: /^Xoá$/i }));
+    const confirm = await screen.findByRole("button", { name: /Xoá bình luận/i });
+    fireEvent.click(confirm);
+
+    await waitFor(() => expect(mockedApi.deleteComment).toHaveBeenCalledWith("post-1", "comment-2"));
+  });
+
+  it("keeps the comment when the confirmation is cancelled", async () => {
+    mockedApi.getComments.mockResolvedValue([
+      comment({ id: "comment-2", content: "Bình luận của tôi", mine: true, canDelete: true }),
+    ]);
+    renderComments();
+
+    fireEvent.click(await screen.findByRole("button", { name: /^Xoá$/i }));
+    fireEvent.click(await screen.findByRole("button", { name: /Huỷ/i }));
+
+    await waitFor(() => expect(screen.queryByText(/Xoá bình luận\?/i)).not.toBeInTheDocument());
+    expect(mockedApi.deleteComment).not.toHaveBeenCalled();
+  });
+
+  it("confirms before deleting a reply as well", async () => {
+    mockedApi.getComments.mockResolvedValue([
+      comment({
+        id: "comment-1",
+        replies: [
+          comment({ id: "comment-9", content: "Trả lời của tôi", mine: true, canDelete: true }),
+        ],
+      }),
+    ]);
+    renderComments();
+
+    fireEvent.click(await screen.findByRole("button", { name: /^Xoá$/i }));
+
+    expect(await screen.findByText(/Xoá bình luận\?/i)).toBeInTheDocument();
+    expect(mockedApi.deleteComment).not.toHaveBeenCalled();
+  });
+
   describe("modal variant", () => {
     it("drops the inline heading so the modal owns the title", async () => {
       mockedApi.getComments.mockResolvedValue([comment()]);
@@ -164,6 +221,18 @@ describe("CommunityComments", () => {
 
       await waitFor(() => expect(mockedApi.addComment).toHaveBeenCalledTimes(1));
       expect(mockedApi.addComment).toHaveBeenCalledWith("post-1", "Outfit đẹp quá", undefined);
+    });
+
+    it("asks for confirmation before deleting, just like the inline thread", async () => {
+      mockedApi.getComments.mockResolvedValue([
+        comment({ id: "comment-2", content: "Bình luận của tôi", mine: true, canDelete: true }),
+      ]);
+      renderComments("modal");
+
+      fireEvent.click(await screen.findByRole("button", { name: /^Xoá$/i }));
+
+      expect(await screen.findByText(/Xoá bình luận\?/i)).toBeInTheDocument();
+      expect(mockedApi.deleteComment).not.toHaveBeenCalled();
     });
   });
 });

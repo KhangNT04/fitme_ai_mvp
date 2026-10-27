@@ -1,7 +1,7 @@
 import axios, { AxiosError, type AxiosAdapter, type InternalAxiosRequestConfig } from "axios";
 import { afterEach, beforeEach, describe, expect, it, vi, type Mock } from "vitest";
 import apiClient, { unwrap, type ApiResponse } from "./api-client";
-import { AUTH_CLEAR_EVENT } from "@/lib/auth-events";
+import { AUTH_CLEAR_EVENT, AUTH_SESSION_EXPIRED_EVENT } from "@/lib/auth-events";
 import { AUTH_REFRESH_KEY, AUTH_TOKEN_KEY } from "@/utils/constants";
 
 function mockJwt(expiresInSeconds = 3600): string {
@@ -76,6 +76,39 @@ describe("apiClient token refresh", () => {
     expect(localStorage.getItem(AUTH_TOKEN_KEY)).toBeNull();
     expect(localStorage.getItem(AUTH_REFRESH_KEY)).toBeNull();
     expect(clearListener).toHaveBeenCalledTimes(1);
+  });
+
+  it("announces the expired session so the viewer is sent to the sign-in page", async () => {
+    const expiredListener = vi.fn<() => void>();
+    window.addEventListener(AUTH_SESSION_EXPIRED_EVENT, expiredListener);
+    vi.spyOn(axios, "post").mockRejectedValue(httpError(401));
+
+    await expect(apiClient.get("/me")).rejects.toMatchObject({ status: 401 });
+
+    expect(expiredListener).toHaveBeenCalledTimes(1);
+    window.removeEventListener(AUTH_SESSION_EXPIRED_EVENT, expiredListener);
+  });
+
+  it("announces the expired session when the refresh token is already expired", async () => {
+    const expiredListener = vi.fn<() => void>();
+    window.addEventListener(AUTH_SESSION_EXPIRED_EVENT, expiredListener);
+    localStorage.setItem(AUTH_REFRESH_KEY, mockJwt(-60));
+
+    await expect(apiClient.get("/me")).rejects.toMatchObject({ status: 401 });
+
+    expect(expiredListener).toHaveBeenCalledTimes(1);
+    window.removeEventListener(AUTH_SESSION_EXPIRED_EVENT, expiredListener);
+  });
+
+  it("keeps the session on a transient failure and does not announce an expiry", async () => {
+    const expiredListener = vi.fn<() => void>();
+    window.addEventListener(AUTH_SESSION_EXPIRED_EVENT, expiredListener);
+    vi.spyOn(axios, "post").mockRejectedValue(httpError(503));
+
+    await expect(apiClient.get("/me")).rejects.toMatchObject({ status: 401 });
+
+    expect(expiredListener).not.toHaveBeenCalled();
+    window.removeEventListener(AUTH_SESSION_EXPIRED_EVENT, expiredListener);
   });
 
   it.each([

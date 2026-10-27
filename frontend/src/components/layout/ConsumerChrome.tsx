@@ -7,6 +7,7 @@ import { Footer } from "@/components/layout/Footer";
 import { MobileBottomNav } from "@/components/layout/MobileBottomNav";
 import { NavHistorySync } from "@/components/layout/NavHistorySync";
 import { PortalSidebarProvider } from "@/components/layout/PortalSidebar";
+import { useSessionExpiryGuard } from "@/hooks/use-session-expiry-guard";
 import { getPortalNav, isPortalAppRoute, isPortalRoute } from "@/lib/portal-nav";
 import { shouldShowBottomNav, showMobileFooter } from "@/lib/mobile-chrome";
 import { cn } from "@/lib/utils";
@@ -17,6 +18,8 @@ interface ConsumerChromeProps {
 
 function ConsumerChromeInner({ children }: ConsumerChromeProps) {
   const pathname = usePathname() ?? "/";
+  // Signs the viewer out and sends them to the sign-in page once the session can no longer be renewed.
+  useSessionExpiryGuard();
   const showBottomNav = shouldShowBottomNav(pathname);
   const isPortal = isPortalRoute(pathname);
   const isPortalApp = isPortalAppRoute(pathname);

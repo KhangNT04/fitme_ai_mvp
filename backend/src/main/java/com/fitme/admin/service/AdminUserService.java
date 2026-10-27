@@ -174,11 +174,15 @@ public class AdminUserService {
         return get(userId);
     }
 
-    /** Emails the owner a one-time reset link (the normal way to help someone who forgot their password). */
+    /**
+     * Emails the owner a one-time reset link (the normal way to help someone who forgot their password).
+     * The link proves mailbox control, so an account that was never confirmed is verified as well.
+     */
     @Transactional
     public void sendPasswordResetLink(UUID adminId, UUID userId) {
         UserAccount user = requireManageable(userId);
         authService.sendPasswordResetLinkFor(user);
+        authService.verifyEmailByAdmin(user);
         audit.record(adminId, AdminAuditAction.USER_PASSWORD_RESET_LINK_SENT, userId, "Gửi tới " + user.getEmail());
         log.info("Admin {} sent a password reset link to account {}", adminId, userId);
     }

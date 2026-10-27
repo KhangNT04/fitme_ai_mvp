@@ -7,6 +7,7 @@ import { Loader2, MessageCircle, Send, Trash2 } from "lucide-react";
 import { communityApi } from "@/services/community-api";
 import { useAuthStore } from "@/stores/auth-store";
 import { toast } from "@/stores/toast-store";
+import { ConfirmDialog } from "@/components/common/ConfirmDialog";
 import { getUserErrorMessage } from "@/lib/user-error-message";
 import { cn } from "@/lib/utils";
 import type { CommunityComment } from "@/types";
@@ -68,6 +69,8 @@ export function CommunityComments({
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated());
   const [draft, setDraft] = useState("");
   const [replyTo, setReplyTo] = useState<{ id: string; name: string } | null>(null);
+  // The comment waiting for a delete confirmation; nothing is removed until it is confirmed.
+  const [pendingDelete, setPendingDelete] = useState<{ id: string; content: string } | null>(null);
 
   const { data: comments, isLoading, isError } = useQuery({
     queryKey: ["community-comments", postId],
@@ -91,10 +94,14 @@ export function CommunityComments({
   const deleteMutation = useMutation({
     mutationFn: (commentId: string) => communityApi.deleteComment(postId, commentId),
     onSuccess: () => {
+      setPendingDelete(null);
       void queryClient.invalidateQueries({ queryKey: ["community-comments", postId] });
       void queryClient.invalidateQueries({ queryKey: ["community-feed"] });
     },
-    onError: (err) => toast.error(getUserErrorMessage(err, "Không thể xoá bình luận.")),
+    onError: (err) => {
+      setPendingDelete(null);
+      toast.error(getUserErrorMessage(err, "Không thể xoá bình luận."));
+    },
   });
 
   const handleSubmit = (event: React.FormEvent) => {
@@ -124,7 +131,7 @@ export function CommunityComments({
               <CommentItem
                 comment={comment}
                 onReply={(target) => setReplyTo({ id: target.id, name: target.authorDisplayName })}
-                onDelete={(id) => deleteMutation.mutate(id)}
+                onDelete={(target) => setPendingDelete({ id: target.id, content: target.content })}
                 deleting={deleteMutation.isPending}
               />
             </li>
@@ -197,11 +204,34 @@ export function CommunityComments({
     </p>
   );
 
+  const confirmDelete = (
+    <ConfirmDialog
+      open={!!pendingDelete}
+      onOpenChange={(open) => !open && setPendingDelete(null)}
+      title="Xoá bình luận?"
+      description={
+        pendingDelete
+          ? `Bình luận “${truncateForNotice(pendingDelete.content)}” sẽ bị xoá và không thể khôi phục.`
+          : ""
+      }
+      confirmLabel="Xoá bình luận"
+      cancelLabel="Huỷ"
+      variant="destructive"
+      loading={deleteMutation.isPending}
+      onConfirm={() => {
+        if (pendingDelete) {
+          deleteMutation.mutate(pendingDelete.id);
+        }
+      }}
+    />
+  );
+
   if (variant === "modal") {
     return (
       <section className={cn("flex min-h-0 flex-1 flex-col", className)} aria-label="Bình luận">
         {thread}
         {composer}
+        {confirmDelete}
       </section>
     );
   }
@@ -218,8 +248,16 @@ export function CommunityComments({
       {thread}
 
       {composer}
+
+      {confirmDelete}
     </section>
   );
+}
+
+/** Keeps the confirmation readable when the comment is long. */
+function truncateForNotice(content: string, maxLength = 80): string {
+  const trimmed = content.trim().replace(/\s+/g, " ");
+  return trimmed.length > maxLength ? `${trimmed.slice(0, maxLength)}…` : trimmed;
 }
 
 function CommentItem({
@@ -230,7 +268,7 @@ function CommentItem({
 }: {
   comment: CommunityComment;
   onReply: (comment: CommunityComment) => void;
-  onDelete: (commentId: string) => void;
+  onDelete: (comment: CommunityComment) => void;
   deleting: boolean;
 }) {
   return (
@@ -262,7 +300,7 @@ function CommentItem({
             <button
               type="button"
               disabled={deleting}
-              onClick={() => onDelete(comment.id)}
+              onClick={() => onDelete(comment)}
               className="inline-flex items-center gap-1 hover:text-destructive disabled:opacity-50"
             >
               <Trash2 className="h-3 w-3" aria-hidden="true" />
@@ -302,7 +340,7 @@ function CommentItem({
                       <button
                         type="button"
                         disabled={deleting}
-                        onClick={() => onDelete(reply.id)}
+                        onClick={() => onDelete(reply)}
                         className="inline-flex items-center gap-1 hover:text-destructive disabled:opacity-50"
                       >
                         <Trash2 className="h-3 w-3" aria-hidden="true" />

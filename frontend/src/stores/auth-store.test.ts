@@ -41,7 +41,7 @@ describe("useAuthStore", () => {
   it("clearAuth resets state", async () => {
     const user = { id: "u1", email: "a@b.com", fullName: "A", role: "USER" as const, emailVerified: true };
     await useAuthStore.getState().setAuth(user, mockJwt(), mockJwt());
-    useAuthStore.getState().clearAuth();
+    await useAuthStore.getState().clearAuth();
     expect(useAuthStore.getState().isAuthenticated()).toBe(false);
   });
 

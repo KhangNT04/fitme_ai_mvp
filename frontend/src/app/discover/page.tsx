@@ -19,6 +19,7 @@ import {
 } from "@/components/ui/dialog";
 import { SlidersHorizontal, Users } from "lucide-react";
 import { BrandDiscoverSection } from "@/components/discover/BrandDiscoverSection";
+import { QuickShareDialog } from "@/components/community/QuickShareDialog";
 import { LoadingSkeleton } from "@/components/common/LoadingSkeleton";
 import { EmptyState } from "@/components/common/EmptyState";
 import { ErrorState } from "@/components/common/ErrorState";
@@ -296,12 +297,16 @@ export default function DiscoverPage() {
             Xem outfit người khác đã thử và chia sẻ.
           </p>
         </div>
-        <Button asChild size="sm" variant="outline" className="shrink-0 rounded-full">
-          <Link href="/community">
-            <Users className="mr-1.5 h-4 w-4" aria-hidden="true" />
-            Xem cộng đồng
-          </Link>
-        </Button>
+        {/* Right side — quick share sits next to the "view community" action. */}
+        <div className="flex shrink-0 items-center gap-2">
+          <QuickShareDialog triggerClassName="rounded-full" />
+          <Button asChild size="sm" variant="outline" className="shrink-0 rounded-full">
+            <Link href="/community">
+              <Users className="mr-1.5 h-4 w-4" aria-hidden="true" />
+              Xem cộng đồng
+            </Link>
+          </Button>
+        </div>
       </div>
 
       <div>

@@ -3,6 +3,7 @@ import {
   getPreviousNavEntry,
   isEphemeralNavRoute,
   labelForHref,
+  shortLabelForHref,
   popNavHistory,
   recordNavVisit,
   resolveNavBack,
@@ -19,6 +20,19 @@ describe("nav-history", () => {
     expect(labelForHref("/try-on")).toBe("Thử mặc AI");
     expect(labelForHref("/try-on/input")).toBe("Thông tin thử mặc");
     expect(labelForHref("/products/abc")).toBe("Thông tin sản phẩm");
+  });
+
+  it("uses short labels for back links", () => {
+    expect(shortLabelForHref("/")).toBe("Trang chủ");
+    expect(shortLabelForHref("/discover")).toBe("Khám phá");
+    expect(shortLabelForHref("/community")).toBe("Cộng đồng");
+    expect(shortLabelForHref("/try-on")).toBe("Thử mặc");
+    expect(shortLabelForHref("/profile")).toBe("Hồ sơ");
+    expect(shortLabelForHref("/wardrobe")).toBe("Tủ đồ");
+    expect(shortLabelForHref("/saved-outfits")).toBe("Đã lưu");
+    expect(shortLabelForHref("/products/abc")).toBe("Sản phẩm");
+    expect(shortLabelForHref("/discover/brand/abc")).toBe("Thương hiệu");
+    expect(shortLabelForHref("/unknown/route")).toBe("Quay lại");
   });
 
   it("tracks visit stack and resolves previous entry", () => {

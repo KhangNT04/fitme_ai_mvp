@@ -17,6 +17,10 @@ vi.mock("@/components/common/AppImage", () => ({
   AppImage: ({ alt }: { alt: string }) => <span role="img" aria-label={alt} />,
 }));
 
+vi.mock("@/components/common/IntrinsicImage", () => ({
+  IntrinsicImage: ({ alt }: { alt: string }) => <span role="img" aria-label={alt} />,
+}));
+
 const mockedApi = vi.mocked(communityApi);
 
 function post(overrides: Partial<CommunityPost> = {}): CommunityPost {

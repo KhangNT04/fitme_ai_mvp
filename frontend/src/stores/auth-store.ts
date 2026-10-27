@@ -29,7 +29,8 @@ interface AuthState {
   accessToken: string | null;
   refreshToken: string | null;
   setAuth: (user: AuthUser, accessToken: string, refreshToken: string) => Promise<void>;
-  clearAuth: () => void;
+  /** Clears the local session and the portal cookies; resolves once the cookies are gone. */
+  clearAuth: () => Promise<void>;
   logout: () => Promise<void>;
   isAuthenticated: () => boolean;
   isBrand: () => boolean;
@@ -54,11 +55,12 @@ export const useAuthStore = create<AuthState>()(
         }
         set({ user, accessToken, refreshToken });
       },
-      clearAuth: () => {
+      clearAuth: async () => {
         if (typeof window !== "undefined") {
           localStorage.removeItem(AUTH_TOKEN_KEY);
           localStorage.removeItem(AUTH_REFRESH_KEY);
-          clearPortalSession().catch(() => undefined);
+          // The portal cookies gate the admin/brand routes, so they must be gone before a redirect.
+          await clearPortalSession().catch(() => undefined);
         }
         set({ user: null, accessToken: null, refreshToken: null });
       },

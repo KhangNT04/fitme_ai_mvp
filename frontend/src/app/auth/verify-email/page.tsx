@@ -25,16 +25,16 @@ function VerifyEmailForm() {
   const searchParams = useSearchParams();
   const { user, setAuth } = useAuthStore();
   const emailFromQuery = searchParams.get("email") || "";
+  const notice = searchParams.get("notice") || "";
   const redirectTo = safeInternalPathOr(searchParams.get("redirect"), "/profile");
   const [email, setEmail] = useState(emailFromQuery || user?.email || "");
   const [code, setCode] = useState("");
   const [error, setError] = useState("");
   const [info, setInfo] = useState(
-    emailFromQuery
+    notice || (emailFromQuery
       ? "Chúng tôi đã gửi mã xác nhận tới email của bạn. Mở hộp thư (và Spam) rồi nhập mã bên dưới."
-      : "",
-  );
-  const [loading, setLoading] = useState(false);
+      : ""),
+  );  const [loading, setLoading] = useState(false);
   const [resending, setResending] = useState(false);
   const [syncedEmailParam, setSyncedEmailParam] = useState(emailFromQuery);
 

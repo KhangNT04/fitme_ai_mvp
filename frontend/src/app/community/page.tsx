@@ -7,7 +7,8 @@ import { Heart, Bookmark, Users, Sparkles, TrendingUp, Clock, FlaskConical, Mess
 import { communityApi, nextCommunityPage } from "@/services/community-api";
 import { useAuthStore } from "@/stores/auth-store";
 import { toast } from "@/stores/toast-store";
-import { AppImage } from "@/components/common/AppImage";
+import { IntrinsicImage } from "@/components/common/IntrinsicImage";
+import { QuickShareCard } from "@/components/community/QuickShareCard";
 import { CommunityCommentsModal } from "@/components/community/CommunityCommentsModal";
 import { EmptyState } from "@/components/common/EmptyState";
 import { ErrorState } from "@/components/common/ErrorState";
@@ -118,50 +119,59 @@ export default function CommunityPage() {
         </span>
       </div>
 
-      {isLoading ? (
-        <div className="mx-auto mt-4 flex max-w-2xl flex-col gap-4">
-          {[1, 2].map((item) => (
-            <div key={item} className="aspect-[4/5] animate-pulse rounded-2xl bg-muted sm:aspect-[3/2]" />
-          ))}
-        </div>
-      ) : isError ? (
-        <ErrorState onRetry={() => void queryClient.invalidateQueries({ queryKey: ["community-feed"] })} />
-      ) : posts.length === 0 ? (
-        <EmptyState
-          title="Chưa có outfit nào được chia sẻ"
-          description="Hãy thử đồ và chia sẻ outfit đầu tiên của bạn — bài đăng sẽ xuất hiện ở đây."
-          actionLabel="Thử đồ AI"
-          actionHref="/try-on"
-        />
-      ) : (
-        <>
-          <div className="mx-auto mt-4 flex max-w-2xl flex-col gap-4">
-            {posts.map((post) => (
-              <CommunityPostCard
-                key={post.id}
-                post={post}
-                canInteract={isAuthenticated}
-                isDemo={post.id.startsWith("demo-post-")}
-                onLike={(liked) => likeMutation.mutate({ postId: post.id, liked })}
-                onSave={(saved) => saveMutation.mutate({ postId: post.id, saved })}
-              />
-            ))}
-          </div>
-
-          {hasNextPage && (
-            <div className="mt-6 flex flex-col items-center gap-2">
-              <Button
-                variant="outline"
-                className="rounded-full"
-                disabled={isFetchingNextPage}
-                onClick={() => void fetchNextPage()}
-              >
-                {isFetchingNextPage ? "Đang tải..." : "Xem thêm"}
-              </Button>
+      <div className="mx-auto mt-4 flex max-w-5xl flex-col gap-5 lg:flex-row lg:items-start">
+        <div className="min-w-0 flex-1 lg:max-w-2xl">
+          {isLoading ? (
+            <div className="flex flex-col gap-4">
+              {[1, 2].map((item) => (
+                <div key={item} className="aspect-[4/5] animate-pulse rounded-2xl bg-muted sm:aspect-[3/2]" />
+              ))}
             </div>
+          ) : isError ? (
+            <ErrorState onRetry={() => void queryClient.invalidateQueries({ queryKey: ["community-feed"] })} />
+          ) : posts.length === 0 ? (
+            <EmptyState
+              title="Chưa có outfit nào được chia sẻ"
+              description="Hãy thử đồ và chia sẻ outfit đầu tiên của bạn — bài đăng sẽ xuất hiện ở đây."
+              actionLabel="Thử đồ AI"
+              actionHref="/try-on"
+            />
+          ) : (
+            <>
+              <div className="flex flex-col gap-4">
+                {posts.map((post) => (
+                  <CommunityPostCard
+                    key={post.id}
+                    post={post}
+                    canInteract={isAuthenticated}
+                    isDemo={post.id.startsWith("demo-post-")}
+                    onLike={(liked) => likeMutation.mutate({ postId: post.id, liked })}
+                    onSave={(saved) => saveMutation.mutate({ postId: post.id, saved })}
+                  />
+                ))}
+              </div>
+
+              {hasNextPage && (
+                <div className="mt-6 flex flex-col items-center gap-2">
+                  <Button
+                    variant="outline"
+                    className="rounded-full"
+                    disabled={isFetchingNextPage}
+                    onClick={() => void fetchNextPage()}
+                  >
+                    {isFetchingNextPage ? "Đang tải..." : "Xem thêm"}
+                  </Button>
+                </div>
+              )}
+            </>
           )}
-        </>
-      )}
+        </div>
+
+        {/* Right-hand column — quick share stays next to the feed. */}
+        <div className="lg:sticky lg:top-24 lg:w-72 lg:shrink-0">
+          <QuickShareCard />
+        </div>
+      </div>
 
       <div className="mt-8 rounded-2xl bg-primary p-5 text-center text-primary-foreground">
         <Users className="mx-auto mb-2 h-6 w-6" aria-hidden="true" />
@@ -236,15 +246,13 @@ export function CommunityPostCard({
       </header>
 
       <Link href={`/outfit/${post.shareCode}`} className="block">
-        <span className="relative block aspect-[4/5] w-full overflow-hidden bg-muted sm:aspect-[3/2]">
-          <AppImage
-            src={post.imageUrl}
-            alt={post.title ?? "Outfit cộng đồng"}
-            fill
-            className="object-cover"
-            unoptimized
-          />
-        </span>
+        <IntrinsicImage
+          src={post.imageUrl}
+          alt={post.title ?? "Outfit cộng đồng"}
+          fallbackAspectRatio={4 / 5}
+          showErrorHint
+          className="bg-muted"
+        />
       </Link>
 
       {(post.title || post.caption) && (

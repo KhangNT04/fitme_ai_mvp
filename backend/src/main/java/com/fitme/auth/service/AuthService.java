@@ -94,11 +94,19 @@ public class AuthService {
         verifyCaptcha(request.getCaptchaId(), request.getCaptchaAnswer());
 
         String email = request.getEmail().toLowerCase(Locale.ROOT).trim();
-        enforceRegisterCooldown(email);
 
-        if (userAccountRepository.existsByEmail(email)) {
-            throw new BusinessException("Email đã được sử dụng");
+        java.util.Optional<UserAccount> existing = userAccountRepository.findByEmail(email);
+        if (existing.isPresent()) {
+            // Signing up again with an address that was never confirmed must not dead-end the user:
+            // re-send the code so they can finish activating the account they already started.
+            UserAccount pending = existing.get();
+            if (pending.isEmailVerified()) {
+                throw new BusinessException("Email đã được sử dụng");
+            }
+            return resendVerificationForPendingAccount(pending);
         }
+
+        enforceRegisterCooldown(email);
 
         String code = generateNumericCode(6);
         Instant expiresAt = Instant.now().plusSeconds(
@@ -135,6 +143,43 @@ public class AuthService {
                 .message("Đăng ký thành công. Kiểm tra email và nhập mã xác nhận để kích hoạt tài khoản.")
                 .consumerPlan(user.getConsumerPlan() != null ? user.getConsumerPlan().name() : "FREE");
 
+        if (fitMeProperties.getAuth().isExposeVerificationCode()) {
+            builder.verificationCode(code);
+        }
+        return builder.build();
+    }
+
+    /**
+     * Re-sends the activation code for an account that was registered but never confirmed.
+     * The password is left untouched, so the owner can still sign in with the one they chose.
+     */
+    private AuthResponse resendVerificationForPendingAccount(UserAccount user) {
+        String email = user.getEmail();
+        if (inCooldown(resendCooldownByEmail, email)) {
+            throw new BusinessException("Vui lòng đợi 1 phút trước khi gửi lại mã xác thực.");
+        }
+        resendCooldownByEmail.put(email, Instant.now().plusSeconds(EMAIL_SEND_COOLDOWN_SECONDS));
+        String code = generateNumericCode(6);
+        Instant expiresAt = Instant.now().plusSeconds(
+                Math.max(60, fitMeProperties.getAuth().getVerificationTtlSeconds()));
+        user.setEmailVerificationCode(code);
+        user.setEmailVerificationExpiresAt(expiresAt);
+        userAccountRepository.save(user);
+        verificationFailuresByEmail.remove(email);
+
+        log.info("[AUTH] Re-sent pending verification for existing unverified account email={} expiresAt={}",
+                email, expiresAt);
+        authEmailService.sendVerificationCode(email, code);
+
+        AuthResponse.AuthResponseBuilder builder = AuthResponse.builder()
+                .userId(user.getId())
+                .email(user.getEmail())
+                .displayName(user.getDisplayName())
+                .role(user.getRole().name())
+                .emailVerified(false)
+                .requiresEmailVerification(true)
+                .message("Tài khoản này đã được đăng ký nhưng chưa xác thực. Mã xác nhận mới đã được gửi tới email của bạn.")
+                .consumerPlan(user.getConsumerPlan() != null ? user.getConsumerPlan().name() : "FREE");
         if (fitMeProperties.getAuth().isExposeVerificationCode()) {
             builder.verificationCode(code);
         }
@@ -314,6 +359,10 @@ public class AuthService {
     /**
      * Admin support action: emails the owner a reset link so the admin never learns or sets the password.
      * Unlike {@link #forgotPassword}, delivery failures are reported to the admin.
+     *
+     * Receiving the link proves the owner controls the mailbox, so an account that was never
+     * confirmed is verified here — otherwise the owner would set a password and still be told
+     * the email is unverified.
      */
     public void sendPasswordResetLinkFor(UserAccount user) {
         if (inCooldown(resetCooldownByEmail, user.getEmail())) {
@@ -322,6 +371,22 @@ public class AuthService {
         String token = issuePasswordResetToken(user);
         authEmailService.sendPasswordResetLink(user.getEmail(), token, (int) (PASSWORD_RESET_TTL_SECONDS / 60));
         resetCooldownByEmail.put(user.getEmail(), Instant.now().plusSeconds(EMAIL_SEND_COOLDOWN_SECONDS));
+    }
+
+    /**
+     * Marks the account as email-confirmed because the owner proved mailbox control by
+     * receiving a reset link.
+     */
+    @Transactional
+    public void verifyEmailByAdmin(UserAccount user) {
+        if (user.isEmailVerified()) {
+            return;
+        }
+        user.setEmailVerified(true);
+        user.setEmailVerificationCode(null);
+        user.setEmailVerificationExpiresAt(null);
+        userAccountRepository.save(user);
+        log.info("[AUTH] Email verified through an admin-issued reset link for account {}", user.getId());
     }
 
     /** Changes the password, signs out every other session and returns fresh tokens for the caller. */

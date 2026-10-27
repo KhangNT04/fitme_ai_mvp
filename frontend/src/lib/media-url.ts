@@ -1,5 +1,6 @@
 export const PLACEHOLDER_PRODUCT = "/placeholder-product.svg";
-export const EXPIRED_VTON_OUTPUT_PLACEHOLDER = "/placeholder-product.svg";
+/** Shown when a try-on photo lived on a provider link that has since been removed. */
+export const EXPIRED_VTON_OUTPUT_PLACEHOLDER = "/placeholder-expired-tryon.svg";
 
 const ABSOLUTE_URL = /^https?:\/\//i;
 
@@ -18,9 +19,17 @@ export function isEphemeralVtonOutputUrl(url?: string | null): boolean {
   if (!url?.trim()) return false;
   try {
     const parsed = new URL(url.trim());
-    return parsed.pathname.toLowerCase().includes("/outputs/");
+    const pathname = parsed.pathname.toLowerCase();
+    if (pathname.includes("/outputs/")) return true;
+    // The FASHN CDN serves /<job-id>/output_0.png and drops the file after a short while.
+    return (
+      pathname.endsWith("/output_0.png") &&
+      (parsed.hostname.toLowerCase().endsWith("fashn.ai") ||
+        parsed.hostname.toLowerCase().endsWith("fitme-ai-vton.onrender.com"))
+    );
   } catch {
-    return url.toLowerCase().includes("/outputs/");
+    const lower = url.toLowerCase();
+    return lower.includes("/outputs/") || lower.includes("/output_0.png");
   }
 }
 

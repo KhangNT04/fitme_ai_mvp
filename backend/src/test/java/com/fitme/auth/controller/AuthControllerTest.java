@@ -168,6 +168,66 @@ class AuthControllerTest extends AbstractIntegrationTest {
     }
 
     @Test
+    void register_withUnverifiedEmail_resendsTheVerificationCode() throws Exception {
+        String email = "again-" + java.util.UUID.randomUUID() + "@test.fitme.ai";
+
+        MvcResult first = register(email, "test1234", "First Name");
+        String firstCode = JsonPath.read(first.getResponse().getContentAsString(), "$.data.verificationCode");
+        org.assertj.core.api.Assertions.assertThat(firstCode).isNotBlank();
+
+        // Signing up again with the same, still unconfirmed address must not dead-end the user.
+        MvcResult second = mockMvc.perform(post("/api/v1/auth/register")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(registerPayload(email, "test1234", "Second Name")))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.requiresEmailVerification").value(true))
+                .andExpect(jsonPath("$.data.emailVerified").value(false))
+                .andExpect(jsonPath("$.data.verificationCode").isNotEmpty())
+                .andReturn();
+
+        String secondCode = JsonPath.read(second.getResponse().getContentAsString(), "$.data.verificationCode");
+        org.assertj.core.api.Assertions.assertThat(secondCode).isNotBlank();
+
+        // The freshly sent code completes the activation.
+        mockMvc.perform(post("/api/v1/auth/verify-email")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"email\":\"%s\",\"token\":\"%s\"}".formatted(email, secondCode)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.emailVerified").value(true));
+    }
+
+    @Test
+    void register_withVerifiedEmail_isStillRejected() throws Exception {
+        TestDataHelper.UserContext verified = testDataHelper.createUser();
+
+        mockMvc.perform(post("/api/v1/auth/register")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(registerPayload(verified.user().getEmail(), "test1234", "Second Try")))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.error").value("Email đã được sử dụng"));
+    }
+
+    /** Registers with a fresh captcha and returns the response. */
+    private MvcResult register(String email, String password, String fullName) throws Exception {
+        return mockMvc.perform(post("/api/v1/auth/register")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(registerPayload(email, password, fullName)))
+                .andExpect(status().isOk())
+                .andReturn();
+    }
+
+    /** Builds a registration body with a freshly issued captcha, as the public sign-up form does. */
+    private String registerPayload(String email, String password, String fullName) throws Exception {
+        MvcResult captchaResult = mockMvc.perform(get("/api/v1/auth/captcha")).andReturn();
+        String captchaId = JsonPath.read(captchaResult.getResponse().getContentAsString(), "$.data.captchaId");
+        int answer = parseCaptchaAnswer(
+                JsonPath.read(captchaResult.getResponse().getContentAsString(), "$.data.question"));
+        return """
+                {"email":"%s","password":"%s","fullName":"%s","website":"","captchaId":"%s","captchaAnswer":"%d","formStartedAtMs":%d}
+                """.formatted(email, password, fullName, captchaId, answer, System.currentTimeMillis() - 5000);
+    }
+
+    @Test
     void register_rejectsOverlongNameAndPassword() throws Exception {
         String longName = "N".repeat(101);
         String longPassword = "p".repeat(101);

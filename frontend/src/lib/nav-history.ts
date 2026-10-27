@@ -101,6 +101,66 @@ export function labelForHref(href: string): string {
   return "Quay lại";
 }
 
+/**
+ * Short, human-friendly label for a back button. The nav stack keeps the full page title
+ * (useful for context), but a back link reads better with a concise destination name.
+ */
+export function shortLabelForHref(href: string): string {
+  const path = href.split("?")[0].replace(/\/$/, "") || "/";
+
+  const exact: Record<string, string> = {
+    "/": "Trang chủ",
+    "/discover": "Khám phá",
+    "/try-on": "Thử mặc",
+    "/try-on/selected": "Outfit đang chọn",
+    "/try-on/input": "Thông tin thử mặc",
+    "/profile": "Hồ sơ",
+    "/profile/privacy": "Quyền riêng tư",
+    "/profile/body": "Hồ sơ cơ thể",
+    "/profile/style": "Gu thời trang",
+    "/profile/password": "Đổi mật khẩu",
+    "/profile/style-preferences": "Brand yêu thích",
+    "/profile/gallery": "Thư viện ảnh",
+    "/profile/purchases": "Tủ chi tiêu",
+    "/ai/start": "Tư vấn AI",
+    "/ai/chat": "Tư vấn outfit",
+    "/ai/body-profile": "Hồ sơ cơ thể",
+    "/ai/photo-upload": "Upload ảnh",
+    "/ai/preview-outfit": "Chỉnh set outfit",
+    "/ai/photo-check": "Kiểm tra ảnh",
+    "/ai/vibe-quiz": "Vibe",
+    "/wardrobe": "Tủ đồ",
+    "/saved-outfits": "Đã lưu",
+    "/similar-products": "Sản phẩm tương tự",
+    "/community": "Cộng đồng",
+    "/pricing": "Gói dịch vụ",
+    "/rewards": "Nhận thưởng",
+    "/auth/login": "Đăng nhập",
+    "/auth/register": "Đăng ký",
+    "/auth/forgot-password": "Quên mật khẩu",
+    "/auth/reset-password": "Đặt lại mật khẩu",
+    "/auth/verify-email": "Xác minh email",
+  };
+
+  if (exact[path]) return exact[path];
+  if (path.startsWith("/discover/brand/")) return "Thương hiệu";
+  if (path.startsWith("/outfit/")) return "Outfit cộng đồng";
+  if (path.startsWith("/try-on/brand/")) return "Thử mặc theo thương hiệu";
+  if (path.startsWith("/products/")) return "Sản phẩm";
+  if (path.startsWith("/try-on/result/")) return "Kết quả thử mặc";
+  if (path.startsWith("/try-on/size/")) return "Kết quả thử mặc";
+  if (path.startsWith("/try-on/color/")) return "Kết quả thử mặc";
+  if (path.startsWith("/try-on/decision/")) return "Kết quả thử mặc";
+  if (path.startsWith("/ai/options/")) return "Chọn phong cách";
+  if (path.startsWith("/ai/result/")) return "Kết quả tư vấn";
+  if (path.startsWith("/ai/chat")) return "Tư vấn outfit";
+  if (path.startsWith("/ai/preview/")) return "Preview AI";
+  if (path.startsWith("/ai/variants/")) return "Kết quả tư vấn";
+  if (path.startsWith("/redirect/confirm/")) return "Chi tiết sản phẩm";
+
+  return "Quay lại";
+}
+
 let cachedStack: NavHistoryEntry[] = [];
 let cachedStackKey = "";
 

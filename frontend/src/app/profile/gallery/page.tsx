@@ -3,11 +3,12 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useInfiniteQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Download, Share2, Trash2, Image as ImageIcon, ExternalLink, AlertCircle } from "lucide-react";
+import { Download, Share2, Trash2, Image as ImageIcon, ExternalLink, Sparkles, Coins } from "lucide-react";
 import { PageShell } from "@/components/layout/PageShell";
+import { IntrinsicImage } from "@/components/common/IntrinsicImage";
 import { CollapsingPageHeader } from "@/components/layout/CollapsingPageHeader";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { galleryApi, nextGalleryPage } from "@/services/gallery-api";
 import { CommunityShareButton } from "@/components/community/CommunityShareButton";
 import { useAuthStore } from "@/stores/auth-store";
@@ -93,6 +94,12 @@ export default function GalleryPage() {
     }
   };
 
+  const requestDelete = (image: GalleryImageDto) => {
+    if (window.confirm("Bạn có chắc muốn xóa ảnh này?")) {
+      deleteMutation.mutate(image.id);
+    }
+  };
+
   if (!isAuthenticated) {
     return (
       <PageShell width="full" className={consumerPageShellClass}>
@@ -110,12 +117,16 @@ export default function GalleryPage() {
 
   return (
     <PageShell width="full" className={consumerPageShellClass}>
-      <CollapsingPageHeader title="Thư viện ảnh" backHref="/profile" />
+      <CollapsingPageHeader
+        title="Thư viện ảnh"
+        subtitle="Ảnh thử mặc AI của bạn — mở ảnh để xem chi tiết, chia sẻ hoặc đăng lên cộng đồng."
+        backHref="/profile"
+      />
 
       {isLoading ? (
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2 sm:gap-4 mt-4">
+        <div className="grid grid-cols-2 gap-2 sm:gap-3 md:grid-cols-3 lg:grid-cols-4 mt-4">
           {[1, 2, 3, 4].map((i) => (
-            <div key={i} className="aspect-[3/4] rounded-xl bg-muted animate-pulse" />
+            <div key={i} className="aspect-[3/4] rounded-2xl bg-muted animate-pulse" />
           ))}
         </div>
       ) : !images.length ? (
@@ -128,26 +139,28 @@ export default function GalleryPage() {
         </div>
       ) : (
         <>
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2 sm:gap-4 mt-4">
+          <div className="grid grid-cols-2 gap-2 sm:gap-3 md:grid-cols-3 lg:grid-cols-4 mt-4">
             {images.map((img) => (
-              <div
+              <button
                 key={img.id}
-                className="group relative aspect-[3/4] overflow-hidden rounded-xl bg-muted cursor-pointer"
+                type="button"
+                className="group relative block overflow-hidden rounded-2xl border border-border/60 bg-card transition-shadow hover:shadow-md"
                 onClick={() => {
                   setSelectedImage(img);
                   setIsLightboxOpen(true);
                 }}
               >
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
+                <IntrinsicImage
                   src={img.imageUrl}
-                  alt="Try-on"
-                  className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+                  alt="Ảnh thử mặc"
+                  fallbackAspectRatio={3 / 4}
+                  showErrorHint
+                  imgClassName="transition-transform duration-300 group-hover:scale-105"
                 />
-                <div className="absolute inset-0 bg-black/40 opacity-0 transition-opacity group-hover:opacity-100 flex items-center justify-center">
-                  <span className="text-white text-sm font-medium">Xem chi tiết</span>
-                </div>
-              </div>
+                <span className="pointer-events-none absolute inset-0 flex items-center justify-center bg-black/40 text-sm font-medium text-white opacity-0 transition-opacity group-hover:opacity-100">
+                  Xem chi tiết
+                </span>
+              </button>
             ))}
           </div>
           <div className="mt-6 flex flex-col items-center gap-2">
@@ -168,59 +181,72 @@ export default function GalleryPage() {
         </>
       )}
 
-      {/* Lightbox Dialog */}
+      {/* Lightbox — light theme so it matches the rest of the app. */}
       <Dialog open={isLightboxOpen} onOpenChange={setIsLightboxOpen}>
-        <DialogContent className="max-w-3xl p-0 overflow-hidden bg-black/95 border-none text-white sm:rounded-2xl">
+        <DialogContent className="max-w-4xl overflow-hidden p-0 sm:max-w-5xl">
           {selectedImage && (
-            <div className="flex flex-col md:flex-row h-[85vh] md:h-[80vh]">
-              {/* Image Section */}
-              <div className="relative flex-1 flex items-center justify-center p-4 bg-black">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
+            <div className="flex max-h-[88vh] flex-col md:flex-row">
+              {/* Photo */}
+              <div className="relative flex min-h-0 flex-1 items-center justify-center bg-muted/40 p-3 sm:p-4">
+                <IntrinsicImage
                   src={selectedImage.imageUrl}
-                  alt="Try-on detail"
-                  className="max-h-full max-w-full object-contain"
+                  alt="Chi tiết ảnh thử mặc"
+                  fallbackAspectRatio={3 / 4}
+                  showErrorHint
+                  className="h-[46vh] w-full rounded-xl bg-transparent md:h-[68vh]"
+                  imgClassName="object-contain"
                 />
-                
-                {/* Action Overlay Mobile */}
-                <div className="absolute top-4 right-4 flex gap-2 md:hidden">
-                  <Button size="icon" variant="secondary" className="rounded-full bg-black/50 text-white hover:bg-black/70" onClick={() => handleDownload(selectedImage.imageUrl)}>
+
+                {/* Quick actions — always reachable on touch. */}
+                <div className="absolute right-3 top-3 flex flex-col gap-2">
+                  <Button
+                    size="icon"
+                    variant="secondary"
+                    aria-label="Tải ảnh xuống"
+                    className="rounded-full bg-card/90 text-foreground shadow-sm hover:bg-card"
+                    onClick={() => void handleDownload(selectedImage.imageUrl)}
+                  >
                     <Download className="h-4 w-4" />
                   </Button>
-                  <Button size="icon" variant="secondary" className="rounded-full bg-black/50 text-white hover:bg-black/70" onClick={() => handleShare(selectedImage)}>
+                  <Button
+                    size="icon"
+                    variant="secondary"
+                    aria-label="Chia sẻ ảnh"
+                    className="rounded-full bg-card/90 text-foreground shadow-sm hover:bg-card"
+                    onClick={() => void handleShare(selectedImage)}
+                  >
                     <Share2 className="h-4 w-4" />
                   </Button>
-                  <Button size="icon" variant="destructive" className="rounded-full bg-black/50 text-white hover:bg-red-600" onClick={() => {
-                    if (confirm("Bạn có chắc muốn xóa ảnh này?")) deleteMutation.mutate(selectedImage.id);
-                  }}>
+                  <Button
+                    size="icon"
+                    variant="secondary"
+                    aria-label="Xóa ảnh"
+                    className="rounded-full bg-card/90 text-destructive shadow-sm hover:bg-card"
+                    onClick={() => requestDelete(selectedImage)}
+                  >
                     <Trash2 className="h-4 w-4" />
                   </Button>
                 </div>
               </div>
 
-              {/* Sidebar Section */}
-              <div className="w-full md:w-80 bg-zinc-900 p-5 flex flex-col overflow-y-auto">
-                <div className="hidden md:flex justify-end gap-2 mb-6">
-                  <Button size="icon" variant="ghost" className="rounded-full text-zinc-400 hover:text-white hover:bg-zinc-800" onClick={() => handleDownload(selectedImage.imageUrl)}>
-                    <Download className="h-4 w-4" />
-                  </Button>
-                  <Button size="icon" variant="ghost" className="rounded-full text-zinc-400 hover:text-white hover:bg-zinc-800" onClick={() => handleShare(selectedImage)}>
-                    <Share2 className="h-4 w-4" />
-                  </Button>
-                  <Button size="icon" variant="ghost" className="rounded-full text-zinc-400 hover:text-red-400 hover:bg-zinc-800" onClick={() => {
-                    if (confirm("Bạn có chắc muốn xóa ảnh này?")) deleteMutation.mutate(selectedImage.id);
-                  }}>
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
+              {/* Details */}
+              <div className="flex w-full flex-col gap-4 overflow-y-auto border-t border-border/60 bg-card p-4 sm:p-5 md:w-80 md:border-l md:border-t-0">
+                <div>
+                  <DialogTitle className="text-base">Ảnh thử mặc</DialogTitle>
+                  <DialogDescription className="mt-0.5 text-xs">
+                    Tạo ngày {formatDateTime(selectedImage.createdAt)}
+                  </DialogDescription>
                 </div>
 
-                <div className="bg-zinc-800/50 rounded-xl p-4 mb-6">
-                  <div className="flex items-start gap-3">
-                    <AlertCircle className="h-5 w-5 text-amber-400 shrink-0 mt-0.5" />
-                    <div>
-                      <p className="text-sm font-medium text-amber-400 mb-1">Nhận {shareReward} Fitken</p>
-                      <p className="text-xs text-zinc-400 mb-3">Chia sẻ ảnh này lên MXH và dán link để nhận thưởng.</p>
-                      <Button asChild size="sm" className="w-full rounded-full bg-amber-500 hover:bg-amber-600 text-black">
+                <div className="rounded-xl border border-amber-200/80 bg-amber-50/60 p-3.5">
+                  <div className="flex items-start gap-2.5">
+                    <Coins className="mt-0.5 h-4 w-4 shrink-0 text-amber-600" aria-hidden="true" />
+                    <div className="min-w-0">
+                      <p className="text-sm font-medium text-amber-900">Nhận {shareReward} Fitken</p>
+                      <p className="mt-0.5 text-xs text-amber-800/80">
+                        Chia sẻ ảnh này lên MXH và dán link để nhận thưởng.
+                      </p>
+                      <Button asChild size="sm" className="mt-2.5 w-full rounded-full">
                         <Link href={`/rewards?galleryImageId=${selectedImage.id}`}>
                           Dán link nhận thưởng
                         </Link>
@@ -229,38 +255,57 @@ export default function GalleryPage() {
                   </div>
                 </div>
 
-                <div className="bg-zinc-800/50 rounded-xl p-4 mb-6">
-                  <p className="text-sm font-medium text-zinc-200 mb-1">Chia sẻ lên cộng đồng</p>
-                  <p className="text-xs text-zinc-400 mb-3">
+                <div className="rounded-xl border border-border/60 bg-muted/40 p-3.5">
+                  <p className="flex items-center gap-1.5 text-sm font-medium text-foreground">
+                    <Sparkles className="h-4 w-4 text-primary" aria-hidden="true" />
+                    Chia sẻ lên cộng đồng
+                  </p>
+                  <p className="mt-0.5 text-xs text-muted-foreground">
                     Đăng công khai outfit này để người khác tham khảo.
                   </p>
-                  <CommunityShareButton
-                    galleryImageId={selectedImage.id}
-                    brandNames={selectedImage.products?.map((prod) => prod.name).slice(0, 3)}
-                  />
+                  <div className="mt-2.5">
+                    <CommunityShareButton
+                      galleryImageId={selectedImage.id}
+                      brandNames={selectedImage.products?.map((prod) => prod.name).slice(0, 3)}
+                    />
+                  </div>
                 </div>
 
-                <h3 className="text-sm font-medium text-zinc-300 uppercase tracking-wider mb-4">Sản phẩm trong ảnh</h3>
-                <div className="space-y-3 flex-1">
-                  {selectedImage.products?.map((prod) => (
-                    <Link key={prod.productId} href={`/products/${prod.productId}`} className="flex items-center gap-3 p-2 rounded-lg hover:bg-zinc-800 transition-colors">
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img src={prod.imageUrl} alt={prod.name} className="w-12 h-12 rounded-md object-cover bg-zinc-800" />
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium text-zinc-200 truncate">{prod.name}</p>
-                        <p className="text-xs text-zinc-500">{prod.price.toLocaleString()}đ</p>
-                      </div>
-                      <ExternalLink className="h-4 w-4 text-zinc-600" />
-                    </Link>
-                  ))}
-                  {(!selectedImage.products || selectedImage.products.length === 0) && (
-                    <p className="text-sm text-zinc-500">Không có thông tin sản phẩm.</p>
+                <div className="min-h-0 flex-1">
+                  <h3 className="mb-2.5 text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                    Sản phẩm trong ảnh
+                  </h3>
+                  {selectedImage.products && selectedImage.products.length > 0 ? (
+                    <ul className="space-y-1.5">
+                      {selectedImage.products.map((prod) => (
+                        <li key={prod.productId}>
+                          <Link
+                            href={`/products/${prod.productId}`}
+                            className="flex items-center gap-3 rounded-xl p-2 transition-colors hover:bg-muted"
+                          >
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                            <img
+                              src={prod.imageUrl}
+                              alt={prod.name}
+                              className="h-12 w-12 shrink-0 rounded-lg bg-muted object-cover"
+                            />
+                            <span className="min-w-0 flex-1">
+                              <span className="block truncate text-sm font-medium text-foreground">
+                                {prod.name}
+                              </span>
+                              <span className="block text-xs text-muted-foreground">
+                                {prod.price.toLocaleString()}đ
+                              </span>
+                            </span>
+                            <ExternalLink className="h-4 w-4 shrink-0 text-muted-foreground" />
+                          </Link>
+                        </li>
+                      ))}
+                    </ul>
+                  ) : (
+                    <p className="text-sm text-muted-foreground">Không có thông tin sản phẩm.</p>
                   )}
                 </div>
-                
-                <p className="text-xs text-zinc-600 mt-6 text-center">
-                  Tạo ngày {formatDateTime(selectedImage.createdAt)}
-                </p>
               </div>
             </div>
           )}

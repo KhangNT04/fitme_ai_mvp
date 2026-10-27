@@ -398,6 +398,15 @@ Lỗi: 404 "Cài đặt không tồn tại"; 400 `SETTING_INVALID` với một t
 - `POST /auth/verify-email`, `/auth/resend-code`
 - `POST /auth/forgot-password`, `/auth/reset-password`
 
+**Đăng ký lại tài khoản chưa xác thực**: `POST /auth/register` với email đã đăng ký nhưng chưa xác thực
+không còn bị từ chối. Backend sinh mã xác thực mới, gửi lại email và trả về
+`requiresEmailVerification: true` cùng thông báo giải thích. Email đã xác thực vẫn bị từ chối
+(`400` — "Email đã được sử dụng"). Giới hạn gửi lại mã: 1 lần / 60 giây / email.
+
+**Admin gửi link đặt lại mật khẩu**: `POST /admin/users/{id}/password-reset-link` xác nhận quyền sở
+hữu hộp thư, nên tài khoản chưa xác thực cũng được đánh dấu `emailVerified = true` ngay sau khi
+link được gửi.
+
 ### Đổi email đăng nhập (self-service)
 
 Người dùng tự đổi email đăng nhập của tài khoản: **xác nhận mật khẩu → xác minh email mới**.

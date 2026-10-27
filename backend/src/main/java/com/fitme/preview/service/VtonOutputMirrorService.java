@@ -19,6 +19,10 @@ public class VtonOutputMirrorService {
 
     private static final String FOLDER = "vton-results";
     private static final int MAX_MIRROR_ATTEMPTS = 3;
+    /** FASHN's CDN rejects non-browser clients, so mirror with a browser-like User-Agent. */
+    private static final String BROWSER_USER_AGENT =
+            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) "
+                    + "Chrome/131.0.0.0 Safari/537.36";
 
     private final StorageService storageService;
     private final MediaUrlResolver mediaUrlResolver;
@@ -70,9 +74,35 @@ public class VtonOutputMirrorService {
         }
         try {
             String path = java.net.URI.create(url.trim()).getPath();
-            return path != null && path.toLowerCase(Locale.ROOT).contains("/outputs/");
+            if (path == null) {
+                return trimmed.contains("/outputs/");
+            }
+            String lowerPath = path.toLowerCase(Locale.ROOT);
+            // ai-vton serves jobs under /outputs/...; the upstream FASHN CDN serves
+            // /<job-id>/output_0.png. Both are temporary and must be mirrored.
+            if (lowerPath.contains("/outputs/")) {
+                return true;
+            }
+            if (isFashnCdnHost(url.trim()) && lowerPath.endsWith("/output_0.png")) {
+                return true;
+            }
+            return lowerPath.contains("/output_0.png") && isFashnCdnHost(url.trim());
         } catch (IllegalArgumentException ex) {
             return trimmed.contains("/outputs/");
+        }
+    }
+
+    /** The FASHN CDN hosts the raw try-on frames; those links are not permanent. */
+    private static boolean isFashnCdnHost(String url) {
+        try {
+            String host = java.net.URI.create(url).getHost();
+            if (host == null) {
+                return false;
+            }
+            String lowerHost = host.toLowerCase(Locale.ROOT);
+            return lowerHost.endsWith("fashn.ai") || lowerHost.endsWith("fashn.ai.");
+        } catch (IllegalArgumentException ex) {
+            return url.toLowerCase(Locale.ROOT).contains("fashn.ai");
         }
     }
 
@@ -80,6 +110,9 @@ public class VtonOutputMirrorService {
         byte[] bytes = RestClient.create()
                 .get()
                 .uri(sourceUrl)
+                // The FASHN CDN rejects requests without a browser-ish User-Agent.
+                .header("User-Agent", BROWSER_USER_AGENT)
+                .header("Accept", "image/avif,image/webp,image/apng,image/*,*/*;q=0.8")
                 .retrieve()
                 .body(byte[].class);
         if (bytes == null || bytes.length == 0) {

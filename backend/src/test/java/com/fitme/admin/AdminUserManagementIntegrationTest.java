@@ -2,11 +2,18 @@ package com.fitme.admin;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fitme.AbstractIntegrationTest;
+import com.fitme.auth.entity.UserAccount;
+import com.fitme.auth.repository.UserAccountRepository;
+import com.fitme.auth.service.AuthEmailService;
+import com.fitme.common.enums.UserRole;
+import com.fitme.common.enums.UserStatus;
 import com.fitme.common.security.FitMeUserPrincipal;
 import com.fitme.support.TestDataHelper;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.web.servlet.ResultActions;
 
 import java.util.UUID;
@@ -24,6 +31,16 @@ class AdminUserManagementIntegrationTest extends AbstractIntegrationTest {
 
     @Autowired
     private TestDataHelper testDataHelper;
+
+    @Autowired
+    private UserAccountRepository userAccountRepository;
+
+    @Autowired
+    private PasswordEncoder passwordEncoder;
+
+    /** Mail delivery is not configured in tests, so the reset link is only recorded. */
+    @MockBean
+    private AuthEmailService authEmailService;
 
     @Test
     void adminSearchesAccountsAndLockingSignsTheUserOut() throws Exception {
@@ -124,6 +141,30 @@ class AdminUserManagementIntegrationTest extends AbstractIntegrationTest {
         setCredentials(admin, otherAdminId, "{\"password\":\"Takeover-123\"}").andExpect(status().isBadRequest());
         setCredentials(admin, UUID.randomUUID().toString(), "{\"password\":\"Whatever-123\"}")
                 .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void adminPasswordResetLinkAlsoVerifiesAnUnconfirmedAccount() throws Exception {
+        FitMeUserPrincipal admin = new FitMeUserPrincipal(testDataHelper.createAdmin().user());
+        String email = "unverified-" + UUID.randomUUID().toString().substring(0, 8) + "@test.fitme.ai";
+        UserAccount pending = userAccountRepository.save(UserAccount.builder()
+                .email(email)
+                .passwordHash(passwordEncoder.encode(PASSWORD))
+                .displayName("Chưa xác minh")
+                .role(UserRole.USER)
+                .emailVerified(false)
+                .status(UserStatus.ACTIVE)
+                .build());
+        String userId = pending.getId().toString();
+
+        // Sending the reset link proves the owner controls the mailbox, so the account is confirmed.
+        mockMvc.perform(post("/api/v1/admin/users/{id}/password-reset-link", userId).with(user(admin)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.message").isNotEmpty());
+
+        mockMvc.perform(get("/api/v1/admin/users/{id}", userId).with(user(admin)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.emailVerified").value(true));
     }
 
     @Test

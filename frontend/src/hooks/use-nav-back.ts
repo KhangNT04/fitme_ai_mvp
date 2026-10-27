@@ -8,6 +8,7 @@ import {
   resolveNavBack,
   notifyNavHistoryChange,
   isEphemeralNavRoute,
+  shortLabelForHref,
   type NavHistoryEntry,
 } from "@/lib/nav-history";
 
@@ -50,6 +51,9 @@ export function useNavBack(fallback: NavBackFallback, options?: { disableHistory
 
   const fromHistory = !options?.disableHistory && cleanedStack(stack).length >= 2;
 
+  // A back link reads better with a concise destination name than the full page title.
+  const label = fromHistory ? shortLabelForHref(resolved.href) : resolved.label;
+
   const navigateBack = useCallback(
     (event?: { preventDefault: () => void }) => {
       if (!fromHistory) return false;
@@ -64,7 +68,7 @@ export function useNavBack(fallback: NavBackFallback, options?: { disableHistory
 
   return {
     href: resolved.href,
-    label: resolved.label,
+    label,
     fromHistory,
     navigateBack,
   };

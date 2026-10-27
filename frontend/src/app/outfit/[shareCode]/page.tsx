@@ -8,6 +8,7 @@ import { communityApi } from "@/services/community-api";
 import { useAuthStore } from "@/stores/auth-store";
 import { toast } from "@/stores/toast-store";
 import { AppImage } from "@/components/common/AppImage";
+import { IntrinsicImage } from "@/components/common/IntrinsicImage";
 import { CommunityComments } from "@/components/community/CommunityComments";
 import { LoadingSkeleton } from "@/components/common/LoadingSkeleton";
 import { ErrorState } from "@/components/common/ErrorState";
@@ -107,8 +108,13 @@ export default function CommunityOutfitPage() {
     <PageShell width="full" className={consumerPageShellClass}>
       <PinnedBackLink href="/community" label="Cộng đồng" className="mb-3 sm:mb-4" />
       <div className="mx-auto grid max-w-4xl gap-5 lg:grid-cols-[minmax(0,20rem)_1fr] lg:items-start">
-        <div className="relative aspect-[3/4] w-full overflow-hidden rounded-2xl border border-border bg-muted">
-          <AppImage src={data.imageUrl} alt="Outfit chia sẻ" fill className="object-cover" unoptimized />
+        <div className="relative w-full overflow-hidden rounded-2xl border border-border bg-muted">
+          <IntrinsicImage
+            src={data.imageUrl}
+            alt="Outfit chia sẻ"
+            fallbackAspectRatio={3 / 4}
+            showErrorHint
+          />
         </div>
 
         <div className="min-w-0 space-y-4">

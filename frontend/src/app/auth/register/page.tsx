@@ -65,7 +65,7 @@ function RegisterForm() {
       return;
     }
     try {
-      await authApi.register({
+      const result = await authApi.register({
         email: data.email,
         password: data.password,
         fullName: data.fullName,
@@ -77,6 +77,10 @@ function RegisterForm() {
       const params = new URLSearchParams({ email: data.email });
       if (redirectAfterVerify) {
         params.set("redirect", redirectAfterVerify);
+      }
+      if (result.message) {
+        // Carry the reason over so the verify page can explain a re-sent code.
+        params.set("notice", result.message);
       }
       router.push(`/auth/verify-email?${params.toString()}`);
     } catch (e: unknown) {

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Mail, Pencil, Send, ShieldCheck } from "lucide-react";
 import { accountEmailApi } from "@/services/account-email-api";
@@ -193,14 +193,6 @@ export function ChangeEmailSection() {
     },
     onError: (err) => toast.error(getUserErrorMessage(err, "Không huỷ được yêu cầu.")),
   });
-
-  // Mở hộp thoại khi đã có yêu cầu đổi email đang chờ -> vào thẳng bước nhập mã.
-  useEffect(() => {
-    if (status?.pending && status.pendingEmail) {
-      setPendingEmail(status.pendingEmail);
-      setStep("confirm");
-    }
-  }, [status?.pending, status?.pendingEmail]);
 
   const currentEmail = user?.email ?? "";
 

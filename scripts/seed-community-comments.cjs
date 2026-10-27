@@ -132,6 +132,16 @@ async function main() {
   }
 
   console.log(`đã thêm ${added} bình luận`);
+
+  // Đồng bộ lại số đếm: các bài seed trước khi có bình luận còn số đếm tĩnh từ dataset, nên
+  // trigger chỉ cộng thêm chứ không thay thế. Số đếm phải bằng đúng số dòng bình luận.
+  const synced = await client.query(
+    "UPDATE community_posts p SET comment_count = "
+      + "(SELECT COUNT(*)::int FROM community_comments c WHERE c.post_id = p.id) "
+      + "WHERE p.comment_count <> (SELECT COUNT(*)::int FROM community_comments c WHERE c.post_id = p.id)"
+  );
+  console.log(`đã đồng bộ số đếm: ${synced.rowCount} bài`);
+
   const total = await client.query(
     "SELECT COUNT(*)::int AS comments FROM community_comments"
   );

@@ -227,6 +227,7 @@ Người dùng đăng ảnh thử mặc trong thư viện lên cộng đồng c�
 | `POST` / `DELETE` | `/community/users/{followedId}/follow` | User | Theo dõi / bỏ theo dõi tác giả → `boolean` (đang theo dõi hay không). Không theo dõi chính mình |
 | `GET` | `/community/me` | User | Số liệu cộng đồng của tôi: `{ publishedPosts, savedPosts, followers, following, totalLikesReceived }` |
 | `GET` | `/me/community/saves?page=0&size=24` | User | Bài đăng đã lưu: `{ items, page, size, total }` |
+| `GET` | `/me/community/notifications?limit=20` | User | Thông báo trong ứng dụng về bình luận: `[CommunityCommentNotificationDto]`. Mỗi thông báo có `id, postId, postShareCode, postTitle, actorDisplayName, actorInitials, content, reply, createdAt`. Chỉ trả về thông báo của chính người đang đăng nhập |
 | `GET` | `/admin/community/stats` | Admin | `{ totalPosts, postsLast7Days, authorsWithPosts, totalLikes, totalViews }` |
 | `DELETE` | `/admin/community/posts/{postId}` | Admin | Ẩn bài vi phạm (`visibility = HIDDEN`) |
 

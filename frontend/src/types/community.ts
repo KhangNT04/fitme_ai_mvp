@@ -15,6 +15,8 @@ export interface CommunityPost {
   styleLabel?: string | null;
   occasion?: string | null;
   imageUrl: string;
+  /** PUBLIC, HIDDEN (moderated) or REMOVED (deleted by the author). */
+  visibility?: string;
   authorDisplayName: string;
   authorInitials: string;
   brandNames: string[];

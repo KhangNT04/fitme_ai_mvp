@@ -106,6 +106,9 @@ fitme:
   community:
     post-daily-limit: ${FITME_COMMUNITY_POST_DAILY_LIMIT:5}
     share-base-url: ${FITME_COMMUNITY_SHARE_BASE_URL:/outfit/}
+    # Host that serves the public permalinks. Defaults to the frontend host so a community
+    # link is recognised as a shareable FitMe post out of the box.
+    share-base-url-host: ${FITME_COMMUNITY_SHARE_BASE_URL_HOST:${fitme.frontend.base-url:}}
   consumer:
     entitlement-enabled: ${FITME_CONSUMER_ENTITLEMENT_ENABLED:true}
     free-coherence-mode: ${FITME_FREE_COHERENCE_MODE:OFF}

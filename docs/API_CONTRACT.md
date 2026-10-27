@@ -185,7 +185,7 @@ Múi giờ tính toán: `Asia/Ho_Chi_Minh`. Thưởng bị giới hạn bởi tr
 |---|---|---|---|
 | `GET` | `/rewards` | User | Tổng hợp nhận thưởng: `{ balance, checkin: { checkedInToday, currentStreak, streakTarget, daysUntilNextReward, rewardAmount, recentDays: [...] }, share: { rewardAmount, dailyLimit, remainingToday, allowedDomains: [...], recentClaims: [...] }, review: { rewardAmount, minContentLength, rewardedCount, dailyLimit, remainingToday } }` |
 | `POST` | `/rewards/checkin` | User | Điểm danh hằng ngày → `{ checkedInToday: true, currentStreak, rewardGranted, balance }`. Gọi lại cùng ngày → lỗi `400 ALREADY_CHECKED_IN` |
-| `POST` | `/rewards/share` | User | Gửi link chia sẻ bài đăng cá nhân: Body `{ postUrl, tryOnRequestId?, galleryImageId? }` → `ShareClaim { id, postUrl, platform, status, rewardGranted, createdAt }`. Lỗi: `SHARE_INVALID_URL`, `SHARE_DUPLICATE`, `SHARE_DAILY_LIMIT` |
+| `POST` | `/rewards/share` | User | Gửi link chia sẻ bài đăng cá nhân: Body `{ postUrl, tryOnRequestId?, galleryImageId? }` → `ShareClaim { id, postUrl, platform, status, rewardGranted, createdAt }`. `postUrl` nhận link mạng xã hội (Facebook / TikTok / Instagram / Threads / X, `platform` = `FACEBOOK` / `TIKTOK` / …) **và** link bài cộng đồng FitMe dạng `https://<host>/outfit/<shareCode>` (`platform` = `FITME`). Link cộng đồng chỉ được nhận thưởng bởi chính tác giả của bài đăng. Lỗi: `SHARE_INVALID_URL`, `SHARE_DUPLICATE`, `SHARE_DAILY_LIMIT` |
 | `GET` | `/rewards/share` | User | Lịch sử các lượt nộp bài chia sẻ của tôi |
 | `GET` | `/admin/rewards/shares?status=` | Admin | Danh sách link chia sẻ cần duyệt |
 | `POST` | `/admin/rewards/shares/{id}/reject` | Admin | Từ chối link và thu hồi Fitken: Body `{ note? }` |
@@ -214,7 +214,7 @@ Người dùng đăng ảnh thử mặc trong thư viện lên cộng đồng c�
 
 | Method | Path | Auth | Mô tả & Body / Query |
 |---|---|---|---|
-| `GET` | `/community/posts?page=0&size=24&sort=latest\|popular&brandId=&styleLabel=` | Public | Feed cộng đồng: `{ items: [CommunityPostDto], page, size, total }`. `CommunityPostDto`: `{ id, shareCode, shareUrl, title, caption, styleLabel, occasion, imageUrl, authorDisplayName, authorInitials, brandNames, products: [{ productId, name, imageUrl, price }], likeCount, commentCount, viewCount, likedByMe, savedByMe, mine, createdAt }`. `likedByMe`/`savedByMe` = false với khách |
+| `GET` | `/community/posts?page=0&size=24&sort=latest\|popular&brandId=&styleLabel=` | Public | Feed cộng đồng: `{ items: [CommunityPostDto], page, size, total }`. `CommunityPostDto`: `{ id, shareCode, shareUrl, title, caption, styleLabel, occasion, imageUrl, visibility, authorDisplayName, authorInitials, brandNames, products: [{ productId, name, imageUrl, price }], likeCount, commentCount, viewCount, likedByMe, savedByMe, mine, createdAt }`. `likedByMe`/`savedByMe` = false với khách. `visibility` = `PUBLIC` / `HIDDEN` / `REMOVED`; `styleLabel` và `occasion` được suy ra từ try-on / recommendation gốc của ảnh, không phải do người dùng nhập |
 | `GET` | `/community/posts/{shareCode}` | Public | Permalink công khai của 1 outfit (`shareCode` 10 ký tự, ví dụ `/outfit/a1b2c3d4`). Mỗi lượt xem của người khác tăng `viewCount` |
 | `GET` | `/community/authors/{authorId}/posts?page=0&size=24` | Public | Bài đăng công khai của 1 tác giả |
 | `POST` | `/community/posts` | User | Đăng bài: Body `{ galleryImageId, title?, caption? }` → `{ post, shareUrl }`. Ảnh phải thuộc thư viện của người đăng nhập |
@@ -227,6 +227,7 @@ Người dùng đăng ảnh thử mặc trong thư viện lên cộng đồng c�
 | `POST` / `DELETE` | `/community/users/{followedId}/follow` | User | Theo dõi / bỏ theo dõi tác giả → `boolean` (đang theo dõi hay không). Không theo dõi chính mình |
 | `GET` | `/community/me` | User | Số liệu cộng đồng của tôi: `{ publishedPosts, savedPosts, followers, following, totalLikesReceived }` |
 | `GET` | `/me/community/saves?page=0&size=24` | User | Bài đăng đã lưu: `{ items, page, size, total }` |
+| `GET` | `/me/community/posts?page=0&size=24` | User | Bài đăng **của chính tôi**, mới nhất trước. Bao gồm cả bài đã gỡ (`visibility = REMOVED`) và bài bị ẩn, để tác giả vẫn quản lý được những gì mình đã chia sẻ |
 | `GET` | `/me/community/notifications?limit=20` | User | Thông báo trong ứng dụng về bình luận: `[CommunityCommentNotificationDto]`. Mỗi thông báo có `id, postId, postShareCode, postTitle, actorDisplayName, actorInitials, content, reply, createdAt`. Chỉ trả về thông báo của chính người đang đăng nhập |
 | `GET` | `/admin/community/stats` | Admin | `{ totalPosts, postsLast7Days, authorsWithPosts, totalLikes, totalViews }` |
 | `DELETE` | `/admin/community/posts/{postId}` | Admin | Ẩn bài vi phạm (`visibility = HIDDEN`) |

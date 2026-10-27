@@ -16,6 +16,9 @@ public interface CommunityPostRepository extends JpaRepository<CommunityPost, UU
 
     Optional<CommunityPost> findByShareCodeAndVisibility(String shareCode, String visibility);
 
+    /** Any post with this public code, whatever its visibility — used for ownership checks. */
+    Optional<CommunityPost> findByShareCode(String shareCode);
+
     Optional<CommunityPost> findByIdAndUserId(UUID id, UUID userId);
 
     Page<CommunityPost> findByVisibilityOrderByCreatedAtDesc(String visibility, Pageable pageable);
@@ -32,6 +35,9 @@ public interface CommunityPostRepository extends JpaRepository<CommunityPost, UU
     Page<CommunityPost> findFeedByStyle(@Param("styleLabel") String styleLabel, Pageable pageable);
 
     Page<CommunityPost> findByUserIdAndVisibilityOrderByCreatedAtDesc(UUID userId, String visibility, Pageable pageable);
+
+    /** Every post of a user, whatever the visibility — used for the author's own list. */
+    Page<CommunityPost> findByUserIdOrderByCreatedAtDesc(UUID userId, Pageable pageable);
 
     long countByUserIdAndVisibility(UUID userId, String visibility);
 

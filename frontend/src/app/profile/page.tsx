@@ -17,6 +17,7 @@ import { ProfileProgressCard } from "@/components/profile/ProfileProgressCard";
 import { ProfileStatsGrid } from "@/components/profile/ProfileStatsGrid";
 import { ProfilePreferencesTab } from "@/components/profile/ProfilePreferencesTab";
 import { ProfileAccountTab } from "@/components/profile/ProfileAccountTab";
+import { ProfileMyPostsTab } from "@/components/profile/ProfileMyPostsTab";
 import { consumerPageShellClass, consumerGuestPromptClass } from "@/lib/design-tokens";
 import { hasMinimalBodyProfile } from "@/lib/profile-prefill";
 
@@ -106,12 +107,15 @@ export default function ProfilePage() {
         )}
 
         <Tabs value={tab} onValueChange={setTab} className="w-full">
-          <TabsList className="grid h-auto w-full grid-cols-3 rounded-full p-1">
+          <TabsList className="grid h-auto w-full grid-cols-4 rounded-full p-1">
             <TabsTrigger value="overview" className="rounded-full text-xs sm:text-sm">
               Tổng quan
             </TabsTrigger>
             <TabsTrigger value="preferences" className="rounded-full text-xs sm:text-sm">
               Sở thích
+            </TabsTrigger>
+            <TabsTrigger value="posts" className="rounded-full text-xs sm:text-sm">
+              Bài của tôi
             </TabsTrigger>
             <TabsTrigger value="account" className="rounded-full text-xs sm:text-sm">
               Tài khoản
@@ -179,6 +183,10 @@ export default function ProfilePage() {
             ) : (
               <ProfilePreferencesTab bodyProfile={bodyProfile} summary={summary!} />
             )}
+          </TabsContent>
+
+          <TabsContent value="posts" className="mt-3 sm:mt-4">
+            <ProfileMyPostsTab />
           </TabsContent>
 
           <TabsContent value="account" className="mt-3 sm:mt-4">

@@ -20,6 +20,11 @@ fitme:
     refresh-expiration: 604800000
   cors:
     origins: http://localhost:3000
+  frontend:
+    base-url: https://fitme.test
+  community:
+    share-base-url: /outfit/
+    share-base-url-host: https://fitme.test
   upload:
     dir: ./target/test-uploads
   privacy:

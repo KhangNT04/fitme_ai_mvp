@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Heart, Bookmark, Share2, ExternalLink, Sparkles, Users } from "lucide-react";
 import { communityApi } from "@/services/community-api";
@@ -10,6 +10,7 @@ import { toast } from "@/stores/toast-store";
 import { AppImage } from "@/components/common/AppImage";
 import { IntrinsicImage } from "@/components/common/IntrinsicImage";
 import { CommunityComments } from "@/components/community/CommunityComments";
+import { CommunityPostDeleteButton } from "@/components/community/CommunityPostDeleteButton";
 import { LoadingSkeleton } from "@/components/common/LoadingSkeleton";
 import { ErrorState } from "@/components/common/ErrorState";
 import { PageShell } from "@/components/layout/PageShell";
@@ -31,6 +32,7 @@ function formatDateTime(value: string): string {
 export default function CommunityOutfitPage() {
   const params = useParams<{ shareCode: string }>();
   const shareCode = params?.shareCode ?? "";
+  const router = useRouter();
   const queryClient = useQueryClient();
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated());
 
@@ -131,6 +133,13 @@ export default function CommunityOutfitPage() {
                 <Badge variant="outline" className="shrink-0 border-amber-500/40 text-amber-700 dark:text-amber-400">
                   Dữ liệu demo
                 </Badge>
+              )}
+              {data.mine && !isDemoPost && (
+                <CommunityPostDeleteButton
+                  postId={data.id}
+                  className="shrink-0"
+                  onDeleted={() => router.push("/community")}
+                />
               )}
             </div>
 

@@ -10,6 +10,7 @@ import { toast } from "@/stores/toast-store";
 import { IntrinsicImage } from "@/components/common/IntrinsicImage";
 import { QuickShareDialog } from "@/components/community/QuickShareDialog";
 import { CommunityCommentsModal } from "@/components/community/CommunityCommentsModal";
+import { CommunityPostDeleteButton } from "@/components/community/CommunityPostDeleteButton";
 import { EmptyState } from "@/components/common/EmptyState";
 import { ErrorState } from "@/components/common/ErrorState";
 import { PageShell } from "@/components/layout/PageShell";
@@ -222,6 +223,9 @@ export function CommunityPostCard({
           <Badge variant="outline" className="shrink-0 border-amber-500/40 text-amber-700 dark:text-amber-400">
             Demo
           </Badge>
+        )}
+        {post.mine && !isDemo && (
+          <CommunityPostDeleteButton postId={post.id} className="shrink-0" />
         )}
       </header>
 

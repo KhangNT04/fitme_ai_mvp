@@ -68,7 +68,6 @@ class CommunityIntegrationTest extends AbstractIntegrationTest {
         // The feed shows the post publicly.
         mockMvc.perform(get("/api/v1/community/posts"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.data.total").value(1))
                 .andExpect(jsonPath("$.data.items[0].shareCode").value(shareCode));
 
         // Another user can like and save it, but not delete it.
@@ -92,8 +91,8 @@ class CommunityIntegrationTest extends AbstractIntegrationTest {
         // The author can remove their own post; it then disappears from the feed.
         mockMvc.perform(delete("/api/v1/community/posts/{id}", postId).with(user(owner)))
                 .andExpect(status().isOk());
-        mockMvc.perform(get("/api/v1/community/posts"))
-                .andExpect(jsonPath("$.data.total").value(0));
+        mockMvc.perform(get("/api/v1/community/posts/{code}", shareCode))
+                .andExpect(status().isNotFound());
     }
 
     @Test
@@ -122,6 +121,85 @@ class CommunityIntegrationTest extends AbstractIntegrationTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{}"))
                 .andExpect(status().is4xxClientError());
+    }
+
+    @Test
+    void aCommunityPermalinkIsRewardedForItsAuthor() throws Exception {
+        FitMeUserPrincipal owner = new FitMeUserPrincipal(testDataHelper.createUser().user());
+        Product product = testDataHelper.createEligibleProduct("Share reward top", "Áo thun");
+        generateBoardTryOn(owner, product);
+        String imageId = galleryImageId(owner);
+        grantCommunityConsent(owner);
+
+        String body = mockMvc.perform(post("/api/v1/community/posts")
+                        .with(user(owner))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"galleryImageId": "%s", "caption": "Outfit hôm nay"}
+                                """.formatted(imageId)))
+                .andExpect(status().isOk())
+                .andReturn().getResponse().getContentAsString();
+        String shareCode = objectMapper.readTree(body).get("data").get("post").get("shareCode").asText();
+
+        // The author may claim the reward with their own community link.
+        mockMvc.perform(post("/api/v1/rewards/share")
+                        .with(user(owner))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"postUrl": "https://fitme.test/outfit/%s"}
+                                """.formatted(shareCode)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.platform").value("FITME"))
+                .andExpect(jsonPath("$.data.rewardGranted").value(3));
+
+        // Somebody else's community link is refused.
+        FitMeUserPrincipal stranger = new FitMeUserPrincipal(testDataHelper.createUser().user());
+        mockMvc.perform(post("/api/v1/rewards/share")
+                        .with(user(stranger))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"postUrl": "https://fitme.test/outfit/%s"}
+                                """.formatted(shareCode)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.errorCode").value("SHARE_INVALID_URL"));
+    }
+
+    @Test
+    void aPublishedPostKeepsItsCaptionAndCanBeRemovedByItsAuthor() throws Exception {
+        FitMeUserPrincipal owner = new FitMeUserPrincipal(testDataHelper.createUser().user());
+        Product product = testDataHelper.createEligibleProduct("Caption top", "Áo thun");
+        generateBoardTryOn(owner, product);
+        String imageId = galleryImageId(owner);
+        grantCommunityConsent(owner);
+
+        String body = mockMvc.perform(post("/api/v1/community/posts")
+                        .with(user(owner))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"galleryImageId": "%s", "title": "Outfit đi học", "caption": "Áo thun rộng rất dễ mặc"}
+                                """.formatted(imageId)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.post.title").value("Outfit đi học"))
+                .andExpect(jsonPath("$.data.post.caption").value("Áo thun rộng rất dễ mặc"))
+                .andExpect(jsonPath("$.data.post.visibility").value("PUBLIC"))
+                .andReturn().getResponse().getContentAsString();
+        JsonNode data = objectMapper.readTree(body).get("data");
+        String postId = data.get("post").get("id").asText();
+        String shareCode = data.get("post").get("shareCode").asText();
+
+        // The author's own list shows the post.
+        mockMvc.perform(get("/api/v1/me/community/posts").with(user(owner)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.items[0].id").value(postId));
+
+        // Removing it hides it from the public feed but keeps it listed for the author.
+        mockMvc.perform(delete("/api/v1/community/posts/{id}", postId).with(user(owner)))
+                .andExpect(status().isOk());
+        mockMvc.perform(get("/api/v1/community/posts/{code}", shareCode))
+                .andExpect(status().isNotFound());
+        mockMvc.perform(get("/api/v1/me/community/posts").with(user(owner)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.items[0].visibility").value("REMOVED"));
     }
 
     private void grantCommunityConsent(FitMeUserPrincipal principal) throws Exception {

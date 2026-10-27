@@ -26,4 +26,15 @@ public class CommunitySavedController {
                                                            @RequestParam(defaultValue = "24") int size) {
         return ApiResponse.ok(communityService.listSaved(principal.getUserId(), page, size));
     }
+
+    /**
+     * Posts the signed-in user published, newest first. Includes hidden and removed posts so
+     * the author can still see (and manage) what they once shared.
+     */
+    @GetMapping("/posts")
+    public ApiResponse<PageResult<CommunityPostDto>> myPosts(@AuthenticationPrincipal FitMeUserPrincipal principal,
+                                                            @RequestParam(defaultValue = "0") int page,
+                                                            @RequestParam(defaultValue = "24") int size) {
+        return ApiResponse.ok(communityService.listByOwner(principal.getUserId(), page, size));
+    }
 }

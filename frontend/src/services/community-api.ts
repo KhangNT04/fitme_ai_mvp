@@ -106,6 +106,12 @@ export const communityApi = {
     );
   },
 
+  /** Posts the signed-in user published, including the ones they removed. */
+  getMyPosts: async (page = 0, size = COMMUNITY_PAGE_SIZE): Promise<CommunityPostPage> => {
+    const res = await apiClient.get("/me/community/posts", { params: { page, size } });
+    return toPage(unwrap(res) as Partial<CommunityPostPage> | null, page, size);
+  },
+
   createPost: async (payload: CreateCommunityPostRequest): Promise<CreateCommunityPostResult> => {
     // Publishing is never faked: a demo build must not claim a post went live.
     const res = await apiClient.post("/community/posts", payload);

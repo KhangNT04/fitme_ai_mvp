@@ -55,6 +55,8 @@ public class CommunityService {
     public static final String VISIBILITY_REMOVED = "REMOVED";
     private static final int MAX_CAPTION_LENGTH = 2000;
     private static final int MAX_TITLE_LENGTH = 200;
+    private static final int MAX_STYLE_LENGTH = 60;
+    private static final int MAX_OCCASION_LENGTH = 60;
     private static final String SHARE_CODE_ALPHABET = "abcdefghijkmnopqrstuvwxyz23456789";
     private static final SecureRandom RANDOM = new SecureRandom();
 
@@ -65,6 +67,7 @@ public class CommunityService {
     private final BrandRepository brandRepository;
     private final UserAccountRepository userAccountRepository;
     private final ConsentRecordRepository consentRepository;
+    private final CommunityPostContextResolver contextResolver;
     private final AnalyticsService analyticsService;
     private final FitMeProperties properties;
     private final AppClock clock;
@@ -109,6 +112,17 @@ public class CommunityService {
                 postRepository.findByUserIdAndVisibilityOrderByCreatedAtDesc(authorId, VISIBILITY_PUBLIC,
                         PageRequest.of(Math.max(page, 0), safeSize)),
                 post -> toDto(post, viewerId));
+    }
+
+    /**
+     * Posts the given user published, whatever their visibility. Used by the author themselves
+     * to review and remove what they shared.
+     */
+    public PageResult<CommunityPostDto> listByOwner(UUID ownerId, int page, int size) {
+        int safeSize = Math.min(Math.max(size, 1), 48);
+        return PageResult.of(
+                postRepository.findByUserIdOrderByCreatedAtDesc(ownerId, PageRequest.of(Math.max(page, 0), safeSize)),
+                post -> toDto(post, ownerId));
     }
 
     public PageResult<CommunityPostDto> listSaved(UUID userId, int page, int size) {
@@ -163,13 +177,21 @@ public class CommunityService {
                 .collect(Collectors.joining(","));
         String wrappedBrandIds = brandIds.isEmpty() ? null : "," + brandIds + ",";
 
+        // Recover the style and occasion behind the photo so the post is labelled like the
+        // outfit the stylist produced, not a generic "Outfit".
+        CommunityPostContextResolver.PostContext context = contextResolver.resolve(
+                image.getTryOnRequestId(), request.getRecommendationId(), userId);
+
         CommunityPost post = postRepository.save(CommunityPost.builder()
                 .userId(userId)
                 .galleryImageId(image.getId())
                 .tryOnRequestId(image.getTryOnRequestId())
+                .recommendationId(request.getRecommendationId())
                 .shareCode(generateShareCode())
                 .title(trimTo(request.getTitle(), MAX_TITLE_LENGTH))
                 .caption(trimTo(request.getCaption(), MAX_CAPTION_LENGTH))
+                .styleLabel(trimTo(context.styleLabel(), MAX_STYLE_LENGTH))
+                .occasion(trimTo(context.occasion(), MAX_OCCASION_LENGTH))
                 .brandIds(wrappedBrandIds)
                 .productIds(productIds.isEmpty() ? null : productIds.stream()
                         .map(UUID::toString).collect(Collectors.joining(",")))
@@ -528,6 +550,7 @@ public class CommunityService {
                 .styleLabel(post.getStyleLabel())
                 .occasion(post.getOccasion())
                 .imageUrl(post.getImageUrl())
+                .visibility(post.getVisibility())
                 .authorDisplayName(authorName)
                 .authorInitials(initials(authorName))
                 .brandNames(brandNames)

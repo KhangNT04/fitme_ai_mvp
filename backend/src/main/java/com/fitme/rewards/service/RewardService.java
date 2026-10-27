@@ -43,6 +43,8 @@ public class RewardService {
     private final ProductReviewRepository reviewRepository;
     private final TryOnRequestRepository tryOnRequestRepository;
     private final GalleryService galleryService;
+    private final ShareUrlPolicy shareUrlPolicy;
+    private final CommunityPostOwnership communityPostOwnership;
     private final FitkenService fitkenService;
     private final FitMeProperties properties;
     private final AppClock clock;
@@ -138,7 +140,7 @@ public class RewardService {
 
     @Transactional
     public ShareClaimDto submitShare(UUID userId, ShareClaimRequest request) {
-        ShareUrlPolicy.SharePost post = ShareUrlPolicy.validate(request.getPostUrl());
+        ShareUrlPolicy.SharePost post = shareUrlPolicy.validate(request.getPostUrl());
         if (request.getGalleryImageId() != null && !galleryService.isOwnedBy(request.getGalleryImageId(), userId)) {
             throw new BusinessException("Ảnh trong thư viện không tồn tại", "SHARE_INVALID_URL");
         }
@@ -146,6 +148,10 @@ public class RewardService {
                 .map(tryOn -> !userId.equals(tryOn.getUserId()))
                 .orElse(true)) {
             throw new BusinessException("Lượt thử đồ không thuộc tài khoản của bạn", "SHARE_INVALID_URL");
+        }
+        // A community permalink may only be claimed by the author of that post.
+        if (post.shareCode() != null && !communityPostOwnership.isOwnedByShareCode(post.shareCode(), userId)) {
+            throw new BusinessException("Bài chia sẻ này không thuộc tài khoản của bạn", "SHARE_INVALID_URL");
         }
 
         fitkenService.lockWallet(userId);

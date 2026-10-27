@@ -4,6 +4,8 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { QuickShareCard } from "./QuickShareCard";
 import { communityApi } from "@/services/community-api";
 import { galleryApi } from "@/services/gallery-api";
+import { privacyApi } from "@/services/privacy-api";
+import { rewardsApi } from "@/services/rewards-api";
 import { useAuthStore } from "@/stores/auth-store";
 import { toast } from "@/stores/toast-store";
 
@@ -15,12 +17,23 @@ vi.mock("@/services/gallery-api", () => ({
   galleryApi: { getImages: vi.fn() },
 }));
 
+vi.mock("@/services/privacy-api", () => ({
+  PRIVACY_CONSENTS_QUERY_KEY: ["privacy-consents"],
+  privacyApi: { getConsents: vi.fn(), recordConsent: vi.fn() },
+}));
+
+vi.mock("@/services/rewards-api", () => ({
+  rewardsApi: { getSummary: vi.fn(), claimShare: vi.fn() },
+}));
+
 vi.mock("@/stores/toast-store", () => ({
   toast: { success: vi.fn(), error: vi.fn() },
 }));
 
 const mockedCommunity = vi.mocked(communityApi);
 const mockedGallery = vi.mocked(galleryApi);
+const mockedPrivacy = vi.mocked(privacyApi);
+const mockedRewards = vi.mocked(rewardsApi);
 
 const VALID_TOKEN = (() => {
   const payload = btoa(JSON.stringify({ exp: Math.floor(Date.now() / 1000) + 3600 }));
@@ -71,6 +84,31 @@ describe("QuickShareCard", () => {
       size: 12,
       total: 2,
     });
+    mockedPrivacy.getConsents.mockResolvedValue({ COMMUNITY_SHARE: true });
+    mockedRewards.getSummary.mockResolvedValue({
+      balance: 5,
+      maxBalance: 100,
+      checkin: {
+        checkedInToday: false,
+        currentStreak: 0,
+        rewardGranted: 0,
+        balance: 5,
+      },
+      share: {
+        rewardAmount: 3,
+        dailyLimit: 1,
+        remainingToday: 1,
+        allowedDomains: [],
+        recentClaims: [],
+      },
+      review: {
+        rewardAmount: 2,
+        minContentLength: 20,
+        rewardedCount: 0,
+        dailyLimit: 1,
+        remainingToday: 1,
+      },
+    } as never);
   });
 
   it("asks guests to sign in instead of listing photos", async () => {
@@ -88,17 +126,55 @@ describe("QuickShareCard", () => {
     expect(screen.getByLabelText("Chọn ảnh g-2")).toBeInTheDocument();
   });
 
-  it("publishes the picked photo to the community", async () => {
+  it("publishes the picked photo with the title and caption the user wrote", async () => {
     mockedCommunity.createPost.mockResolvedValue({
       post: { id: "p-1", shareCode: "abc" },
+      shareUrl: "/outfit/abc",
     } as never);
     renderCard();
 
     fireEvent.click(await screen.findByLabelText("Chọn ảnh g-1"));
+
+    // The composer lets the user write the post before it goes live.
+    const titleInput = await screen.findByLabelText(/Tiêu đề \(không bắt buộc\)/i);
+    fireEvent.change(titleInput, { target: { value: "Outfit đi học" } });
+    const captionInput = screen.getByLabelText(/Mô tả \(không bắt buộc\)/i);
+    fireEvent.change(captionInput, { target: { value: "Áo thun rộng dễ mặc" } });
+
     fireEvent.click(screen.getByRole("button", { name: /Đăng lên cộng đồng/i }));
 
-    await waitFor(() => expect(mockedCommunity.createPost).toHaveBeenCalledWith({ galleryImageId: "g-1" }));
+    await waitFor(() =>
+      expect(mockedCommunity.createPost).toHaveBeenCalledWith({
+        galleryImageId: "g-1",
+        title: "Outfit đi học",
+        caption: "Áo thun rộng dễ mặc",
+      }),
+    );
     await waitFor(() => expect(toast.success).toHaveBeenCalled());
+  });
+
+  it("offers the public link and the reward once the post is live", async () => {
+    mockedCommunity.createPost.mockResolvedValue({
+      post: { id: "p-1", shareCode: "abc" },
+      shareUrl: "/outfit/abc",
+    } as never);
+    renderCard();
+
+    fireEvent.click(await screen.findByLabelText("Chọn ảnh g-1"));
+    fireEvent.click(await screen.findByRole("button", { name: /Đăng lên cộng đồng/i }));
+
+    expect(await screen.findByText(/Đã chia sẻ công khai/i)).toBeInTheDocument();
+    expect(await screen.findByRole("button", { name: /Nhận 3 Fitken/i })).toBeInTheDocument();
+  });
+
+  it("asks for the community consent before showing the composer", async () => {
+    mockedPrivacy.getConsents.mockResolvedValue({ COMMUNITY_SHARE: false });
+    renderCard();
+
+    fireEvent.click(await screen.findByLabelText("Chọn ảnh g-1"));
+
+    expect(await screen.findByRole("button", { name: /Cho phép chia sẻ/i })).toBeInTheDocument();
+    expect(screen.queryByLabelText(/Tiêu đề \(không bắt buộc\)/i)).not.toBeInTheDocument();
   });
 
   it("cannot publish before a photo is picked", async () => {

@@ -24,6 +24,8 @@ public class CommunityPostDto {
     private String styleLabel;
     private String occasion;
     private String imageUrl;
+    /** PUBLIC, HIDDEN (moderated) or REMOVED (deleted by the author). */
+    private String visibility;
     private String authorDisplayName;
     private String authorInitials;
     private List<String> brandNames;

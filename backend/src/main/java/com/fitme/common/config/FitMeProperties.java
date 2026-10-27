@@ -26,6 +26,11 @@ public class FitMeProperties {
         private int postDailyLimit = 5;
         /** Base URL used to build public share links, e.g. https://fitme.app/outfit/. */
         private String shareBaseUrl = "/outfit/";
+        /**
+         * Absolute host of the public share links, e.g. https://fitme.app. Used to recognise a
+         * community permalink when a user claims the share reward for their own post.
+         */
+        private String shareBaseUrlHost = "";
     }
 
     @Data

@@ -34,6 +34,9 @@ class RewardIntegrationTest extends AbstractIntegrationTest {
     @Autowired
     private FitkenService fitkenService;
 
+    @Autowired
+    private ShareUrlPolicy shareUrlPolicy;
+
     @AfterEach
     void resetClock() {
         appClock.reset();
@@ -81,10 +84,10 @@ class RewardIntegrationTest extends AbstractIntegrationTest {
 
     @Test
     void shareUrlValidation() {
-        assertThat(ShareUrlPolicy.validate("https://www.facebook.com/minhanh/posts/123?utm_source=x&fbclid=abc"))
+        assertThat(shareUrlPolicy.validate("https://www.facebook.com/minhanh/posts/123?utm_source=x&fbclid=abc"))
                 .isEqualTo(new ShareUrlPolicy.SharePost("https://facebook.com/minhanh/posts/123", "FACEBOOK"));
-        assertThat(ShareUrlPolicy.validate("https://vt.tiktok.com/ZS123/").platform()).isEqualTo("TIKTOK");
-        assertThat(ShareUrlPolicy.validate("https://x.com/a/status/1?s=20").canonicalUrl())
+        assertThat(shareUrlPolicy.validate("https://vt.tiktok.com/ZS123/").platform()).isEqualTo("TIKTOK");
+        assertThat(shareUrlPolicy.validate("https://x.com/a/status/1?s=20").canonicalUrl())
                 .isEqualTo("https://x.com/a/status/1?s=20");
 
         for (String bad : new String[]{
@@ -94,7 +97,7 @@ class RewardIntegrationTest extends AbstractIntegrationTest {
                 "https://facebook.com.evil.io/p/1",
                 "javascript:alert(1)",
                 "not a url"}) {
-            org.assertj.core.api.Assertions.assertThatThrownBy(() -> ShareUrlPolicy.validate(bad))
+            org.assertj.core.api.Assertions.assertThatThrownBy(() -> shareUrlPolicy.validate(bad))
                     .as(bad)
                     .hasFieldOrPropertyWithValue("code", "SHARE_INVALID_URL");
         }

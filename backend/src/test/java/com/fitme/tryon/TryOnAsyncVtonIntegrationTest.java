@@ -19,9 +19,11 @@ import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.context.TestPropertySource;
 
-import java.util.ArrayDeque;
 import java.util.Deque;
+import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentLinkedDeque;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
@@ -48,7 +50,8 @@ class TryOnAsyncVtonIntegrationTest extends AbstractIntegrationTest {
 
     @BeforeEach
     void resetStub() {
-        StubAiVtonClient.pollQueue.clear();
+        StubAiVtonClient.pollQueues.clear();
+        StubAiVtonClient.lastResponses.clear();
         StubAiVtonClient.submitResponse = null;
     }
 
@@ -64,7 +67,7 @@ class TryOnAsyncVtonIntegrationTest extends AbstractIntegrationTest {
         completed.setStatus("completed");
         completed.setOutputImageUrl("https://cdn.example/vton-avatar.jpg");
 
-        StubAiVtonClient.pollQueue.add(completed);
+        StubAiVtonClient.enqueue("job-avatar-1", completed);
 
         Product product = testDataHelper.createEligibleProduct("HF avatar top", "Áo thun");
         String sessionToken = createAnonymousSessionToken();
@@ -111,8 +114,8 @@ class TryOnAsyncVtonIntegrationTest extends AbstractIntegrationTest {
         completed.setStatus("completed");
         completed.setOutputImageUrl("https://cdn.example/vton-result.jpg");
 
-        StubAiVtonClient.pollQueue.add(processing);
-        StubAiVtonClient.pollQueue.add(completed);
+        StubAiVtonClient.enqueue("job-async-1", processing);
+        StubAiVtonClient.enqueue("job-async-1", completed);
 
         Product product = testDataHelper.createEligibleProduct("HF top", "Áo thun");
         String sessionToken = createAnonymousSessionToken();
@@ -156,7 +159,22 @@ class TryOnAsyncVtonIntegrationTest extends AbstractIntegrationTest {
 
     static class StubAiVtonClient extends AiVtonClient {
         static VtonJobResponse submitResponse;
-        static final Deque<VtonJobResponse> pollQueue = new ArrayDeque<>();
+        /**
+         * Poll responses per job id, with the last answer kept as the fallback.
+         *
+         * <p>The background {@code TryOnJobPoller} polls every PROCESSING preview, so a
+         * single shared queue would let another poller consume the "completed" response
+         * meant for this test, leaving the try-on stuck in PROCESSING. Keying by job id
+         * keeps each job's answers together, and repeating the last answer means the test
+         * no longer depends on how many times a poller happened to run.
+         */
+        static final Map<String, Deque<VtonJobResponse>> pollQueues = new ConcurrentHashMap<>();
+        static final Map<String, VtonJobResponse> lastResponses = new ConcurrentHashMap<>();
+
+        static void enqueue(String jobId, VtonJobResponse response) {
+            pollQueues.computeIfAbsent(jobId, key -> new ConcurrentLinkedDeque<>()).add(response);
+            lastResponses.put(jobId, response);
+        }
 
         StubAiVtonClient(FitMeProperties properties) {
             super(properties);
@@ -185,8 +203,14 @@ class TryOnAsyncVtonIntegrationTest extends AbstractIntegrationTest {
 
         @Override
         public VtonJobResponse pollJob(String jobId) {
-            VtonJobResponse next = pollQueue.pollFirst();
-            return next != null ? next : new VtonJobResponse();
+            Deque<VtonJobResponse> queue = pollQueues.get(jobId);
+            VtonJobResponse next = queue != null ? queue.pollFirst() : null;
+            if (next != null) {
+                return next;
+            }
+            // The queue is empty: repeat the last answer so a second poll still completes.
+            VtonJobResponse last = lastResponses.get(jobId);
+            return last != null ? last : new VtonJobResponse();
         }
     }
 

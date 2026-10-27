@@ -62,14 +62,15 @@ export async function shareCommunityPost(options: {
   url: string;
   title: string;
   text: string;
-}): Promise<"shared" | "copied" | "failed"> {
+}): Promise<"shared" | "copied" | "cancelled" | "failed"> {
   if (typeof navigator !== "undefined" && typeof navigator.share === "function") {
     try {
       await navigator.share({ url: options.url, title: options.title, text: options.text });
       return "shared";
     } catch (err) {
+      // The user closed the share sheet on purpose — that is not an error, so stay quiet.
       if (err instanceof DOMException && err.name === "AbortError") {
-        return "failed";
+        return "cancelled";
       }
       // Fall back to copying the link when the share sheet refuses the payload.
     }

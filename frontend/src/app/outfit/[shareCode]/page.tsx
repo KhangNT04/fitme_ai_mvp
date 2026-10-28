@@ -11,6 +11,7 @@ import { AppImage } from "@/components/common/AppImage";
 import { IntrinsicImage } from "@/components/common/IntrinsicImage";
 import { CommunityComments } from "@/components/community/CommunityComments";
 import { CommunityPostDeleteButton } from "@/components/community/CommunityPostDeleteButton";
+import { CommunityPostEditButton } from "@/components/community/CommunityPostEditButton";
 import { LoadingSkeleton } from "@/components/common/LoadingSkeleton";
 import { ErrorState } from "@/components/common/ErrorState";
 import { PageShell } from "@/components/layout/PageShell";
@@ -126,13 +127,25 @@ export default function CommunityOutfitPage() {
                 {data.authorInitials}
               </span>
               <div className="min-w-0 flex-1">
-                <p className="truncate text-sm font-semibold text-foreground">{data.authorDisplayName}</p>
+                {data.authorKey ? (
+                  <Link
+                    href={`/community/author/${data.authorKey}`}
+                    className="block truncate text-sm font-semibold text-foreground underline-offset-2 hover:underline"
+                  >
+                    {data.authorDisplayName}
+                  </Link>
+                ) : (
+                  <p className="truncate text-sm font-semibold text-foreground">{data.authorDisplayName}</p>
+                )}
                 <p className="text-xs text-muted-foreground">{formatDateTime(data.createdAt)}</p>
               </div>
               {isDemoPost && (
                 <Badge variant="outline" className="shrink-0 border-amber-500/40 text-amber-700 dark:text-amber-400">
                   Dữ liệu demo
                 </Badge>
+              )}
+              {data.mine && !isDemoPost && (
+                <CommunityPostEditButton post={data} className="shrink-0" />
               )}
               {data.mine && !isDemoPost && (
                 <CommunityPostDeleteButton

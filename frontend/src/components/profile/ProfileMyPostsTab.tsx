@@ -1,11 +1,12 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import { ImageOff, Share2 } from "lucide-react";
+import { ImageOff, Share2, ExternalLink } from "lucide-react";
 import Link from "next/link";
 import { communityApi } from "@/services/community-api";
 import { IntrinsicImage } from "@/components/common/IntrinsicImage";
 import { CommunityPostDeleteButton } from "@/components/community/CommunityPostDeleteButton";
+import { CommunityPostEditButton } from "@/components/community/CommunityPostEditButton";
 import { EmptyState } from "@/components/common/EmptyState";
 import { ErrorState } from "@/components/common/ErrorState";
 import { LoadingSkeleton } from "@/components/common/LoadingSkeleton";
@@ -24,7 +25,14 @@ export function ProfileMyPostsTab() {
     staleTime: 30_000,
   });
 
+  const { data: communityProfile } = useQuery({
+    queryKey: ["community-profile", "mine"],
+    queryFn: () => communityApi.getMyProfile(),
+    staleTime: 60_000,
+  });
+
   const posts = data?.items ?? [];
+  const authorKey = communityProfile?.authorKey;
 
   if (isLoading) {
     return <LoadingSkeleton type="card" />;
@@ -46,10 +54,26 @@ export function ProfileMyPostsTab() {
   }
 
   return (
-    <ul className="space-y-3">
-      {posts.map((post) => {
-        const removed = post.visibility === "REMOVED";
-        return (
+    <>
+      {authorKey && (
+        <div className="mb-3 flex items-center justify-between gap-3 rounded-xl border border-border bg-card px-3 py-2.5">
+          <p className="text-xs text-muted-foreground">
+            Hồ sơ cộng đồng của bạn — những gì người khác thấy khi mở trang của bạn.
+          </p>
+          <Link
+            href={`/community/author/${authorKey}`}
+            className="inline-flex min-h-9 shrink-0 items-center gap-1.5 rounded-full border border-border px-3 text-xs font-medium text-foreground transition-colors hover:border-primary/40 hover:bg-muted"
+          >
+            <ExternalLink className="h-3.5 w-3.5" aria-hidden="true" />
+            Xem hồ sơ
+          </Link>
+        </div>
+      )}
+
+      <ul className="space-y-3">
+        {posts.map((post) => {
+          const removed = post.visibility === "REMOVED";
+          return (
           <li
             key={post.id}
             className="flex gap-3 rounded-xl border border-border bg-card p-3"
@@ -103,11 +127,17 @@ export function ProfileMyPostsTab() {
                 <Share2 className="h-3.5 w-3.5" aria-hidden="true" />
                 Xem
               </Link>
-              {!removed && <CommunityPostDeleteButton postId={post.id} label="Gỡ" />}
+              {!removed && (
+                <div className="flex items-center gap-1">
+                  <CommunityPostEditButton post={post} label="Sửa" />
+                  <CommunityPostDeleteButton postId={post.id} label="Gỡ" />
+                </div>
+              )}
             </div>
           </li>
-        );
-      })}
-    </ul>
+          );
+        })}
+      </ul>
+    </>
   );
 }

@@ -61,6 +61,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/api/v1/brands/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/v1/community/posts/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/v1/community/authors/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/v1/community/filters").permitAll()
                         .requestMatchers("/api/v1/community/**").authenticated()
                         .requestMatchers(HttpMethod.GET, "/api/v1/recommendations/**").permitAll()
                         .requestMatchers("/api/v1/recommendations/**").permitAll()

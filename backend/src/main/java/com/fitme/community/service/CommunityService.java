@@ -31,8 +31,12 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.security.SecureRandom;
 import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Comparator;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
@@ -75,22 +79,53 @@ public class CommunityService {
 
     // ── Feed ──────────────────────────────────────────────────────────────────────────────────
 
+    /**
+     * The public feed, filtered by brand, style and occasion.
+     *
+     * <p>Filters combine (a post in the "Minimal" style from a given brand *and* occasion shows
+     * up), and the occasion is matched loosely so "Đi làm" also finds posts whose occasion was
+     * written as "Đi làm văn phòng".
+     */
     public PageResult<CommunityPostDto> feed(UUID viewerId, int page, int size, String brandId, String styleLabel,
-                                             String sort) {
+                                             String occasion, String sort) {
         int safeSize = Math.min(Math.max(size, 1), 48);
         PageRequest pageable = PageRequest.of(Math.max(page, 0), safeSize);
         boolean popular = "popular".equalsIgnoreCase(sort);
-        Page<CommunityPost> posts;
+
+        List<Object> params = new ArrayList<>();
+        StringBuilder sql = new StringBuilder("select * from community_posts where visibility = 'PUBLIC'");
         if (brandId != null && !brandId.isBlank()) {
-            posts = postRepository.findFeedByBrand(brandId, pageable);
-        } else if (styleLabel != null && !styleLabel.isBlank()) {
-            posts = postRepository.findFeedByStyle(styleLabel, pageable);
-        } else if (popular) {
-            posts = postRepository.findByVisibilityOrderByLikeCountDescCreatedAtDesc(VISIBILITY_PUBLIC, pageable);
-        } else {
-            posts = postRepository.findByVisibilityOrderByCreatedAtDesc(VISIBILITY_PUBLIC, pageable);
+            // brand_ids is stored wrapped in commas so this LIKE matches whole ids only.
+            sql.append(" and brand_ids like ?");
+            params.add("%," + brandId + ",%");
         }
-        return PageResult.of(posts, post -> toDto(post, viewerId));
+        if (styleLabel != null && !styleLabel.isBlank()) {
+            sql.append(" and lower(style_label) = lower(?)");
+            params.add(styleLabel.trim());
+        }
+        if (occasion != null && !occasion.isBlank()) {
+            sql.append(" and lower(occasion) = lower(?)");
+            params.add(occasion.trim());
+        }
+        sql.append(popular
+                ? " order by like_count desc, created_at desc"
+                : " order by created_at desc");
+        sql.append(" limit ? offset ?");
+        params.add(safeSize);
+        params.add(Math.max(page, 0) * safeSize);
+
+        List<CommunityPost> posts = jdbcTemplate.query(
+                sql.toString(),
+                (rs, rowNum) -> mapPost(rs),
+                params.toArray());
+
+        Long total = jdbcTemplate.queryForObject(
+                "select count(*) from community_posts" + filterClause(brandId, styleLabel, occasion),
+                Long.class,
+                filterParams(brandId, styleLabel, occasion).toArray());
+
+        return new PageResult<>(posts.stream().map(post -> toDto(post, viewerId)).toList(),
+                Math.max(page, 0), safeSize, total == null ? 0L : total);
     }
 
     public CommunityPostDto byShareCode(String shareCode, UUID viewerId) {
@@ -104,14 +139,6 @@ public class CommunityService {
         CommunityPost post = postRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException("Bài đăng không tồn tại"));
         return toDto(post, viewerId);
-    }
-
-    public PageResult<CommunityPostDto> listByAuthor(UUID authorId, UUID viewerId, int page, int size) {
-        int safeSize = Math.min(Math.max(size, 1), 48);
-        return PageResult.of(
-                postRepository.findByUserIdAndVisibilityOrderByCreatedAtDesc(authorId, VISIBILITY_PUBLIC,
-                        PageRequest.of(Math.max(page, 0), safeSize)),
-                post -> toDto(post, viewerId));
     }
 
     /**
@@ -206,6 +233,29 @@ public class CommunityService {
                 .post(toDto(post, userId))
                 .shareUrl(shareUrl(post.getShareCode()))
                 .build();
+    }
+
+    /**
+     * Updates the words of a post the signed-in user published.
+     *
+     * <p>Only the title and caption can change: the photo, style and occasion stay as they
+     * were, so a link shared earlier keeps pointing at the same outfit.
+     */
+    @Transactional
+    public CommunityPostDto update(UUID userId, UUID postId, UpdateCommunityPostRequest request) {
+        CommunityPost post = postRepository.findByIdAndUserId(postId, userId)
+                .orElseThrow(() -> new NotFoundException("Bài đăng không tồn tại"));
+        if (VISIBILITY_REMOVED.equals(post.getVisibility())) {
+            throw new BusinessException("Bài đăng đã bị gỡ, bạn không thể sửa nữa", "COMMUNITY_POST_REMOVED");
+        }
+        if (request.getTitle() != null) {
+            post.setTitle(trimTo(request.getTitle(), MAX_TITLE_LENGTH));
+        }
+        if (request.getCaption() != null) {
+            post.setCaption(trimTo(request.getCaption(), MAX_CAPTION_LENGTH));
+        }
+        postRepository.save(post);
+        return toDto(post, userId);
     }
 
     @Transactional
@@ -313,15 +363,157 @@ public class CommunityService {
         return count != null && count > 0;
     }
 
+    // ── Filter options ────────────────────────────────────────────────────────────────────────
+
+    /**
+     * The style, occasion and brand filters a reader can pick, with the number of public posts
+     * behind each. Only values that exist on public posts are offered.
+     */
+    public CommunityFilterOptionsDto filterOptions() {
+        List<CommunityFilterOptionsDto.FilterOption> styles = jdbcTemplate.query(
+                "select style_label as value, count(*) as count from community_posts "
+                        + "where visibility = 'PUBLIC' and style_label is not null and style_label <> '' "
+                        + "group by style_label order by count(*) desc, style_label asc",
+                (rs, rowNum) -> CommunityFilterOptionsDto.FilterOption.builder()
+                        .value(rs.getString("value"))
+                        .label(rs.getString("value"))
+                        .count(rs.getLong("count"))
+                        .build());
+
+        List<CommunityFilterOptionsDto.FilterOption> occasions = jdbcTemplate.query(
+                "select occasion as value, count(*) as count from community_posts "
+                        + "where visibility = 'PUBLIC' and occasion is not null and occasion <> '' "
+                        + "group by occasion order by count(*) desc, occasion asc",
+                (rs, rowNum) -> CommunityFilterOptionsDto.FilterOption.builder()
+                        .value(rs.getString("value"))
+                        .label(rs.getString("value"))
+                        .count(rs.getLong("count"))
+                        .build());
+
+        // Brands are stored as ids; the names come from the brand table.
+        Map<String, Long> brandCounts = new LinkedHashMap<>();
+        jdbcTemplate.query("select brand_ids from community_posts "
+                        + "where visibility = 'PUBLIC' and brand_ids is not null and brand_ids <> ''",
+                rs -> {
+                    String raw = rs.getString("brand_ids");
+                    for (String part : raw.split(",")) {
+                        String id = part.trim();
+                        if (!id.isEmpty()) {
+                            brandCounts.merge(id, 1L, Long::sum);
+                        }
+                    }
+                });
+        List<CommunityFilterOptionsDto.FilterOption> brands = brandCounts.entrySet().stream()
+                .map(entry -> {
+                    String name = brandRepository.findById(UUID.fromString(entry.getKey()))
+                            .map(Brand::getName)
+                            .orElse(null);
+                    if (name == null) {
+                        return null;
+                    }
+                    return CommunityFilterOptionsDto.FilterOption.builder()
+                            .value(entry.getKey())
+                            .label(name)
+                            .count(entry.getValue())
+                            .build();
+                })
+                .filter(Objects::nonNull)
+                .sorted(Comparator.comparing(CommunityFilterOptionsDto.FilterOption::getCount).reversed()
+                        .thenComparing(CommunityFilterOptionsDto.FilterOption::getLabel))
+                .toList();
+
+        return CommunityFilterOptionsDto.builder()
+                .styles(styles)
+                .occasions(occasions)
+                .brands(brands)
+                .build();
+    }
+
+    /** Follows the author behind this public key. */
+    @Transactional
+    public boolean followByAuthorKey(UUID userId, String authorKey) {
+        return follow(userId, resolveAuthorId(authorKey));
+    }
+
+    /** Stops following the author behind this public key. */
+    @Transactional
+    public boolean unfollowByAuthorKey(UUID userId, String authorKey) {
+        return unfollow(userId, resolveAuthorId(authorKey));
+    }
+
+    private UUID resolveAuthorId(String authorKey) {
+        if (authorKey == null || authorKey.isBlank()) {
+            throw new NotFoundException("Không tìm thấy người dùng này");
+        }
+        UUID parsed;
+        try {
+            parsed = UUID.fromString(authorKey.trim());
+        } catch (IllegalArgumentException ex) {
+            throw new NotFoundException("Không tìm thấy người dùng này");
+        }
+        return userAccountRepository.findByCommunityAuthorKey(parsed)
+                .map(UserAccount::getId)
+                .orElseThrow(() -> new NotFoundException("Không tìm thấy người dùng này"));
+    }
+
+    // ── Author profiles ───────────────────────────────────────────────────────────────────────
+
+    /**
+     * The public profile of an author, looked up by their public author key.
+     *
+     * @param authorKey the random public key, never the account id
+     * @param viewerId the signed-in viewer, used to tell whether they follow this author
+     */
+    public CommunityAuthorDto authorProfile(String authorKey, UUID viewerId) {
+        UserAccount author = userAccountRepository.findById(resolveAuthorId(authorKey))
+                .orElseThrow(() -> new NotFoundException("Không tìm thấy người dùng này"));
+
+        Long likes = jdbcTemplate.queryForObject(
+                "SELECT COALESCE(SUM(like_count), 0) FROM community_posts WHERE user_id = ? AND visibility = 'PUBLIC'",
+                Long.class, author.getId());
+        Long comments = jdbcTemplate.queryForObject(
+                "SELECT COUNT(*) FROM community_comments c JOIN community_posts p ON p.id = c.post_id "
+                        + "WHERE p.user_id = ? AND p.visibility = 'PUBLIC'",
+                Long.class, author.getId());
+
+        String displayName = authorName(author);
+        return CommunityAuthorDto.builder()
+                .authorKey(author.getCommunityAuthorKey().toString())
+                .displayName(displayName)
+                .initials(initials(displayName))
+                .publishedPosts(postRepository.countByUserIdAndVisibility(author.getId(), VISIBILITY_PUBLIC))
+                .totalLikes(likes == null ? 0 : likes)
+                .totalComments(comments == null ? 0 : comments)
+                .followedByMe(viewerId != null && isFollowing(viewerId, author.getId()))
+                .build();
+    }
+
+    /**
+     * The public posts of an author, addressed by their public author key.
+     */
+    public PageResult<CommunityPostDto> listByAuthorKey(String authorKey, UUID viewerId, int page, int size) {
+        UUID authorId = resolveAuthorId(authorKey);
+        int safeSize = Math.min(Math.max(size, 1), 48);
+        return PageResult.of(
+                postRepository.findByUserIdAndVisibilityOrderByCreatedAtDesc(authorId, VISIBILITY_PUBLIC,
+                        PageRequest.of(Math.max(page, 0), safeSize)),
+                post -> toDto(post, viewerId));
+    }
+
     // ── Profile & stats ────────────────────────────────────────────────────────────────────────
 
     public CommunityProfileDto profile(UUID userId) {
+        String authorKey = userAccountRepository.findById(userId)
+                .map(UserAccount::getCommunityAuthorKey)
+                .map(UUID::toString)
+                .orElse(null);
         return CommunityProfileDto.builder()
                 .publishedPosts((int) postRepository.countByUserIdAndVisibility(userId, VISIBILITY_PUBLIC))
                 .savedPosts(countSaved(userId))
                 .followers(countFollowers(userId))
                 .following(countFollowing(userId))
                 .totalLikesReceived(totalLikesReceived(userId))
+                .authorKey(authorKey)
                 .build();
     }
 
@@ -355,6 +547,61 @@ public class CommunityService {
     }
 
     // ── Helpers ────────────────────────────────────────────────────────────────────────────────
+
+    /** The WHERE fragment shared by the feed query and its count query. */
+    private static String filterClause(String brandId, String styleLabel, String occasion) {
+        StringBuilder clause = new StringBuilder(" where visibility = 'PUBLIC'");
+        if (brandId != null && !brandId.isBlank()) {
+            clause.append(" and brand_ids like ?");
+        }
+        if (styleLabel != null && !styleLabel.isBlank()) {
+            clause.append(" and lower(style_label) = lower(?)");
+        }
+        if (occasion != null && !occasion.isBlank()) {
+            clause.append(" and lower(occasion) = lower(?)");
+        }
+        return clause.toString();
+    }
+
+    private static List<Object> filterParams(String brandId, String styleLabel, String occasion) {
+        List<Object> params = new ArrayList<>();
+        if (brandId != null && !brandId.isBlank()) {
+            params.add("%," + brandId + ",%");
+        }
+        if (styleLabel != null && !styleLabel.isBlank()) {
+            params.add(styleLabel.trim());
+        }
+        if (occasion != null && !occasion.isBlank()) {
+            params.add(occasion.trim());
+        }
+        return params;
+    }
+
+    /** Reads a community post row into its entity, so the feed can use plain SQL. */
+    private static CommunityPost mapPost(java.sql.ResultSet rs) throws java.sql.SQLException {
+        CommunityPost post = new CommunityPost();
+        post.setId(rs.getObject("id", java.util.UUID.class));
+        post.setUserId(rs.getObject("user_id", java.util.UUID.class));
+        post.setGalleryImageId(rs.getObject("gallery_image_id", java.util.UUID.class));
+        post.setTryOnRequestId(rs.getObject("try_on_request_id", java.util.UUID.class));
+        post.setRecommendationId(rs.getObject("recommendation_id", java.util.UUID.class));
+        post.setShareCode(rs.getString("share_code"));
+        post.setTitle(rs.getString("title"));
+        post.setCaption(rs.getString("caption"));
+        post.setStyleLabel(rs.getString("style_label"));
+        post.setOccasion(rs.getString("occasion"));
+        post.setBrandIds(rs.getString("brand_ids"));
+        post.setProductIds(rs.getString("product_ids"));
+        post.setImageUrl(rs.getString("image_url"));
+        post.setVisibility(rs.getString("visibility"));
+        post.setLikeCount(rs.getInt("like_count"));
+        post.setCommentCount(rs.getInt("comment_count"));
+        post.setViewCount(rs.getInt("view_count"));
+        post.setHiddenAt(rs.getTimestamp("hidden_at") == null
+                ? null : rs.getTimestamp("hidden_at").toInstant());
+        post.setCreatedAt(rs.getTimestamp("created_at").toInstant());
+        return post;
+    }
 
     /** The most recent decision wins, so withdrawing consent also blocks publishing. */
     private boolean hasCommunityShareConsent(UUID userId) {
@@ -531,9 +778,11 @@ public class CommunityService {
                         .price(product.getPrice())
                         .build())
                 .toList();
-        String authorName = userAccountRepository.findById(post.getUserId())
-                .map(CommunityService::authorName)
-                .orElse("Khách hàng FitMe");
+        UserAccount author = userAccountRepository.findById(post.getUserId()).orElse(null);
+        String authorName = author == null ? "Khách hàng FitMe" : authorName(author);
+        String authorKey = author == null || author.getCommunityAuthorKey() == null
+                ? null
+                : author.getCommunityAuthorKey().toString();
         List<String> brandNames = products.stream()
                 .map(Product::getBrandId)
                 .distinct()
@@ -553,6 +802,7 @@ public class CommunityService {
                 .visibility(post.getVisibility())
                 .authorDisplayName(authorName)
                 .authorInitials(initials(authorName))
+                .authorKey(authorKey)
                 .brandNames(brandNames)
                 .products(productRefs)
                 .likeCount(post.getLikeCount())

@@ -7,6 +7,7 @@
 import { DEMO_COMMUNITY_POSTS } from "./demo-community-data";
 import type {
   CommunityComment,
+  CommunityFilterOptions,
   CommunityPost,
   CommunityPostInteraction,
   CommunityPostPage,
@@ -68,9 +69,22 @@ function sortedPosts(): CommunityPost[] {
 }
 
 export const demoCommunity = {
-  feed(page = 0, size = 24): CommunityPostPage {
+  feed(
+    page = 0,
+    size = 24,
+    filters?: { styleLabel?: string; occasion?: string; brandName?: string },
+  ): CommunityPostPage {
     hydrate();
-    const items = sortedPosts();
+    let items = sortedPosts();
+    if (filters?.styleLabel) {
+      items = items.filter((post) => post.styleLabel === filters.styleLabel);
+    }
+    if (filters?.occasion) {
+      items = items.filter((post) => post.occasion === filters.occasion);
+    }
+    if (filters?.brandName) {
+      items = items.filter((post) => post.brandNames.includes(filters.brandName!));
+    }
     const start = Math.max(page, 0) * size;
     return {
       items: items.slice(start, start + size),
@@ -96,6 +110,26 @@ export const demoCommunity = {
     hydrate();
     const post = DEMO_COMMUNITY_POSTS.find((item) => item.shareCode === shareCode);
     return post ? applyViewerState(post) : null;
+  },
+
+  /** The styles and occasions the demo posts carry, with a count for each. */
+  filterOptions(): CommunityFilterOptions {
+    hydrate();
+    const countBy = (values: (string | null | undefined)[]) => {
+      const counts = new Map<string, number>();
+      for (const value of values) {
+        if (!value) continue;
+        counts.set(value, (counts.get(value) ?? 0) + 1);
+      }
+      return [...counts.entries()]
+        .map(([value, count]) => ({ value, label: value, count }))
+        .sort((a, b) => b.count - a.count || a.label.localeCompare(b.label));
+    };
+    return {
+      styles: countBy(DEMO_COMMUNITY_POSTS.map((post) => post.styleLabel)),
+      occasions: countBy(DEMO_COMMUNITY_POSTS.map((post) => post.occasion)),
+      brands: countBy(DEMO_COMMUNITY_POSTS.map((post) => post.brandNames[0] ?? null)),
+    };
   },
 
   saved(page = 0, size = 24): CommunityPostPage {

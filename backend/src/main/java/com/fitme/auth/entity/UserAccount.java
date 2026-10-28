@@ -104,6 +104,15 @@ public class UserAccount {
     @Column(name = "signup_referrer")
     private String signupReferrer;
 
+    /**
+     * Public, random identifier used in community profile links.
+     *
+     * <p>It replaces the account id in public URLs, so a community page can be shared without
+     * ever exposing the account id or the email of its owner.
+     */
+    @Column(name = "community_author_key", unique = true)
+    private UUID communityAuthorKey;
+
     @Column(name = "password_changed_at")
     private Instant passwordChangedAt;
 
@@ -128,4 +137,18 @@ public class UserAccount {
     @UpdateTimestamp
     @Column(name = "updated_at", nullable = false)
     private Instant updatedAt;
+
+    /**
+     * Gives every account a public author key as soon as it is created.
+     *
+     * <p>The column already has a database default, but setting it here keeps the value
+     * available on the in-memory entity right away — the community profile link is built
+     * from it during the same request that created the account.
+     */
+    @PrePersist
+    void assignCommunityAuthorKey() {
+        if (communityAuthorKey == null) {
+            communityAuthorKey = UUID.randomUUID();
+        }
+    }
 }

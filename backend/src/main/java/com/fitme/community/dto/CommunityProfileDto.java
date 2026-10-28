@@ -12,4 +12,10 @@ public class CommunityProfileDto {
     private int followers;
     private int following;
     private int totalLikesReceived;
+    /**
+     * The user's own public author key, so they can open their community profile page.
+     *
+     * <p>It is the same random key used in public author URLs — never the account id.
+     */
+    private String authorKey;
 }

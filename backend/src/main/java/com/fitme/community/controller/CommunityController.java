@@ -3,6 +3,7 @@ package com.fitme.community.controller;
 import com.fitme.common.dto.ApiResponse;
 import com.fitme.common.dto.PageResult;
 import com.fitme.common.security.FitMeUserPrincipal;
+import com.fitme.community.dto.CommunityFilterOptionsDto;
 import com.fitme.community.dto.CommunityPostDto;
 import com.fitme.community.dto.CreateCommunityPostRequest;
 import com.fitme.community.dto.CreateCommunityPostResult;
@@ -35,9 +36,10 @@ public class CommunityController {
             @RequestParam(defaultValue = "24") int size,
             @RequestParam(required = false) String brandId,
             @RequestParam(required = false) String styleLabel,
+            @RequestParam(required = false) String occasion,
             @RequestParam(defaultValue = "latest") String sort) {
         UUID viewerId = principal != null ? principal.getUserId() : null;
-        return ApiResponse.ok(communityService.feed(viewerId, page, size, brandId, styleLabel, sort));
+        return ApiResponse.ok(communityService.feed(viewerId, page, size, brandId, styleLabel, occasion, sort));
     }
 
     @GetMapping("/posts/{shareCode}")
@@ -47,12 +49,9 @@ public class CommunityController {
         return ApiResponse.ok(communityService.byShareCode(shareCode, viewerId));
     }
 
-    @GetMapping("/authors/{authorId}/posts")
-    public ApiResponse<PageResult<CommunityPostDto>> byAuthor(@PathVariable UUID authorId,
-                                                              @AuthenticationPrincipal FitMeUserPrincipal principal,
-                                                              @RequestParam(defaultValue = "0") int page,
-                                                              @RequestParam(defaultValue = "24") int size) {
-        UUID viewerId = principal != null ? principal.getUserId() : null;
-        return ApiResponse.ok(communityService.listByAuthor(authorId, viewerId, page, size));
+    /** The style / occasion / brand filters available for the feed, with a count for each. */
+    @GetMapping("/filters")
+    public ApiResponse<CommunityFilterOptionsDto> filters() {
+        return ApiResponse.ok(communityService.filterOptions());
     }
 }

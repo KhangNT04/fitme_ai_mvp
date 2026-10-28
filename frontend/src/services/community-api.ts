@@ -2,14 +2,17 @@ import apiClient, { unwrap } from "./api-client";
 import { demoCommunity } from "@/lib/demo-community-store";
 import { shouldUseDemoCommunity } from "@/lib/demo-data";
 import type {
+  CommunityAuthor,
   CommunityComment,
   CommunityCommentNotification,
+  CommunityFilterOptions,
   CommunityPost,
   CommunityPostInteraction,
   CommunityPostPage,
   CommunityProfile,
   CreateCommunityPostRequest,
   CreateCommunityPostResult,
+  UpdateCommunityPostRequest,
 } from "@/types";
 
 export const COMMUNITY_PAGE_SIZE = 24;
@@ -50,7 +53,12 @@ export const communityApi = {
   getFeed: async (
     page = 0,
     size = COMMUNITY_PAGE_SIZE,
-    filters?: { brandId?: string; styleLabel?: string; sort?: "latest" | "popular" },
+    filters?: {
+      brandId?: string;
+      styleLabel?: string;
+      occasion?: string;
+      sort?: "latest" | "popular";
+    },
   ): Promise<CommunityPostPage> => {
     return withDemoFallback(
       async () => {
@@ -61,10 +69,35 @@ export const communityApi = {
       },
       () => {
         const sorted = filters?.sort === "popular" ? "popular" : "latest";
-        return sorted === "popular"
-          ? demoCommunity.popularFeed(page, size)
-          : demoCommunity.feed(page, size);
+        if (sorted === "popular") {
+          return demoCommunity.popularFeed(page, size);
+        }
+        // The demo dataset carries brand names, not ids, so the filter is matched by name.
+        const brandName = filters?.brandId
+          ? demoCommunity.filterOptions().brands.find((brand) => brand.value === filters.brandId)?.label
+          : undefined;
+        return demoCommunity.feed(page, size, {
+          styleLabel: filters?.styleLabel,
+          occasion: filters?.occasion,
+          brandName,
+        });
       },
+    );
+  },
+
+  /** The style / occasion / brand filters available for the feed. */
+  getFilterOptions: async (): Promise<CommunityFilterOptions> => {
+    return withDemoFallback(
+      async () => {
+        const res = await apiClient.get("/community/filters");
+        const data = unwrap(res) as Partial<CommunityFilterOptions> | null;
+        return {
+          styles: data?.styles ?? [],
+          occasions: data?.occasions ?? [],
+          brands: data?.brands ?? [],
+        };
+      },
+      () => demoCommunity.filterOptions(),
     );
   },
 
@@ -79,20 +112,6 @@ export const communityApi = {
         if (!post) throw new Error("Outfit không tồn tại");
         return post;
       },
-    );
-  },
-
-  getAuthorPosts: async (
-    authorId: string,
-    page = 0,
-    size = COMMUNITY_PAGE_SIZE,
-  ): Promise<CommunityPostPage> => {
-    return withDemoFallback(
-      async () => {
-        const res = await apiClient.get(`/community/authors/${authorId}/posts`, { params: { page, size } });
-        return toPage(unwrap(res) as Partial<CommunityPostPage> | null, page, size);
-      },
-      () => demoCommunity.feed(page, size),
     );
   },
 
@@ -121,6 +140,43 @@ export const communityApi = {
   deletePost: async (postId: string): Promise<void> => {
     const res = await apiClient.delete(`/community/posts/${postId}`);
     return unwrap(res);
+  },
+
+  /** Edits the title and caption of a post the signed-in user published. */
+  updatePost: async (
+    postId: string,
+    payload: UpdateCommunityPostRequest,
+  ): Promise<CommunityPost> => {
+    const res = await apiClient.patch(`/community/posts/${postId}`, payload);
+    return unwrap(res) as CommunityPost;
+  },
+
+  // ── Author profiles ───────────────────────────────────────────────────────────────────────────
+
+  /** The public community profile of the author behind this key. */
+  getAuthor: async (authorKey: string): Promise<CommunityAuthor> => {
+    const res = await apiClient.get(`/community/authors/${authorKey}`);
+    return unwrap(res) as CommunityAuthor;
+  },
+
+  /** The public posts of the author behind this key. */
+  getAuthorPosts: async (
+    authorKey: string,
+    page = 0,
+    size = COMMUNITY_PAGE_SIZE,
+  ): Promise<CommunityPostPage> => {
+    const res = await apiClient.get(`/community/authors/${authorKey}/posts`, { params: { page, size } });
+    return toPage(unwrap(res) as Partial<CommunityPostPage> | null, page, size);
+  },
+
+  followAuthor: async (authorKey: string): Promise<boolean> => {
+    const res = await apiClient.post(`/community/authors/${authorKey}/follow`);
+    return Boolean(unwrap(res));
+  },
+
+  unfollowAuthor: async (authorKey: string): Promise<boolean> => {
+    const res = await apiClient.delete(`/community/authors/${authorKey}/follow`);
+    return Boolean(unwrap(res));
   },
 
   setLike: async (postId: string, liked: boolean): Promise<CommunityPostInteraction> => {

@@ -223,15 +223,23 @@ backend/src/main/java/com/fitme/community/
 - Lối vào: card "Cộng đồng" trong `/discover`, nút "Xem cộng đồng" trong `/profile/gallery`, banner sau khi chia sẻ lần đầu.
 - Có thể thêm vào `Header` desktop dưới dạng link phụ.
 
-#### A2.3 Trang hồ sơ cộng đồng `/community/[userId]`
+#### A2.3 Trang hồ sơ cộng đồng `/community/author/[authorKey]`
 
 - Grid bài đã đăng + số người theo dõi / đang theo dõi.
 - Nút Follow/Unfollow.
+- **Định danh tác giả**: dùng `community_author_key` — một UUID ngẫu nhiên gán cho mỗi tài khoản (`V44__community_author_key.sql`), **không phải** `user_id`. Nhờ vậy URL hồ sơ có thể chia sẻ mà không lộ id tài khoản hay email, giữ đúng nguyên tắc ẩn danh của module `community`.
 
 #### A2.4 Tương tác
 
 - Like: optimistic update, `POST /community/posts/{id}/like` → cập nhật `like_count` bằng SQL counter (giống `product_reviews.helpful_count` — **entity không được ghi đè** số đếm khi vote thay đổi).
 - Save: hạt nhỏ — thêm tab "Cộng đồng" vào `/saved-outfits`.
+
+#### A2.5 Quản lý bài của chính mình (đã triển khai)
+
+- Sửa tiêu đề / mô tả sau khi đăng: `PATCH /community/posts/{postId}` (chỉ sửa phần chữ — ảnh, style, occasion giữ nguyên nên link đã chia sẻ vẫn trỏ đúng outfit).
+- Tab "Bài của tôi" ở `/profile` cho xem / sửa / gỡ, kèm link tới hồ sơ cộng đồng công khai của chính mình.
+- Tab "Cộng đồng" ở `/saved-outfits` cho bài đã lưu.
+- Bộ lọc feed: `GET /community/filters` trả về style / occasion / brand kèm số lượng; các bộ lọc **kết hợp** với nhau.
 
 ---
 

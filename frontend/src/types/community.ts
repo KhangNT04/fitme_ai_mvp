@@ -19,6 +19,11 @@ export interface CommunityPost {
   visibility?: string;
   authorDisplayName: string;
   authorInitials: string;
+  /**
+   * Public, random identifier of the author, used to build their community profile link.
+   * It is not the account id, so it exposes nothing personal.
+   */
+  authorKey?: string | null;
   brandNames: string[];
   products: CommunityProductRef[];
   likeCount: number;
@@ -78,6 +83,37 @@ export interface CommunityProfile {
   followers: number;
   following: number;
   totalLikesReceived: number;
+  /** The user's own public author key, used to open their community profile page. */
+  authorKey?: string | null;
+}
+
+/** The public community profile of an author, addressed by their random author key. */
+export interface CommunityAuthor {
+  authorKey: string;
+  displayName: string;
+  initials: string;
+  publishedPosts: number;
+  totalLikes: number;
+  totalComments: number;
+  followedByMe: boolean;
+}
+
+/** A filter chip on the feed, with the number of public posts behind it. */
+export interface CommunityFilterOption {
+  value: string;
+  label: string;
+  count: number;
+}
+
+export interface CommunityFilterOptions {
+  styles: CommunityFilterOption[];
+  occasions: CommunityFilterOption[];
+  brands: CommunityFilterOption[];
+}
+
+export interface UpdateCommunityPostRequest {
+  title?: string;
+  caption?: string;
 }
 
 export interface CreateCommunityPostRequest {

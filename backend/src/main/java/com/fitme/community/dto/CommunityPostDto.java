@@ -28,6 +28,12 @@ public class CommunityPostDto {
     private String visibility;
     private String authorDisplayName;
     private String authorInitials;
+    /**
+     * Public, random identifier of the author, used to build their community profile link.
+     *
+     * <p>It is not the account id: a reader cannot turn it into an email or an account id.
+     */
+    private String authorKey;
     private List<String> brandNames;
     private List<ProductRef> products;
     private int likeCount;

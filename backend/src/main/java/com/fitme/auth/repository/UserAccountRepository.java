@@ -10,5 +10,8 @@ public interface UserAccountRepository extends JpaRepository<UserAccount, UUID> 
 
     Optional<UserAccount> findByEmail(String email);
 
+    /** Looks an account up by its public community author key. */
+    Optional<UserAccount> findByCommunityAuthorKey(UUID communityAuthorKey);
+
     boolean existsByEmail(String email);
 }

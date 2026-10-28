@@ -212,19 +212,25 @@ Múi giờ tính toán: `Asia/Ho_Chi_Minh`. Thưởng bị giới hạn bởi tr
 
 Người dùng đăng ảnh thử mặc trong thư viện lên cộng đồng công khai. Mọi response **không bao giờ** chứa `userId` hay `email` của tác giả — chỉ có `authorDisplayName` và `authorInitials`.
 
+Tác giả được định danh bằng `authorKey`: một UUID ngẫu nhiên, công khai nhưng **không phải** id tài khoản. Mọi URL hồ sơ tác giả dùng khoá này, nên có thể chia sẻ mà không lộ danh tính.
+
 | Method | Path | Auth | Mô tả & Body / Query |
 |---|---|---|---|
-| `GET` | `/community/posts?page=0&size=24&sort=latest\|popular&brandId=&styleLabel=` | Public | Feed cộng đồng: `{ items: [CommunityPostDto], page, size, total }`. `CommunityPostDto`: `{ id, shareCode, shareUrl, title, caption, styleLabel, occasion, imageUrl, visibility, authorDisplayName, authorInitials, brandNames, products: [{ productId, name, imageUrl, price }], likeCount, commentCount, viewCount, likedByMe, savedByMe, mine, createdAt }`. `likedByMe`/`savedByMe` = false với khách. `visibility` = `PUBLIC` / `HIDDEN` / `REMOVED`; `styleLabel` và `occasion` được suy ra từ try-on / recommendation gốc của ảnh, không phải do người dùng nhập |
+| `GET` | `/community/posts?page=0&size=24&sort=latest\|popular&brandId=&styleLabel=&occasion=` | Public | Feed cộng đồng: `{ items: [CommunityPostDto], page, size, total }`. Các bộ lọc **kết hợp** với nhau (brand + style + occasion). `CommunityPostDto`: `{ id, shareCode, shareUrl, title, caption, styleLabel, occasion, imageUrl, visibility, authorDisplayName, authorInitials, authorKey, brandNames, products: [{ productId, name, imageUrl, price }], likeCount, commentCount, viewCount, likedByMe, savedByMe, mine, createdAt }`. `likedByMe`/`savedByMe` = false với khách. `visibility` = `PUBLIC` / `HIDDEN` / `REMOVED`; `styleLabel` và `occasion` được suy ra từ try-on / recommendation gốc của ảnh, không phải do người dùng nhập |
+| `GET` | `/community/filters` | Public | Bộ lọc có sẵn cho feed: `{ styles: [{ value, label, count }], occasions: [{ value, label, count }], brands: [{ value, label, count }] }`. Chỉ liệt kê giá trị đang có bài công khai, kèm số lượng |
 | `GET` | `/community/posts/{shareCode}` | Public | Permalink công khai của 1 outfit (`shareCode` 10 ký tự, ví dụ `/outfit/a1b2c3d4`). Mỗi lượt xem của người khác tăng `viewCount` |
-| `GET` | `/community/authors/{authorId}/posts?page=0&size=24` | Public | Bài đăng công khai của 1 tác giả |
+| `GET` | `/community/authors/{authorKey}` | Public | Hồ sơ cộng đồng của 1 tác giả: `{ authorKey, displayName, initials, publishedPosts, totalLikes, totalComments, followedByMe }`. Không bao giờ có `userId` / `email` |
+| `GET` | `/community/authors/{authorKey}/posts?page=0&size=24` | Public | Bài đăng công khai của 1 tác giả: `{ items, page, size, total }` |
+| `POST` / `DELETE` | `/community/authors/{authorKey}/follow` | User | Theo dõi / bỏ theo dõi tác giả → `boolean` (đang theo dõi hay không). Không theo dõi chính mình |
 | `POST` | `/community/posts` | User | Đăng bài: Body `{ galleryImageId, title?, caption? }` → `{ post, shareUrl }`. Ảnh phải thuộc thư viện của người đăng nhập |
+| `PATCH` | `/community/posts/{postId}` | User | Sửa bài của chính mình: Body `{ title?, caption? }` → `CommunityPostDto`. Chỉ sửa được phần chữ; ảnh, style và occasion giữ nguyên. Bài đã gỡ (`REMOVED`) thì không sửa được → `400 COMMUNITY_POST_REMOVED` |
 | `DELETE` | `/community/posts/{postId}` | User | Gỡ bài của chính mình (chuyển `visibility = REMOVED`, bài biến mất khỏi feed) |
 | `POST` / `DELETE` | `/community/posts/{postId}/like` | User | Thích / bỏ thích → `{ postId, likeCount, commentCount, likedByMe, savedByMe }`. Không thích bài của chính mình |
 | `POST` / `DELETE` | `/community/posts/{postId}/save` | User | Lưu / bỏ lưu → `{ postId, likeCount, commentCount, likedByMe, savedByMe }` |
 | `GET` | `/community/posts/{postId}/comments` | Public | Chuỗi bình luận của bài: `[CommunityCommentDto]`. Bình luận cấp 1 theo thứ tự thời gian, mỗi bình luận mang `replies` (cấp 2) |
 | `POST` | `/community/posts/{postId}/comments` | User | Bình luận / trả lời: Body `{ content, parentId? }` → `CommunityCommentDto`. `content` 1..1000 ký tự. `parentId` = bình luận cần trả lời; trả lời một reply sẽ gắn vào bình luận cấp 1 (chỉ 1 cấp) |
 | `DELETE` | `/community/posts/{postId}/comments/{commentId}` | User | Xoá bình luận. Chỉ tác giả bình luận hoặc chủ bài đăng được xoá |
-| `POST` / `DELETE` | `/community/users/{followedId}/follow` | User | Theo dõi / bỏ theo dõi tác giả → `boolean` (đang theo dõi hay không). Không theo dõi chính mình |
+| `POST` / `DELETE` | `/community/users/{followedId}/follow` | User | Theo dõi / bỏ theo dõi tác giả theo id tài khoản → `boolean`. Dành cho luồng nội bộ; URL công khai dùng `authorKey` |
 | `GET` | `/community/me` | User | Số liệu cộng đồng của tôi: `{ publishedPosts, savedPosts, followers, following, totalLikesReceived }` |
 | `GET` | `/me/community/saves?page=0&size=24` | User | Bài đăng đã lưu: `{ items, page, size, total }` |
 | `GET` | `/me/community/posts?page=0&size=24` | User | Bài đăng **của chính tôi**, mới nhất trước. Bao gồm cả bài đã gỡ (`visibility = REMOVED`) và bài bị ẩn, để tác giả vẫn quản lý được những gì mình đã chia sẻ |

@@ -19,6 +19,7 @@ import { LoadingSkeleton } from "@/components/common/LoadingSkeleton";
 import { EmptyState } from "@/components/common/EmptyState";
 import { ErrorState } from "@/components/common/ErrorState";
 import { ConfirmDialog } from "@/components/common/ConfirmDialog";
+import { SavedCommunityTab } from "@/components/community/SavedCommunityTab";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Chip } from "@/components/ui/chip";
@@ -30,7 +31,7 @@ import { toast } from "@/stores/toast-store";
 import type { RecommendationResult } from "@/types/outfit";
 import type { TryOnPreviewType, TryOnResult } from "@/types/tryon";
 
-type SavedTab = "outfits" | "tryons";
+type SavedTab = "outfits" | "tryons" | "community";
 
 type PendingDelete =
   | { type: "outfits"; id: string; title: string }
@@ -40,6 +41,7 @@ type PendingDelete =
 const TABS: { value: SavedTab; label: string }[] = [
   { value: "outfits", label: "Gợi ý outfit" },
   { value: "tryons", label: "Kết quả thử mặc" },
+  { value: "community", label: "Cộng đồng" },
 ];
 
 const PREVIEW_TYPE_LABELS: Record<TryOnPreviewType, string> = {
@@ -166,7 +168,9 @@ export default function SavedOutfitsPage() {
   const tabSubtitle =
     tab === "outfits"
       ? "Các set outfit đã lưu từ luồng tư vấn AI"
-      : "Preview thử mặc AI đã lưu";
+      : tab === "tryons"
+        ? "Preview thử mặc AI đã lưu"
+        : "Các bài đăng trên cộng đồng mà bạn đã lưu";
 
   const handleConfirmDelete = () => {
     if (!pendingDelete) return;
@@ -330,6 +334,13 @@ export default function SavedOutfitsPage() {
                 ))}
               </div>
             )}
+          </section>
+        )}
+
+        {!showLoading && !bothFailed && tab === "community" && (
+          <section>
+            <p className="text-sm text-muted-foreground">{tabSubtitle}</p>
+            <SavedCommunityTab />
           </section>
         )}
       </div>

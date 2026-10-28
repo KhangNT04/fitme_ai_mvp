@@ -7,12 +7,14 @@ import com.fitme.community.dto.CommunityPostInteractionDto;
 import com.fitme.community.dto.CommunityProfileDto;
 import com.fitme.community.dto.CreateCommunityPostRequest;
 import com.fitme.community.dto.CreateCommunityPostResult;
+import com.fitme.community.dto.UpdateCommunityPostRequest;
 import com.fitme.community.service.CommunityService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -41,6 +43,14 @@ public class CommunityInteractionController {
                                     @PathVariable UUID postId) {
         communityService.delete(principal.getUserId(), postId);
         return ApiResponse.ok(null);
+    }
+
+    /** Edits the title and caption of a post the signed-in user published. */
+    @PatchMapping("/posts/{postId}")
+    public ApiResponse<CommunityPostDto> update(@AuthenticationPrincipal FitMeUserPrincipal principal,
+                                                 @PathVariable UUID postId,
+                                                 @Valid @RequestBody UpdateCommunityPostRequest request) {
+        return ApiResponse.ok(communityService.update(principal.getUserId(), postId, request));
     }
 
     @PostMapping("/posts/{postId}/like")

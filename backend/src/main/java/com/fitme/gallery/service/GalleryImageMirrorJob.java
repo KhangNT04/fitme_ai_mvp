@@ -30,6 +30,7 @@ public class GalleryImageMirrorJob {
     private static final List<String> EPHEMERAL_PREFIXES = List.of(
             "https://cdn.fashn.ai/",
             "http://cdn.fashn.ai/",
+            "https://media.fashn.ai/",
             "https://fitme-ai-vton.onrender.com/outputs/");
 
     private final OutfitGalleryImageRepository galleryRepository;

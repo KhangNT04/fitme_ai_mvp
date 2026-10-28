@@ -37,6 +37,12 @@ class VtonOutputMirrorServiceTest {
     }
 
     @Test
+    void isEphemeralVtonOutputUrl_detectsFashnMediaHostOutput() {
+        assertThat(VtonOutputMirrorService.isEphemeralVtonOutputUrl(
+                "https://media.fashn.ai/api/01a173a4-ee4d-77d1-bcce-eaafb4a691e6/output_0.png")).isTrue();
+    }
+
+    @Test
     void isEphemeralVtonOutputUrl_ignoresPersistedR2Output() {
         assertThat(VtonOutputMirrorService.isEphemeralVtonOutputUrl(
                 "https://pub-e5533a27e48843939533158fe4fbb1a3.r2.dev/vton-results/abc.jpg")).isFalse();

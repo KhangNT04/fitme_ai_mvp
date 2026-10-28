@@ -88,7 +88,7 @@ public class VtonOutputMirrorService {
             }
             return lowerPath.contains("/output_0.png") && isFashnCdnHost(url.trim());
         } catch (IllegalArgumentException ex) {
-            return trimmed.contains("/outputs/");
+            return trimmed.contains("/outputs/") || trimmed.contains("/output_0.png");
         }
     }
 

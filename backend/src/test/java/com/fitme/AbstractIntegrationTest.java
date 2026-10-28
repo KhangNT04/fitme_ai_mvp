@@ -65,6 +65,9 @@ public abstract class AbstractIntegrationTest {
     @Autowired
     protected ObjectMapper objectMapper;
 
+    @Autowired
+    protected org.springframework.jdbc.core.JdbcTemplate jdbc;
+
     protected static final String SESSION_HEADER = AnonymousSessionFilter.HEADER;
 
     protected String createAnonymousSessionToken() throws Exception {

@@ -203,6 +203,33 @@ class CommunityAuthorAndFilterIntegrationTest extends AbstractIntegrationTest {
                 .andExpect(jsonPath("$.data").value(false));
     }
 
+    @Test
+    void aPostShowsThePhotoTheGalleryKeepsAlive() throws Exception {
+        FitMeUserPrincipal owner = new FitMeUserPrincipal(testDataHelper.createUser().user());
+        Product product = testDataHelper.createEligibleProduct("Alive top", "Áo thun");
+        generateBoardTryOn(owner, product);
+        String imageId = galleryImageId(owner);
+        grantCommunityConsent(owner);
+
+        String body = mockMvc.perform(post("/api/v1/community/posts")
+                        .with(user(owner))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"galleryImageId": "%s"}
+                                """.formatted(imageId)))
+                .andExpect(status().isOk())
+                .andReturn().getResponse().getContentAsString();
+        String shareCode = objectMapper.readTree(body).get("data").get("post").get("shareCode").asText();
+
+        // The gallery row is the authority for the photo: repointing it must change what the
+        // feed shows, otherwise readers keep a provider link that dies after a while.
+        repointGalleryImage(imageId, "https://pub-example.r2.dev/vton-results/alive.jpg");
+
+        mockMvc.perform(get("/api/v1/community/posts/{code}", shareCode))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.imageUrl").value("https://pub-example.r2.dev/vton-results/alive.jpg"));
+    }
+
     /** Gives the user a style profile, so published posts carry a style label. */
     private void setPrimaryStyle(FitMeUserPrincipal principal, String style) throws Exception {
         mockMvc.perform(post("/api/v1/me/style-profile")
@@ -228,6 +255,11 @@ class CommunityAuthorAndFilterIntegrationTest extends AbstractIntegrationTest {
                 .andExpect(status().isOk())
                 .andReturn().getResponse().getContentAsString();
         return objectMapper.readTree(json).get("data").get("items").get(0).get("id").asText();
+    }
+
+    /** Moves a gallery photo to another URL, the way the mirror job does. */
+    private void repointGalleryImage(String galleryImageId, String url) {
+        jdbc.update("UPDATE outfit_gallery_images SET image_url = ? WHERE id = ?::uuid", url, galleryImageId);
     }
 
     private String generateBoardTryOn(FitMeUserPrincipal principal, Product product) throws Exception {

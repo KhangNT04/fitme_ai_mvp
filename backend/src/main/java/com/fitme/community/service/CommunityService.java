@@ -21,6 +21,7 @@ import com.fitme.product.entity.ProductImage;
 import com.fitme.product.repository.ProductImageRepository;
 import com.fitme.product.repository.ProductRepository;
 import com.fitme.privacy.repository.ConsentRecordRepository;
+import com.fitme.preview.service.VtonOutputMirrorService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -73,6 +74,7 @@ public class CommunityService {
     private final ConsentRecordRepository consentRepository;
     private final CommunityPostContextResolver contextResolver;
     private final AnalyticsService analyticsService;
+    private final VtonOutputMirrorService mirrorService;
     private final FitMeProperties properties;
     private final AppClock clock;
     private final JdbcTemplate jdbcTemplate;
@@ -186,6 +188,7 @@ public class CommunityService {
         if (image == null) {
             throw new BusinessException("Ảnh không tồn tại trong thư viện của bạn", "COMMUNITY_IMAGE_NOT_FOUND");
         }
+        String imageUrl = mirrorImageForSharing(image);
         int dailyLimit = Math.max(0, properties.getCommunity().getPostDailyLimit());
         if (dailyLimit > 0 && postsToday(userId) >= dailyLimit) {
             throw new BusinessException(
@@ -222,7 +225,7 @@ public class CommunityService {
                 .brandIds(wrappedBrandIds)
                 .productIds(productIds.isEmpty() ? null : productIds.stream()
                         .map(UUID::toString).collect(Collectors.joining(",")))
-                .imageUrl(image.getImageUrl())
+                .imageUrl(imageUrl)
                 .visibility(VISIBILITY_PUBLIC)
                 .build());
 
@@ -765,8 +768,7 @@ public class CommunityService {
 
     private CommunityPostDto toDto(CommunityPost post, UUID viewerId) {
         List<UUID> productIds = parseIds(post.getProductIds());
-        List<Product> products = productIds.isEmpty() ? List.of() : productRepository.findAllById(productIds);
-        List<CommunityPostDto.ProductRef> productRefs = products.stream()
+        List<Product> products = productIds.isEmpty() ? List.of() : productRepository.findAllById(productIds);        List<CommunityPostDto.ProductRef> productRefs = products.stream()
                 .map(product -> CommunityPostDto.ProductRef.builder()
                         .productId(product.getId())
                         .name(product.getName())
@@ -798,7 +800,7 @@ public class CommunityService {
                 .caption(post.getCaption())
                 .styleLabel(post.getStyleLabel())
                 .occasion(post.getOccasion())
-                .imageUrl(post.getImageUrl())
+                .imageUrl(resolveImageUrl(post))
                 .visibility(post.getVisibility())
                 .authorDisplayName(authorName)
                 .authorInitials(initials(authorName))
@@ -813,6 +815,51 @@ public class CommunityService {
                 .mine(viewerId != null && viewerId.equals(post.getUserId()))
                 .createdAt(post.getCreatedAt())
                 .build();
+    }
+
+    /**
+     * Copies the photo into our own storage before it is shared.
+     *
+     * <p>The provider that produced the try-on deletes its files after a short while, so a post
+     * that keeps the provider URL turns into a broken image for every reader. Mirroring here
+     * means the published post points at a file we own.
+     *
+     * @return the permanent URL, or the original one when the copy is not possible
+     */
+    private String mirrorImageForSharing(OutfitGalleryImage image) {
+        String source = image.getImageUrl();
+        if (source == null || source.isBlank() || !VtonOutputMirrorService.isEphemeralVtonOutputUrl(source)) {
+            return source;
+        }
+        try {
+            String mirrored = mirrorService.persistRemoteOutput(source, image.getPreviewGenerationId());
+            if (mirrored != null && !mirrored.isBlank() && !mirrored.equals(source)) {
+                image.setImageUrl(mirrored);
+                galleryRepository.save(image);
+                return mirrored;
+            }
+        } catch (Exception ex) {
+            log.warn("Could not mirror gallery image {} for sharing: {}", image.getId(), ex.getMessage());
+        }
+        return source;
+    }
+
+    /**
+     * The photo a post shows.
+     *
+     * <p>The post keeps a snapshot of the URL that was live when it was published, but the
+     * provider (FASHN's CDN) deletes those files after a while. The gallery row is the
+     * authority: it is re-mirrored into our own storage, so we always show the copy we own.
+     */
+    private String resolveImageUrl(CommunityPost post) {
+        String stored = post.getImageUrl();
+        if (post.getGalleryImageId() == null) {
+            return stored;
+        }
+        return galleryRepository.findById(post.getGalleryImageId())
+                .map(OutfitGalleryImage::getImageUrl)
+                .filter(url -> url != null && !url.isBlank())
+                .orElse(stored);
     }
 
     private static String authorName(UserAccount user) {

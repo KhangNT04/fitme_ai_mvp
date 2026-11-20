@@ -3,6 +3,9 @@ import type { Product } from "@/types/product";
 /** Max products shown per brand row on Discover (newest first). */
 export const DISCOVER_PRODUCTS_PER_BRAND = 10;
 
+/** Brands per Discover page — each page eager-loads all preview images for those brands. */
+export const DISCOVER_BRANDS_PER_PAGE = 10;
+
 export function groupProductsByBrand(items: Product[]): Map<string, Product[]> {
   const groups = new Map<string, Product[]>();
   for (const product of items) {

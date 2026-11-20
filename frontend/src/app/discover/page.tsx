@@ -17,7 +17,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { SlidersHorizontal, Users } from "lucide-react";
+import { ChevronLeft, ChevronRight, SlidersHorizontal, Users } from "lucide-react";
 import { BrandDiscoverSection } from "@/components/discover/BrandDiscoverSection";
 import { QuickShareDialog } from "@/components/community/QuickShareDialog";
 import { LoadingSkeleton } from "@/components/common/LoadingSkeleton";
@@ -37,6 +37,7 @@ import {
 import { categoryFilterLabel } from "@/lib/product-category";
 import { discoverBrandPath } from "@/lib/discover-brand";
 import {
+  DISCOVER_BRANDS_PER_PAGE,
   DISCOVER_PRODUCTS_PER_BRAND,
   groupNewestProductsByBrand,
 } from "@/lib/group-products-by-brand";
@@ -51,6 +52,7 @@ export default function DiscoverPage() {
   const [search, setSearch] = useState("");
   const [category, setCategory] = useState(ALL_CATEGORIES);
   const [aiOnly, setAiOnly] = useState(false);
+  const [brandPage, setBrandPage] = useState(0);
   const searchRef = useRef<HTMLInputElement>(null);
 
   const focusSearchField = useCallback(() => {
@@ -103,14 +105,34 @@ export default function DiscoverPage() {
     });
   }, [groupedByBrand, brandMap]);
 
-  // Warm image cache after list arrives so vertical/horizontal scroll hits cache, not network.
+  const brandPageCount = Math.max(1, Math.ceil(sortedBrandGroups.length / DISCOVER_BRANDS_PER_PAGE));
+  const safeBrandPage = Math.min(brandPage, brandPageCount - 1);
+
+  const pagedBrandGroups = useMemo(() => {
+    const start = safeBrandPage * DISCOVER_BRANDS_PER_PAGE;
+    return sortedBrandGroups.slice(start, start + DISCOVER_BRANDS_PER_PAGE);
+  }, [sortedBrandGroups, safeBrandPage]);
+
+  // Reset to first brand page when filters change the result set.
   useEffect(() => {
-    if (!data?.items.length) return;
+    setBrandPage(0);
+  }, [search, category, aiOnly]);
+
+  // Eager-load every preview image for the brands on this page.
+  useEffect(() => {
+    if (pagedBrandGroups.length === 0) return;
     prefetchImages(
-      data.items.flatMap((p) => p.images.slice(0, 2)),
-      6,
+      pagedBrandGroups.flatMap(([, preview]) =>
+        preview.products.flatMap((p) => p.images.slice(0, 2)),
+      ),
+      8,
     );
-  }, [data]);
+  }, [pagedBrandGroups]);
+
+  const goToBrandPage = useCallback((next: number) => {
+    setBrandPage(next);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }, []);
 
   const goToBrand = useCallback(
     (id: string) => {
@@ -146,6 +168,7 @@ export default function DiscoverPage() {
     setSearch("");
     setCategory(ALL_CATEGORIES);
     setAiOnly(false);
+    setBrandPage(0);
   };
 
   const filterDialog = (iconOnly: boolean) => (
@@ -329,19 +352,54 @@ export default function DiscoverPage() {
             description="Thử thay đổi bộ lọc hoặc từ khóa tìm kiếm."
           />
         )}
-        {sortedBrandGroups.length > 0 && (
+        {pagedBrandGroups.length > 0 && (
           <div
             className={cn("space-y-10 transition-opacity duration-200", isFetching && !isLoading && "opacity-70")}
           >
-            {sortedBrandGroups.map(([id, preview], rowIndex) => (
+            {pagedBrandGroups.map(([id, preview], rowIndex) => (
               <BrandDiscoverSection
                 key={id}
                 brand={brandMap.get(id)}
                 products={preview.products}
                 totalCount={preview.total}
-                prioritizeImages={rowIndex < 3}
+                loadAllImages
+                rowIndex={rowIndex}
               />
             ))}
+          </div>
+        )}
+
+        {sortedBrandGroups.length > DISCOVER_BRANDS_PER_PAGE && (
+          <div className="mt-10 flex flex-wrap items-center justify-center gap-3">
+            <Button
+              type="button"
+              variant="outline"
+              size="icon"
+              className="rounded-full"
+              aria-label="Trang brand trước"
+              disabled={safeBrandPage === 0}
+              onClick={() => goToBrandPage(safeBrandPage - 1)}
+            >
+              <ChevronLeft className="h-4 w-4" aria-hidden="true" />
+            </Button>
+            <p className="text-sm text-muted-foreground">
+              Trang {safeBrandPage + 1} / {brandPageCount}
+              <span className="hidden sm:inline">
+                {" "}
+                · {sortedBrandGroups.length} thương hiệu · {DISCOVER_BRANDS_PER_PAGE}/trang
+              </span>
+            </p>
+            <Button
+              type="button"
+              variant="outline"
+              size="icon"
+              className="rounded-full"
+              aria-label="Trang brand sau"
+              disabled={safeBrandPage + 1 >= brandPageCount}
+              onClick={() => goToBrandPage(safeBrandPage + 1)}
+            >
+              <ChevronRight className="h-4 w-4" aria-hidden="true" />
+            </Button>
           </div>
         )}
       </div>

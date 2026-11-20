@@ -68,15 +68,17 @@ public class ProductService {
             matched = limitNewestPerBrand(matched, limitPerBrand);
         }
 
-        // Images/size charts only for the (possibly limited) result set — Discover preview stays small.
-        Related related = loadRelated(matched, brands);
+        boolean preview = limitPerBrand != null && limitPerBrand > 0;
+        // Discover preview: images (+ gender tag) only. Full list still loads variants/charts.
+        Related related = preview ? loadRelatedForPreview(matched, brands) : loadRelated(matched, brands);
         Map<UUID, Integer> totals = brandTotals;
         return matched.stream()
                 .map(p -> toResponse(
                         p,
                         plusBrandIds.contains(p.getBrandId()),
                         related,
-                        totals != null ? totals.get(p.getBrandId()) : null))
+                        totals != null ? totals.get(p.getBrandId()) : null,
+                        preview))
                 .toList();
     }
 
@@ -607,6 +609,20 @@ public class ProductService {
                 Map.of());
     }
 
+    /** Discover cards need gallery thumbs + gender badge — skip variants/size charts. */
+    private Related loadRelatedForPreview(Collection<Product> products, Map<UUID, Brand> brands) {
+        List<UUID> ids = products.stream().map(Product::getId).toList();
+        if (ids.isEmpty()) {
+            return emptyRelated(brands);
+        }
+        Map<UUID, List<ProductImage>> images = imageRepository.findByProductIdInOrderBySortOrderAsc(ids).stream()
+                .collect(Collectors.groupingBy(ProductImage::getProductId));
+        Map<UUID, List<ProductTag>> tags = tagRepository.findByProductIdIn(ids).stream()
+                .filter(t -> "TARGET_GENDER".equals(t.getTagType()))
+                .collect(Collectors.groupingBy(ProductTag::getProductId));
+        return new Related(brands, images, Map.of(), tags, Map.of());
+    }
+
     private static boolean needsVariantOrTagFilter(ProductFilter filter) {
         if (filter == null) {
             return false;
@@ -670,50 +686,57 @@ public class ProductService {
     }
 
     private ProductResponse toResponse(Product product, boolean plusBrand) {
-        return toResponse(product, plusBrand, loadRelated(List.of(product), brandsOf(List.of(product))), null);
+        return toResponse(product, plusBrand, loadRelated(List.of(product), brandsOf(List.of(product))), null, false);
     }
 
     private ProductResponse toResponse(Product product, boolean plusBrand, Related related) {
-        return toResponse(product, plusBrand, related, null);
+        return toResponse(product, plusBrand, related, null, false);
     }
 
     private ProductResponse toResponse(
-            Product product, boolean plusBrand, Related related, Integer brandProductTotal) {
+            Product product,
+            boolean plusBrand,
+            Related related,
+            Integer brandProductTotal,
+            boolean preview) {
         UUID productId = product.getId();
         Brand brand = related.brands().get(product.getBrandId());
         String brandName = brand != null ? brand.getName() : null;
         List<ProductImage> images = related.of(related.images(), productId);
+        // Card hover uses at most 2 frames; drop the rest from Discover payloads.
+        List<ProductImage> responseImages = preview && images.size() > 2 ? images.subList(0, 2) : images;
         return ProductResponse.builder()
                 .id(productId)
                 .brandId(product.getBrandId())
                 .brandName(brandName)
                 .plusBrand(plusBrand)
                 .name(product.getName())
-                .description(product.getDescription())
+                .description(preview ? null : product.getDescription())
                 .category(product.getCategory())
                 .price(product.getPrice())
                 .currency(product.getCurrency())
-                .material(product.getMaterial())
+                .material(preview ? null : product.getMaterial())
                 .fitType(product.getFitType())
-                .purchaseUrl(product.getPurchaseUrl())
-                .purchaseChannel(product.getPurchaseChannel())
+                .purchaseUrl(preview ? null : product.getPurchaseUrl())
+                .purchaseChannel(preview ? null : product.getPurchaseChannel())
                 .stockStatus(product.getStockStatus())
                 .status(product.getStatus())
                 .sponsored(product.isSponsored())
                 .aiTryOnEligible(product.isAiTryOnEligible())
                 .canShowBuyButton(eligibilityService.canShowBuyButton(product, !images.isEmpty()))
-                .images(images.stream()
+                .images(responseImages.stream()
                         .map(i -> ProductImageDto.builder().imageUrl(i.getImageUrl()).imageType(i.getImageType()).sortOrder(i.getSortOrder()).build())
                         .toList())
-                .variants(related.of(related.variants(), productId).stream()
+                .variants(preview ? List.of() : related.of(related.variants(), productId).stream()
                         .map(v -> ProductVariantDto.builder().id(v.getId()).colorName(v.getColorName()).colorHex(v.getColorHex())
                                 .sizeLabel(v.getSizeLabel()).sku(v.getSku()).stockStatus(v.getStockStatus())
                                 .build())
                         .toList())
                 .tags(related.of(related.tags(), productId).stream()
+                        .filter(t -> !preview || "TARGET_GENDER".equals(t.getTagType()))
                         .map(t -> ProductTagDto.builder().tagType(t.getTagType()).tagValue(t.getTagValue()).build())
                         .toList())
-                .sizeCharts(related.of(related.sizeCharts(), productId).stream()
+                .sizeCharts(preview ? List.of() : related.of(related.sizeCharts(), productId).stream()
                         .map(sc -> SizeChartDto.builder()
                                 .sizeLabel(sc.getSizeLabel())
                                 .chestCm(sc.getChestCm())

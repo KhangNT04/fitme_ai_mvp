@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState, useEffect, useRef, useCallback } from "react";
+import { useMemo, useState, useEffect, useRef, useCallback, startTransition } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
@@ -99,6 +99,18 @@ export default function DiscoverPage() {
       return nameA.localeCompare(nameB, "vi");
     });
   }, [groupedByBrand, brandMap]);
+
+  // Paint the first few brand rows first so Discover feels responsive on slow networks.
+  const INITIAL_BRAND_ROWS = 3;
+  const [visibleBrandRows, setVisibleBrandRows] = useState(INITIAL_BRAND_ROWS);
+  useEffect(() => {
+    setVisibleBrandRows(INITIAL_BRAND_ROWS);
+    if (sortedBrandGroups.length <= INITIAL_BRAND_ROWS) return;
+    const id = window.setTimeout(() => {
+      startTransition(() => setVisibleBrandRows(sortedBrandGroups.length));
+    }, 50);
+    return () => window.clearTimeout(id);
+  }, [sortedBrandGroups]);
 
   const goToBrand = useCallback(
     (id: string) => {
@@ -319,7 +331,7 @@ export default function DiscoverPage() {
         )}
         {sortedBrandGroups.length > 0 && (
           <div className="space-y-10">
-            {sortedBrandGroups.map(([id, preview]) => (
+            {sortedBrandGroups.slice(0, visibleBrandRows).map(([id, preview]) => (
               <BrandDiscoverSection
                 key={id}
                 brand={brandMap.get(id)}

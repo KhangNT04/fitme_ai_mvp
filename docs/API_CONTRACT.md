@@ -467,7 +467,7 @@ Yêu cầu xoá dữ liệu thường (`POST /privacy/deletion-requests`) vẫn 
 
 ### Catalog & Gợi ý phối đồ
 - `GET /products`, `GET /products/{id}`, `GET /products/{id}/similar` — sản phẩm và brand có `plusBrand` (brand đang Plus); gợi ý cộng điểm ưu tiên `recommendation.plus_boost` cho sản phẩm brand Plus
-- `GET /products?limitPerBrand=10` — Discover preview: tối đa N sản phẩm mới nhất / brand (cap 50); mỗi item có thêm `brandProductTotal` (tổng trước khi cắt). Không truyền param → trả full list như cũ (trang brand)
+- `GET /products?limitPerBrand=10` — Discover preview: tối đa N sản phẩm mới nhất / brand (cap 50); mỗi item có `brandProductTotal` và payload rút gọn (≤2 ảnh, không variants/sizeCharts/description). Không truyền param → full list (trang brand)
 - `POST /recommendations` — tạo outfit gợi ý (Premium chế độ "Chỉ brand yêu thích" chỉ phối từ brand yêu thích)
 - `GET /recommendations/{id}`, `POST /recommendations/{id}/save`, `GET /recommendations/saved`
 - `POST /stylist/chat` — stylist chat tư vấn

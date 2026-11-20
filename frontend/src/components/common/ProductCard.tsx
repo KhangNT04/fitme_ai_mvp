@@ -84,10 +84,12 @@ export function ProductCard({
             src={displayUrl}
             alt={product.name}
             fill
+            loading="lazy"
+            decoding="async"
             className="object-cover transition-transform duration-500 ease-out group-hover:scale-105"
             sizes={
               cardSize === "catalog"
-                ? "(max-width: 768px) 50vw, 25vw"
+                ? "240px"
                 : cardSize === "compact"
                   ? "(max-width: 768px) 50vw, 25vw"
                   : "(max-width: 768px) 100vw, 33vw"

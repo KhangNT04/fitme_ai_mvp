@@ -32,7 +32,7 @@ public class FashionCatalogSeeder {
 
     private static final Logger log = LoggerFactory.getLogger(FashionCatalogSeeder.class);
     /** Bump when seeded product fields change so existing databases re-sync on startup. */
-    private static final String CATALOG_META_TAG = "catalog-v9";
+    private static final String CATALOG_META_TAG = "catalog-v10";
     private static final List<String> DEFAULT_SIZES = List.of("S", "M", "L", "XL");
     private static final List<String> STANDARD_SIZES = List.of("XS", "S", "M", "L", "XL", "XXL", "XXXL");
     /** Per size (same order as STANDARD_SIZES): chest, waist, hip, heightMin, heightMax, weightMin, weightMax. */
@@ -57,6 +57,8 @@ public class FashionCatalogSeeder {
             Map.entry("Xanh lá", "#4F7A4A"),
             Map.entry("Nâu", "#7B4B2A"),
             Map.entry("Xám", "#8E8E8E"),
+            Map.entry("Xám nhạt", "#C4C4C4"),
+            Map.entry("Xám đậm", "#5A5A5A"),
             Map.entry("Cream", "#F3E9D2"),
             Map.entry("Kem", "#F3E9D2"),
             Map.entry("Champagne", "#E8D4B0"),
@@ -65,7 +67,19 @@ public class FashionCatalogSeeder {
             Map.entry("Đỏ đô", "#7B1E2B"),
             Map.entry("Tím", "#8E6BBF"),
             Map.entry("Cam", "#E67E22"),
-            Map.entry("Vàng", "#F2D16B"));
+            Map.entry("Vàng", "#F2D16B"),
+            Map.entry("Black", "#111111"),
+            Map.entry("White", "#FFFFFF"),
+            Map.entry("Grey", "#8E8E8E"),
+            Map.entry("Gray", "#8E8E8E"),
+            Map.entry("Brown", "#7B4B2A"),
+            Map.entry("Pink", "#F2B8C6"),
+            Map.entry("Purple", "#8E6BBF"),
+            Map.entry("Red", "#C62828"),
+            Map.entry("Blue", "#3B6FB6"),
+            Map.entry("Sand", "#D8C3A5"),
+            Map.entry("Moss", "#6B7B3A"),
+            Map.entry("Camel", "#C19A6B"));
     private static final String DEFAULT_COLOR_HEX = "#333333";
 
     private final FashionCatalogLoader catalogLoader;

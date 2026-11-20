@@ -102,6 +102,7 @@ function ProductDetailContent({
   const actions = (
     <ProductDetailActions
       productId={product.id}
+      brandId={product.brandId}
       aiTryOnEligible={product.aiTryOnEligible}
       onConsult={handleConsult}
       purchaseUrl={product.purchaseUrl}

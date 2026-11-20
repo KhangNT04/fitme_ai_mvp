@@ -1,13 +1,20 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
-import { ExternalLink, Sparkles } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { ExternalLink, MessageCircle, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { redirectConfirmHref } from "@/lib/redirect-href";
+import { shopChatApi } from "@/services/shop-chat-api";
+import { useAuthStore } from "@/stores/auth-store";
+import { toast } from "@/stores/toast-store";
+import { getUserErrorMessage } from "@/lib/user-error-message";
 import { cn } from "@/lib/utils";
 
 interface ProductDetailActionsProps {
   productId: string;
+  brandId?: string;
   aiTryOnEligible?: boolean;
   onConsult: () => void;
   onTryOn?: () => void;
@@ -20,6 +27,7 @@ interface ProductDetailActionsProps {
 
 export function ProductDetailActions({
   productId,
+  brandId,
   aiTryOnEligible,
   onConsult,
   onTryOn,
@@ -27,7 +35,30 @@ export function ProductDetailActions({
   recommendationId,
   className,
 }: ProductDetailActionsProps) {
+  const router = useRouter();
+  const isAuthenticated = useAuthStore((s) => s.isAuthenticated());
+  const [messaging, setMessaging] = useState(false);
   const buyHref = redirectConfirmHref(productId, { sourcePage: "PRODUCT_DETAIL", recommendationId });
+
+  const messageShop = async () => {
+    if (!isAuthenticated) {
+      router.push(`/login?next=/products/${productId}`);
+      return;
+    }
+    setMessaging(true);
+    try {
+      const detail = await shopChatApi.open({
+        productId,
+        brandId,
+        firstMessage: undefined,
+      });
+      router.push(`/messages?thread=${detail.thread.id}`);
+    } catch (err) {
+      toast.error(getUserErrorMessage(err, "Không mở được chat với shop"));
+    } finally {
+      setMessaging(false);
+    }
+  };
 
   return (
     <div className={cn("space-y-4", className)}>
@@ -43,6 +74,10 @@ export function ProductDetailActions({
         <Button variant="ai" onClick={onConsult}>
           <Sparkles className="mr-2 h-4 w-4" />
           Tư vấn size & phối đồ bằng AI
+        </Button>
+        <Button variant="outline" onClick={() => void messageShop()} disabled={messaging}>
+          <MessageCircle className="mr-2 h-4 w-4" />
+          Nhắn shop
         </Button>
         {aiTryOnEligible && onTryOn ? (
           <Button variant="outline" onClick={onTryOn}>

@@ -275,6 +275,59 @@ export const adminApi = {
     const res = await apiClient.post(`/admin/consumers/${userId}/fitken/adjust`, data);
     return unwrap(res);
   },
+  getCommunityStats: async (): Promise<{
+    totalPosts: number;
+    postsLast7Days: number;
+    authorsWithPosts: number;
+    totalLikes: number;
+    totalViews: number;
+  }> => {
+    const res = await apiClient.get("/admin/community/stats");
+    return unwrap(res);
+  },
+  listCommunityPosts: async (params?: {
+    visibility?: string;
+    page?: number;
+    size?: number;
+  }): Promise<{ items: Array<Record<string, unknown>>; page: number; size: number; total: number }> => {
+    const res = await apiClient.get("/admin/community/posts", { params });
+    return unwrap(res);
+  },
+  hideCommunityPost: async (postId: string): Promise<void> => {
+    await apiClient.delete(`/admin/community/posts/${postId}`);
+  },
+  unhideCommunityPost: async (postId: string): Promise<void> => {
+    await apiClient.post(`/admin/community/posts/${postId}/unhide`);
+  },
+  listCommunityReports: async (params?: {
+    status?: string;
+    page?: number;
+    size?: number;
+  }): Promise<{
+    items: Array<{
+      id: string;
+      reporterDisplayName?: string;
+      targetType: string;
+      targetId: string;
+      reason: string;
+      detail?: string;
+      status: string;
+      createdAt: string;
+      resolutionNote?: string;
+    }>;
+    page: number;
+    size: number;
+    total: number;
+  }> => {
+    const res = await apiClient.get("/admin/community/reports", { params });
+    return unwrap(res);
+  },
+  resolveCommunityReport: async (
+    reportId: string,
+    body: { status: string; note?: string; hidePost?: boolean },
+  ): Promise<void> => {
+    await apiClient.post(`/admin/community/reports/${reportId}/resolve`, body);
+  },
 };
 
 export interface GalleryStats {

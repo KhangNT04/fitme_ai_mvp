@@ -91,27 +91,35 @@ public class CommunityService {
     public PageResult<CommunityPostDto> feed(UUID viewerId, int page, int size, String brandId, String styleLabel,
                                              String occasion, String sort) {
         int safeSize = Math.min(Math.max(size, 1), 48);
-        PageRequest pageable = PageRequest.of(Math.max(page, 0), safeSize);
         boolean popular = "popular".equalsIgnoreCase(sort);
+        boolean following = "following".equalsIgnoreCase(sort);
+
+        if (following && viewerId == null) {
+            return new PageResult<>(List.of(), Math.max(page, 0), safeSize, 0L);
+        }
 
         List<Object> params = new ArrayList<>();
-        StringBuilder sql = new StringBuilder("select * from community_posts where visibility = 'PUBLIC'");
+        StringBuilder sql = new StringBuilder("select p.* from community_posts p where p.visibility = 'PUBLIC'");
+        if (following) {
+            sql.append(" and exists (select 1 from community_follows f where f.follower_id = ? and f.followed_id = p.user_id)");
+            params.add(viewerId);
+        }
         if (brandId != null && !brandId.isBlank()) {
             // brand_ids is stored wrapped in commas so this LIKE matches whole ids only.
-            sql.append(" and brand_ids like ?");
+            sql.append(" and p.brand_ids like ?");
             params.add("%," + brandId + ",%");
         }
         if (styleLabel != null && !styleLabel.isBlank()) {
-            sql.append(" and lower(style_label) = lower(?)");
+            sql.append(" and lower(p.style_label) = lower(?)");
             params.add(styleLabel.trim());
         }
         if (occasion != null && !occasion.isBlank()) {
-            sql.append(" and lower(occasion) = lower(?)");
+            sql.append(" and lower(p.occasion) = lower(?)");
             params.add(occasion.trim());
         }
         sql.append(popular
-                ? " order by like_count desc, created_at desc"
-                : " order by created_at desc");
+                ? " order by p.like_count desc, p.created_at desc"
+                : " order by p.created_at desc");
         sql.append(" limit ? offset ?");
         params.add(safeSize);
         params.add(Math.max(page, 0) * safeSize);
@@ -121,10 +129,15 @@ public class CommunityService {
                 (rs, rowNum) -> mapPost(rs),
                 params.toArray());
 
-        Long total = jdbcTemplate.queryForObject(
-                "select count(*) from community_posts" + filterClause(brandId, styleLabel, occasion),
-                Long.class,
-                filterParams(brandId, styleLabel, occasion).toArray());
+        List<Object> countParams = new ArrayList<>();
+        StringBuilder countSql = new StringBuilder("select count(*) from community_posts p where p.visibility = 'PUBLIC'");
+        if (following) {
+            countSql.append(" and exists (select 1 from community_follows f where f.follower_id = ? and f.followed_id = p.user_id)");
+            countParams.add(viewerId);
+        }
+        countSql.append(filterClauseAliased(brandId, styleLabel, occasion));
+        countParams.addAll(filterParams(brandId, styleLabel, occasion));
+        Long total = jdbcTemplate.queryForObject(countSql.toString(), Long.class, countParams.toArray());
 
         return new PageResult<>(posts.stream().map(post -> toDto(post, viewerId)).toList(),
                 Math.max(page, 0), safeSize, total == null ? 0L : total);
@@ -280,6 +293,40 @@ public class CommunityService {
             post.setHiddenAt(clock.now());
             postRepository.save(post);
         }
+    }
+
+    /** Admin restores a hidden post to the public feed. */
+    @Transactional
+    public void adminUnhide(UUID postId) {
+        CommunityPost post = postRepository.findById(postId)
+                .orElseThrow(() -> new NotFoundException("Bài đăng không tồn tại"));
+        if (VISIBILITY_REMOVED.equals(post.getVisibility())) {
+            throw new BusinessException("Bài đã bị gỡ bởi tác giả, không thể khôi phục");
+        }
+        post.setVisibility(VISIBILITY_PUBLIC);
+        post.setHiddenAt(null);
+        postRepository.save(post);
+    }
+
+    /** Admin list for moderation queues. */
+    public PageResult<CommunityPostDto> adminList(String visibility, int page, int size) {
+        int safeSize = Math.min(Math.max(size, 1), 48);
+        String vis = visibility == null || visibility.isBlank() ? null : visibility.trim().toUpperCase();
+        List<Object> params = new ArrayList<>();
+        StringBuilder sql = new StringBuilder("select * from community_posts where 1=1");
+        if (vis != null) {
+            sql.append(" and visibility = ?");
+            params.add(vis);
+        }
+        sql.append(" order by created_at desc limit ? offset ?");
+        params.add(safeSize);
+        params.add(Math.max(page, 0) * safeSize);
+        List<CommunityPost> posts = jdbcTemplate.query(sql.toString(), (rs, rowNum) -> mapPost(rs), params.toArray());
+        Long total = vis == null
+                ? jdbcTemplate.queryForObject("select count(*) from community_posts", Long.class)
+                : jdbcTemplate.queryForObject("select count(*) from community_posts where visibility = ?", Long.class, vis);
+        return new PageResult<>(posts.stream().map(post -> toDto(post, null)).toList(),
+                Math.max(page, 0), safeSize, total == null ? 0L : total);
     }
 
     // ── Interactions ───────────────────────────────────────────────────────────────────────────
@@ -552,6 +599,20 @@ public class CommunityService {
     // ── Helpers ────────────────────────────────────────────────────────────────────────────────
 
     /** The WHERE fragment shared by the feed query and its count query. */
+    private static String filterClauseAliased(String brandId, String styleLabel, String occasion) {
+        StringBuilder clause = new StringBuilder();
+        if (brandId != null && !brandId.isBlank()) {
+            clause.append(" and p.brand_ids like ?");
+        }
+        if (styleLabel != null && !styleLabel.isBlank()) {
+            clause.append(" and lower(p.style_label) = lower(?)");
+        }
+        if (occasion != null && !occasion.isBlank()) {
+            clause.append(" and lower(p.occasion) = lower(?)");
+        }
+        return clause.toString();
+    }
+
     private static String filterClause(String brandId, String styleLabel, String occasion) {
         StringBuilder clause = new StringBuilder(" where visibility = 'PUBLIC'");
         if (brandId != null && !brandId.isBlank()) {

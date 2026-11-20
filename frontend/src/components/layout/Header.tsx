@@ -26,6 +26,7 @@ const navLinks = [
   { href: "/try-on", label: "Thử mặc AI" },
   { href: "/wardrobe", label: "Tủ đồ" },
   { href: "/saved-outfits", label: "Đã lưu" },
+  { href: "/messages", label: "Tin nhắn shop" },
   { href: "/rewards", label: "Nhận thưởng" },
 ];
 

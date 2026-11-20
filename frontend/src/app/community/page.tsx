@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { TrendingUp, Clock, FlaskConical } from "lucide-react";
+import { TrendingUp, Clock, FlaskConical, Users } from "lucide-react";
 import { communityApi, nextCommunityPage } from "@/services/community-api";
 import { useAuthStore } from "@/stores/auth-store";
 import { toast } from "@/stores/toast-store";
@@ -27,12 +27,13 @@ import { cn } from "@/lib/utils";
 const SORTS = [
   { value: "latest" as const, label: "Mới nhất", icon: Clock },
   { value: "popular" as const, label: "Được yêu thích", icon: TrendingUp },
+  { value: "following" as const, label: "Đang theo dõi", icon: Users },
 ];
 
 export default function CommunityPage() {
   const queryClient = useQueryClient();
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated());
-  const [sort, setSort] = useState<"latest" | "popular">("latest");
+  const [sort, setSort] = useState<"latest" | "popular" | "following">("latest");
   const [filters, setFilters] = useState<CommunityFeedFilters>({});
   const demoOn = useDemoCommunityEnabled();
   const toggleDemo = useToggleDemoCommunity();
@@ -148,7 +149,21 @@ export default function CommunityPage() {
         ) : isError ? (
           <ErrorState onRetry={() => void queryClient.invalidateQueries({ queryKey: ["community-feed"] })} />
         ) : posts.length === 0 ? (
-          hasActiveFilters ? (
+          sort === "following" && !isAuthenticated ? (
+            <EmptyState
+              title="Đăng nhập để xem người bạn theo dõi"
+              description="Feed “Đang theo dõi” chỉ hiện outfit từ các tác giả bạn follow."
+              actionLabel="Đăng nhập"
+              actionHref="/login?next=/community"
+            />
+          ) : sort === "following" ? (
+            <EmptyState
+              title="Chưa theo dõi ai"
+              description="Vào trang tác giả và bấm Theo dõi — outfit của họ sẽ hiện ở đây."
+              actionLabel="Khám phá cộng đồng"
+              onAction={() => setSort("latest")}
+            />
+          ) : hasActiveFilters ? (
             <EmptyState
               title="Không có outfit nào khớp bộ lọc"
               description="Thử bỏ bớt điều kiện lọc để xem thêm outfit từ cộng đồng."

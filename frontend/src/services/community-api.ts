@@ -57,7 +57,7 @@ export const communityApi = {
       brandId?: string;
       styleLabel?: string;
       occasion?: string;
-      sort?: "latest" | "popular";
+      sort?: "latest" | "popular" | "following";
     },
   ): Promise<CommunityPostPage> => {
     return withDemoFallback(
@@ -68,6 +68,9 @@ export const communityApi = {
         return toPage(unwrap(res) as Partial<CommunityPostPage> | null, page, size);
       },
       () => {
+        if (filters?.sort === "following") {
+          return toPage({ items: [], page, size, total: 0 }, page, size);
+        }
         const sorted = filters?.sort === "popular" ? "popular" : "latest";
         if (sorted === "popular") {
           return demoCommunity.popularFeed(page, size);
@@ -259,5 +262,15 @@ export const communityApi = {
   getNotifications: async (limit = 20): Promise<CommunityCommentNotification[]> => {
     const res = await apiClient.get("/me/community/notifications", { params: { limit } });
     return (unwrap(res) as CommunityCommentNotification[] | null) ?? [];
+  },
+
+  report: async (input: {
+    targetType: "POST" | "COMMENT" | "USER" | "CHAT_MESSAGE";
+    targetId: string;
+    reason: string;
+    detail?: string;
+  }): Promise<void> => {
+    const res = await apiClient.post("/community/reports", input);
+    unwrap(res);
   },
 };

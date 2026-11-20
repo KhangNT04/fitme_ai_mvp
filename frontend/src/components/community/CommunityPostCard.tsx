@@ -2,14 +2,16 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { Heart, Bookmark, MessageCircle, Share2, Check } from "lucide-react";
+import { Heart, Bookmark, MessageCircle, Share2, Check, Flag } from "lucide-react";
 import { IntrinsicImage } from "@/components/common/IntrinsicImage";
 import { CommunityCommentsModal } from "@/components/community/CommunityCommentsModal";
 import { CommunityPostDeleteButton } from "@/components/community/CommunityPostDeleteButton";
 import { CommunityPostEditButton } from "@/components/community/CommunityPostEditButton";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "@/stores/toast-store";
+import { communityApi } from "@/services/community-api";
 import { communityShareCaption, communityShareUrl, shareCommunityPost } from "@/lib/community-share";
+import { getUserErrorMessage } from "@/lib/user-error-message";
 import { cn } from "@/lib/utils";
 import type { CommunityPost } from "@/types";
 
@@ -32,6 +34,25 @@ export function CommunityPostCard({
 }) {
   const [commentsOpen, setCommentsOpen] = useState(false);
   const [shareState, setShareState] = useState<"idle" | "copied" | "failed">("idle");
+  const [reporting, setReporting] = useState(false);
+
+  const handleReport = async () => {
+    if (!canInteract || post.mine || reporting) return;
+    setReporting(true);
+    try {
+      await communityApi.report({
+        targetType: "POST",
+        targetId: post.id,
+        reason: "OTHER",
+        detail: "Báo cáo từ feed cộng đồng",
+      });
+      toast.success("Đã gửi báo cáo. Admin sẽ xem xét.");
+    } catch (err) {
+      toast.error(getUserErrorMessage(err, "Không gửi được báo cáo"));
+    } finally {
+      setReporting(false);
+    }
+  };
 
   const handleShare = async () => {
     const url = communityShareUrl(post.shareCode);
@@ -184,6 +205,17 @@ export function CommunityPostCard({
         >
           <Bookmark className={cn("h-4 w-4", post.savedByMe && "fill-current")} aria-hidden="true" />
         </button>
+        {!post.mine && !isDemo && (
+          <button
+            type="button"
+            aria-label="Báo cáo"
+            disabled={!canInteract || reporting}
+            onClick={() => void handleReport()}
+            className="inline-flex min-h-9 w-9 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-muted hover:text-foreground disabled:opacity-50"
+          >
+            <Flag className="h-4 w-4" aria-hidden="true" />
+          </button>
+        )}
       </div>
 
       {commentsOpen && (

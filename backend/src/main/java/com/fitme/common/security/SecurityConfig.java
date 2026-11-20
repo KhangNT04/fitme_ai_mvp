@@ -75,6 +75,7 @@ public class SecurityConfig {
                                 "/api/v1/me/email", "/api/v1/me/email/**",
                                 "/api/v1/me/account-deletion", "/api/v1/me/account-deletion/**",
                                 "/api/v1/me/community/**",
+                                "/api/v1/me/shop-chat/**",
                                 "/api/v1/me/2fa", "/api/v1/me/2fa/**",
                                 "/api/v1/me/brand-preferences", "/api/v1/me/brand-preferences/**").authenticated()
                         .requestMatchers("/api/v1/me/**").permitAll()

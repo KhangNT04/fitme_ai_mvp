@@ -40,7 +40,8 @@ export function useScrollCompact(enabled = true) {
     if (!enabled) return;
 
     const update = () => {
-      setScrolledPast(window.scrollY + MAIN_NAV_OFFSET_PX >= expandedBottomRef.current);
+      const next = window.scrollY + MAIN_NAV_OFFSET_PX >= expandedBottomRef.current;
+      setScrolledPast((prev) => (prev === next ? prev : next));
     };
 
     update();

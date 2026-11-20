@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { memo, useState } from "react";
 import { AppImage } from "@/components/common/AppImage";
 import { BrandPlusBadge } from "@/components/common/BrandPlusBadge";
 import { Sparkles } from "lucide-react";
@@ -48,7 +48,7 @@ const imageSizeClass: Record<"default" | "compact" | "catalog", string> = {
   catalog: "aspect-[4/5]",
 };
 
-export function ProductCard({
+export const ProductCard = memo(function ProductCard({
   product,
   showTryOn = true,
   href,
@@ -66,8 +66,8 @@ export function ProductCard({
   const productHref = href ?? productDetailHref(product.id, detailContext);
   const [hovered, setHovered] = useState(false);
   const imageUrl = product.images[0] || "/placeholder-product.svg";
-  const hoverUrl = product.images[1] || imageUrl;
-  const displayUrl = hovered && product.images.length > 1 ? hoverUrl : imageUrl;
+  const hoverUrl = product.images[1];
+  const hasHoverSwap = Boolean(hoverUrl && hoverUrl !== imageUrl);
   const loadEager = imagePriority || imageEager;
 
   return (
@@ -88,14 +88,17 @@ export function ProductCard({
           onMouseLeave={() => setHovered(false)}
         >
           <AppImage
-            src={displayUrl}
+            src={imageUrl}
             alt={product.name}
             fill
             priority={imagePriority}
             fetchPriority={imagePriority ? "high" : loadEager ? "auto" : "low"}
             loading={loadEager ? "eager" : "lazy"}
             decoding="async"
-            className="object-cover transition-transform duration-500 ease-out group-hover:scale-105"
+            className={cn(
+              "object-cover transition-[opacity,transform] duration-500 ease-out group-hover:scale-105",
+              hasHoverSwap && hovered ? "opacity-0" : "opacity-100",
+            )}
             sizes={
               cardSize === "catalog"
                 ? "240px"
@@ -104,6 +107,28 @@ export function ProductCard({
                   : "(max-width: 768px) 100vw, 33vw"
             }
           />
+          {hasHoverSwap ? (
+            <AppImage
+              src={hoverUrl}
+              alt=""
+              fill
+              aria-hidden="true"
+              loading="lazy"
+              decoding="async"
+              fetchPriority="low"
+              className={cn(
+                "object-cover transition-[opacity,transform] duration-500 ease-out group-hover:scale-105",
+                hovered ? "opacity-100" : "opacity-0",
+              )}
+              sizes={
+                cardSize === "catalog"
+                  ? "240px"
+                  : cardSize === "compact"
+                    ? "(max-width: 768px) 50vw, 25vw"
+                    : "(max-width: 768px) 100vw, 33vw"
+              }
+            />
+          ) : null}
           <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent opacity-50" />
           {imageBadge}
           {product.aiTryOnEligible && !imageBadge && (
@@ -255,4 +280,4 @@ export function ProductCard({
       </CardContent>
     </Card>
   );
-}
+});

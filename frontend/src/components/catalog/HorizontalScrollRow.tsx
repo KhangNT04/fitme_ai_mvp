@@ -35,7 +35,10 @@ export function HorizontalScrollRow({
   const syncEdges = useCallback(() => {
     const el = scrollerRef.current;
     if (!el) return;
-    setEdges(measureEdges(el));
+    const next = measureEdges(el);
+    setEdges((prev) =>
+      prev.left === next.left && prev.right === next.right ? prev : next,
+    );
   }, []);
 
   useLayoutEffect(() => {
@@ -46,13 +49,17 @@ export function HorizontalScrollRow({
     el.addEventListener("scroll", onScroll, { passive: true });
     const ro = new ResizeObserver(syncEdges);
     ro.observe(el);
+    // Child list size changes (filter/selection) also change scrollWidth.
+    const mo = new MutationObserver(syncEdges);
+    mo.observe(el, { childList: true, subtree: true });
     window.addEventListener("resize", syncEdges);
     return () => {
       el.removeEventListener("scroll", onScroll);
       ro.disconnect();
+      mo.disconnect();
       window.removeEventListener("resize", syncEdges);
     };
-  }, [syncEdges, children]);
+  }, [syncEdges]);
 
   const scrollByPage = (dir: -1 | 1) => {
     const el = scrollerRef.current;

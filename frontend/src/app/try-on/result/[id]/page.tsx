@@ -106,6 +106,8 @@ export default function TryOnResultPage({
                 src={data.previewImageUrl}
                 alt="Try-on preview"
                 fill
+                priority
+                fetchPriority="high"
                 className="object-contain"
                 unoptimized
               />

@@ -3,8 +3,17 @@ import type { Product } from "@/types/product";
 /** Max products shown per brand row on Discover (newest first). */
 export const DISCOVER_PRODUCTS_PER_BRAND = 10;
 
-/** Brands per Discover page — each page eager-loads all preview images for those brands. */
+/** Brands per Discover page — each page only mounts this many brand rows. */
 export const DISCOVER_BRANDS_PER_PAGE = 10;
+
+/** Max AI-eligible products per brand row on Try-on hub. */
+export const TRYON_PRODUCTS_PER_BRAND = 10;
+
+/** Brands per Try-on hub page — keeps DOM/image budget similar to Discover. */
+export const TRYON_BRANDS_PER_PAGE = 10;
+
+/** First N brand rows on a page get eager image loads (LCP); the rest stay lazy. */
+export const CATALOG_EAGER_BRAND_ROWS = 2;
 
 export function groupProductsByBrand(items: Product[]): Map<string, Product[]> {
   const groups = new Map<string, Product[]>();

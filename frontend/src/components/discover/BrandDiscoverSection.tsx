@@ -1,5 +1,6 @@
 "use client";
 
+import { memo } from "react";
 import { ProductCard } from "@/components/common/ProductCard";
 import { BrandProductRowSection } from "@/components/catalog/BrandProductRowSection";
 import { discoverBrandPath } from "@/lib/discover-brand";
@@ -12,15 +13,15 @@ interface BrandDiscoverSectionProps {
   /** Full brand catalog size when `products` is the newest preview. */
   totalCount?: number;
   /**
-   * Load every card image on this page immediately (Discover brand pages).
-   * `priority` still marks the first few above-the-fold cards for LCP.
+   * Eager-load card images for above-the-fold brand rows.
+   * `priority` still marks the first few cards for LCP.
    */
   loadAllImages?: boolean;
   /** Row index within the current page — used for LCP priority. */
   rowIndex?: number;
 }
 
-export function BrandDiscoverSection({
+export const BrandDiscoverSection = memo(function BrandDiscoverSection({
   brand,
   products,
   totalCount,
@@ -43,4 +44,4 @@ export function BrandDiscoverSection({
       )}
     />
   );
-}
+});

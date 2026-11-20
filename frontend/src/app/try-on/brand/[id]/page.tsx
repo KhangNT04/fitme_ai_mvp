@@ -3,7 +3,7 @@
 import Image from "next/image";
 import { useMemo, useState } from "react";
 import { useParams } from "next/navigation";
-import { useQuery } from "@tanstack/react-query";
+import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { productApi } from "@/services/product-api";
 import { publicBrandApi } from "@/services/brand-api";
 import { Input } from "@/components/ui/input";
@@ -18,6 +18,7 @@ import { TRYON_FLOW_STEPS } from "@/components/layout/FlowStepper";
 import { TryOnSelectionBar } from "@/components/tryon/TryOnSelectionBar";
 import { catalogProductGridClass, consumerPageShellClass } from "@/lib/design-tokens";
 import { useTryOnAddItem } from "@/hooks/use-tryon-add-item";
+import { useDebouncedValue } from "@/hooks/use-debounced-value";
 import { useTryOnStore } from "@/stores/tryon-store";
 import { productToTryOnItem } from "@/lib/tryon-product";
 
@@ -31,6 +32,7 @@ export default function TryOnBrandPage() {
     [selectedItems],
   );
   const [search, setSearch] = useState("");
+  const debouncedSearch = useDebouncedValue(search, 300);
 
   const {
     data: brand,
@@ -43,15 +45,17 @@ export default function TryOnBrandPage() {
     enabled: !!brandId,
   });
 
-  const { data, isLoading: productsLoading, error: productsError, refetch: refetchProducts } = useQuery({
-    queryKey: ["products", "tryon", "brand", brandId, search],
+  const { data, isLoading: productsLoading, isFetching: productsFetching, error: productsError, refetch: refetchProducts } = useQuery({
+    queryKey: ["products", "tryon", "brand", brandId, debouncedSearch],
     queryFn: () =>
       productApi.list({
         brandId,
-        search: search || undefined,
+        search: debouncedSearch || undefined,
         aiTryOnEligible: true,
       }),
     enabled: !!brandId,
+    placeholderData: keepPreviousData,
+    staleTime: 60_000,
   });
 
   const isLoading = brandLoading || productsLoading;
@@ -111,8 +115,8 @@ export default function TryOnBrandPage() {
       )}
 
       <div>
-        {isLoading && <LoadingSkeleton />}
-        {error && <ErrorState onRetry={() => refetch()} />}
+        {isLoading && !data && <LoadingSkeleton />}
+        {error && !data && <ErrorState onRetry={() => refetch()} />}
         {data && data.items.length === 0 && (
           <EmptyState
             title="Không có sản phẩm thử AI"
@@ -120,14 +124,22 @@ export default function TryOnBrandPage() {
           />
         )}
         {data && data.items.length > 0 && (
-          <div className={catalogProductGridClass}>
-            {data.items.map((p) => (
+          <div
+            className={
+              productsFetching && !productsLoading
+                ? `${catalogProductGridClass} opacity-70 transition-opacity duration-200`
+                : catalogProductGridClass
+            }
+          >
+            {data.items.map((p, index) => (
               <ProductCard
                 key={p.id}
                 product={p}
                 showTryOn={false}
                 size="catalog"
                 detailContext="tryon"
+                imagePriority={index < 8}
+                imageEager={index < 8}
                 tryOnPicker={{
                   selected: selectedProductIds.has(p.id),
                   onSelect: () => addItem(productToTryOnItem(p)),

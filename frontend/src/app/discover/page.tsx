@@ -18,8 +18,8 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { ChevronLeft, ChevronRight, SlidersHorizontal, Users } from "lucide-react";
+import dynamic from "next/dynamic";
 import { BrandDiscoverSection } from "@/components/discover/BrandDiscoverSection";
-import { QuickShareDialog } from "@/components/community/QuickShareDialog";
 import { LoadingSkeleton } from "@/components/common/LoadingSkeleton";
 import { EmptyState } from "@/components/common/EmptyState";
 import { ErrorState } from "@/components/common/ErrorState";
@@ -37,19 +37,28 @@ import {
 import { categoryFilterLabel } from "@/lib/product-category";
 import { discoverBrandPath } from "@/lib/discover-brand";
 import {
+  CATALOG_EAGER_BRAND_ROWS,
   DISCOVER_BRANDS_PER_PAGE,
   DISCOVER_PRODUCTS_PER_BRAND,
   groupNewestProductsByBrand,
 } from "@/lib/group-products-by-brand";
 import { prefetchImages } from "@/lib/prefetch-images";
+import { useDebouncedValue } from "@/hooks/use-debounced-value";
 import { cn } from "@/lib/utils";
 
 const ALL_BRANDS = "all";
 const ALL_CATEGORIES = "all";
 
+const QuickShareDialog = dynamic(
+  () =>
+    import("@/components/community/QuickShareDialog").then((m) => m.QuickShareDialog),
+  { ssr: false },
+);
+
 export default function DiscoverPage() {
   const router = useRouter();
   const [search, setSearch] = useState("");
+  const debouncedSearch = useDebouncedValue(search, 300);
   const [category, setCategory] = useState(ALL_CATEGORIES);
   const [aiOnly, setAiOnly] = useState(false);
   const [brandPage, setBrandPage] = useState(0);
@@ -78,10 +87,10 @@ export default function DiscoverPage() {
   const brandMap = useMemo(() => new Map(brands.map((b) => [b.id, b])), [brands]);
 
   const { data, isLoading, isFetching, error, refetch } = useQuery({
-    queryKey: ["products", "discover", search, category, aiOnly, DISCOVER_PRODUCTS_PER_BRAND],
+    queryKey: ["products", "discover", debouncedSearch, category, aiOnly, DISCOVER_PRODUCTS_PER_BRAND],
     queryFn: () =>
       productApi.list({
-        search: search || undefined,
+        search: debouncedSearch || undefined,
         category: category !== ALL_CATEGORIES ? category : undefined,
         aiTryOnEligible: aiOnly || undefined,
         limitPerBrand: DISCOVER_PRODUCTS_PER_BRAND,
@@ -116,16 +125,16 @@ export default function DiscoverPage() {
   // Reset to first brand page when filters change the result set.
   useEffect(() => {
     setBrandPage(0);
-  }, [search, category, aiOnly]);
+  }, [debouncedSearch, category, aiOnly]);
 
-  // Eager-load every preview image for the brands on this page.
+  // Warm only above-the-fold previews so LCP isn't fighting the full page catalog.
   useEffect(() => {
     if (pagedBrandGroups.length === 0) return;
     prefetchImages(
-      pagedBrandGroups.flatMap(([, preview]) =>
-        preview.products.flatMap((p) => p.images.slice(0, 2)),
-      ),
-      8,
+      pagedBrandGroups
+        .slice(0, CATALOG_EAGER_BRAND_ROWS)
+        .flatMap(([, preview]) => preview.products.flatMap((p) => p.images.slice(0, 1))),
+      6,
     );
   }, [pagedBrandGroups]);
 
@@ -362,7 +371,7 @@ export default function DiscoverPage() {
                 brand={brandMap.get(id)}
                 products={preview.products}
                 totalCount={preview.total}
-                loadAllImages
+                loadAllImages={rowIndex < CATALOG_EAGER_BRAND_ROWS}
                 rowIndex={rowIndex}
               />
             ))}

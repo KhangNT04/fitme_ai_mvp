@@ -3,9 +3,10 @@
 import Image from "next/image";
 import { useMemo, useState } from "react";
 import { useParams } from "next/navigation";
-import { useQuery } from "@tanstack/react-query";
+import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { productApi } from "@/services/product-api";
 import { publicBrandApi } from "@/services/brand-api";
+import { useDebouncedValue } from "@/hooks/use-debounced-value";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { BrandPlusBadge } from "@/components/common/BrandPlusBadge";
@@ -28,6 +29,7 @@ export default function DiscoverBrandPage() {
   const brandId = params.id;
 
   const [search, setSearch] = useState("");
+  const debouncedSearch = useDebouncedValue(search, 300);
   const [category, setCategory] = useState(ALL_CATEGORIES);
   const [aiOnly, setAiOnly] = useState(false);
 
@@ -42,16 +44,18 @@ export default function DiscoverBrandPage() {
     enabled: !!brandId,
   });
 
-  const { data: rawData, isLoading: productsLoading, error: productsError, refetch: refetchProducts } =
+  const { data: rawData, isLoading: productsLoading, isFetching: productsFetching, error: productsError, refetch: refetchProducts } =
     useQuery({
-      queryKey: ["products", "brand", brandId, search, aiOnly],
+      queryKey: ["products", "brand", brandId, debouncedSearch, aiOnly],
       queryFn: () =>
         productApi.list({
           brandId,
-          search: search || undefined,
+          search: debouncedSearch || undefined,
           aiTryOnEligible: aiOnly || undefined,
         }),
       enabled: !!brandId,
+      placeholderData: keepPreviousData,
+      staleTime: 60_000,
     });
 
   const data = useMemo(() => {
@@ -158,8 +162,8 @@ export default function DiscoverBrandPage() {
       )}
 
       <div>
-        {isLoading && <LoadingSkeleton />}
-        {error && <ErrorState onRetry={() => refetch()} />}
+        {isLoading && !data && <LoadingSkeleton />}
+        {error && !data && <ErrorState onRetry={() => refetch()} />}
         {data && data.items.length === 0 && (
           <EmptyState
             title="Không tìm thấy sản phẩm"
@@ -167,9 +171,21 @@ export default function DiscoverBrandPage() {
           />
         )}
         {data && data.items.length > 0 && (
-          <div className={catalogProductGridClass}>
-            {data.items.map((p) => (
-              <ProductCard key={p.id} product={p} size="catalog" />
+          <div
+            className={
+              productsFetching && !productsLoading
+                ? `${catalogProductGridClass} opacity-70 transition-opacity duration-200`
+                : catalogProductGridClass
+            }
+          >
+            {data.items.map((p, index) => (
+              <ProductCard
+                key={p.id}
+                product={p}
+                size="catalog"
+                imagePriority={index < 8}
+                imageEager={index < 8}
+              />
             ))}
           </div>
         )}

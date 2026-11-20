@@ -69,7 +69,7 @@ export function ProductCard({
   return (
     <Card
       className={cn(
-        "product-card-luxe group overflow-hidden border-border/50 bg-white",
+        "product-card-luxe group overflow-hidden border-black/[0.08] bg-white shadow-[0_1px_2px_rgba(15,14,20,0.04),0_4px_14px_rgba(15,14,20,0.06)]",
         (cardSize === "compact" || cardSize === "catalog") && "rounded-xl",
         tryOnPicker?.selected && "ring-2 ring-primary ring-offset-2",
       )}

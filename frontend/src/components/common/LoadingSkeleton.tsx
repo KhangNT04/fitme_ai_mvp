@@ -32,10 +32,12 @@ function BrandRowsSkeleton({ rows = 3, cardsPerRow = 5, className }: {
           <div className={catalogProductRowClass}>
             {Array.from({ length: cardsPerRow }).map((__, card) => (
               <div key={card} className={catalogProductRowItemClass}>
-                <div className="space-y-2">
-                  <Skeleton className="aspect-[4/5] w-full rounded-xl" />
-                  <Skeleton className="h-3 w-3/4" />
-                  <Skeleton className="h-3 w-1/2" />
+                <div className="overflow-hidden rounded-xl border border-black/[0.08] bg-white p-0 shadow-[0_1px_2px_rgba(15,14,20,0.04),0_4px_14px_rgba(15,14,20,0.06)]">
+                  <Skeleton className="aspect-[4/5] w-full rounded-none" />
+                  <div className="space-y-2 p-2">
+                    <Skeleton className="h-3 w-3/4" />
+                    <Skeleton className="h-3 w-1/2" />
+                  </div>
                 </div>
               </div>
             ))}

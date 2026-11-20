@@ -11,16 +11,29 @@ interface BrandDiscoverSectionProps {
   products: Product[];
   /** Full brand catalog size when `products` is the newest preview. */
   totalCount?: number;
+  /** Eager-load the first few card images (above-the-fold rows). */
+  prioritizeImages?: boolean;
 }
 
-export function BrandDiscoverSection({ brand, products, totalCount }: BrandDiscoverSectionProps) {
+export function BrandDiscoverSection({
+  brand,
+  products,
+  totalCount,
+  prioritizeImages = false,
+}: BrandDiscoverSectionProps) {
   return (
     <BrandProductRowSection
       brand={brand}
       products={products}
       totalCount={totalCount}
       getBrandHref={discoverBrandPath}
-      renderProduct={(p) => <ProductCard product={p} size="catalog" />}
+      renderProduct={(p, index) => (
+        <ProductCard
+          product={p}
+          size="catalog"
+          imagePriority={prioritizeImages && index < 4}
+        />
+      )}
     />
   );
 }

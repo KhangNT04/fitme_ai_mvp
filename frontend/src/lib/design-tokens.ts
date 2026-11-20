@@ -30,9 +30,9 @@ export const sectionTitle = "font-display text-xl font-semibold text-foreground"
 /** Shared product grid — 2 cols mobile, 4 cols from md (discover expanded brand, try-on, …) */
 export const catalogProductGridClass =
   "grid grid-cols-2 gap-2 sm:gap-3 md:grid-cols-4 md:gap-4";
-/** Horizontal product row — one brand per row on discover */
+/** Horizontal product row — one brand per row on discover (scrollbar hidden; still scrollable). */
 export const catalogProductRowClass =
-  "flex gap-2.5 overflow-x-auto overscroll-x-contain pb-1 snap-x snap-mandatory sm:gap-3 [scrollbar-width:thin]";
+  "flex gap-2.5 overflow-x-auto overscroll-x-contain pb-0.5 snap-x snap-mandatory sm:gap-3 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden";
 export const catalogProductRowItemClass =
   "w-[10.75rem] shrink-0 snap-start sm:w-48 md:w-[14.25rem] lg:w-[15rem]";
 

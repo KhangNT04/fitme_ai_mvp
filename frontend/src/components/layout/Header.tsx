@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { Sparkles, Search, Bookmark, Home, LogOut, Coins } from "lucide-react";
+import { Sparkles, Search, Bookmark, Home, LogOut, Coins, MessageCircle } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { fitkenApi } from "@/services/fitken-api";
 import { Button } from "@/components/ui/button";
@@ -26,7 +26,6 @@ const navLinks = [
   { href: "/try-on", label: "Thử mặc AI" },
   { href: "/wardrobe", label: "Tủ đồ" },
   { href: "/saved-outfits", label: "Đã lưu" },
-  { href: "/messages", label: "Tin nhắn shop" },
   { href: "/rewards", label: "Nhận thưởng" },
 ];
 
@@ -53,6 +52,26 @@ function NavQuickSaved({ className }: { className?: string }) {
       title="Đã lưu"
     >
       <Bookmark className="h-[18px] w-[18px]" aria-hidden="true" />
+    </NavScrollLink>
+  );
+}
+
+function NavQuickMessages({ className }: { className?: string }) {
+  const pathname = usePathname() ?? "/";
+  const active = pathname === "/messages" || pathname.startsWith("/messages/");
+
+  return (
+    <NavScrollLink
+      href="/messages"
+      className={cn(
+        navIconButtonClass,
+        active && "bg-primary/10 text-primary hover:bg-primary/15 hover:text-primary",
+        className,
+      )}
+      aria-label="Tin nhắn shop"
+      title="Tin nhắn shop"
+    >
+      <MessageCircle className="h-[18px] w-[18px]" aria-hidden="true" />
     </NavScrollLink>
   );
 }
@@ -179,6 +198,7 @@ export function Header() {
 
         <div className="hidden items-center gap-2 md:flex">
           <NavQuickSearch />
+          <NavQuickMessages />
           {isAuthed ? (
             <>
               <NotificationBell />
@@ -204,6 +224,7 @@ export function Header() {
 
         {compactMobile ? (
           <div className="flex items-center gap-0.5 md:hidden">
+            <NavQuickMessages />
             <NavQuickSaved />
             <NavQuickSearch />
           </div>

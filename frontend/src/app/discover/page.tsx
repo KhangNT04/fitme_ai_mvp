@@ -1,9 +1,9 @@
 "use client";
 
-import { useMemo, useState, useEffect, useRef, useCallback, startTransition } from "react";
+import { useMemo, useState, useEffect, useRef, useCallback } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useQuery } from "@tanstack/react-query";
+import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { productApi } from "@/services/product-api";
 import { publicBrandApi } from "@/services/brand-api";
 import { Input } from "@/components/ui/input";
@@ -74,7 +74,7 @@ export default function DiscoverPage() {
 
   const brandMap = useMemo(() => new Map(brands.map((b) => [b.id, b])), [brands]);
 
-  const { data, isLoading, error, refetch } = useQuery({
+  const { data, isLoading, isFetching, error, refetch } = useQuery({
     queryKey: ["products", "discover", search, category, aiOnly, DISCOVER_PRODUCTS_PER_BRAND],
     queryFn: () =>
       productApi.list({
@@ -83,6 +83,8 @@ export default function DiscoverPage() {
         aiTryOnEligible: aiOnly || undefined,
         limitPerBrand: DISCOVER_PRODUCTS_PER_BRAND,
       }),
+    placeholderData: keepPreviousData,
+    staleTime: 60_000,
   });
 
   const groupedByBrand = useMemo(() => {
@@ -99,18 +101,6 @@ export default function DiscoverPage() {
       return nameA.localeCompare(nameB, "vi");
     });
   }, [groupedByBrand, brandMap]);
-
-  // Paint the first few brand rows first so Discover feels responsive on slow networks.
-  const INITIAL_BRAND_ROWS = 3;
-  const [visibleBrandRows, setVisibleBrandRows] = useState(INITIAL_BRAND_ROWS);
-  useEffect(() => {
-    setVisibleBrandRows(INITIAL_BRAND_ROWS);
-    if (sortedBrandGroups.length <= INITIAL_BRAND_ROWS) return;
-    const id = window.setTimeout(() => {
-      startTransition(() => setVisibleBrandRows(sortedBrandGroups.length));
-    }, 50);
-    return () => window.clearTimeout(id);
-  }, [sortedBrandGroups]);
 
   const goToBrand = useCallback(
     (id: string) => {
@@ -321,8 +311,8 @@ export default function DiscoverPage() {
       </div>
 
       <div>
-        {isLoading && <LoadingSkeleton />}
-        {error && <ErrorState onRetry={() => refetch()} />}
+        {isLoading && <LoadingSkeleton type="brand-rows" count={3} />}
+        {error && !data && <ErrorState onRetry={() => refetch()} />}
         {data && data.items.length === 0 && (
           <EmptyState
             title="Không tìm thấy sản phẩm"
@@ -330,13 +320,16 @@ export default function DiscoverPage() {
           />
         )}
         {sortedBrandGroups.length > 0 && (
-          <div className="space-y-10">
-            {sortedBrandGroups.slice(0, visibleBrandRows).map(([id, preview]) => (
+          <div
+            className={cn("space-y-10 transition-opacity duration-200", isFetching && !isLoading && "opacity-70")}
+          >
+            {sortedBrandGroups.map(([id, preview], rowIndex) => (
               <BrandDiscoverSection
                 key={id}
                 brand={brandMap.get(id)}
                 products={preview.products}
                 totalCount={preview.total}
+                prioritizeImages={rowIndex < 2}
               />
             ))}
           </div>

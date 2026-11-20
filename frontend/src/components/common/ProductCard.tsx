@@ -36,6 +36,8 @@ interface ProductCardProps {
     selected: boolean;
     onSelect: () => void;
   };
+  /** LCP / above-the-fold images on Discover first rows. */
+  imagePriority?: boolean;
 }
 
 const imageSizeClass: Record<"default" | "compact" | "catalog", string> = {
@@ -55,6 +57,7 @@ export function ProductCard({
   compact = false,
   detailContext,
   tryOnPicker,
+  imagePriority = false,
 }: ProductCardProps) {
   const cardSize = size ?? (compact ? "compact" : "default");
   const productHref = href ?? productDetailHref(product.id, detailContext);
@@ -74,7 +77,7 @@ export function ProductCard({
       <Link href={productHref} className="block w-full">
         <div
           className={cn(
-            "relative w-full overflow-hidden bg-muted",
+            "relative w-full overflow-hidden bg-muted/60",
             imageSizeClass[cardSize]
           )}
           onMouseEnter={() => setHovered(true)}
@@ -84,7 +87,8 @@ export function ProductCard({
             src={displayUrl}
             alt={product.name}
             fill
-            loading="lazy"
+            priority={imagePriority}
+            loading={imagePriority ? "eager" : "lazy"}
             decoding="async"
             className="object-cover transition-transform duration-500 ease-out group-hover:scale-105"
             sizes={

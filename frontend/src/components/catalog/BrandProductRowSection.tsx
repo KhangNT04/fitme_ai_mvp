@@ -14,7 +14,7 @@ export interface BrandProductRowSectionProps {
   /** Full catalog size for this brand when `products` is a newest preview slice. */
   totalCount?: number;
   getBrandHref: (brandId: string) => string;
-  renderProduct: (product: Product) => ReactNode;
+  renderProduct: (product: Product, index: number) => ReactNode;
 }
 
 function brandCountLabel(shown: number, total?: number): string {
@@ -96,9 +96,9 @@ export function BrandProductRowSection({
         className={catalogProductRowClass}
         aria-label={`Sản phẩm ${brand?.name ?? "thương hiệu"}`}
       >
-        {products.map((p) => (
+        {products.map((p, index) => (
           <div key={p.id} className={catalogProductRowItemClass}>
-            {renderProduct(p)}
+            {renderProduct(p, index)}
           </div>
         ))}
       </div>

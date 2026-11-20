@@ -40,6 +40,7 @@ import {
   DISCOVER_PRODUCTS_PER_BRAND,
   groupNewestProductsByBrand,
 } from "@/lib/group-products-by-brand";
+import { prefetchImages } from "@/lib/prefetch-images";
 import { cn } from "@/lib/utils";
 
 const ALL_BRANDS = "all";
@@ -101,6 +102,15 @@ export default function DiscoverPage() {
       return nameA.localeCompare(nameB, "vi");
     });
   }, [groupedByBrand, brandMap]);
+
+  // Warm image cache after list arrives so vertical/horizontal scroll hits cache, not network.
+  useEffect(() => {
+    if (!data?.items.length) return;
+    prefetchImages(
+      data.items.flatMap((p) => p.images.slice(0, 2)),
+      6,
+    );
+  }, [data]);
 
   const goToBrand = useCallback(
     (id: string) => {
@@ -329,7 +339,7 @@ export default function DiscoverPage() {
                 brand={brandMap.get(id)}
                 products={preview.products}
                 totalCount={preview.total}
-                prioritizeImages={rowIndex < 2}
+                prioritizeImages={rowIndex < 3}
               />
             ))}
           </div>

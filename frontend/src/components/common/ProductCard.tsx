@@ -38,6 +38,8 @@ interface ProductCardProps {
   };
   /** LCP / above-the-fold images on Discover first rows. */
   imagePriority?: boolean;
+  /** Load immediately (no native lazy) — used when the brand row is near the viewport. */
+  imageEager?: boolean;
 }
 
 const imageSizeClass: Record<"default" | "compact" | "catalog", string> = {
@@ -58,6 +60,7 @@ export function ProductCard({
   detailContext,
   tryOnPicker,
   imagePriority = false,
+  imageEager = false,
 }: ProductCardProps) {
   const cardSize = size ?? (compact ? "compact" : "default");
   const productHref = href ?? productDetailHref(product.id, detailContext);
@@ -65,6 +68,7 @@ export function ProductCard({
   const imageUrl = product.images[0] || "/placeholder-product.svg";
   const hoverUrl = product.images[1] || imageUrl;
   const displayUrl = hovered && product.images.length > 1 ? hoverUrl : imageUrl;
+  const loadEager = imagePriority || imageEager;
 
   return (
     <Card
@@ -88,7 +92,8 @@ export function ProductCard({
             alt={product.name}
             fill
             priority={imagePriority}
-            loading={imagePriority ? "eager" : "lazy"}
+            fetchPriority={imagePriority ? "high" : loadEager ? "auto" : "low"}
+            loading={loadEager ? "eager" : "lazy"}
             decoding="async"
             className="object-cover transition-transform duration-500 ease-out group-hover:scale-105"
             sizes={

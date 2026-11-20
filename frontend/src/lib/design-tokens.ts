@@ -33,8 +33,9 @@ export const catalogProductGridClass =
 /** Horizontal product row — one brand per row on discover (scrollbar hidden; still scrollable). */
 export const catalogProductRowClass =
   "flex gap-2.5 overflow-x-auto overscroll-x-contain pb-0.5 snap-x snap-mandatory sm:gap-3 [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden";
+/** Sized so ~3.5–4.2 cards fit a typical viewport — next card peeks as a scroll cue. */
 export const catalogProductRowItemClass =
-  "w-[10.75rem] shrink-0 snap-start sm:w-48 md:w-[14.25rem] lg:w-[15rem]";
+  "w-[11.5rem] shrink-0 snap-start sm:w-[13.5rem] md:w-[15.5rem] lg:w-[17rem]";
 
 /**
  * AI stylist chat — shared outer shell for a *group* of outfit boards, used by both the

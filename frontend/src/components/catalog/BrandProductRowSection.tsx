@@ -3,7 +3,9 @@
 import Image from "next/image";
 import Link from "next/link";
 import type { ReactNode } from "react";
-import { catalogProductRowClass, catalogProductRowItemClass } from "@/lib/design-tokens";
+import { ChevronRight } from "lucide-react";
+import { HorizontalScrollRow } from "@/components/catalog/HorizontalScrollRow";
+import { catalogProductRowItemClass } from "@/lib/design-tokens";
 import { cn } from "@/lib/utils";
 import type { Brand } from "@/types/brand";
 import type { Product } from "@/types/product";
@@ -56,6 +58,8 @@ function BrandSectionHeader({
     </>
   );
 
+  const showScrollHint = shownCount > 3;
+
   return (
     <div className="mb-2 flex items-center justify-between gap-2 border-b border-border/40 pb-1.5 sm:mb-2.5 sm:pb-2">
       {href ? (
@@ -72,7 +76,12 @@ function BrandSectionHeader({
       ) : (
         <div className="flex min-w-0 items-center gap-2 px-1 py-0.5">{inner}</div>
       )}
-      <p className="hidden shrink-0 text-[10px] text-muted-foreground sm:block sm:text-xs">Lướt ngang</p>
+      {showScrollHint ? (
+        <span className="inline-flex shrink-0 items-center gap-0.5 rounded-full border border-border/60 bg-white/80 px-2 py-0.5 text-[10px] font-medium text-muted-foreground shadow-sm sm:text-xs">
+          Lướt ngang
+          <ChevronRight className="size-3 opacity-70" aria-hidden="true" />
+        </span>
+      ) : null}
     </div>
   );
 }
@@ -92,16 +101,13 @@ export function BrandProductRowSection({
         totalCount={totalCount}
         getBrandHref={getBrandHref}
       />
-      <div
-        className={catalogProductRowClass}
-        aria-label={`Sản phẩm ${brand?.name ?? "thương hiệu"}`}
-      >
+      <HorizontalScrollRow ariaLabel={`Sản phẩm ${brand?.name ?? "thương hiệu"}`}>
         {products.map((p, index) => (
           <div key={p.id} className={catalogProductRowItemClass}>
             {renderProduct(p, index)}
           </div>
         ))}
-      </div>
+      </HorizontalScrollRow>
     </section>
   );
 }

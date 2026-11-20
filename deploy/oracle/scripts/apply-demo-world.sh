@@ -17,8 +17,8 @@ if [[ ! -f "$ENV_FILE" ]]; then
   exit 1
 fi
 
-if [[ -z "${DEMO_BCRYPT_HASH:-}" || "${DEMO_BCRYPT_HASH:0:3}" != '$2' ]]; then
-  echo "ERROR: set DEMO_BCRYPT_HASH to a bcrypt hash" >&2
+if [[ -z "${DEMO_BCRYPT_HASH:-}" || "${DEMO_BCRYPT_HASH}" != \$2* ]]; then
+  echo "ERROR: set DEMO_BCRYPT_HASH to a bcrypt hash (must start with \$2)" >&2
   exit 1
 fi
 

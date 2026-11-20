@@ -39,4 +39,9 @@ public class ProductResponse {
     private List<ProductTagDto> tags;
     private List<SizeChartDto> sizeCharts;
     private Instant createdAt;
+    /**
+     * Present when the list was requested with {@code limitPerBrand}: total matching products
+     * for this brand before the per-brand limit was applied (for Discover "N sản phẩm" labels).
+     */
+    private Integer brandProductTotal;
 }

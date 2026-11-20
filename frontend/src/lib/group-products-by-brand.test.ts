@@ -56,4 +56,18 @@ describe("groupNewestProductsByBrand", () => {
     expect(grouped.get("hows")!.total).toBe(15);
     expect(sortProductsNewestFirst(items)[0].id).toBe("p14");
   });
+
+  it("prefers brandProductTotal from API when preview is already limited", () => {
+    const items = Array.from({ length: 10 }, (_, i) =>
+      product({
+        id: `p${i}`,
+        brandId: "hows",
+        createdAt: `2026-11-${String(i + 1).padStart(2, "0")}T00:00:00Z`,
+        brandProductTotal: 42,
+      }),
+    );
+    const grouped = groupNewestProductsByBrand(items, 10);
+    expect(grouped.get("hows")!.products).toHaveLength(10);
+    expect(grouped.get("hows")!.total).toBe(42);
+  });
 });

@@ -33,7 +33,8 @@ public class ProductController {
             @RequestParam(required = false) String sizeLabel,
             @RequestParam(required = false) String size,
             @RequestParam(required = false) String search,
-            @RequestParam(required = false, defaultValue = "false") boolean aiTryOnEligible) {
+            @RequestParam(required = false, defaultValue = "false") boolean aiTryOnEligible,
+            @RequestParam(required = false) Integer limitPerBrand) {
         ProductService.ProductFilter filter = new ProductService.ProductFilter();
         filter.setBrandId(brandId);
         filter.setCategory(category);
@@ -51,6 +52,10 @@ public class ProductController {
         filter.setSize(garmentSize);
         filter.setSearch(search);
         filter.setAiTryOnEligible(aiTryOnEligible);
+        // Discover preview: newest N per brand; omit on brand pages for the full catalog.
+        if (limitPerBrand != null && limitPerBrand > 0) {
+            filter.setLimitPerBrand(Math.min(limitPerBrand, 50));
+        }
         return ApiResponse.ok(productService.listPublicProducts(filter));
     }
 

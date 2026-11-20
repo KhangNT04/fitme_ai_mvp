@@ -34,7 +34,7 @@ import {
   isDiscoverSearchInputVisible,
   openDiscoverSearch,
 } from "@/lib/discover-search";
-import { categoryFilterLabel, filterProductsByCategory } from "@/lib/product-category";
+import { categoryFilterLabel } from "@/lib/product-category";
 import { discoverBrandPath } from "@/lib/discover-brand";
 import {
   DISCOVER_PRODUCTS_PER_BRAND,
@@ -74,24 +74,20 @@ export default function DiscoverPage() {
 
   const brandMap = useMemo(() => new Map(brands.map((b) => [b.id, b])), [brands]);
 
-  const { data: rawData, isLoading, error, refetch } = useQuery({
-    queryKey: ["products", search, aiOnly],
+  const { data, isLoading, error, refetch } = useQuery({
+    queryKey: ["products", "discover", search, category, aiOnly, DISCOVER_PRODUCTS_PER_BRAND],
     queryFn: () =>
       productApi.list({
         search: search || undefined,
+        category: category !== ALL_CATEGORIES ? category : undefined,
         aiTryOnEligible: aiOnly || undefined,
+        limitPerBrand: DISCOVER_PRODUCTS_PER_BRAND,
       }),
   });
 
-  const data = useMemo(() => {
-    if (!rawData) return rawData;
-    const items = filterProductsByCategory(rawData.items, category, ALL_CATEGORIES);
-    if (items.length === rawData.items.length) return rawData;
-    return { ...rawData, items, total: items.length };
-  }, [rawData, category]);
-
   const groupedByBrand = useMemo(() => {
     if (!data?.items.length) return null;
+    // BE already limited; FE still groups and uses brandProductTotal for row labels.
     return groupNewestProductsByBrand(data.items, DISCOVER_PRODUCTS_PER_BRAND);
   }, [data]);
 

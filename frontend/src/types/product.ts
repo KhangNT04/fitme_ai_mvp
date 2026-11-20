@@ -52,6 +52,11 @@ export interface Product {
   rejectReason?: string;
   /** ISO timestamp from API; used to order "newest" on Discover. */
   createdAt?: string;
+  /**
+   * When list was fetched with `limitPerBrand`, total matching products for this brand
+   * before the limit (Discover row subtitle).
+   */
+  brandProductTotal?: number;
 }
 
 export interface ProductFilters {
@@ -66,6 +71,8 @@ export interface ProductFilters {
   size?: string;
   aiTryOnEligible?: boolean;
   search?: string;
+  /** Discover: newest N products per brand; omit on brand pages for the full list. */
+  limitPerBrand?: number;
   page?: number;
   pageSize?: number;
 }

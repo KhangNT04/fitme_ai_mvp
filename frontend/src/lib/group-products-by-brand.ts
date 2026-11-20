@@ -45,8 +45,10 @@ export function groupNewestProductsByBrand(
   const out = new Map<string, BrandProductPreview>();
   for (const [brandId, list] of grouped) {
     const sorted = sortProductsNewestFirst(list);
+    // Prefer API brandProductTotal when BE already applied limitPerBrand.
+    const fromApi = sorted.find((p) => p.brandProductTotal != null)?.brandProductTotal;
     out.set(brandId, {
-      total: sorted.length,
+      total: fromApi ?? sorted.length,
       products: sorted.slice(0, Math.max(0, limitPerBrand)),
     });
   }

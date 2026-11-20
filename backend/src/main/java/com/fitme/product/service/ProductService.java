@@ -50,10 +50,33 @@ public class ProductService {
         List<Product> active = productRepository.findByStatus(ProductStatus.ACTIVE);
         Map<UUID, Brand> brands = brandsOf(active);
         List<Product> listed = active.stream().filter(p -> isApproved(brands.get(p.getBrandId()))).toList();
-        Related related = loadRelated(listed, brands);
-        return listed.stream()
-                .filter(p -> matchesFilter(p, filter, related))
-                .map(p -> toResponse(p, plusBrandIds.contains(p.getBrandId()), related))
+
+        // Apply attribute filters that need variants/tags before limiting, without loading images yet.
+        List<Product> matched;
+        if (needsVariantOrTagFilter(filter)) {
+            Related forFilter = loadRelatedForFilter(listed, brands);
+            matched = listed.stream().filter(p -> matchesFilter(p, filter, forFilter)).toList();
+        } else {
+            matched = listed.stream().filter(p -> matchesFilter(p, filter, emptyRelated(brands))).toList();
+        }
+
+        Map<UUID, Integer> brandTotals = null;
+        Integer limitPerBrand = filter != null ? filter.getLimitPerBrand() : null;
+        if (limitPerBrand != null && limitPerBrand > 0) {
+            brandTotals = matched.stream()
+                    .collect(Collectors.groupingBy(Product::getBrandId, Collectors.collectingAndThen(Collectors.counting(), Long::intValue)));
+            matched = limitNewestPerBrand(matched, limitPerBrand);
+        }
+
+        // Images/size charts only for the (possibly limited) result set — Discover preview stays small.
+        Related related = loadRelated(matched, brands);
+        Map<UUID, Integer> totals = brandTotals;
+        return matched.stream()
+                .map(p -> toResponse(
+                        p,
+                        plusBrandIds.contains(p.getBrandId()),
+                        related,
+                        totals != null ? totals.get(p.getBrandId()) : null))
                 .toList();
     }
 
@@ -549,10 +572,14 @@ public class ProductService {
         }
     }
 
+    private Related emptyRelated(Map<UUID, Brand> brands) {
+        return new Related(brands, Map.of(), Map.of(), Map.of(), Map.of());
+    }
+
     private Related loadRelated(Collection<Product> products, Map<UUID, Brand> brands) {
         List<UUID> ids = products.stream().map(Product::getId).toList();
         if (ids.isEmpty()) {
-            return new Related(brands, Map.of(), Map.of(), Map.of(), Map.of());
+            return emptyRelated(brands);
         }
         return new Related(brands,
                 imageRepository.findByProductIdInOrderBySortOrderAsc(ids).stream()
@@ -563,6 +590,47 @@ public class ProductService {
                         .collect(Collectors.groupingBy(ProductTag::getProductId)),
                 sizeChartRepository.findByProductIdIn(ids).stream()
                         .collect(Collectors.groupingBy(SizeChart::getProductId)));
+    }
+
+    /** Variants + tags only — enough for style/color/size filters without pulling image blobs. */
+    private Related loadRelatedForFilter(Collection<Product> products, Map<UUID, Brand> brands) {
+        List<UUID> ids = products.stream().map(Product::getId).toList();
+        if (ids.isEmpty()) {
+            return emptyRelated(brands);
+        }
+        return new Related(brands,
+                Map.of(),
+                variantRepository.findByProductIdIn(ids).stream()
+                        .collect(Collectors.groupingBy(ProductVariant::getProductId)),
+                tagRepository.findByProductIdIn(ids).stream()
+                        .collect(Collectors.groupingBy(ProductTag::getProductId)),
+                Map.of());
+    }
+
+    private static boolean needsVariantOrTagFilter(ProductFilter filter) {
+        if (filter == null) {
+            return false;
+        }
+        return filter.getStyle() != null
+                || filter.getOccasion() != null
+                || filter.getColor() != null
+                || filter.getSize() != null;
+    }
+
+    /** Keep the newest {@code limit} products per brand (by createdAt, then id). */
+    static List<Product> limitNewestPerBrand(List<Product> products, int limit) {
+        Map<UUID, List<Product>> byBrand = new LinkedHashMap<>();
+        for (Product product : products) {
+            byBrand.computeIfAbsent(product.getBrandId(), ignored -> new ArrayList<>()).add(product);
+        }
+        List<Product> limited = new ArrayList<>();
+        for (List<Product> group : byBrand.values()) {
+            group.sort(Comparator
+                    .comparing(Product::getCreatedAt, Comparator.nullsLast(Comparator.reverseOrder()))
+                    .thenComparing(Product::getId, Comparator.reverseOrder()));
+            limited.addAll(group.subList(0, Math.min(limit, group.size())));
+        }
+        return limited;
     }
 
     private boolean matchesFilter(Product p, ProductFilter filter, Related related) {
@@ -602,10 +670,15 @@ public class ProductService {
     }
 
     private ProductResponse toResponse(Product product, boolean plusBrand) {
-        return toResponse(product, plusBrand, loadRelated(List.of(product), brandsOf(List.of(product))));
+        return toResponse(product, plusBrand, loadRelated(List.of(product), brandsOf(List.of(product))), null);
     }
 
     private ProductResponse toResponse(Product product, boolean plusBrand, Related related) {
+        return toResponse(product, plusBrand, related, null);
+    }
+
+    private ProductResponse toResponse(
+            Product product, boolean plusBrand, Related related, Integer brandProductTotal) {
         UUID productId = product.getId();
         Brand brand = related.brands().get(product.getBrandId());
         String brandName = brand != null ? brand.getName() : null;
@@ -657,6 +730,7 @@ public class ProductService {
                                 .build())
                         .toList())
                 .createdAt(product.getCreatedAt())
+                .brandProductTotal(brandProductTotal)
                 .build();
     }
 
@@ -673,5 +747,10 @@ public class ProductService {
         private String size;
         private String search;
         private boolean aiTryOnEligible;
+        /**
+         * When set (e.g. Discover preview), return at most this many newest products per brand
+         * and populate {@link ProductResponse#getBrandProductTotal()}.
+         */
+        private Integer limitPerBrand;
     }
 }

@@ -29,6 +29,9 @@ import {
   Sparkles as SparklesIcon,
   Ticket,
   UserCheck,
+  MessagesSquare,
+  MessageCircle,
+  UsersRound,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -37,6 +40,7 @@ import type { PortalNavItem } from "@/lib/portal-nav";
 export const brandIcons: Record<string, React.ComponentType<{ className?: string }>> = {
   "/brand/dashboard": LayoutDashboard,
   "/brand/products": Package,
+  "/brand/inbox": MessagesSquare,
   "/brand/leads": UserCheck,
   "/brand/insights/demand": SparklesIcon,
   "/brand/analytics": BarChart3,
@@ -50,6 +54,8 @@ export const adminIcons: Record<string, React.ComponentType<{ className?: string
   "/admin/audit-log": ScrollText,
   "/admin/traffic": LineChart,
   "/admin/brands": Users,
+  "/admin/community": UsersRound,
+  "/admin/shop-chat": MessageCircle,
   "/admin/partnerships": Users,
   "/admin/billing/plans": CreditCard,
   "/admin/vouchers": Ticket,

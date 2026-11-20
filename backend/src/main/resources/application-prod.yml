@@ -1,6 +1,7 @@
 fitme:
   seed:
-    enabled: false
+    # Default off on prod; set FITME_SEED_ENABLED=true only for a fresh empty DB first boot.
+    enabled: ${FITME_SEED_ENABLED:false}
     fashion-catalog-refresh: ${FITME_SEED_FASHION_REFRESH:true}
     top-up-enabled: ${FITME_SEED_TOP_UP:true}
   test:

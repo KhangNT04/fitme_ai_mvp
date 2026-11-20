@@ -50,6 +50,8 @@ export interface Product {
   description?: string;
   flagReason?: string;
   rejectReason?: string;
+  /** ISO timestamp from API; used to order "newest" on Discover. */
+  createdAt?: string;
 }
 
 export interface ProductFilters {

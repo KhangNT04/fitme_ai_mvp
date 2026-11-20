@@ -36,7 +36,10 @@ import {
 } from "@/lib/discover-search";
 import { categoryFilterLabel, filterProductsByCategory } from "@/lib/product-category";
 import { discoverBrandPath } from "@/lib/discover-brand";
-import { groupProductsByBrand } from "@/lib/group-products-by-brand";
+import {
+  DISCOVER_PRODUCTS_PER_BRAND,
+  groupNewestProductsByBrand,
+} from "@/lib/group-products-by-brand";
 import { cn } from "@/lib/utils";
 
 const ALL_BRANDS = "all";
@@ -89,14 +92,14 @@ export default function DiscoverPage() {
 
   const groupedByBrand = useMemo(() => {
     if (!data?.items.length) return null;
-    return groupProductsByBrand(data.items);
+    return groupNewestProductsByBrand(data.items, DISCOVER_PRODUCTS_PER_BRAND);
   }, [data]);
 
   const sortedBrandGroups = useMemo(() => {
     if (!groupedByBrand) return [];
     return [...groupedByBrand.entries()].sort((a, b) => {
-      const nameA = brandMap.get(a[0])?.name ?? a[1][0]?.brandName ?? "";
-      const nameB = brandMap.get(b[0])?.name ?? b[1][0]?.brandName ?? "";
+      const nameA = brandMap.get(a[0])?.name ?? a[1].products[0]?.brandName ?? "";
+      const nameB = brandMap.get(b[0])?.name ?? b[1].products[0]?.brandName ?? "";
       return nameA.localeCompare(nameB, "vi");
     });
   }, [groupedByBrand, brandMap]);
@@ -320,8 +323,13 @@ export default function DiscoverPage() {
         )}
         {sortedBrandGroups.length > 0 && (
           <div className="space-y-10">
-            {sortedBrandGroups.map(([id, products]) => (
-              <BrandDiscoverSection key={id} brand={brandMap.get(id)} products={products} />
+            {sortedBrandGroups.map(([id, preview]) => (
+              <BrandDiscoverSection
+                key={id}
+                brand={brandMap.get(id)}
+                products={preview.products}
+                totalCount={preview.total}
+              />
             ))}
           </div>
         )}

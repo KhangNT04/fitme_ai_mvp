@@ -56,6 +56,7 @@ export interface BackendProduct {
   variants?: BackendProductVariant[];
   tags?: BackendProductTag[];
   sizeCharts?: BackendSizeChart[];
+  createdAt?: string;
 }
 
 export const TRY_ON_IMAGE_TYPE = "TRY_ON";
@@ -164,5 +165,6 @@ export function mapProduct(raw: BackendProduct): Product {
     aiTryOnEligible: raw.aiTryOnEligible,
     plusBrand: raw.plusBrand === true,
     description: raw.description,
+    createdAt: raw.createdAt,
   };
 }

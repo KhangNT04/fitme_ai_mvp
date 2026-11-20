@@ -11,17 +11,28 @@ import type { Product } from "@/types/product";
 export interface BrandProductRowSectionProps {
   brand?: Brand;
   products: Product[];
+  /** Full catalog size for this brand when `products` is a newest preview slice. */
+  totalCount?: number;
   getBrandHref: (brandId: string) => string;
   renderProduct: (product: Product) => ReactNode;
 }
 
+function brandCountLabel(shown: number, total?: number): string {
+  if (total != null && total > shown) {
+    return `${shown} mới nhất · ${total} sản phẩm`;
+  }
+  return `${shown} sản phẩm`;
+}
+
 function BrandSectionHeader({
   brand,
-  count,
+  shownCount,
+  totalCount,
   getBrandHref,
 }: {
   brand?: Brand;
-  count: number;
+  shownCount: number;
+  totalCount?: number;
   getBrandHref: (brandId: string) => string;
 }) {
   const name = brand?.name ?? "Thương hiệu";
@@ -40,7 +51,7 @@ function BrandSectionHeader({
       )}
       <div className="min-w-0">
         <h2 className="truncate font-display text-base font-bold text-foreground">{name}</h2>
-        <p className="text-xs text-muted-foreground">{count} sản phẩm</p>
+        <p className="text-xs text-muted-foreground">{brandCountLabel(shownCount, totalCount)}</p>
       </div>
     </>
   );
@@ -69,12 +80,18 @@ function BrandSectionHeader({
 export function BrandProductRowSection({
   brand,
   products,
+  totalCount,
   getBrandHref,
   renderProduct,
 }: BrandProductRowSectionProps) {
   return (
     <section>
-      <BrandSectionHeader brand={brand} count={products.length} getBrandHref={getBrandHref} />
+      <BrandSectionHeader
+        brand={brand}
+        shownCount={products.length}
+        totalCount={totalCount}
+        getBrandHref={getBrandHref}
+      />
       <div
         className={catalogProductRowClass}
         aria-label={`Sản phẩm ${brand?.name ?? "thương hiệu"}`}

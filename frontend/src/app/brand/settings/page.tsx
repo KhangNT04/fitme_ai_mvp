@@ -4,8 +4,7 @@ import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { brandApi } from "@/services/brand-api";
-import { PortalLayout, brandNav } from "@/components/layout/PortalLayout";
-import { PortalPageHeader } from "@/components/portal/PortalPageHeader";
+import { PortalBrandPage } from "@/components/portal/PortalBrandPage";
 import { BrandImageUpload } from "@/components/brand/BrandImageUpload";
 import { ChangePasswordForm } from "@/components/account/ChangePasswordForm";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -13,8 +12,6 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { LoadingSkeleton } from "@/components/common/LoadingSkeleton";
-import { ErrorState } from "@/components/common/ErrorState";
 import type { BrandOnboardingRequest } from "@/types/brand";
 
 import { brandStatusLabel } from "@/lib/status-labels";
@@ -93,16 +90,15 @@ export default function BrandSettingsPage() {
   const currentLogo = editing ? logoUrl : data?.logoUrl;
 
   return (
-    <PortalLayout title="Brand" nav={brandNav}>
-      <PortalPageHeader
-        title="Cài đặt thương hiệu"
-        description="Logo, thông tin liên hệ và liên kết cửa hàng."
-      >
-        {data && !editing && <Button variant="outline" onClick={startEdit}>Chỉnh sửa</Button>}
-      </PortalPageHeader>
-
-      {isLoading && <LoadingSkeleton count={1} />}
-      {error && <ErrorState onRetry={() => refetch()} />}
+    <PortalBrandPage
+      title="Cài đặt thương hiệu"
+      description="Logo, thông tin liên hệ và liên kết cửa hàng."
+      headerActions={data && !editing ? <Button variant="outline" onClick={startEdit}>Chỉnh sửa</Button> : undefined}
+      isLoading={isLoading}
+      error={error}
+      onRetry={() => refetch()}
+      skeleton="detail"
+    >
       {data && (
         <Card>
           <CardHeader>
@@ -190,7 +186,7 @@ export default function BrandSettingsPage() {
         </Card>
       )}
 
-      <Card className="mt-6">
+      <Card className="mt-6 border-border/60 shadow-sm">
         <CardHeader>
           <CardTitle>Đổi mật khẩu</CardTitle>
         </CardHeader>
@@ -198,6 +194,6 @@ export default function BrandSettingsPage() {
           <ChangePasswordForm className="max-w-md" />
         </CardContent>
       </Card>
-    </PortalLayout>
+    </PortalBrandPage>
   );
 }

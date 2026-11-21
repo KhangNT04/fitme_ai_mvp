@@ -2,8 +2,7 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { brandApi } from "@/services/brand-api";
-import { PortalLayout, brandNav } from "@/components/layout/PortalLayout";
-import { PortalPageHeader } from "@/components/portal/PortalPageHeader";
+import { PortalBrandPage } from "@/components/portal/PortalBrandPage";
 import { AnalyticsChart } from "@/components/common/AnalyticsChart";
 
 export default function BrandAnalyticsTryOnPage() {
@@ -13,13 +12,12 @@ export default function BrandAnalyticsTryOnPage() {
   });
 
   return (
-    <PortalLayout title="Brand" nav={brandNav}>
-      <PortalPageHeader
-        title="Phân tích thử mặc AI"
-        description="Biểu đồ combo cột + đường cho sản phẩm; donut cho phân bổ màu."
-        backHref="/brand/analytics"
-        backLabel="Phân tích"
-      />
+    <PortalBrandPage
+      title="Phân tích thử mặc AI"
+      description="Biểu đồ combo cột + đường cho sản phẩm; donut cho phân bổ màu."
+      backHref="/brand/analytics"
+      backLabel="Phân tích"
+    >
       <div className="grid gap-6 lg:grid-cols-2">
         <AnalyticsChart
           title="Lượt thử theo sản phẩm"
@@ -36,6 +34,6 @@ export default function BrandAnalyticsTryOnPage() {
           type="pie"
         />
       </div>
-    </PortalLayout>
+    </PortalBrandPage>
   );
 }

@@ -1,9 +1,11 @@
 "use client";
 
 import { useState, Suspense } from "react";
+import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { Eye, EyeOff } from "lucide-react";
 import { authApi } from "@/services/auth-api";
 import { useAuthStore } from "@/stores/auth-store";
 import { Button } from "@/components/ui/button";
@@ -30,12 +32,11 @@ function AdminLoginForm() {
   const { setAuth } = useAuthStore();
   usePortalSessionRedirect("admin");
   const [error, setError] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [twoFactorToken, setTwoFactorToken] = useState<string | null>(null);
   const [code, setCode] = useState("");
   const [verifying, setVerifying] = useState(false);
-  // Where the admin was headed before the session ended, so a new sign-in resumes the work.
   const redirectTo = safeInternalPath(searchParams.get("redirect")) ?? "/admin/dashboard";
-  // Set by the session-expiry guard so the admin knows why they landed back here.
   const sessionExpired = searchParams.get("expired") === "1";
   const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm<LoginForm>({
     resolver: zodResolver(loginSchema),
@@ -87,12 +88,12 @@ function AdminLoginForm() {
 
   if (twoFactorToken) {
     return (
-      <PortalLoginShell title="Admin — Xác thực 2 bước">
+      <PortalLoginShell
+        portal="admin"
+        title="Xác thực 2 bước"
+        description="Mở ứng dụng xác thực và nhập mã 6 số (hoặc mã khôi phục) để tiếp tục."
+      >
         <form onSubmit={onVerify} className="space-y-4" noValidate>
-          <p className="text-sm text-muted-foreground">
-            Mở ứng dụng xác thực (Google Authenticator, Authy, 1Password…) và nhập mã 6 số cho FitMe AI. Mất điện
-            thoại? Nhập một mã khôi phục.
-          </p>
           <div>
             <Label htmlFor="totp-code">Mã xác thực</Label>
             <Input
@@ -127,25 +128,53 @@ function AdminLoginForm() {
   }
 
   return (
-    <PortalLoginShell title="Admin — Đăng nhập">
+    <PortalLoginShell
+      portal="admin"
+      title="Đăng nhập quản trị"
+      description="Chỉ dành cho đội vận hành FitMe AI. Phiên làm việc sẽ kết thúc khi không hoạt động quá lâu."
+    >
       {sessionExpired && (
         <p className="mb-4 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-800" role="status">
-          Phiên làm việc đã kết thúc do không hoạt động quá lâu. Vui lòng đăng nhập lại để tiếp tục.
+          Phiên làm việc đã kết thúc. Đăng nhập lại để tiếp tục.
         </p>
       )}
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4" noValidate>
         <div>
           <Label htmlFor="email">Email</Label>
-          <Input id="email" type="email" {...register("email")} className="mt-1" aria-invalid={!!errors.email} />
+          <Input id="email" type="email" autoComplete="username" {...register("email")} className="mt-1" aria-invalid={!!errors.email} />
           {errors.email && <p className="mt-1 text-xs text-red-600">{errors.email.message}</p>}
         </div>
         <div>
-          <Label htmlFor="password">Mật khẩu</Label>
-          <Input id="password" type="password" {...register("password")} className="mt-1" aria-invalid={!!errors.password} />
+          <div className="flex items-center justify-between gap-3">
+            <Label htmlFor="password">Mật khẩu</Label>
+            <Link href="/auth/forgot-password" className="text-xs text-muted-foreground underline-offset-2 hover:text-foreground hover:underline">
+              Quên mật khẩu?
+            </Link>
+          </div>
+          <div className="relative mt-1">
+            <Input
+              id="password"
+              type={showPassword ? "text" : "password"}
+              autoComplete="current-password"
+              {...register("password")}
+              className="pr-10"
+              aria-invalid={!!errors.password}
+            />
+            <button
+              type="button"
+              className="absolute inset-y-0 right-0 flex w-10 items-center justify-center text-muted-foreground hover:text-foreground"
+              aria-label={showPassword ? "Ẩn mật khẩu" : "Hiện mật khẩu"}
+              onClick={() => setShowPassword((v) => !v)}
+            >
+              {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+            </button>
+          </div>
           {errors.password && <p className="mt-1 text-xs text-red-600">{errors.password.message}</p>}
         </div>
         {error && <p className="text-sm text-red-600">{error}</p>}
-        <Button type="submit" className="w-full" disabled={isSubmitting}>Đăng nhập</Button>
+        <Button type="submit" className="w-full" disabled={isSubmitting}>
+          {isSubmitting ? "Đang đăng nhập..." : "Đăng nhập"}
+        </Button>
       </form>
     </PortalLoginShell>
   );

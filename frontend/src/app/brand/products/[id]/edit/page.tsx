@@ -4,12 +4,9 @@ import { use, useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { brandApi } from "@/services/brand-api";
-import { PortalLayout, brandNav } from "@/components/layout/PortalLayout";
-import { PortalPageHeader } from "@/components/portal/PortalPageHeader";
+import { PortalBrandPage } from "@/components/portal/PortalBrandPage";
 import { PortalActionButton } from "@/components/portal/PortalActionButton";
 import { Card, CardContent } from "@/components/ui/card";
-import { LoadingSkeleton } from "@/components/common/LoadingSkeleton";
-import { ErrorState } from "@/components/common/ErrorState";
 import {
   BrandProductForm,
   LIVE_PRODUCT_RE_REVIEW_NOTICE,
@@ -47,22 +44,20 @@ export default function BrandEditProductPage({ params }: { params: Promise<{ id:
     ]);
 
   const canSubmitReview = product?.status !== "ACTIVE" && product?.status !== "PENDING_REVIEW";
+  const loadError = error || (!isLoading && !product ? new Error("missing") : null);
 
   return (
-    <PortalLayout title="Brand" nav={brandNav}>
-      <PortalPageHeader
-        title="Chỉnh sửa sản phẩm"
-        backHref="/brand/products"
-        backLabel="Sản phẩm"
-      />
-      {isLoading ? <LoadingSkeleton count={1} /> : error || !product ? (
-        <ErrorState
-          title="Không tải được sản phẩm"
-          message={error ? getUserErrorMessage(error, "Không thể tải dữ liệu. Vui lòng thử lại.") : undefined}
-          onRetry={() => refetch()}
-        />
-      ) : (
-        <Card>
+    <PortalBrandPage
+      title="Chỉnh sửa sản phẩm"
+      backHref="/brand/products"
+      backLabel="Sản phẩm"
+      isLoading={isLoading}
+      error={loadError}
+      onRetry={() => refetch()}
+      skeleton="detail"
+    >
+      {product && (
+        <Card className="border-border/60 shadow-sm">
           <CardContent className="p-6">
             <BrandProductForm
               form={form}
@@ -115,6 +110,6 @@ export default function BrandEditProductPage({ params }: { params: Promise<{ id:
           </CardContent>
         </Card>
       )}
-    </PortalLayout>
+    </PortalBrandPage>
   );
 }

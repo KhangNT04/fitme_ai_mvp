@@ -3,8 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { brandApi } from "@/services/brand-api";
-import { PortalLayout, brandNav } from "@/components/layout/PortalLayout";
-import { PortalPageHeader } from "@/components/portal/PortalPageHeader";
+import { PortalBrandPage } from "@/components/portal/PortalBrandPage";
 import { PortalActionButton } from "@/components/portal/PortalActionButton";
 import { Card, CardContent } from "@/components/ui/card";
 import {
@@ -45,17 +44,14 @@ export default function BrandNewProductPage() {
   };
 
   return (
-    <PortalLayout title="Brand" nav={brandNav}>
-      <PortalPageHeader
-        title={productId ? "Sản phẩm mới (bản nháp)" : "Thêm sản phẩm mới"}
-        description={
-          productId
+    <PortalBrandPage
+      title={productId ? "Sản phẩm mới (bản nháp)" : "Thêm sản phẩm mới"}
+      description={productId
             ? "Sản phẩm đã được lưu. Gửi duyệt khi thông tin đã đầy đủ."
-            : undefined
-        }
-        backHref="/brand/products"
-        backLabel="Sản phẩm"
-      />
+            : undefined}
+      backHref="/brand/products"
+      backLabel="Sản phẩm"
+    >
       <Card>
         <CardContent className="p-6">
           <BrandProductForm
@@ -97,6 +93,6 @@ export default function BrandNewProductPage() {
           />
         </CardContent>
       </Card>
-    </PortalLayout>
+    </PortalBrandPage>
   );
 }

@@ -55,17 +55,29 @@ export function useSessionExpiryGuard(): void {
     };
     window.addEventListener(AUTH_SESSION_EXPIRED_EVENT, onExpired);
 
-    // A tab left open past the refresh token's lifetime must not keep showing a stale portal.
-    const timer = window.setInterval(() => {
+    const checkRefreshExpiry = () => {
       const refreshToken = localStorage.getItem(AUTH_REFRESH_KEY);
       if (!refreshToken) return;
       if (isJwtExpired(refreshToken)) {
         onExpired();
       }
-    }, 30_000);
+    };
+
+    // Catch already-expired tokens as soon as a portal page mounts (e.g. after a long idle).
+    checkRefreshExpiry();
+
+    // A tab left open past the refresh token's lifetime must not keep showing a stale portal.
+    const timer = window.setInterval(checkRefreshExpiry, 30_000);
+
+    // Returning to a background tab should log out immediately instead of waiting for the poll.
+    const onVisibility = () => {
+      if (document.visibilityState === "visible") checkRefreshExpiry();
+    };
+    document.addEventListener("visibilitychange", onVisibility);
 
     return () => {
       window.removeEventListener(AUTH_SESSION_EXPIRED_EVENT, onExpired);
+      document.removeEventListener("visibilitychange", onVisibility);
       window.clearInterval(timer);
     };
   }, [pathname, router]);

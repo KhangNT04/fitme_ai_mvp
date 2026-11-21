@@ -3,10 +3,8 @@
 import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { CheckCircle2, Clock, Crown, Info, Sparkles, Ticket, Users } from "lucide-react";
-import { PortalLayout, brandNav } from "@/components/layout/PortalLayout";
-import { PortalPageHeader } from "@/components/portal/PortalPageHeader";
+import { PortalBrandPage } from "@/components/portal/PortalBrandPage";
 import { LoadingSkeleton } from "@/components/common/LoadingSkeleton";
-import { ErrorState } from "@/components/common/ErrorState";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -100,14 +98,14 @@ export default function BrandPlanPage() {
   });
 
   return (
-    <PortalLayout title="Brand" nav={brandNav}>
-      <PortalPageHeader
-        title="Gói Plus"
-        description="Niêm yết sản phẩm trên FitMe luôn miễn phí. FitMe Brand Plus giúp brand bán được nhiều hơn."
-      />
-
-      {isLoading && <LoadingSkeleton count={2} />}
-      {!!error && <ErrorState onRetry={() => refetch()} />}
+    <PortalBrandPage
+      title="Gói Plus"
+      description="Niêm yết sản phẩm trên FitMe luôn miễn phí. FitMe Brand Plus giúp brand bán được nhiều hơn."
+      isLoading={isLoading}
+      error={error}
+      onRetry={() => refetch()}
+      skeleton="card"
+    >
       {data && (
         <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,22rem)]">
           <div className="space-y-6">
@@ -160,7 +158,7 @@ export default function BrandPlanPage() {
           </div>
         </div>
       )}
-    </PortalLayout>
+    </PortalBrandPage>
   );
 }
 

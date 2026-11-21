@@ -9,7 +9,7 @@ import { useAuthStore } from "@/stores/auth-store";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { LoadingSkeleton } from "@/components/common/LoadingSkeleton";
-import { AuthCardShell } from "@/components/layout/AuthCardShell";
+import { PortalLoginShell } from "@/components/layout/PortalLoginShell";
 import { brandStatusLabel } from "@/lib/status-labels";
 
 export default function BrandPendingPage() {
@@ -32,9 +32,14 @@ export default function BrandPendingPage() {
 
   if (isLoading) {
     return (
-      <AuthCardShell title="Trạng thái đơn Brand" backHref="/brand/onboarding" backLabel="Đăng ký Brand">
+      <PortalLoginShell
+        portal="brand"
+        title="Trạng thái đơn Brand"
+        backHref="/brand/onboarding"
+        backLabel="Đăng ký Brand"
+      >
         <LoadingSkeleton type="card" />
-      </AuthCardShell>
+      </PortalLoginShell>
     );
   }
 
@@ -42,13 +47,15 @@ export default function BrandPendingPage() {
   const status = brand?.status;
 
   return (
-    <AuthCardShell
+    <PortalLoginShell
+      portal="brand"
       title="Trạng thái đơn Brand"
+      description="Theo dõi tiến độ duyệt brand của bạn trên FitMe."
       backHref="/brand/onboarding"
       backLabel="Đăng ký Brand"
       footer={
         <p className="mt-4 text-center text-sm text-muted-foreground">
-          <Link href="/" className="hover:underline">
+          <Link href="/" className="font-medium text-foreground underline-offset-2 hover:underline">
             Về trang chủ
           </Link>
         </p>
@@ -104,6 +111,6 @@ export default function BrandPendingPage() {
           </>
         )}
       </div>
-    </AuthCardShell>
+    </PortalLoginShell>
   );
 }

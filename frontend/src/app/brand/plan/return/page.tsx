@@ -5,8 +5,7 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { CheckCircle2, Clock, Loader2, XCircle } from "lucide-react";
-import { PortalLayout, brandNav } from "@/components/layout/PortalLayout";
-import { PortalPageHeader } from "@/components/portal/PortalPageHeader";
+import { PortalBrandPage } from "@/components/portal/PortalBrandPage";
 import { PageSuspense } from "@/components/common/PageSuspense";
 import { Button } from "@/components/ui/button";
 import { BRAND_PLAN_QUERY_KEY, brandPlusApi } from "@/services/brand-plus-api";
@@ -31,12 +30,15 @@ function isCancelledReturn(params: URLSearchParams): boolean {
 
 export default function BrandPlanReturnPage() {
   return (
-    <PortalLayout title="Brand" nav={brandNav}>
-      <PortalPageHeader title="Kết quả thanh toán" backHref="/brand/plan" backLabel="Gói Plus" />
+    <PortalBrandPage
+      title="Kết quả thanh toán"
+      backHref="/brand/plan"
+      backLabel="Gói Plus"
+    >
       <PageSuspense>
         <BrandPlanReturnContent />
       </PageSuspense>
-    </PortalLayout>
+    </PortalBrandPage>
   );
 }
 

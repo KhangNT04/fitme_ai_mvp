@@ -10,7 +10,7 @@ import { useAuthStore } from "@/stores/auth-store";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { AuthCardShell } from "@/components/layout/AuthCardShell";
+import { PortalLoginShell } from "@/components/layout/PortalLoginShell";
 import { getUserErrorMessage } from "@/lib/user-error-message";
 import { normalizeBrandLinks } from "@/lib/brand-links";
 import { brandOnboardingSchema, type BrandOnboardingForm } from "@/utils/validators";
@@ -50,25 +50,22 @@ export default function BrandOnboardingPage() {
 
   if (!isAuthenticated()) {
     return (
-      <AuthCardShell
+      <PortalLoginShell
+        portal="brand"
         title="Đăng ký đối tác Brand"
+        description="Bạn cần tài khoản người dùng để gửi đơn. Sau khi duyệt, sản phẩm được FitMe gợi ý kèm link cửa hàng của bạn."
         backHref="/"
         backLabel="Trang chủ"
         footer={
           <p className="mt-4 text-center text-sm text-muted-foreground">
             Đã có tài khoản?{" "}
-            <Link href="/auth/login?redirect=/brand/onboarding" className="underline">
+            <Link href="/auth/login?redirect=/brand/onboarding" className="font-medium text-foreground underline-offset-2 hover:underline">
               Đăng nhập
             </Link>
           </p>
         }
       >
-        <p className="text-sm text-muted-foreground">
-          Bạn cần tài khoản người dùng để gửi đơn đăng ký brand. Sau khi được duyệt, sản phẩm của bạn
-          được FitMe gợi ý kèm link về cửa hàng của bạn và bạn dùng dashboard phân tích miễn phí. Có thể nâng cấp
-          gói Brand Plus bất cứ lúc nào nếu muốn được ưu tiên hiển thị.
-        </p>
-        <div className="mt-4 flex flex-col gap-3 sm:flex-row">
+        <div className="flex flex-col gap-3 sm:flex-row">
           <Button asChild className="w-full sm:flex-1">
             <Link href="/auth/register?redirect=/brand/onboarding">Đăng ký</Link>
           </Button>
@@ -76,17 +73,18 @@ export default function BrandOnboardingPage() {
             <Link href="/auth/login?redirect=/brand/onboarding">Đăng nhập</Link>
           </Button>
         </div>
-      </AuthCardShell>
+      </PortalLoginShell>
     );
   }
 
   return (
-    <AuthCardShell title="Đăng ký đối tác Brand" backHref="/" backLabel="Trang chủ">
-      <p className="mb-4 text-sm text-muted-foreground">
-        Đăng ký brand trên FitMe: niêm yết sản phẩm kèm link mua tại cửa hàng của bạn, nhận khách từ tư vấn AI. Niêm
-        yết và dashboard phân tích miễn phí khi brand được duyệt. Gói Brand Plus (tùy chọn) giúp sản phẩm được ưu
-        tiên trong gợi ý phối đồ, cho khách thử đồ AI miễn phí với sản phẩm của bạn và xem khách có nhu cầu mua.
-      </p>
+    <PortalLoginShell
+      portal="brand"
+      title="Đăng ký đối tác Brand"
+      description="Niêm yết sản phẩm kèm link mua tại cửa hàng của bạn, nhận khách từ tư vấn AI. Dashboard phân tích miễn phí khi được duyệt."
+      backHref="/"
+      backLabel="Trang chủ"
+    >
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
         <div>
           <Label>Tên thương hiệu</Label>
@@ -123,6 +121,6 @@ export default function BrandOnboardingPage() {
           {isSubmitting ? "Đang gửi..." : "Gửi đơn đăng ký"}
         </Button>
       </form>
-    </AuthCardShell>
+    </PortalLoginShell>
   );
 }

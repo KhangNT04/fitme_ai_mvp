@@ -5,8 +5,7 @@ import { useMemo, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Plus } from "lucide-react";
 import { brandApi } from "@/services/brand-api";
-import { PortalLayout, brandNav } from "@/components/layout/PortalLayout";
-import { PortalPageHeader } from "@/components/portal/PortalPageHeader";
+import { PortalBrandPage } from "@/components/portal/PortalBrandPage";
 import {
   PortalActionButton,
   PortalActionGroup,
@@ -15,9 +14,6 @@ import {
 import { ConfirmDialog } from "@/components/common/ConfirmDialog";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { LoadingSkeleton } from "@/components/common/LoadingSkeleton";
-import { ErrorState } from "@/components/common/ErrorState";
-import { EmptyState } from "@/components/common/EmptyState";
 import { formatPrice } from "@/utils/format-price";
 import { productStatusLabel } from "@/lib/status-labels";
 import type { Product } from "@/types/product";
@@ -145,21 +141,28 @@ export default function BrandProductsPage() {
   };
 
   return (
-    <PortalLayout title="Brand" nav={brandNav}>
-      <PortalPageHeader title="Quản lý sản phẩm" description="Thêm, chỉnh sửa và theo dõi sản phẩm của thương hiệu.">
+    <PortalBrandPage
+      title="Quản lý sản phẩm"
+      description="Thêm, chỉnh sửa và theo dõi sản phẩm của thương hiệu."
+      headerActions={
         <Button asChild>
           <Link href="/brand/products/new">
             <Plus className="mr-2 h-4 w-4" />
             Thêm sản phẩm
           </Link>
         </Button>
-      </PortalPageHeader>
-
-      {isLoading && <LoadingSkeleton type="list" />}
-      {error && <ErrorState onRetry={() => refetch()} />}
-      {data && data.length === 0 && (
-        <EmptyState title="Chưa có sản phẩm" actionLabel="Thêm sản phẩm" actionHref="/brand/products/new" />
-      )}
+      }
+      isLoading={isLoading}
+      error={error}
+      onRetry={() => refetch()}
+      empty={!!data && data.length === 0}
+      emptyTitle="Chưa có sản phẩm"
+      emptyDescription="Thêm sản phẩm đầu tiên để bắt đầu bán trên FitMe."
+      emptyActionLabel="Thêm sản phẩm"
+      emptyActionHref="/brand/products/new"
+      skeleton="list"
+      alwaysRenderChildren
+    >
       {data && data.length > 0 && (
         <>
           <div className={portalCardListClass}>
@@ -232,6 +235,6 @@ export default function BrandProductsPage() {
         loading={confirmLoading}
         onConfirm={handleConfirm}
       />
-    </PortalLayout>
+    </PortalBrandPage>
   );
 }

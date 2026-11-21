@@ -6,11 +6,8 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { CalendarClock, CheckCircle2, ChevronLeft, ChevronRight, Crown, Users } from "lucide-react";
 import { brandApi } from "@/services/brand-api";
 import { BRAND_LEADS_QUERY_KEY, brandLeadApi } from "@/services/brand-lead-api";
-import { PortalLayout, brandNav } from "@/components/layout/PortalLayout";
-import { PortalPageHeader } from "@/components/portal/PortalPageHeader";
+import { PortalBrandPage } from "@/components/portal/PortalBrandPage";
 import { StatCard, StatCardGrid } from "@/components/common/AnalyticsChart";
-import { LoadingSkeleton } from "@/components/common/LoadingSkeleton";
-import { ErrorState } from "@/components/common/ErrorState";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
@@ -114,14 +111,14 @@ export default function BrandLeadsPage() {
   const updateFilters = (patch: Partial<BrandLeadFilters>) => setFilters((f) => ({ ...f, ...patch, page: 0 }));
 
   return (
-    <PortalLayout title="Brand" nav={brandNav}>
-      <PortalPageHeader
-        title="Khách quan tâm"
-        description="Khách đã đồng ý chia sẻ tên và email khi bấm mua sản phẩm của bạn, để bạn liên hệ tư vấn và xác nhận đơn."
-      />
-
-      {isLoading && <LoadingSkeleton count={3} />}
-      {error && <ErrorState onRetry={() => refetch()} />}
+    <PortalBrandPage
+      title="Khách quan tâm"
+      description="Khách đã đồng ý chia sẻ tên và email khi bấm mua sản phẩm của bạn, để bạn liên hệ tư vấn và xác nhận đơn."
+      isLoading={isLoading}
+      error={error}
+      onRetry={() => refetch()}
+      skeleton="card"
+    >
       {data && (
         <div className="space-y-6">
           <LeadSummaryCards summary={data.summary} />
@@ -271,6 +268,6 @@ export default function BrandLeadsPage() {
           )}
         </div>
       )}
-    </PortalLayout>
+    </PortalBrandPage>
   );
 }

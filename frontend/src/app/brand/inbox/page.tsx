@@ -4,11 +4,7 @@ import { useEffect, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { shopChatApi } from "@/services/shop-chat-api";
 import { ShopChatThreadView } from "@/components/shop-chat/ShopChatThreadView";
-import { PortalLayout, brandNav } from "@/components/layout/PortalLayout";
-import { PortalPageHeader } from "@/components/portal/PortalPageHeader";
-import { EmptyState } from "@/components/common/EmptyState";
-import { ErrorState } from "@/components/common/ErrorState";
-import { LoadingSkeleton } from "@/components/common/LoadingSkeleton";
+import { PortalBrandPage } from "@/components/portal/PortalBrandPage";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { toast } from "@/stores/toast-store";
@@ -37,30 +33,27 @@ export default function BrandInboxPage() {
   });
 
   return (
-    <PortalLayout title="Brand" nav={brandNav}>
-      <PortalPageHeader
-        title="Inbox khách"
-        description="Trả lời khách hỏi size / sản phẩm từ FitMe. Mỗi khách một hội thoại."
-      />
-      {listQuery.isLoading && <LoadingSkeleton />}
-      {listQuery.error && <ErrorState onRetry={() => void listQuery.refetch()} />}
-      {listQuery.data && threads.length === 0 && (
-        <EmptyState
-          title="Chưa có tin nhắn"
-          description="Khi khách bấm “Nhắn shop” trên sản phẩm của bạn, hội thoại sẽ hiện ở đây."
-        />
-      )}
+    <PortalBrandPage
+      title="Inbox khách"
+      description="Trả lời khách hỏi size / sản phẩm từ FitMe. Mỗi khách một hội thoại."
+      isLoading={listQuery.isLoading}
+      error={listQuery.error}
+      onRetry={() => void listQuery.refetch()}
+      empty={!!listQuery.data && threads.length === 0}
+      emptyTitle="Chưa có tin nhắn"
+      emptyDescription="Khi khách bấm “Nhắn shop” trên sản phẩm của bạn, hội thoại sẽ hiện ở đây."
+    >
       {threads.length > 0 && (
         <div className="grid gap-4 lg:grid-cols-[280px_minmax(0,1fr)]">
-          <aside className="space-y-1 rounded-2xl border border-border bg-card p-2">
+          <aside className="space-y-1 rounded-2xl border border-border/60 bg-card p-2 shadow-sm">
             {threads.map((t) => (
               <button
                 key={t.id}
                 type="button"
                 onClick={() => setActiveId(t.id)}
                 className={cn(
-                  "w-full rounded-xl px-3 py-2 text-left transition-colors",
-                  activeId === t.id ? "bg-primary/10" : "hover:bg-muted/60",
+                  "w-full rounded-xl px-3 py-2.5 text-left transition-colors",
+                  activeId === t.id ? "bg-primary/10 ring-1 ring-primary/20" : "hover:bg-muted/60",
                 )}
               >
                 <p className="truncate text-sm font-medium">{t.userDisplayName}</p>
@@ -123,6 +116,6 @@ export default function BrandInboxPage() {
           </div>
         </div>
       )}
-    </PortalLayout>
+    </PortalBrandPage>
   );
 }

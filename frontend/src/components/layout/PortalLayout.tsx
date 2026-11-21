@@ -3,6 +3,7 @@
 import { usePathname } from "next/navigation";
 import { PageShell } from "@/components/layout/PageShell";
 import { PortalSidebarAside } from "@/components/layout/PortalSidebar";
+import { useSessionExpiryGuard } from "@/hooks/use-session-expiry-guard";
 import { portalContentClass, portalLayoutRowClass } from "@/lib/design-tokens";
 import type { PortalNavItem } from "@/lib/portal-nav";
 import { adminNav, brandNav } from "@/lib/portal-nav";
@@ -17,6 +18,8 @@ export function PortalLayout({ title, nav, children }: PortalLayoutProps) {
   const pathname = usePathname() ?? "/";
   const isAdmin = title === "Admin" || pathname.startsWith("/admin");
   const navItems = nav ?? (isAdmin ? adminNav : brandNav);
+  // Idle / expired portal sessions must leave the feature page, not show API error states.
+  useSessionExpiryGuard();
 
   return (
     <PageShell width="portal">

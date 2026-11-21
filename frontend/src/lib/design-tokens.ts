@@ -49,7 +49,7 @@ export const aiOutfitCardStackClass = "space-y-4";
 
 /** Brand / admin portal shell */
 export const portalLayoutRowClass = "flex min-h-0 flex-1 gap-6 sm:gap-8";
-export const portalContentClass = "min-w-0 flex-1 space-y-6";
+export const portalContentClass = "min-w-0 flex-1 space-y-7 sm:space-y-8";
 export const portalTableShellClass = "";
 export const portalTableWrapClass = "mt-5 sm:mt-6";
 export const portalTableScrollClass =

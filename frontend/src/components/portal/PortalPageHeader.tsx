@@ -29,7 +29,7 @@ export function PortalPageHeader({
       title={title}
       subtitle={description}
       trailing={children}
-      className={cn("mb-0", className)}
+      className={cn("mb-1 border-b border-border/40 pb-4 sm:mb-2 sm:pb-5", className)}
       backHref={backHref}
       backLabel={backLabel}
       showMobileBack={showMobileBack ?? !!backHref}

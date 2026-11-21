@@ -134,4 +134,32 @@ describe("useSessionExpiryGuard", () => {
     expect(replaceMock).not.toHaveBeenCalled();
     expect(useAuthStore.getState().user).not.toBeNull();
   });
+
+  it("signs out immediately on mount when the refresh token is already expired", async () => {
+    localStorage.setItem(AUTH_REFRESH_KEY, mockJwt(-60));
+
+    await act(async () => {
+      renderHook(() => useSessionExpiryGuard());
+    });
+
+    expect(replaceMock).toHaveBeenCalledWith("/admin/login?redirect=%2Fadmin%2Fusers&expired=1");
+  });
+
+  it("signs out when the tab becomes visible again with an expired refresh token", async () => {
+    localStorage.setItem(AUTH_REFRESH_KEY, mockJwt(7200));
+    renderHook(() => useSessionExpiryGuard());
+    expect(replaceMock).not.toHaveBeenCalled();
+
+    localStorage.setItem(AUTH_REFRESH_KEY, mockJwt(-60));
+    Object.defineProperty(document, "visibilityState", {
+      configurable: true,
+      get: () => "visible",
+    });
+
+    await act(async () => {
+      document.dispatchEvent(new Event("visibilitychange"));
+    });
+
+    expect(replaceMock).toHaveBeenCalledWith("/admin/login?redirect=%2Fadmin%2Fusers&expired=1");
+  });
 });

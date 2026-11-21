@@ -13,8 +13,10 @@ import { openDiscoverSearch } from "@/lib/discover-search";
 import { normalizeNavPath } from "@/lib/scroll-to-top";
 import {
   getPortalHomeHref,
+  getPortalKind,
   getPortalLoginHref,
   isPortalAppRoute,
+  isPortalAuthRoute,
 } from "@/lib/portal-nav";
 import { useAuthStore } from "@/stores/auth-store";
 import { cn } from "@/lib/utils";
@@ -97,13 +99,66 @@ function NavQuickSearch({ className }: { className?: string }) {
   );
 }
 
+function PortalBrandMark({
+  href,
+  kind,
+  showMenu,
+}: {
+  href: string;
+  kind: "admin" | "brand";
+  showMenu?: boolean;
+}) {
+  return (
+    <>
+      {showMenu ? <PortalMenuButton /> : null}
+      <NavScrollLink
+        href={href}
+        className="group flex min-w-0 flex-1 items-center gap-2 font-display font-bold text-foreground sm:flex-none sm:gap-2.5"
+      >
+        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl gradient-ai text-white shadow-md transition-transform duration-300 group-hover:scale-105">
+          <Sparkles className="h-4 w-4" />
+        </span>
+        <span className="flex min-w-0 flex-col leading-tight">
+          <span className="truncate tracking-tight">FitMe AI</span>
+          <span className="truncate text-[11px] font-medium text-primary">
+            {kind === "admin" ? "Cổng quản trị" : "Cổng thương hiệu"}
+          </span>
+        </span>
+      </NavScrollLink>
+    </>
+  );
+}
+
+/** Minimal chrome for portal sign-in / onboarding — no consumer shopping nav. */
+function PortalAuthHeader() {
+  const pathname = usePathname() ?? "/";
+  const kind = getPortalKind(pathname);
+  const portalHome = getPortalHomeHref(pathname);
+
+  return (
+    <header className="glass-nav sticky top-0 z-40 border-b border-border/50 bg-white">
+      <div className={cn("mx-auto flex h-16 w-full items-center gap-2 px-4 sm:gap-3 sm:px-6", portalShellMaxWidthClass)}>
+        <PortalBrandMark href={portalHome} kind={kind} />
+        <div className="ml-auto">
+          <Button variant="ghost" size="sm" asChild>
+            <Link href="/">
+              <Home className="mr-1.5 h-4 w-4" />
+              Cửa hàng
+            </Link>
+          </Button>
+        </div>
+      </div>
+    </header>
+  );
+}
+
 function PortalHeader() {
   const pathname = usePathname() ?? "/";
   const router = useRouter();
   const logout = useAuthStore((s) => s.logout);
   const portalHome = getPortalHomeHref(pathname);
   const loginHref = getPortalLoginHref(pathname);
-  const isAdmin = pathname.startsWith("/admin");
+  const kind = getPortalKind(pathname);
 
   const handleLogout = async () => {
     await logout();
@@ -111,30 +166,15 @@ function PortalHeader() {
   };
 
   return (
-    <header className="glass-nav sticky top-0 z-40 bg-white">
+    <header className="glass-nav sticky top-0 z-40 border-b border-border/50 bg-white">
       <div className={cn("mx-auto flex h-16 w-full items-center gap-2 px-4 sm:gap-3 sm:px-6", portalShellMaxWidthClass)}>
-        <PortalMenuButton />
-        <NavScrollLink
-          href={portalHome}
-          className="group flex min-w-0 flex-1 items-center gap-2 font-display font-bold text-foreground sm:flex-none sm:gap-2.5"
-        >
-          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl gradient-ai text-white shadow-md transition-transform duration-300 group-hover:scale-105">
-            <Sparkles className="h-4 w-4" />
-          </span>
-          <span className="truncate tracking-tight sm:inline">
-            FitMe AI
-            <span className="hidden font-normal text-muted-foreground sm:inline">
-              {" "}
-              — {isAdmin ? "Quản trị" : "Thương hiệu"}
-            </span>
-          </span>
-        </NavScrollLink>
+        <PortalBrandMark href={portalHome} kind={kind} showMenu />
 
         <div className="ml-auto flex shrink-0 items-center gap-1 sm:gap-2">
           <Button variant="ghost" size="sm" className="hidden sm:inline-flex" asChild>
             <Link href="/">
               <Home className="mr-1.5 h-4 w-4" />
-              Trang chủ
+              Cửa hàng
             </Link>
           </Button>
           <Button variant="outline" size="sm" onClick={handleLogout}>
@@ -164,6 +204,9 @@ export function Header() {
 
   if (isPortalAppRoute(pathname)) {
     return <PortalHeader />;
+  }
+  if (isPortalAuthRoute(pathname)) {
+    return <PortalAuthHeader />;
   }
 
   return (

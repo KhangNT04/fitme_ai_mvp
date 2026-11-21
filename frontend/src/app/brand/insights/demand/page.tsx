@@ -2,11 +2,9 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { brandApi } from "@/services/brand-api";
-import { PortalLayout, brandNav } from "@/components/layout/PortalLayout";
-import { PortalPageHeader } from "@/components/portal/PortalPageHeader";
+import { PortalBrandPage } from "@/components/portal/PortalBrandPage";
+import { PortalSection } from "@/components/portal/PortalSection";
 import { Card, CardContent } from "@/components/ui/card";
-import { LoadingSkeleton } from "@/components/common/LoadingSkeleton";
-import { ErrorState } from "@/components/common/ErrorState";
 
 export default function BrandDemandInsightsPage() {
   const { data, isLoading, error, refetch } = useQuery({
@@ -24,38 +22,28 @@ export default function BrandDemandInsightsPage() {
       : null;
 
   return (
-    <PortalLayout title="Brand" nav={brandNav}>
-      <PortalPageHeader
-        title="Nhu cầu Gen Z"
-        description="Tín hiệu first-party (like / click mua / xác nhận mua) — không PII, không scrape."
-      />
-
-      {isLoading && <LoadingSkeleton count={3} />}
-      {error && <ErrorState onRetry={() => refetch()} />}
-
+    <PortalBrandPage
+      title="Nhu cầu Gen Z"
+      description="Tín hiệu first-party (like / click mua / xác nhận mua) — không PII, không scrape."
+      isLoading={isLoading}
+      error={error}
+      onRetry={() => refetch()}
+      skeleton="card"
+    >
       {data && (
-        <div className="space-y-4">
-          <Card className="border-border/60 shadow-sm">
-            <CardContent className="space-y-2 p-5">
-              <p className="text-sm leading-relaxed text-muted-foreground">{data.summaryVi}</p>
-              <div className="grid grid-cols-2 gap-3 pt-2 sm:grid-cols-4">
-                <Stat label="Outfit like" value={data.outfitLikes} />
-                <Stat label="Outfit dislike" value={data.outfitDislikes} />
-                <Stat label="Click mua" value={data.buyClicks} />
-                <Stat label="Xác nhận mua" value={data.purchasedConfirmed} />
-              </div>
-              <div className="grid grid-cols-2 gap-3 pt-1">
-                <Stat
-                  label="Like → click"
-                  value={likeToBuy == null ? "—" : `${likeToBuy}%`}
-                />
-                <Stat
-                  label="Click → xác nhận"
-                  value={confirmRate == null ? "—" : `${confirmRate}%`}
-                />
-              </div>
-            </CardContent>
-          </Card>
+        <div className="space-y-6">
+          <PortalSection title="Tín hiệu tổng" description={data.summaryVi}>
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+              <Stat label="Outfit like" value={data.outfitLikes} />
+              <Stat label="Outfit dislike" value={data.outfitDislikes} />
+              <Stat label="Click mua" value={data.buyClicks} />
+              <Stat label="Xác nhận mua" value={data.purchasedConfirmed} />
+            </div>
+            <div className="mt-3 grid grid-cols-2 gap-3">
+              <Stat label="Like → click" value={likeToBuy == null ? "—" : `${likeToBuy}%`} />
+              <Stat label="Click → xác nhận" value={confirmRate == null ? "—" : `${confirmRate}%`} />
+            </div>
+          </PortalSection>
 
           <div className="grid gap-4 sm:grid-cols-2">
             <InsightList
@@ -71,7 +59,7 @@ export default function BrandDemandInsightsPage() {
           </div>
         </div>
       )}
-    </PortalLayout>
+    </PortalBrandPage>
   );
 }
 

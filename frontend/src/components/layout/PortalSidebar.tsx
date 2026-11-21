@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useContext, useEffect, useState } from "react";
+import { createContext, useContext, useEffect, useLayoutEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
@@ -39,6 +39,7 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import type { PortalNavGroup, PortalNavItem } from "@/lib/portal-nav";
 import { adminNavGroups, brandNavGroups } from "@/lib/portal-nav";
+import { getPortalSidebarScroll, setPortalSidebarScroll } from "@/lib/portal-scroll";
 
 export const brandIcons: Record<string, React.ComponentType<{ className?: string }>> = {
   "/brand/dashboard": LayoutDashboard,
@@ -232,10 +233,29 @@ export function PortalSidebarProvider({ nav: _nav, isAdmin, children }: PortalSi
 export function PortalSidebarAside({ nav: _nav, isAdmin }: { nav: PortalNavItem[]; isAdmin: boolean }) {
   const pathname = usePathname() ?? "/";
   const groups = isAdmin ? adminNavGroups : brandNavGroups;
+  const kind = isAdmin ? "admin" : "brand";
+  const scrollerRef = useRef<HTMLDivElement>(null);
+
+  useLayoutEffect(() => {
+    const el = scrollerRef.current;
+    if (!el) return;
+    el.scrollTop = getPortalSidebarScroll(kind);
+  }, [kind, pathname]);
+
+  useEffect(() => {
+    const el = scrollerRef.current;
+    if (!el) return;
+    const onScroll = () => setPortalSidebarScroll(kind, el.scrollTop);
+    el.addEventListener("scroll", onScroll, { passive: true });
+    return () => el.removeEventListener("scroll", onScroll);
+  }, [kind]);
 
   return (
     <aside className="hidden w-56 shrink-0 self-stretch lg:block xl:w-64">
-      <div className="sticky top-[calc(4rem+0.75rem)] max-h-[calc(100dvh-5rem)] overflow-y-auto overscroll-contain rounded-2xl border border-border/60 bg-card/95 p-3.5 shadow-sm backdrop-blur-sm [scrollbar-width:thin]">
+      <div
+        ref={scrollerRef}
+        className="sticky top-[calc(4rem+0.75rem)] max-h-[calc(100dvh-5rem)] overflow-y-auto overscroll-contain rounded-2xl border border-border/60 bg-card/95 p-3.5 shadow-sm backdrop-blur-sm [scrollbar-width:thin]"
+      >
         <p className="mb-3 px-3 text-[11px] font-medium text-muted-foreground">
           {isAdmin ? "Điều hướng quản trị" : "Điều hướng brand"}
         </p>

@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense } from "react";
+import { Suspense, useEffect, useLayoutEffect } from "react";
 import { usePathname } from "next/navigation";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
@@ -11,11 +11,31 @@ import { PortalSidebarAside, PortalSidebarProvider } from "@/components/layout/P
 import { useSessionExpiryGuard } from "@/hooks/use-session-expiry-guard";
 import { portalContentClass, portalLayoutRowClass } from "@/lib/design-tokens";
 import { getPortalNav, isPortalAppRoute, isPortalRoute } from "@/lib/portal-nav";
+import { getPortalWindowScroll, setPortalWindowScroll } from "@/lib/portal-scroll";
 import { shouldShowBottomNav, showMobileFooter } from "@/lib/mobile-chrome";
 import { cn } from "@/lib/utils";
 
 interface ConsumerChromeProps {
   children: React.ReactNode;
+}
+
+/** Keep window scroll across portal soft navigations; F5 still starts at top. */
+function usePreservePortalWindowScroll(enabled: boolean, pathname: string) {
+  useEffect(() => {
+    if (!enabled) return;
+    const save = () => setPortalWindowScroll(window.scrollY);
+    save();
+    window.addEventListener("scroll", save, { passive: true });
+    return () => window.removeEventListener("scroll", save);
+  }, [enabled]);
+
+  useLayoutEffect(() => {
+    if (!enabled) return;
+    const y = getPortalWindowScroll();
+    if (y > 0 && Math.abs(window.scrollY - y) > 1) {
+      window.scrollTo(0, y);
+    }
+  }, [enabled, pathname]);
 }
 
 function ConsumerChromeInner({ children }: ConsumerChromeProps) {
@@ -29,6 +49,7 @@ function ConsumerChromeInner({ children }: ConsumerChromeProps) {
   const portalNav = getPortalNav(pathname);
   const footerOnMobile = showMobileFooter(pathname);
   const isAdminPortal = pathname.startsWith("/admin");
+  usePreservePortalWindowScroll(isPortalApp, pathname);
 
   const mainContent =
     isPortalApp && portalNav ? (

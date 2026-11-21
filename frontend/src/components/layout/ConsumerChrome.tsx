@@ -6,8 +6,10 @@ import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
 import { MobileBottomNav } from "@/components/layout/MobileBottomNav";
 import { NavHistorySync } from "@/components/layout/NavHistorySync";
-import { PortalSidebarProvider } from "@/components/layout/PortalSidebar";
+import { PageShell } from "@/components/layout/PageShell";
+import { PortalSidebarAside, PortalSidebarProvider } from "@/components/layout/PortalSidebar";
 import { useSessionExpiryGuard } from "@/hooks/use-session-expiry-guard";
+import { portalContentClass, portalLayoutRowClass } from "@/lib/design-tokens";
 import { getPortalNav, isPortalAppRoute, isPortalRoute } from "@/lib/portal-nav";
 import { shouldShowBottomNav, showMobileFooter } from "@/lib/mobile-chrome";
 import { cn } from "@/lib/utils";
@@ -26,6 +28,19 @@ function ConsumerChromeInner({ children }: ConsumerChromeProps) {
   const isAuthRoute = pathname.startsWith("/auth");
   const portalNav = getPortalNav(pathname);
   const footerOnMobile = showMobileFooter(pathname);
+  const isAdminPortal = pathname.startsWith("/admin");
+
+  const mainContent =
+    isPortalApp && portalNav ? (
+      <PageShell width="portal">
+        <div className={portalLayoutRowClass}>
+          <PortalSidebarAside nav={portalNav} isAdmin={isAdminPortal} />
+          <div className={portalContentClass}>{children}</div>
+        </div>
+      </PageShell>
+    ) : (
+      children
+    );
 
   const shell = (
     <div className="relative z-10 flex min-h-svh flex-col">
@@ -39,7 +54,7 @@ function ConsumerChromeInner({ children }: ConsumerChromeProps) {
           showBottomNav && !footerOnMobile && "pb-mobile-nav md:pb-0",
         )}
       >
-        {children}
+        {mainContent}
       </main>
       {!isPortal && !isAuthRoute && <Footer showOnMobile={footerOnMobile} />}
       <Suspense fallback={null}>
@@ -50,7 +65,7 @@ function ConsumerChromeInner({ children }: ConsumerChromeProps) {
 
   if (isPortalApp && portalNav) {
     return (
-      <PortalSidebarProvider nav={portalNav} isAdmin={pathname.startsWith("/admin")}>
+      <PortalSidebarProvider nav={portalNav} isAdmin={isAdminPortal}>
         {shell}
       </PortalSidebarProvider>
     );

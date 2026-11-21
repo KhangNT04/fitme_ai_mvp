@@ -5,7 +5,7 @@ test.describe("Admin portal", () => {
     await page.goto("/admin/login");
 
     await expect(
-      page.getByRole("heading", { name: "Admin — Đăng nhập" }),
+      page.getByRole("heading", { name: "Đăng nhập quản trị" }),
     ).toBeVisible();
     await expect(page.locator('input[type="email"]')).toBeVisible();
     await expect(page.locator('input[type="password"]')).toBeVisible();
